@@ -2,14 +2,14 @@ import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { punteggioFfmq, punteggioPss10 } from '../lib/scoring'
 import GraficiTono from '../components/GraficiTono.jsx'
-import TonoMini from '../components/TonoMini.jsx'
+import { ElencoLog } from '../components/VoceLog.jsx'
 import EditorSplash from '../components/EditorSplash.jsx'
 
 const ESITI = [
-  { id: 'in_attesa', label: 'in attesa' },
-  { id: 'in_valutazione', label: 'in valutazione' },
-  { id: 'idoneo', label: 'idoneo' },
-  { id: 'da_ricontattare', label: 'da ricontattare' }
+  { id: 'in_attesa', label: 'In attesa' },
+  { id: 'in_valutazione', label: 'In valutazione' },
+  { id: 'idoneo', label: 'Idoneo' },
+  { id: 'da_ricontattare', label: 'Da ricontattare' }
 ]
 
 function aggregaPunteggi(righe) {
@@ -216,24 +216,38 @@ export default function Dashboard() {
 
       {cicloAperto && (
         <div className="card">
-          <h3>Contatto operativo — {cicloAperto.nome_ciclo}</h3>
-          {iscritti.filter(i => i.ciclo_id === cicloAperto.id).map(i => (
-            <p key={i.id} className="riga-iscritto">
-              <span>{i.utenti?.email}</span>
-              <span className="badge">{i.utenti?.codice_partecipante}</span>
-              <select value={i.esito_screening || 'in_attesa'} onChange={e => aggiornaEsito(i, e.target.value)}>
-                {ESITI.map(e => <option key={e.id} value={e.id}>{e.label}</option>)}
-              </select>
-              <button
-                type="button"
-                className="btn-elimina"
-                onClick={() => eliminaIscritto(i)}
-              >
-                Rimuovi
-              </button>
-            </p>
-          ))}
+          <h3>Contatto operativo</h3>
+          <p className="voce-log-settimana">{cicloAperto.nome_ciclo}</p>
+          <p className="hint">L’email serve solo al contatto. Nei dati di ricerca resta il codice.</p>
           {iscritti.filter(i => i.ciclo_id === cicloAperto.id).length === 0 && <p>Nessuna iscrizione.</p>}
+          <div className="elenco-iscritti">
+            {iscritti.filter(i => i.ciclo_id === cicloAperto.id).map(i => (
+              <article key={i.id} className="voce-iscritto">
+                <header className="voce-iscritto-testata">
+                  <span className="badge">{i.utenti?.codice_partecipante || '—'}</span>
+                </header>
+                <p className="voce-iscritto-email">{i.utenti?.email || 'Nessuna email'}</p>
+                <div className="voce-iscritto-azioni">
+                  <label className="voce-iscritto-esito">
+                    <span>Screening</span>
+                    <select
+                      value={i.esito_screening || 'in_attesa'}
+                      onChange={e => aggiornaEsito(i, e.target.value)}
+                    >
+                      {ESITI.map(e => <option key={e.id} value={e.id}>{e.label}</option>)}
+                    </select>
+                  </label>
+                  <button
+                    type="button"
+                    className="btn-elimina"
+                    onClick={() => eliminaIscritto(i)}
+                  >
+                    Rimuovi
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
       )}
 
@@ -255,16 +269,7 @@ export default function Dashboard() {
       <div className="card">
         <h3>Log di pratica (solo codice)</h3>
         {logVista.length === 0 && <p>Nessun log ancora registrato.</p>}
-        {logVista.map((l, idx) => (
-          <p key={`${l.codice_partecipante}-${l.data}-${idx}`}>
-            <span className="badge">{l.codice_partecipante}</span>{' '}
-            {new Date(l.data).toLocaleDateString('it-IT')} · {l.durata_minuti} min
-            {l.numero_settimana ? ` · sett. ${l.numero_settimana}` : ''}
-            {l.esercizio ? ` — ${l.esercizio}` : l.tipo ? ` · ${l.tipo}` : ''}
-            <TonoMini riga={l} />
-            {l.note ? ` — ${l.note}` : ''}
-          </p>
-        ))}
+        <ElencoLog righe={logVista} raggruppaCodice />
       </div>
     </div>
   )

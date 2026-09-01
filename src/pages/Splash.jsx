@@ -4,7 +4,6 @@ import { useAuth } from '../lib/auth.jsx'
 import { usePartecipante } from '../lib/partecipante.jsx'
 import { leggiSplash, SPLASH_DEFAULT } from '../lib/splash.js'
 import iconaConscio from '../assets/icona-conscio.png'
-import RuotaTonalita from '../components/RuotaTonalita.jsx'
 
 export default function Splash() {
   const { facilitatore } = useAuth()
@@ -35,7 +34,6 @@ export default function Splash() {
           </p>
         )}
       </div>
-      <RuotaTonalita variante="piena" />
     </main>
   )
 }

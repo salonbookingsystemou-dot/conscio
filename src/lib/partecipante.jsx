@@ -1,10 +1,13 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { dimenticaCodice, leggiCodice, memorizzaCodice, supabase, supabaseConfigurato } from './supabaseClient'
+import { sommaMinutiTracce } from './oreAscolto.js'
 
 const PartecipanteContext = createContext({
   codice: '',
   registrato: false,
   caricamento: true,
+  minutiAscolto: 0,
+  aggiornaAscolto: async () => {},
   entra: async () => {},
   esci: () => {}
 })
@@ -26,6 +29,15 @@ export function PartecipanteProvider({ children }) {
   const [codice, setCodice] = useState('')
   const [registrato, setRegistrato] = useState(false)
   const [caricamento, setCaricamento] = useState(true)
+  const [minutiAscolto, setMinutiAscolto] = useState(0)
+
+  const aggiornaAscolto = useCallback(async (valore = codice) => {
+    if (!valore) {
+      setMinutiAscolto(0)
+      return
+    }
+    setMinutiAscolto(await sommaMinutiTracce(valore))
+  }, [codice])
 
   useEffect(() => {
     const salvato = leggiCodice()
@@ -33,10 +45,11 @@ export function PartecipanteProvider({ children }) {
       setCaricamento(false)
       return
     }
-    codiceValido(salvato).then(ok => {
+    codiceValido(salvato).then(async ok => {
       if (ok) {
         setCodice(salvato)
         setRegistrato(true)
+        setMinutiAscolto(await sommaMinutiTracce(salvato))
       } else {
         dimenticaCodice()
       }
@@ -51,16 +64,18 @@ export function PartecipanteProvider({ children }) {
     memorizzaCodice(pulito)
     setCodice(pulito)
     setRegistrato(true)
+    setMinutiAscolto(await sommaMinutiTracce(pulito))
   }
 
   function esci() {
     dimenticaCodice()
     setCodice('')
     setRegistrato(false)
+    setMinutiAscolto(0)
   }
 
   return (
-    <PartecipanteContext.Provider value={{ codice, registrato, caricamento, entra, esci }}>
+    <PartecipanteContext.Provider value={{ codice, registrato, caricamento, minutiAscolto, aggiornaAscolto, entra, esci }}>
       {children}
     </PartecipanteContext.Provider>
   )

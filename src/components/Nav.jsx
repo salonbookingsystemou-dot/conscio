@@ -5,10 +5,11 @@ import { usePartecipante } from '../lib/partecipante.jsx'
 import iconaConscio from '../assets/icona-conscio.png'
 import { apriInvitoHome, appGiaInHome } from '../lib/invitoHome.js'
 import RuotaTonalita from './RuotaTonalita.jsx'
+import OreAscolto from './OreAscolto.jsx'
 
 export default function Nav() {
   const { facilitatore, esci } = useAuth()
-  const { registrato, esci: esciPartecipante } = usePartecipante()
+  const { registrato, minutiAscolto, esci: esciPartecipante } = usePartecipante()
   const { pathname } = useLocation()
   const [aperto, setAperto] = useState(false)
   const menuId = useId()
@@ -89,7 +90,7 @@ export default function Nav() {
           Percorso MBSR
         </Link>
         <div className="topbar-azioni">
-          <RuotaTonalita variante="compatta" />
+          {registrato && <OreAscolto minuti={minutiAscolto} />}
           <button
             type="button"
             className="nav-toggle"
@@ -116,6 +117,9 @@ export default function Nav() {
       )}
       <nav id={menuId} className="nav-links" aria-label="Sezioni del percorso">
         {voci}
+        <div className="nav-tonalita">
+          <RuotaTonalita variante="piena" />
+        </div>
       </nav>
     </header>
   )

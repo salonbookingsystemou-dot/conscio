@@ -7,8 +7,9 @@ import CampoNota from '../components/CampoNota.jsx'
 import CalendarioPratica from '../components/CalendarioPratica.jsx'
 import TracciaGuidata from '../components/TracciaGuidata.jsx'
 import TonoEsperienza from '../components/TonoEsperienza.jsx'
-import TonoMini from '../components/TonoMini.jsx'
+import VoceLog from '../components/VoceLog.jsx'
 import { addDays, formatISODate, oggiLocaleISO, parseISODate } from '../lib/date.js'
+import { ascoltoCompletato } from '../lib/ascolto.js'
 
 function etichettaTipo(tipo) {
   if (tipo === 'informale') return 'Informale'
@@ -17,10 +18,29 @@ function etichettaTipo(tipo) {
   return tipo || 'Pratica'
 }
 
-function LogSottoEsercizio({ codice, esercizio, onSalvato, dataScelta, puoRegistrare }) {
+function etichettaPill(lezione) {
+  if (lezione.tema) return lezione.tema
+  return lezione.numero_settimana === 9 ? 'Intensiva' : 'Settimana'
+}
+
+function minutiDaSecondi(secondi) {
+  if (!Number.isFinite(secondi) || secondi <= 0) return null
+  return Math.max(1, Math.round(secondi / 60))
+}
+
+function etichettaDurata(secondi) {
+  if (!Number.isFinite(secondi) || secondi <= 0) return null
+  const m = Math.floor(secondi / 60)
+  const s = Math.floor(secondi % 60)
+  return s === 0 ? `${m} min` : `${m} min ${s} s`
+}
+
+function LogSottoEsercizio({ codice, esercizio, onSalvato, dataScelta, puoRegistrare, haTraccia, durataTraccia }) {
   const informale = (esercizio.tipo || '').includes('informale')
   const [data, setData] = useState(dataScelta || oggiLocaleISO())
   const [minuti, setMinuti] = useState(informale ? 5 : 20)
+  const minutiTraccia = minutiDaSecondi(durataTraccia)
+  const durataPronta = haTraccia ? minutiTraccia != null : Number(minuti) > 0
 
   useEffect(() => {
     if (dataScelta) setData(dataScelta)
@@ -36,13 +56,14 @@ function LogSottoEsercizio({ codice, esercizio, onSalvato, dataScelta, puoRegist
 
   async function registra(e) {
     e.preventDefault()
-    if (!puoRegistrare || !notaPronta) return
+    const durata = haTraccia ? minutiTraccia : Number(minuti)
+    if (!puoRegistrare || !notaPronta || !durata) return
     setErrore(null)
     setInvio(true)
     const { error } = await supabase.rpc('salva_log_pratica', {
       p_codice: codice.trim(),
       p_data: data,
-      p_durata: Number(minuti),
+      p_durata: durata,
       p_note: note.trim() || null,
       p_tipo: esercizio.tipo || null,
       p_esercizio_id: esercizio.id,
@@ -73,33 +94,49 @@ function LogSottoEsercizio({ codice, esercizio, onSalvato, dataScelta, puoRegist
         <span className="badge">{etichettaTipo(esercizio.tipo)}</span>
         {' '}{esercizio.descrizione}
       </h4>
-      {log.length === 0 && <p className="hint">Nessuna sessione ancora registrata per questa pratica.</p>}
-      {log.map(riga => (
-        <p className="log-riga" key={riga.id}>
-          {new Date(riga.data).toLocaleDateString('it-IT')} · {riga.durata_minuti} min
-          <TonoMini riga={riga} />
-          {riga.note ? ` — ${riga.note}` : ''}
+      {!puoRegistrare ? (
+        <p className="hint">
+          Ascolta prima la traccia guidata fino alla fine: è il materiale della sessione.
+          Poi potrai scrivere la nota e registrare.
         </p>
-      ))}
-      {puoRegistrare ? (
+      ) : (
+        <>
+          {log.length === 0 && <p className="hint">Nessuna sessione ancora registrata per questa pratica.</p>}
+          <div className="elenco-log">
+            {log.map(riga => (
+              <VoceLog key={riga.id} riga={riga} />
+            ))}
+          </div>
           <form onSubmit={registra}>
-            <div className="riga-due">
+            {haTraccia ? (
               <div className="field">
                 <label>Data</label>
                 <input type="date" required value={data} onChange={e => setData(e.target.value)} />
+                <p className="hint">
+                  {etichettaDurata(durataTraccia)
+                    ? `Durata della sessione: ${etichettaDurata(durataTraccia)}, dalla traccia guidata.`
+                    : 'La durata della sessione è quella della traccia guidata.'}
+                </p>
               </div>
-              <div className="field">
-                <label>Minuti</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="240"
-                  required
-                  value={minuti}
-                  onChange={e => setMinuti(e.target.value)}
-                />
+            ) : (
+              <div className="riga-due">
+                <div className="field">
+                  <label>Data</label>
+                  <input type="date" required value={data} onChange={e => setData(e.target.value)} />
+                </div>
+                <div className="field">
+                  <label>Minuti</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="240"
+                    required
+                    value={minuti}
+                    onChange={e => setMinuti(e.target.value)}
+                  />
+                </div>
               </div>
-            </div>
+            )}
             {informale && (
               <TonoEsperienza
                 label="All’inizio"
@@ -121,24 +158,20 @@ function LogSottoEsercizio({ codice, esercizio, onSalvato, dataScelta, puoRegist
               onChange={setNote}
               placeholder={informale ? 'Situazione, prima, dopo' : 'Cosa è sorto, come ti senti dopo'}
             />
-            <button className="btn" type="submit" disabled={invio || !notaPronta}>
+            <button className="btn" type="submit" disabled={invio || !notaPronta || !durataPronta}>
               {invio ? 'Salvataggio…' : 'Registra questa sessione'}
             </button>
             {!notaPronta && <p className="hint">La nota è necessaria per chiudere la sessione.</p>}
             {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
           </form>
-        ) : (
-          <p className="hint">
-            Ascolta prima la traccia guidata fino alla fine: è il materiale della sessione.
-            Poi potrai scrivere la nota e registrare.
-          </p>
-        )}
+        </>
+      )}
     </div>
   )
 }
 
 export default function Programma() {
-  const { codice, registrato } = usePartecipante()
+  const { codice, registrato, aggiornaAscolto } = usePartecipante()
   const [lezioni, setLezioni] = useState([])
   const [ciclo, setCiclo] = useState(null)
   const [tutteSessioni, setTutteSessioni] = useState([])
@@ -149,6 +182,7 @@ export default function Programma() {
   const [invio, setInvio] = useState(false)
   const [aperto, setAperto] = useState(false)
   const [ascoltoOk, setAscoltoOk] = useState(false)
+  const [durataTraccia, setDurataTraccia] = useState(0)
   const pillsRef = useRef(null)
 
   async function caricaProgramma(codicePulito) {
@@ -204,6 +238,19 @@ export default function Programma() {
     ? addDays(inizioCiclo, (Math.max(1, corrente.numero_settimana) - 1) * 7)
     : null
   const fineSettimana = inizioSettimana ? addDays(inizioSettimana, 6) : null
+  const srcTraccia = corrente?.traccia_audio || null
+  const chiaveAscolto = corrente && codice
+    ? `${codice.trim()}:${corrente.id || corrente.numero_settimana}`
+    : null
+
+  useEffect(() => {
+    setDurataTraccia(0)
+    if (!srcTraccia || !chiaveAscolto) {
+      setAscoltoOk(false)
+      return
+    }
+    setAscoltoOk(ascoltoCompletato(chiaveAscolto))
+  }, [chiaveAscolto, srcTraccia])
 
   return (
     <div>
@@ -239,13 +286,16 @@ export default function Programma() {
                   disabled={bloccata}
                   aria-disabled={bloccata}
                   aria-current={inCorso ? 'true' : undefined}
+                  aria-label={
+                    n === 9
+                      ? `${etichettaPill(l)}${bloccata ? ', non ancora aperta' : inCorso ? ', in corso' : ''}`
+                      : `Settimana ${n}${l.tema ? `, ${l.tema}` : ''}${bloccata ? ', non ancora aperta' : inCorso ? ', in corso' : ''}`
+                  }
                   className={`settimana-pill${attiva ? ' is-on' : ''}${inCorso ? ' is-ora' : ''}${bloccata ? ' is-bloccata' : ''}`}
                   onClick={() => { if (!bloccata) setSettimana(n) }}
                 >
-                  <span className="sett-num">{n === 9 ? 'Int.' : n}</span>
-                  <span className="sett-stato">
-                    {bloccata ? 'Poi' : inCorso ? 'Ora' : n === 9 ? 'Intensiva' : 'Aperta'}
-                  </span>
+                  <span className="sett-num" aria-hidden="true">{n === 9 ? 'Int.' : n}</span>
+                  <span className="sett-stato">{etichettaPill(l)}</span>
                 </button>
               )
             })}
@@ -270,12 +320,13 @@ export default function Programma() {
               {corrente.pratiche_formali && <p><strong>Formali.</strong> {corrente.pratiche_formali}</p>}
               {corrente.pratiche_informali && <p><strong>Informali.</strong> {corrente.pratiche_informali}</p>}
               {corrente.materiali && <p><strong>Materiali.</strong> {corrente.materiali}</p>}
-              {corrente.traccia_audio ? (
+              {srcTraccia ? (
                 <TracciaGuidata
                   key={corrente.id || corrente.numero_settimana}
-                  src={corrente.traccia_audio}
+                  src={srcTraccia}
                   persistenzaKey={`${codice.trim()}:${corrente.id || corrente.numero_settimana}`}
                   onCompleto={setAscoltoOk}
+                  onDurata={setDurataTraccia}
                 />
               ) : (
                 <p className="hint">
@@ -292,8 +343,13 @@ export default function Programma() {
                   codice={codice}
                   esercizio={ex}
                   dataScelta={dataScelta}
-                  puoRegistrare={!corrente.traccia_audio || ascoltoOk}
-                  onSalvato={() => caricaProgramma(codice.trim())}
+                  puoRegistrare={!srcTraccia || ascoltoOk}
+                  haTraccia={!!srcTraccia}
+                  durataTraccia={durataTraccia}
+                  onSalvato={() => {
+                    caricaProgramma(codice.trim())
+                    aggiornaAscolto()
+                  }}
                 />
               ))}
             </div>

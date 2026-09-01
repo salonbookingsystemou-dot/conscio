@@ -7,7 +7,7 @@ import Disclaimer from '../components/Disclaimer.jsx'
 import CampoNota from '../components/CampoNota.jsx'
 import CalendarioPratica from '../components/CalendarioPratica.jsx'
 import TonoEsperienza from '../components/TonoEsperienza.jsx'
-import TonoMini from '../components/TonoMini.jsx'
+import { ElencoLog } from '../components/VoceLog.jsx'
 import { oggiLocaleISO } from '../lib/date.js'
 
 const TIPI = [
@@ -144,15 +144,7 @@ export default function LogPratica() {
               {visibili.length === 0 && (
                 <p>{giornoAttivo ? 'Nessuna sessione in questo giorno.' : 'Nessuna sessione ancora registrata.'}</p>
               )}
-              {visibili.map(riga => (
-                <p className="log-riga" key={riga.id}>
-                  {new Date(riga.data).toLocaleDateString('it-IT')} · {riga.durata_minuti} min
-                  {riga.numero_settimana ? ` · sett. ${riga.numero_settimana}` : ''}
-                  {riga.esercizio ? ` — ${riga.esercizio}` : riga.tipo ? ` · ${riga.tipo}` : ''}
-                  <TonoMini riga={riga} />
-                  {riga.note ? ` — ${riga.note}` : ''}
-                </p>
-              ))}
+              <ElencoLog righe={visibili} />
             </div>
           </>
         )}
