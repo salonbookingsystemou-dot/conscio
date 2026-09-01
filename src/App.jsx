@@ -11,6 +11,7 @@ import Questionari from './pages/Questionari.jsx'
 import LogPratica from './pages/LogPratica.jsx'
 import Comunicazioni from './pages/Comunicazioni.jsx'
 import Programma from './pages/Programma.jsx'
+import Documento from './pages/Documento.jsx'
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
       <div className="shell">
         <Routes>
           <Route path="/" element={<Iscrizione />} />
+          <Route path="/documenti/:slug" element={<Documento />} />
           <Route path="/entra" element={<Entra />} />
           <Route path="/questionari" element={<SoloRegistrato><Questionari /></SoloRegistrato>} />
           <Route path="/pratica" element={<SoloRegistrato><LogPratica /></SoloRegistrato>} />

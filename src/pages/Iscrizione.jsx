@@ -10,6 +10,7 @@ export default function Iscrizione() {
   const [form, setForm] = useState({
     email: '',
     ciclo_id: '',
+    letto_informativa: false,
     consenso_modulo_a: false,
     consenso_modulo_b: false
   })
@@ -27,7 +28,7 @@ export default function Iscrizione() {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!form.consenso_modulo_a) return
+    if (!form.letto_informativa || !form.consenso_modulo_a) return
     setErrore(null)
     setStato('invio')
     if (!supabaseConfigurato) {
@@ -124,6 +125,28 @@ export default function Iscrizione() {
             <p className="hint">Serve solo per inviarti il codice e le comunicazioni del gruppo.</p>
           </div>
 
+          <p className="hint hint-consensi">
+            Prima di inviare, apri i documenti. I due consensi sono indipendenti:
+            il Modulo B non è richiesto per partecipare.
+          </p>
+          <div className="consenso-box">
+            <label>
+              <input
+                type="checkbox"
+                checked={form.letto_informativa}
+                onChange={e => setForm({ ...form, letto_informativa: e.target.checked })}
+              />
+              <span>
+                <strong>Informativa sul trattamento dei dati</strong>
+                <span className="hint">Obbligatoria. Non è un consenso extra: ti dice come usiamo i dati.</span>
+              </span>
+            </label>
+            <p className="doc-apri">
+              <a href="#/documenti/informativa" target="_blank" rel="noopener noreferrer">
+                Leggi l’informativa privacy
+              </a>
+            </p>
+          </div>
           <div className="consenso-box">
             <label>
               <input
@@ -136,6 +159,11 @@ export default function Iscrizione() {
                 <span className="hint">Obbligatorio per entrare nel percorso.</span>
               </span>
             </label>
+            <p className="doc-apri">
+              <a href="#/documenti/modulo-a" target="_blank" rel="noopener noreferrer">
+                Leggi il Modulo A
+              </a>
+            </p>
           </div>
           <div className="consenso-box consenso-opz">
             <label>
@@ -149,9 +177,14 @@ export default function Iscrizione() {
                 <span className="hint">Opzionale. Non è richiesto per partecipare e non dipende dal Modulo A.</span>
               </span>
             </label>
+            <p className="doc-apri">
+              <a href="#/documenti/modulo-b" target="_blank" rel="noopener noreferrer">
+                Leggi il Modulo B
+              </a>
+            </p>
           </div>
 
-          <button className="btn" type="submit" disabled={stato === 'invio' || !form.consenso_modulo_a || !form.ciclo_id}>
+          <button className="btn" type="submit" disabled={stato === 'invio' || !form.letto_informativa || !form.consenso_modulo_a || !form.ciclo_id}>
             {stato === 'invio' ? 'Invio in corso…' : 'Invia richiesta'}
           </button>
           {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
@@ -162,6 +195,26 @@ export default function Iscrizione() {
         <div className="card card-lato">
           <h3>Da sapere</h3>
           <Disclaimer />
+        </div>
+        <div className="card card-lato">
+          <h3>Documenti</h3>
+          <ul className="lista-documenti">
+            <li>
+              <a href="#/documenti/informativa" target="_blank" rel="noopener noreferrer">
+                Informativa privacy
+              </a>
+            </li>
+            <li>
+              <a href="#/documenti/modulo-a" target="_blank" rel="noopener noreferrer">
+                Modulo A — partecipazione
+              </a>
+            </li>
+            <li>
+              <a href="#/documenti/modulo-b" target="_blank" rel="noopener noreferrer">
+                Modulo B — social (facoltativo)
+              </a>
+            </li>
+          </ul>
         </div>
         <div className="card card-lato">
           <h3>Come funziona il codice</h3>

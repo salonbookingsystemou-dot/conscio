@@ -267,6 +267,7 @@ a { color: var(--moss-dark); }
   color: var(--ink-soft);
   margin: 6px 0 0;
 }
+.hint-consensi { margin-bottom: 12px; }
 
 .brand {
   display: flex;
@@ -354,6 +355,34 @@ a { color: var(--moss-dark); }
 .consenso-opz input { width: auto; margin-top: 4px; }
 .consenso-box strong,
 .consenso-opz strong { display: block; }
+.consenso-box .doc-apri,
+.consenso-opz .doc-apri {
+  margin: 8px 0 0 28px;
+  font-size: 13px;
+}
+.lista-documenti {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.lista-documenti li { margin: 0 0 8px; }
+
+.doc-pagina .badge { margin-bottom: 10px; }
+.doc-corpo h3 {
+  font-size: 1.05rem;
+  margin: 1.5em 0 0.4em;
+}
+.doc-corpo p,
+.doc-corpo li { max-width: 40em; }
+.doc-corpo ul,
+.doc-corpo ol { padding-left: 1.2em; }
+.doc-corpo li { margin-bottom: 0.45em; }
+.doc-azioni {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
 
 .codice-enfasi,
 .codice-esempio {
