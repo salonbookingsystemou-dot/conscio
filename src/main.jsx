@@ -4,7 +4,11 @@ import { HashRouter } from 'react-router-dom'
 import App from './App.jsx'
 import { AuthProvider } from './lib/auth.jsx'
 import { PartecipanteProvider } from './lib/partecipante.jsx'
+import { TonalitaProvider } from './lib/tonalita.jsx'
+import { avviaTonalita } from './lib/tonalita.js'
 import './styles.css'
+
+avviaTonalita()
 
 // Usiamo HashRouter (non BrowserRouter) perché GitHub Pages serve file statici:
 // con le route "pulite" un refresh su /lezioni darebbe 404. HashRouter usa /#/lezioni
@@ -14,7 +18,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <HashRouter>
       <AuthProvider>
         <PartecipanteProvider>
-          <App />
+          <TonalitaProvider>
+            <App />
+          </TonalitaProvider>
         </PartecipanteProvider>
       </AuthProvider>
     </HashRouter>

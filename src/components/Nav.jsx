@@ -4,6 +4,7 @@ import { useAuth } from '../lib/auth.jsx'
 import { usePartecipante } from '../lib/partecipante.jsx'
 import iconaConscio from '../assets/icona-conscio.png'
 import { apriInvitoHome, appGiaInHome } from '../lib/invitoHome.js'
+import RuotaTonalita from './RuotaTonalita.jsx'
 
 export default function Nav() {
   const { facilitatore, esci } = useAuth()
@@ -87,20 +88,23 @@ export default function Nav() {
           <img className="brand-mark" src={iconaConscio} alt="" />
           Percorso MBSR
         </Link>
-        <button
-          type="button"
-          className="nav-toggle"
-          aria-expanded={aperto}
-          aria-controls={menuId}
-          onClick={() => setAperto(v => !v)}
-        >
-          <span className="nav-toggle-barre" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </span>
-          {aperto ? 'Chiudi' : 'Menu'}
-        </button>
+        <div className="topbar-azioni">
+          <RuotaTonalita variante="compatta" />
+          <button
+            type="button"
+            className="nav-toggle"
+            aria-expanded={aperto}
+            aria-controls={menuId}
+            onClick={() => setAperto(v => !v)}
+          >
+            <span className="nav-toggle-barre" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </span>
+            {aperto ? 'Chiudi' : 'Menu'}
+          </button>
+        </div>
       </div>
       {aperto && (
         <button

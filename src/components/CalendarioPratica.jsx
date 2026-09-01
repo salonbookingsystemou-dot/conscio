@@ -117,7 +117,7 @@ export default function CalendarioPratica({
       </div>
       <div
         className="cal-settimana cal-testata"
-        style={soloIntervallo ? { gridTemplateColumns: `repeat(${celle.length}, 1fr)` } : undefined}
+        style={soloIntervallo ? { gridTemplateColumns: `repeat(${celle.length}, minmax(0, 1fr))` } : undefined}
         aria-hidden="true"
       >
         {indiciTestata.map((i, k) => (
@@ -134,7 +134,7 @@ export default function CalendarioPratica({
             {mostraMese && <p className="cal-mese">{mese}</p>}
             <div
               className="cal-settimana"
-              style={soloIntervallo ? { gridTemplateColumns: `repeat(${riga.length}, 1fr)` } : undefined}
+              style={soloIntervallo ? { gridTemplateColumns: `repeat(${riga.length}, minmax(0, 1fr))` } : undefined}
             >
               {riga.map(cella => {
                 const attivo = giornoAttivo === cella.iso
