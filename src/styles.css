@@ -392,18 +392,45 @@ a { color: var(--moss-dark); }
 .consenso-box label,
 .consenso-opz label {
   display: flex;
-  gap: 10px;
+  gap: 14px;
   align-items: flex-start;
   margin: 0;
   color: var(--ink);
 }
-.consenso-box input,
-.consenso-opz input { width: auto; margin-top: 4px; }
+.consenso-box input[type="checkbox"],
+.consenso-opz input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  margin: 1px 0 0;
+  flex-shrink: 0;
+  border: 2px solid var(--moss);
+  border-radius: 6px;
+  background-color: #fff;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 16px 16px;
+  cursor: pointer;
+}
+.consenso-box input[type="checkbox"]:checked,
+.consenso-opz input[type="checkbox"]:checked {
+  background-color: var(--moss);
+  border-color: var(--moss);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' d='M3 8.4 6.6 12 13 4'/%3E%3C/svg%3E");
+}
+.consenso-box input[type="checkbox"]:focus-visible,
+.consenso-opz input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--moss);
+  outline-offset: 3px;
+}
 .consenso-box strong,
 .consenso-opz strong { display: block; }
 .consenso-box .doc-apri,
 .consenso-opz .doc-apri {
-  margin: 8px 0 0 28px;
+  margin: 8px 0 0 40px;
   font-size: 13px;
 }
 .lista-documenti {
@@ -947,6 +974,16 @@ button.cal-giorno { cursor: pointer; }
   text-align: center;
   background: var(--bg);
 }
+.splash-icona {
+  display: block;
+  width: 88px;
+  height: 88px;
+  margin: 0 0 28px;
+  object-fit: contain;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: splash-in 0.8s ease 0.02s forwards;
+}
 .splash-marca {
   margin: 0;
   font-size: 12px;
@@ -954,7 +991,7 @@ button.cal-giorno { cursor: pointer; }
   text-transform: uppercase;
   color: var(--ochre);
   opacity: 0;
-  animation: splash-in 0.7s ease 0.08s forwards;
+  animation: splash-in 0.7s ease 0.16s forwards;
 }
 .splash-linea {
   display: block;
@@ -1001,6 +1038,7 @@ button.cal-giorno { cursor: pointer; }
   to { transform: scaleX(1); }
 }
 @media (prefers-reduced-motion: reduce) {
+  .splash-icona,
   .splash-marca,
   .splash-linea,
   .splash-frase,
