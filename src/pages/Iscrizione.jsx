@@ -19,6 +19,72 @@ function IconaDocumento() {
   )
 }
 
+function IconaPercorso({ id }) {
+  const comune = {
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.6,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round'
+  }
+  return (
+    <svg className="percorso-icona" viewBox="0 0 24 24" aria-hidden="true">
+      {id === 'settimane' && (
+        <>
+          <rect x="4" y="5" width="16" height="15" rx="2" {...comune} />
+          <path d="M4 9.2h16M8 3.6v3M16 3.6v3" {...comune} />
+          <path d="M8 13h.1M12 13h.1M16 13h.1M8 16.4h.1M12 16.4h.1" {...comune} />
+        </>
+      )}
+      {id === 'presenza' && (
+        <>
+          <circle cx="9" cy="8.2" r="2.1" {...comune} />
+          <circle cx="15.2" cy="8.2" r="2.1" {...comune} />
+          <path d="M4.8 18.4c.4-3.2 2.4-5 4.2-5s3.4 1.4 4.2 3.4" {...comune} />
+          <path d="M12.4 16.6c.6-1.6 2.2-3.2 4-3.2 1.8 0 3.6 1.6 4.2 4.8" {...comune} />
+        </>
+      )}
+      {id === 'casa' && (
+        <>
+          <path d="M4.6 11.2 12 5.2l7.4 6" {...comune} />
+          <path d="M6.4 10.4V19h11.2v-8.6" {...comune} />
+          <path d="M10.2 19v-5.2h3.6V19" {...comune} />
+        </>
+      )}
+      {id === 'questionari' && (
+        <>
+          <rect x="4.2" y="4.4" width="10.4" height="13.2" rx="1.4" {...comune} />
+          <rect x="9.4" y="7.2" width="10.4" height="13.2" rx="1.4" {...comune} />
+          <path d="M12 11.6h5M12 14.6h5" {...comune} />
+        </>
+      )}
+    </svg>
+  )
+}
+
+const SCHEDE_PERCORSO = [
+  {
+    id: 'settimane',
+    titolo: '8 settimane',
+    testo: 'Un ciclo di pratica guidata, dal primo incontro all’ultimo.'
+  },
+  {
+    id: 'presenza',
+    titolo: 'In presenza',
+    testo: 'Un appuntamento a settimana di pratica condivisa.'
+  },
+  {
+    id: 'casa',
+    titolo: 'A casa',
+    testo: '45 minuti al giorno di pratica domestica individuale.'
+  },
+  {
+    id: 'questionari',
+    titolo: 'Due questionari',
+    testo: 'Prima, durante, alla fine e a tre mesi dalla fine del ciclo.'
+  }
+]
+
 export default function Iscrizione() {
   const [cicli, setCicli] = useState([])
   const [form, setForm] = useState({
@@ -92,12 +158,14 @@ export default function Iscrizione() {
   }
 
   return (
+    <div className="iscrizione-pagina">
     <div className="layout-due">
       <div>
         <h2>Iscriviti al percorso</h2>
         <p className="lead">
-          Otto settimane di pratica guidata in gruppo, con una giornata intensiva.
-          Compila i campi qui sotto: riceverai un codice personale da conservare.
+          Otto settimane di pratica guidata, con un appuntamento a settimana in
+          presenza. Compila i campi qui sotto: riceverai un codice personale da
+          conservare.
         </p>
         <form onSubmit={handleSubmit}>
           <div className="field">
@@ -242,19 +310,22 @@ export default function Iscrizione() {
           <p className="codice-esempio">MBSR-7K2Q</p>
           <p>Solo tu sai a chi appartiene. Conservalo.</p>
         </div>
-        <div className="card card-lato">
-          <h3>Il percorso</h3>
-          <ul>
-            <li>Dura 8 settimane</li>
-            <li>1 appuntamento settimanale di pratica condivisa</li>
-            <li>45′ al giorno di pratica domestica individuale</li>
-            <li>
-              2 questionari da compilare prima, durante, alla fine e a tre mesi
-              dalla fine del ciclo
-            </li>
-          </ul>
-        </div>
       </aside>
+    </div>
+    <section className="percorso-blocco" aria-labelledby="percorso-titolo">
+      <h3 id="percorso-titolo">Il percorso</h3>
+      <div className="percorso-carosello">
+        {SCHEDE_PERCORSO.map(scheda => (
+          <article key={scheda.id} className="percorso-card">
+            <span className="percorso-icona-fondo">
+              <IconaPercorso id={scheda.id} />
+            </span>
+            <h4>{scheda.titolo}</h4>
+            <p>{scheda.testo}</p>
+          </article>
+        ))}
+      </div>
+    </section>
     </div>
   )
 }
