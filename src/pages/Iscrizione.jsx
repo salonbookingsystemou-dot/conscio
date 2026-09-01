@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase, supabaseConfigurato, generaCodicePartecipante } from '../lib/supabaseClient'
-import { usePartecipante } from '../lib/partecipante.jsx'
 import Disclaimer from '../components/Disclaimer.jsx'
 
 export default function Iscrizione() {
-  const { dopoIscrizione } = usePartecipante()
   const [cicli, setCicli] = useState([])
   const [form, setForm] = useState({
     email: '',
@@ -50,12 +48,11 @@ export default function Iscrizione() {
       if (!error && data?.ok) {
         const assegnato = data.codice || codice
         setCodiceGenerato(assegnato)
-        dopoIscrizione(assegnato)
         setStato('ok')
         return
       }
       if (testo.includes('CODICE_DUPLICATO') && tentativo < 2) continue
-      if (testo.includes('CICLO_PIENO')) setErrore('Questo ciclo ha già raggiunto gli 8 posti.')
+      if (testo.includes('CICLO_PIENO')) setErrore('I posti idonei di questo ciclo sono già al completo.')
       else if (testo.includes('EMAIL_GIA_ISCRITTA')) setErrore('Questa email è già iscritta a questo ciclo.')
       else if (testo.includes('CICLO_NON_DISPONIBILE')) setErrore('Il ciclo non è più in reclutamento.')
       else setErrore('Si è verificato un errore. Riprova.')
@@ -68,12 +65,11 @@ export default function Iscrizione() {
     return (
       <div className="card card-conferma">
         <h2>Iscrizione ricevuta</h2>
-        <p>Conserva questo codice: è l’unico modo in cui ti riconosceremo nei questionari e nel log di pratica. Non useremo il tuo nome.</p>
+        <p>Conserva questo codice. Lo userai per entrare dopo l’esito dello screening, se l’esito è idoneo. Non useremo il tuo nome.</p>
         <p className="codice-enfasi">{codiceGenerato}</p>
-        <p>Riceverai una comunicazione con l’esito dello screening e i prossimi passi.</p>
+        <p>Riceverai una comunicazione con l’esito e i prossimi passi. Le altre sezioni si aprono solo a chi è idoneo.</p>
         <div className="azioni">
-          <Link className="btn" to="/questionari">Vai ai questionari</Link>
-          <Link className="btn btn-ghost" to="/programma">Vai alla settimana</Link>
+          <Link className="btn" to="/">Torna all’inizio</Link>
         </div>
       </div>
     )

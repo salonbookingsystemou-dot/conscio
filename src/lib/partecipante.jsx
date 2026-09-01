@@ -6,16 +6,20 @@ const PartecipanteContext = createContext({
   registrato: false,
   caricamento: true,
   entra: async () => {},
-  esci: () => {},
-  dopoIscrizione: () => {}
+  esci: () => {}
 })
 
-async function codiceValido(codice) {
-  if (!codice || !supabaseConfigurato) return false
-  const { data, error } = await supabase.rpc('codice_partecipante_valido', {
+async function statoAccesso(codice) {
+  if (!codice || !supabaseConfigurato) return 'non_trovato'
+  const { data, error } = await supabase.rpc('stato_accesso_codice', {
     p_codice: codice
   })
-  return !error && Boolean(data)
+  if (error) return 'non_trovato'
+  return data || 'non_trovato'
+}
+
+async function codiceValido(codice) {
+  return (await statoAccesso(codice)) === 'ok'
 }
 
 export function PartecipanteProvider({ children }) {
@@ -41,8 +45,9 @@ export function PartecipanteProvider({ children }) {
 
   async function entra(valore) {
     const pulito = (valore || '').trim()
-    const ok = await codiceValido(pulito)
-    if (!ok) throw new Error('CODICE_NON_TROVATO')
+    const stato = await statoAccesso(pulito)
+    if (stato === 'in_attesa') throw new Error('SCREENING_IN_ATTESA')
+    if (stato !== 'ok') throw new Error('CODICE_NON_TROVATO')
     memorizzaCodice(pulito)
     setCodice(pulito)
     setRegistrato(true)
@@ -54,16 +59,8 @@ export function PartecipanteProvider({ children }) {
     setRegistrato(false)
   }
 
-  function dopoIscrizione(valore) {
-    const pulito = (valore || '').trim()
-    if (!pulito) return
-    memorizzaCodice(pulito)
-    setCodice(pulito)
-    setRegistrato(true)
-  }
-
   return (
-    <PartecipanteContext.Provider value={{ codice, registrato, caricamento, entra, esci, dopoIscrizione }}>
+    <PartecipanteContext.Provider value={{ codice, registrato, caricamento, entra, esci }}>
       {children}
     </PartecipanteContext.Provider>
   )

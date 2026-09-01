@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth.jsx'
 import { usePartecipante } from '../lib/partecipante.jsx'
 
@@ -58,7 +58,7 @@ export default function Nav() {
     </>
   ) : (
     <>
-      <NavLink to="/" end onClick={chiudi}>Iscrizione</NavLink>
+      <NavLink to="/iscrizione" onClick={chiudi}>Iscrizione</NavLink>
       <NavLink to="/entra" onClick={chiudi}>Entra</NavLink>
       <span className="nav-sep" aria-hidden="true" />
       <NavLink to="/accedi" onClick={chiudi} className="nav-secondaria">
@@ -70,10 +70,10 @@ export default function Nav() {
   return (
     <header className={`topbar${aperto ? ' is-open' : ''}`}>
       <div className="topbar-riga">
-        <div className="brand">
+        <Link to="/" className="brand" onClick={chiudi}>
           <span className="brand-mark" aria-hidden="true" />
           Percorso MBSR
-        </div>
+        </Link>
         <button
           type="button"
           className="nav-toggle"

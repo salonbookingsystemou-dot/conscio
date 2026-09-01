@@ -21,8 +21,12 @@ export default function ChiediCodice({
     }
     try {
       await entra(codice)
-    } catch {
-      setErrore('Codice non riconosciuto. Controlla e riprova.')
+    } catch (err) {
+      setErrore(
+        err?.message === 'SCREENING_IN_ATTESA'
+          ? 'Il codice è riconosciuto. Questa sezione si apre dopo l’esito idoneo dello screening.'
+          : 'Codice non riconosciuto. Controlla e riprova.'
+      )
     } finally {
       setInvio(false)
     }

@@ -1,7 +1,8 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import Nav from './components/Nav.jsx'
 import SoloFacilitatore from './components/SoloFacilitatore.jsx'
 import SoloRegistrato from './components/SoloRegistrato.jsx'
+import Splash from './pages/Splash.jsx'
 import Iscrizione from './pages/Iscrizione.jsx'
 import Entra from './pages/Entra.jsx'
 import Accedi from './pages/Accedi.jsx'
@@ -14,12 +15,16 @@ import Programma from './pages/Programma.jsx'
 import Documento from './pages/Documento.jsx'
 
 export default function App() {
+  const { pathname } = useLocation()
+  const splash = pathname === '/'
+
   return (
     <>
-      <Nav />
-      <div className="shell">
+      {!splash && <Nav />}
+      <div className={splash ? undefined : 'shell'}>
         <Routes>
-          <Route path="/" element={<Iscrizione />} />
+          <Route path="/" element={<Splash />} />
+          <Route path="/iscrizione" element={<Iscrizione />} />
           <Route path="/documenti/:slug" element={<Documento />} />
           <Route path="/entra" element={<Entra />} />
           <Route path="/questionari" element={<SoloRegistrato><Questionari /></SoloRegistrato>} />

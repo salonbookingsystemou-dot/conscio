@@ -270,7 +270,7 @@ export default function Documento() {
         riferimento prima di usarlo come versione definitiva.
       </p>
       <div className="doc-azioni">
-        <Link className="btn" to="/">Torna all’iscrizione</Link>
+        <Link className="btn" to="/iscrizione">Torna all’iscrizione</Link>
         {slug !== 'informativa' && (
           <Link className="btn btn-ghost" to="/documenti/informativa">Informativa privacy</Link>
         )}

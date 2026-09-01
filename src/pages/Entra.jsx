@@ -31,8 +31,12 @@ export default function Entra() {
     }
     try {
       await entra(codice)
-    } catch {
-      setErrore('Codice non riconosciuto. Controlla e riprova, oppure iscriviti.')
+    } catch (err) {
+      setErrore(
+        err?.message === 'SCREENING_IN_ATTESA'
+          ? 'Il codice è riconosciuto. L’accesso alle altre sezioni si apre dopo l’esito idoneo dello screening.'
+          : 'Codice non riconosciuto. Controlla e riprova, oppure iscriviti.'
+      )
     } finally {
       setInvio(false)
     }
@@ -45,8 +49,8 @@ export default function Entra() {
         <Disclaimer />
         <div className="card">
           <p>
-            Le sezioni del percorso si aprono solo con il codice ricevuto all’iscrizione.
-            Non serve un account: il codice è il tuo accesso.
+            Le sezioni del percorso si aprono solo con il codice ricevuto all’iscrizione,
+            e solo dopo l’esito idoneo dello screening. Non serve un account.
           </p>
           <form onSubmit={handleSubmit}>
             <div className="field">
@@ -71,7 +75,7 @@ export default function Entra() {
         <div className="card card-lato">
           <h3>Non hai ancora il codice?</h3>
           <p>Prima iscriviti: riceverai un codice personale da conservare.</p>
-          <p><Link to="/">Vai all’iscrizione</Link></p>
+          <p><Link to="/iscrizione">Vai all’iscrizione</Link></p>
         </div>
       </aside>
     </div>

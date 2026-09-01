@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabaseClient'
 import { punteggioFfmq, punteggioPss10 } from '../lib/scoring'
 import GraficiTono from '../components/GraficiTono.jsx'
 import TonoMini from '../components/TonoMini.jsx'
+import EditorSplash from '../components/EditorSplash.jsx'
 
 const ESITI = [
   { id: 'in_attesa', label: 'in attesa' },
@@ -82,10 +83,43 @@ export default function Dashboard() {
     carica()
   }
 
+  function eIdoneo(iscrizione) {
+    return iscrizione.esito_screening === 'idoneo' || iscrizione.utenti?.stato_screening === 'idoneo'
+  }
+
+  function contaIdonei(cicloId) {
+    return iscritti.filter(i => i.ciclo_id === cicloId && eIdoneo(i)).length
+  }
+
   async function aggiornaEsito(iscrizione, esito) {
-    await supabase.from('iscrizioni').update({ esito_screening: esito }).eq('id', iscrizione.id)
-    if (iscrizione.utenti) {
-      await supabase.from('utenti').update({ stato_screening: esito }).eq('codice_partecipante', iscrizione.utenti.codice_partecipante)
+    setErrore(null)
+    const { error } = await supabase.rpc('imposta_esito_screening', {
+      p_iscrizione_id: iscrizione.id,
+      p_esito: esito
+    })
+    if (error?.message?.includes('POSTI_IDONEI_PIENI')) {
+      setErrore('I posti idonei di questo ciclo sono già al completo.')
+      return
+    }
+    if (error) {
+      setErrore('Non è stato possibile aggiornare l’esito.')
+      return
+    }
+    carica()
+  }
+
+  async function eliminaIscritto(iscrizione) {
+    const codice = iscrizione.utenti?.codice_partecipante
+    if (!codice) return
+    const ok = window.confirm(
+      `Rimuovere ${iscrizione.utenti?.email || codice} dal ciclo? Se era idonea, il posto si libera.`
+    )
+    if (!ok) return
+    setErrore(null)
+    const { error } = await supabase.rpc('elimina_partecipante', { p_codice: codice })
+    if (error) {
+      setErrore('Non è stato possibile rimuovere questa persona.')
+      return
     }
     carica()
   }
@@ -104,8 +138,14 @@ export default function Dashboard() {
 
   return (
     <div>
+      <EditorSplash />
+
       <h2>Cicli</h2>
-      <p className="lead">Stato delle edizioni, posti e accesso al dettaglio. Screening in linguaggio non clinico.</p>
+      <p className="lead">
+        Stato delle edizioni e accesso al dettaglio. Occupano un posto solo le persone
+        idonee; le altre restano in screening. Screening in linguaggio non clinico.
+      </p>
+      {errore && <p className="hint hint-errore">{errore}</p>}
 
       <div className="azioni" style={{ marginBottom: 16 }}>
         <button className="btn" type="button" onClick={() => setMostraForm(v => !v)}>
@@ -153,7 +193,8 @@ export default function Dashboard() {
 
       <div className="griglia-cicli">
         {cicli.map(c => {
-          const n = c.iscrizioni?.[0]?.count ?? 0
+          const idonei = contaIdonei(c.id)
+          const inScreening = iscritti.filter(i => i.ciclo_id === c.id && !eIdoneo(i)).length
           return (
             <button
               key={c.id}
@@ -163,7 +204,10 @@ export default function Dashboard() {
             >
               <h3>{c.nome_ciclo} <span className="badge">{c.stato}</span></h3>
               <p>Inizio {new Date(c.data_inizio).toLocaleDateString('it-IT')}</p>
-              <p className="posti">{n} / {c.posti_totali} posti</p>
+              <p className="posti">{idonei} / {c.posti_totali} posti idonei</p>
+              {inScreening > 0 && (
+                <p className="hint">{inScreening} in screening, non occupano un posto</p>
+              )}
             </button>
           )
         })}
@@ -180,6 +224,13 @@ export default function Dashboard() {
               <select value={i.esito_screening || 'in_attesa'} onChange={e => aggiornaEsito(i, e.target.value)}>
                 {ESITI.map(e => <option key={e.id} value={e.id}>{e.label}</option>)}
               </select>
+              <button
+                type="button"
+                className="btn-elimina"
+                onClick={() => eliminaIscritto(i)}
+              >
+                Rimuovi
+              </button>
             </p>
           ))}
           {iscritti.filter(i => i.ciclo_id === cicloAperto.id).length === 0 && <p>Nessuna iscrizione.</p>}

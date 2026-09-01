@@ -160,9 +160,11 @@ set search_path = public
 as $$
   select exists (
     select 1
-    from utenti
-    where upper(trim(codice_partecipante)) = upper(trim(p_codice))
-      and ruolo = 'partecipante'
+    from utenti u
+    left join iscrizioni i on i.utente_id = u.id
+    where upper(trim(u.codice_partecipante)) = upper(trim(p_codice))
+      and u.ruolo = 'partecipante'
+      and (u.stato_screening = 'idoneo' or i.esito_screening = 'idoneo')
   );
 $$;
 
@@ -330,6 +332,16 @@ begin
     raise exception 'CODICE_NON_TROVATO';
   end if;
 
+  if not exists (
+    select 1
+    from utenti u
+    left join iscrizioni i on i.utente_id = u.id
+    where u.id = v_utente_id
+      and (u.stato_screening = 'idoneo' or i.esito_screening = 'idoneo')
+  ) then
+    raise exception 'ACCESSO_NON_IDONEO';
+  end if;
+
   select c.data_inizio, coalesce(c.data_fine, c.data_inizio + 62)
     into v_inizio, v_fine
   from iscrizioni i
@@ -436,7 +448,11 @@ begin
   end if;
 
   select posti_totali into v_posti from cicli where id = p_ciclo_id;
-  select count(*) into v_iscritti from iscrizioni where ciclo_id = p_ciclo_id;
+  select count(*) into v_iscritti
+  from iscrizioni i
+  join utenti u on u.id = i.utente_id
+  where i.ciclo_id = p_ciclo_id
+    and (i.esito_screening = 'idoneo' or u.stato_screening = 'idoneo');
 
   if v_iscritti >= coalesce(v_posti, 0) then
     raise exception 'CICLO_PIENO';
@@ -497,6 +513,16 @@ begin
 
   if v_utente_id is null then
     raise exception 'CODICE_NON_TROVATO';
+  end if;
+
+  if not exists (
+    select 1
+    from utenti u
+    left join iscrizioni i on i.utente_id = u.id
+    where u.id = v_utente_id
+      and (u.stato_screening = 'idoneo' or i.esito_screening = 'idoneo')
+  ) then
+    raise exception 'ACCESSO_NON_IDONEO';
   end if;
 
   if p_durata is null or p_durata <= 0 then
@@ -876,6 +902,28 @@ create policy "facilitatore gestisce esercizi" on esercizi
 
 create policy "facilitatore gestisce comunicazioni" on comunicazioni
   for all using (is_facilitatore()) with check (is_facilitatore());
+
+create table if not exists splash_sito (
+  id smallint primary key default 1 check (id = 1),
+  frase text not null,
+  cta text not null default 'Prosegui',
+  aggiornato_il timestamptz not null default now()
+);
+
+insert into splash_sito (id, frase, cta)
+values (1, 'La pratica comincia qui, in questo momento.', 'Prosegui')
+on conflict (id) do nothing;
+
+alter table splash_sito enable row level security;
+
+create policy "lettura pubblica splash" on splash_sito
+  for select using (true);
+
+create policy "facilitatore aggiorna splash" on splash_sito
+  for update using (is_facilitatore()) with check (is_facilitatore());
+
+grant select on splash_sito to anon, authenticated;
+grant update on splash_sito to authenticated;
 
 -- Per collegare l'account Auth al profilo facilitatore, dopo aver creato
 -- l'utente in Authentication → Users:
