@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { supabase, supabaseConfigurato, generaCodicePartecipante } from '../lib/supabaseClient'
+import { usePartecipante } from '../lib/partecipante.jsx'
 import Disclaimer from '../components/Disclaimer.jsx'
 
 export default function Iscrizione() {
+  const { dopoIscrizione } = usePartecipante()
   const [cicli, setCicli] = useState([])
   const [form, setForm] = useState({
     email: '',
@@ -44,7 +47,9 @@ export default function Iscrizione() {
       })
       const testo = error?.message || ''
       if (!error && data?.ok) {
-        setCodiceGenerato(data.codice || codice)
+        const assegnato = data.codice || codice
+        setCodiceGenerato(assegnato)
+        dopoIscrizione(assegnato)
         setStato('ok')
         return
       }
@@ -65,6 +70,10 @@ export default function Iscrizione() {
         <p>Conserva questo codice: è l’unico modo in cui ti riconosceremo nei questionari e nel log di pratica. Non useremo il tuo nome.</p>
         <p className="codice-enfasi">{codiceGenerato}</p>
         <p>Riceverai una comunicazione con l’esito dello screening e i prossimi passi.</p>
+        <div className="azioni">
+          <Link className="btn" to="/questionari">Vai ai questionari</Link>
+          <Link className="btn btn-ghost" to="/programma">Vai alla settimana</Link>
+        </div>
       </div>
     )
   }
@@ -169,7 +178,7 @@ export default function Iscrizione() {
             <li>8 incontri settimanali</li>
             <li>eventuale giornata intensiva</li>
             <li>pratiche da fare a casa</li>
-            <li>questionari a T0, T1, T2 e T3</li>
+            <li>questionari a T0, T1, T2 e T3, ciascuno nella sua settimana</li>
           </ul>
         </div>
       </aside>

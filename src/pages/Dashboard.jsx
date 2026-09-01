@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { punteggioFfmq, punteggioPss10 } from '../lib/scoring'
+import GraficiTono from '../components/GraficiTono.jsx'
+import TonoMini from '../components/TonoMini.jsx'
 
 const ESITI = [
   { id: 'in_attesa', label: 'in attesa' },
@@ -89,6 +91,16 @@ export default function Dashboard() {
   }
 
   const cicloAperto = cicli.find(c => c.id === aperto)
+  const logVista = useMemo(() => {
+    if (!aperto) return log
+    const codici = new Set(
+      iscritti
+        .filter(i => i.ciclo_id === aperto)
+        .map(i => i.utenti?.codice_partecipante)
+        .filter(Boolean)
+    )
+    return log.filter(l => codici.has(l.codice_partecipante))
+  }, [log, aperto, iscritti])
 
   return (
     <div>
@@ -187,15 +199,18 @@ export default function Dashboard() {
         ))}
       </div>
 
+      <GraficiTono sessioni={logVista} ambito={cicloAperto?.nome_ciclo} />
+
       <div className="card">
         <h3>Log di pratica (solo codice)</h3>
-        {log.length === 0 && <p>Nessun log ancora registrato.</p>}
-        {log.map((l, idx) => (
+        {logVista.length === 0 && <p>Nessun log ancora registrato.</p>}
+        {logVista.map((l, idx) => (
           <p key={`${l.codice_partecipante}-${l.data}-${idx}`}>
             <span className="badge">{l.codice_partecipante}</span>{' '}
             {new Date(l.data).toLocaleDateString('it-IT')} · {l.durata_minuti} min
             {l.numero_settimana ? ` · sett. ${l.numero_settimana}` : ''}
             {l.esercizio ? ` — ${l.esercizio}` : l.tipo ? ` · ${l.tipo}` : ''}
+            <TonoMini riga={l} />
             {l.note ? ` — ${l.note}` : ''}
           </p>
         ))}

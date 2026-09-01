@@ -1,7 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase, supabaseConfigurato, leggiCodice, memorizzaCodice } from '../lib/supabaseClient'
+import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
+import { usePartecipante } from '../lib/partecipante.jsx'
+import ChiediCodice from '../components/ChiediCodice.jsx'
 import Disclaimer from '../components/Disclaimer.jsx'
+import CampoNota from '../components/CampoNota.jsx'
+import CalendarioPratica from '../components/CalendarioPratica.jsx'
+import TonoEsperienza from '../components/TonoEsperienza.jsx'
+import TonoMini from '../components/TonoMini.jsx'
+import { oggiLocaleISO } from '../lib/date.js'
 
 const TIPI = [
   { id: 'body_scan', label: 'Body scan' },
@@ -11,44 +18,48 @@ const TIPI = [
   { id: 'altro', label: 'Altro' }
 ]
 
-function oggiISO() {
-  return new Date().toISOString().slice(0, 10)
-}
-
 export default function LogPratica() {
-  const [codice, setCodice] = useState(leggiCodice)
+  const { codice, registrato } = usePartecipante()
   const [form, setForm] = useState({
-    data: oggiISO(),
+    data: oggiLocaleISO(),
     durata_minuti: 20,
     tipo: 'seduta',
-    note: ''
+    note: '',
+    tono_prima: '',
+    tono_dopo: ''
   })
   const [storico, setStorico] = useState([])
+  const [ciclo, setCiclo] = useState(null)
+  const [giornoAttivo, setGiornoAttivo] = useState(null)
   const [stato, setStato] = useState(null)
   const [errore, setErrore] = useState(null)
   const [caricato, setCaricato] = useState(false)
 
   async function caricaStorico(codicePulito) {
-    const { data, error } = await supabase.rpc('log_pratica_del_partecipante', {
-      p_codice: codicePulito
-    })
-    if (error) return false
+    const [{ data, error }, { data: cicloData, error: cicloErrore }] = await Promise.all([
+      supabase.rpc('log_pratica_del_partecipante', { p_codice: codicePulito }),
+      supabase.rpc('ciclo_del_partecipante', { p_codice: codicePulito })
+    ])
+    if (error || cicloErrore) return false
     setStorico(data || [])
+    setCiclo(cicloData || null)
     setCaricato(true)
-    memorizzaCodice(codicePulito)
     return true
   }
 
-  async function handleStorico(e) {
-    e.preventDefault()
+  useEffect(() => {
+    if (!registrato || !codice) return undefined
     setErrore(null)
     if (!supabaseConfigurato) {
       setErrore('Connessione non configurata. Riprova più tardi.')
-      return
+      return undefined
     }
-    const ok = await caricaStorico(codice.trim())
-    if (!ok) setErrore('Codice non riconosciuto, oppure non è stato possibile caricare lo storico.')
-  }
+    caricaStorico(codice).then(ok => {
+      if (!ok) setErrore('Non è stato possibile caricare lo storico.')
+    })
+    return undefined
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [registrato, codice])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -59,24 +70,37 @@ export default function LogPratica() {
       setStato(null)
       return
     }
+    if (!form.note.trim()) {
+      setErrore('La nota è necessaria per chiudere la sessione.')
+      setStato(null)
+      return
+    }
     const { error } = await supabase.rpc('salva_log_pratica', {
-      p_codice: codice.trim(),
+      p_codice: codice,
       p_data: form.data,
       p_durata: Number(form.durata_minuti),
       p_note: form.note.trim() || null,
-      p_tipo: form.tipo
+      p_tipo: form.tipo,
+      p_tono_dopo: form.tono_dopo || null,
+      p_tono_prima: form.tipo === 'informale' ? (form.tono_prima || null) : null
     })
     if (error) {
       setErrore(error.message?.includes('CODICE_NON_TROVATO')
         ? 'Codice non riconosciuto. Controlla e riprova.'
-        : 'Non è stato possibile registrare la pratica. Riprova.')
+        : error.message?.includes('NOTA_MANCANTE')
+          ? 'La nota è necessaria per chiudere la sessione.'
+          : 'Non è stato possibile registrare la pratica. Riprova.')
       setStato(null)
       return
     }
-    setForm({ ...form, note: '' })
+    setForm({ ...form, note: '', tono_prima: '', tono_dopo: '' })
     setStato('ok')
-    await caricaStorico(codice.trim())
+    await caricaStorico(codice)
   }
+
+  const visibili = giornoAttivo
+    ? storico.filter(r => String(r.data).slice(0, 10) === giornoAttivo)
+    : storico
 
   return (
     <div className="layout-due">
@@ -85,41 +109,55 @@ export default function LogPratica() {
         <p className="lead">
           Il diario della settimana sta in{' '}
           <Link to="/programma">Settimana</Link>, sotto ogni pratica.
-          Qui vedi tutte le sessioni e puoi registrare qualcosa fuori programma.
+          Qui il calendario mostra i giorni con sessione e quelli senza. Puoi anche registrare qualcosa fuori programma.
         </p>
         <Disclaimer />
 
-        <form className="card" onSubmit={handleStorico}>
-          <div className="field">
-            <label htmlFor="codice">Codice partecipante</label>
-            <input
-              id="codice"
-              required
-              value={codice}
-              onChange={e => setCodice(e.target.value)}
-              placeholder="es. MBSR-7K2Q"
-              autoComplete="off"
-            />
-          </div>
-          <button className="btn" type="submit">Mostra lo storico</button>
-          {errore && !stato && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
-        </form>
+        {!registrato && (
+          <ChiediCodice titolo="Per vedere lo storico di un partecipante, inserisci il codice." />
+        )}
+        {errore && !stato && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
 
         {caricato && (
-          <div className="card">
-            <h3>Le tue sessioni</h3>
-            {storico.length === 0 && <p>Nessuna sessione ancora registrata.</p>}
-            {storico.map(riga => (
-              <p className="log-riga" key={riga.id}>
-                {new Date(riga.data).toLocaleDateString('it-IT')} · {riga.durata_minuti} min
-                {riga.numero_settimana ? ` · sett. ${riga.numero_settimana}` : ''}
-                {riga.esercizio ? ` — ${riga.esercizio}` : riga.tipo ? ` · ${riga.tipo}` : ''}
-                {riga.note ? ` — ${riga.note}` : ''}
-              </p>
-            ))}
-          </div>
+          <>
+            <div className="card">
+              <CalendarioPratica
+                inizio={ciclo?.data_inizio}
+                fine={ciclo?.data_fine}
+                sessioni={storico}
+                giornoAttivo={giornoAttivo}
+                onGiorno={iso => {
+                  setGiornoAttivo(prev => prev === iso ? null : iso)
+                  setForm(f => ({ ...f, data: iso }))
+                }}
+              />
+            </div>
+            <div className="card">
+              <h3>{giornoAttivo ? `Sessioni del ${new Date(giornoAttivo + 'T12:00:00').toLocaleDateString('it-IT')}` : 'Le tue sessioni'}</h3>
+              {giornoAttivo && (
+                <p className="hint">
+                  <button type="button" className="btn btn-ghost" onClick={() => setGiornoAttivo(null)}>
+                    Mostra tutte
+                  </button>
+                </p>
+              )}
+              {visibili.length === 0 && (
+                <p>{giornoAttivo ? 'Nessuna sessione in questo giorno.' : 'Nessuna sessione ancora registrata.'}</p>
+              )}
+              {visibili.map(riga => (
+                <p className="log-riga" key={riga.id}>
+                  {new Date(riga.data).toLocaleDateString('it-IT')} · {riga.durata_minuti} min
+                  {riga.numero_settimana ? ` · sett. ${riga.numero_settimana}` : ''}
+                  {riga.esercizio ? ` — ${riga.esercizio}` : riga.tipo ? ` · ${riga.tipo}` : ''}
+                  <TonoMini riga={riga} />
+                  {riga.note ? ` — ${riga.note}` : ''}
+                </p>
+              ))}
+            </div>
+          </>
         )}
 
+        {registrato && (
         <div className="card">
           <h3>Fuori programma</h3>
           <p className="hint">Solo se la pratica non corrisponde a un esercizio della settimana.</p>
@@ -157,23 +195,42 @@ export default function LogPratica() {
                 ))}
               </div>
             </div>
-            <div className="field">
-              <label htmlFor="note">Nota (facoltativa)</label>
-              <textarea id="note" rows="2" value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} />
-            </div>
-            <button className="btn" type="submit" disabled={stato === 'invio' || !codice.trim()}>
+            {form.tipo === 'informale' && (
+              <TonoEsperienza
+                label="All’inizio"
+                value={form.tono_prima}
+                onChange={tono_prima => setForm({ ...form, tono_prima })}
+                hint="Il tono di ciò che c’era, prima."
+              />
+            )}
+            <TonoEsperienza
+              label="Come ti senti dopo"
+              value={form.tono_dopo}
+              onChange={tono_dopo => setForm({ ...form, tono_dopo })}
+              hint="Un tocco: piacevole, neutro o spiacevole. Non è un voto."
+            />
+            <CampoNota
+              id="note"
+              required
+              label="Nota"
+              value={form.note}
+              onChange={note => setForm({ ...form, note })}
+            />
+            <button className="btn" type="submit" disabled={stato === 'invio' || !codice || !form.note.trim()}>
               {stato === 'invio' ? 'Salvataggio…' : 'Registra'}
             </button>
+            {!form.note.trim() && <p className="hint">La nota è necessaria per chiudere la sessione.</p>}
             {stato === 'ok' && <p>Sessione registrata.</p>}
             {errore && stato && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
           </form>
         </div>
+        )}
       </div>
       <aside>
         <div className="card card-lato">
           <h3>Come funziona il codice</h3>
           <p>Il log non porta il tuo nome. Solo il codice.</p>
-          <p className="codice-esempio">MBSR-7K2Q</p>
+          <p className="codice-esempio">{codice || 'MBSR-7K2Q'}</p>
         </div>
       </aside>
     </div>

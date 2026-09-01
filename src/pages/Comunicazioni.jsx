@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
 import { useAuth } from '../lib/auth.jsx'
+import { usePartecipante } from '../lib/partecipante.jsx'
 import Disclaimer from '../components/Disclaimer.jsx'
+import ChiediCodice from '../components/ChiediCodice.jsx'
 
 const TIPI = [
   { id: 'reminder_t3', label: 'Promemoria T3 (follow-up)' },
@@ -34,47 +36,46 @@ ${DISCLAIMER_EMAIL}`
 }
 
 function AvvisiPartecipante() {
-  const [codice, setCodice] = useState('')
+  const { codice, registrato } = usePartecipante()
   const [lista, setLista] = useState([])
   const [errore, setErrore] = useState(null)
   const [invio, setInvio] = useState(false)
 
-  async function carica(e) {
-    e.preventDefault()
+  useEffect(() => {
+    if (!registrato || !codice) return undefined
     setErrore(null)
     setInvio(true)
     if (!supabaseConfigurato) {
       setErrore('Connessione non configurata. Riprova più tardi.')
       setInvio(false)
-      return
+      return undefined
     }
-    const { data, error } = await supabase.rpc('comunicazioni_del_partecipante', {
-      p_codice: codice.trim()
-    })
-    if (error) {
-      setErrore(error.message?.includes('CODICE_NON_TROVATO')
-        ? 'Codice non riconosciuto.'
-        : 'Non è stato possibile caricare gli avvisi.')
+    supabase.rpc('comunicazioni_del_partecipante', { p_codice: codice }).then(({ data, error }) => {
+      if (error) {
+        setErrore(error.message?.includes('CODICE_NON_TROVATO')
+          ? 'Codice non riconosciuto.'
+          : 'Non è stato possibile caricare gli avvisi.')
+      } else {
+        setLista(data || [])
+      }
       setInvio(false)
-      return
-    }
-    setLista(data || [])
-    setInvio(false)
-  }
+    })
+    return undefined
+  }, [registrato, codice])
 
   return (
     <div>
       <h2>Avvisi</h2>
       <p className="lead">Promemoria e annunci del tuo ciclo, in ordine di tempo. Il follow-up T3 è segnalato.</p>
       <Disclaimer />
-      <form className="card" onSubmit={carica}>
-        <div className="field">
-          <label htmlFor="codice">Codice partecipante</label>
-          <input id="codice" required value={codice} onChange={e => setCodice(e.target.value)} placeholder="es. MBSR-7K2Q" />
-        </div>
-        <button className="btn" type="submit" disabled={invio}>{invio ? 'Caricamento…' : 'Mostra gli avvisi'}</button>
-        {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
-      </form>
+      {!registrato && (
+        <ChiediCodice titolo="Per vedere gli avvisi di un partecipante, inserisci il codice." />
+      )}
+      {invio && <p>Caricamento…</p>}
+      {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+      {registrato && !invio && lista.length === 0 && !errore && (
+        <p>Nessun avviso per il tuo ciclo, per ora.</p>
+      )}
       {lista.map(c => (
         <div className="card" key={c.id || `${c.oggetto}-${c.data_invio}`}>
           <h3>
@@ -114,7 +115,10 @@ export default function Comunicazioni() {
     if (c?.[0] && !form.ciclo_id) setForm(f => ({ ...f, ciclo_id: c[0].id }))
   }
 
-  useEffect(() => { carica() }, [])
+  useEffect(() => {
+    if (facilitatore) carica()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [facilitatore])
 
   function cambiaTipo(tipo) {
     const modello = MODELLI[tipo]

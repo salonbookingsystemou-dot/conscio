@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
     return json({ ok: false, motivo: 'NESSUN_DESTINATARIO' }, 400)
   }
 
-  const from = Deno.env.get('RESEND_FROM') || 'Percorso MBSR <noreply@resend.dev>'
+  const from = Deno.env.get('RESEND_FROM') || 'Percorso MBSR <noreply@mnesti.it>'
   const oggetto = com.oggetto || com.tipo
   let inviate = 0
 

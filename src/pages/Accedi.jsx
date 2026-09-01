@@ -18,10 +18,13 @@ export default function Accedi() {
     setErrore(null)
     setInvio(true)
     try {
-      if (!supabaseConfigurato) throw new Error('Connessione non configurata.')
+      if (!supabaseConfigurato) {
+        setErrore('Questa copia del sito non è collegata al database. Apri https://salonbookingsystemou-dot.github.io/conscio/#/accedi e aggiorna la pagina (Cmd+Shift+R).')
+        return
+      }
       await accedi(email.trim(), password)
     } catch (err) {
-      setErrore('Accesso non riuscito. Controlla email e password.')
+      setErrore('Accesso non riuscito. Usa email e password del file ACCESSO-FACILITATORE.txt, senza spazi.')
     } finally {
       setInvio(false)
     }
@@ -31,8 +34,8 @@ export default function Accedi() {
     <div className="card">
       <h2>Accesso facilitatore</h2>
       <p className="disclaimer">
-        Area riservata a chi conduce il percorso. I partecipanti usano il codice
-        per questionari e log di pratica — senza account.
+        Area riservata a chi conduce il percorso. I partecipanti entrano con il
+        codice ricevuto all’iscrizione — senza account.
       </p>
       <form onSubmit={handleSubmit}>
         <div className="field">

@@ -29,7 +29,7 @@ const CHIAVE_CODICE = 'mbsr_codice'
 
 export function leggiCodice() {
   try {
-    return sessionStorage.getItem(CHIAVE_CODICE) || ''
+    return localStorage.getItem(CHIAVE_CODICE) || sessionStorage.getItem(CHIAVE_CODICE) || ''
   } catch {
     return ''
   }
@@ -38,9 +38,20 @@ export function leggiCodice() {
 export function memorizzaCodice(codice) {
   try {
     const pulito = (codice || '').trim()
-    if (pulito) sessionStorage.setItem(CHIAVE_CODICE, pulito)
+    if (!pulito) return
+    localStorage.setItem(CHIAVE_CODICE, pulito)
+    sessionStorage.removeItem(CHIAVE_CODICE)
   } catch {
-    /* sessione non disponibile */
+    /* archivio non disponibile */
+  }
+}
+
+export function dimenticaCodice() {
+  try {
+    localStorage.removeItem(CHIAVE_CODICE)
+    sessionStorage.removeItem(CHIAVE_CODICE)
+  } catch {
+    /* archivio non disponibile */
   }
 }
 

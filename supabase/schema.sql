@@ -60,7 +60,9 @@ create table log_pratica (
   data date not null default current_date,
   durata_minuti int,
   tipo text,
-  note text
+  note text,
+  tono_prima text check (tono_prima is null or tono_prima in ('piacevole', 'neutro', 'spiacevole')),
+  tono_dopo text check (tono_dopo is null or tono_dopo in ('piacevole', 'neutro', 'spiacevole'))
 );
 
 create table questionari (
@@ -179,7 +181,121 @@ as $$
   );
 $$;
 
+-- Settimana 0 = prima dell'inizio; 1–9 durante il ciclo (come settimana_corrente, ma senza clamp a 1).
+create or replace function settimana_per_questionari(p_inizio date)
+returns int
+language sql
+stable
+as $$
+  select case
+    when p_inizio is null then 0
+    when current_date < p_inizio then 0
+    else greatest(1, least(9, ((current_date - p_inizio) / 7) + 1))
+  end;
+$$;
+
+create or replace function timepoint_in_finestra(
+  p_timepoint text,
+  p_settimana int,
+  p_inizio date,
+  p_fine date
+)
+returns boolean
+language sql
+stable
+as $$
+  select case p_timepoint
+    when 'T0' then coalesce(p_settimana, 0) <= 1
+    when 'T1' then coalesce(p_settimana, 0) between 4 and 5
+    when 'T2' then
+      coalesce(p_settimana, 0) between 8 and 9
+      and (p_fine is null or current_date <= p_fine)
+    when 'T3' then
+      (p_fine is not null and current_date > p_fine)
+      or (p_fine is null and p_inizio is not null and current_date >= p_inizio + 63)
+    else false
+  end;
+$$;
+
+create or replace function stato_questionari_del_partecipante(p_codice text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_utente_id uuid;
+  v_inizio date;
+  v_fine date;
+  v_sett int;
+  v_tp text;
+  v_fatti text[] := '{}';
+  v_lista jsonb := '[]'::jsonb;
+  v_stato text;
+begin
+  select u.id into v_utente_id
+  from utenti u
+  where upper(trim(u.codice_partecipante)) = upper(trim(p_codice))
+    and u.ruolo = 'partecipante';
+
+  if v_utente_id is null then
+    raise exception 'CODICE_NON_TROVATO';
+  end if;
+
+  select c.data_inizio, coalesce(c.data_fine, c.data_inizio + 62)
+    into v_inizio, v_fine
+  from iscrizioni i
+  join cicli c on c.id = i.ciclo_id
+  where i.utente_id = v_utente_id
+  order by i.data_iscrizione desc
+  limit 1;
+
+  v_sett := settimana_per_questionari(v_inizio);
+
+  select coalesce(array_agg(distinct r.timepoint), '{}')
+    into v_fatti
+  from risposte r
+  where r.utente_id = v_utente_id;
+
+  foreach v_tp in array array['T0', 'T1', 'T2', 'T3']
+  loop
+    if v_tp = any (v_fatti) then
+      v_stato := 'completato';
+    elsif timepoint_in_finestra(v_tp, v_sett, v_inizio, v_fine) then
+      v_stato := 'aperto';
+    elsif
+      (v_tp = 'T1' and v_sett < 4)
+      or (v_tp = 'T2' and v_sett < 8)
+      or (v_tp = 'T3')
+    then
+      v_stato := 'in_attesa';
+    else
+      v_stato := 'chiuso';
+    end if;
+
+    v_lista := v_lista || jsonb_build_array(jsonb_build_object(
+      'id', v_tp,
+      'stato', v_stato,
+      'quando', case v_tp
+        when 'T0' then 'Dall’iscrizione alla settimana 1'
+        when 'T1' then 'Settimane 4 e 5'
+        when 'T2' then 'Settimane 8 e 9 (fine e intensiva)'
+        else 'Dopo la fine del ciclo'
+      end
+    ));
+  end loop;
+
+  return jsonb_build_object(
+    'settimana', v_sett,
+    'data_inizio', v_inizio,
+    'data_fine', v_fine,
+    'timepoints', v_lista
+  );
+end;
+$$;
+
 -- Inserisce le risposte associate al codice (non al nome, non all'email).
+-- Rifiuta i timepoint fuori dalla finestra della settimana di ciclo.
 create or replace function salva_risposte_questionario(
   p_codice text,
   p_timepoint text,
@@ -193,6 +309,9 @@ as $$
 declare
   v_utente_id uuid;
   v_inserite int;
+  v_inizio date;
+  v_fine date;
+  v_sett int;
 begin
   if p_timepoint not in ('T0', 'T1', 'T2', 'T3') then
     raise exception 'TIMEPOINT_NON_VALIDO';
@@ -209,6 +328,20 @@ begin
 
   if v_utente_id is null then
     raise exception 'CODICE_NON_TROVATO';
+  end if;
+
+  select c.data_inizio, coalesce(c.data_fine, c.data_inizio + 62)
+    into v_inizio, v_fine
+  from iscrizioni i
+  join cicli c on c.id = i.ciclo_id
+  where i.utente_id = v_utente_id
+  order by i.data_iscrizione desc
+  limit 1;
+
+  v_sett := settimana_per_questionari(v_inizio);
+
+  if not timepoint_in_finestra(p_timepoint, v_sett, v_inizio, v_fine) then
+    raise exception 'TIMEPOINT_NON_APERTO';
   end if;
 
   if exists (
@@ -242,10 +375,14 @@ $$;
 
 revoke all on function codice_partecipante_valido(text) from public;
 revoke all on function ha_compilato_timepoint(text, text) from public;
+revoke all on function settimana_per_questionari(date) from public;
+revoke all on function timepoint_in_finestra(text, int, date, date) from public;
+revoke all on function stato_questionari_del_partecipante(text) from public;
 revoke all on function salva_risposte_questionario(text, text, jsonb) from public;
 
 grant execute on function codice_partecipante_valido(text) to anon, authenticated;
 grant execute on function ha_compilato_timepoint(text, text) to anon, authenticated;
+grant execute on function stato_questionari_del_partecipante(text) to anon, authenticated;
 grant execute on function salva_risposte_questionario(text, text, jsonb) to anon, authenticated;
 
 -- Ruolo facilitatore: collegato a auth.uid() tramite utenti.auth_user_id.
@@ -339,7 +476,9 @@ create or replace function salva_log_pratica(
   p_durata int,
   p_note text,
   p_tipo text default null,
-  p_esercizio_id uuid default null
+  p_esercizio_id uuid default null,
+  p_tono_dopo text default null,
+  p_tono_prima text default null
 )
 returns jsonb
 language plpgsql
@@ -348,6 +487,8 @@ set search_path = public
 as $$
 declare
   v_utente_id uuid;
+  v_dopo text;
+  v_prima text;
 begin
   select id into v_utente_id
   from utenti
@@ -362,6 +503,10 @@ begin
     raise exception 'DURATA_NON_VALIDA';
   end if;
 
+  if p_note is null or trim(p_note) = '' then
+    raise exception 'NOTA_MANCANTE';
+  end if;
+
   if p_esercizio_id is not null and not exists (
     select 1
     from esercizi e
@@ -373,14 +518,24 @@ begin
     raise exception 'ESERCIZIO_NON_VALIDO';
   end if;
 
-  insert into log_pratica (utente_id, esercizio_id, data, durata_minuti, note, tipo)
-  values (
+  v_dopo := case
+    when p_tono_dopo in ('piacevole', 'neutro', 'spiacevole') then p_tono_dopo
+  end;
+  v_prima := case
+    when p_tono_prima in ('piacevole', 'neutro', 'spiacevole') then p_tono_prima
+  end;
+
+  insert into log_pratica (
+    utente_id, esercizio_id, data, durata_minuti, note, tipo, tono_prima, tono_dopo
+  ) values (
     v_utente_id,
     p_esercizio_id,
     coalesce(p_data, current_date),
     p_durata,
     p_note,
-    p_tipo
+    p_tipo,
+    v_prima,
+    v_dopo
   );
 
   return jsonb_build_object('ok', true);
@@ -428,7 +583,9 @@ returns table (
   tipo text,
   note text,
   numero_settimana int,
-  esercizio text
+  esercizio text,
+  tono_prima text,
+  tono_dopo text
 )
 language sql
 security definer
@@ -441,7 +598,9 @@ as $$
     l.tipo,
     l.note,
     lez.numero_settimana,
-    e.descrizione
+    e.descrizione,
+    l.tono_prima,
+    l.tono_dopo
   from log_pratica l
   join utenti u on u.id = l.utente_id
   left join esercizi e on e.id = l.esercizio_id
@@ -507,7 +666,9 @@ begin
                 'data', lg.data,
                 'durata_minuti', lg.durata_minuti,
                 'tipo', lg.tipo,
-                'note', lg.note
+                'note', lg.note,
+                'tono_prima', lg.tono_prima,
+                'tono_dopo', lg.tono_dopo
               ) order by lg.data desc, lg.id desc)
               from log_pratica lg
               where lg.esercizio_id = e.id
@@ -563,6 +724,47 @@ begin
 end;
 $$;
 
+create or replace function ciclo_del_partecipante(p_codice text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_utente_id uuid;
+  v_inizio date;
+  v_fine date;
+  v_nome text;
+begin
+  select u.id into v_utente_id
+  from utenti u
+  where upper(trim(u.codice_partecipante)) = upper(trim(p_codice))
+    and u.ruolo = 'partecipante';
+
+  if v_utente_id is null then
+    raise exception 'CODICE_NON_TROVATO';
+  end if;
+
+  select c.data_inizio, coalesce(c.data_fine, c.data_inizio + 62), c.nome_ciclo
+    into v_inizio, v_fine, v_nome
+  from iscrizioni i
+  join cicli c on c.id = i.ciclo_id
+  where i.utente_id = v_utente_id
+  order by i.data_iscrizione desc
+  limit 1;
+
+  if v_inizio is null then
+    return jsonb_build_object('nome_ciclo', null, 'data_inizio', null, 'data_fine', null);
+  end if;
+
+  return jsonb_build_object(
+    'nome_ciclo', v_nome,
+    'data_inizio', v_inizio,
+    'data_fine', v_fine
+  );
+end;
+$$;
+
 create or replace function log_pratica_del_partecipante(p_codice text)
 returns table (
   id uuid,
@@ -571,7 +773,9 @@ returns table (
   tipo text,
   note text,
   numero_settimana int,
-  esercizio text
+  esercizio text,
+  tono_prima text,
+  tono_dopo text
 )
 language plpgsql
 security definer
@@ -597,7 +801,9 @@ begin
     l.tipo,
     l.note,
     lez.numero_settimana,
-    e.descrizione
+    e.descrizione,
+    l.tono_prima,
+    l.tono_dopo
   from log_pratica l
   left join esercizi e on e.id = l.esercizio_id
   left join lezioni lez on lez.id = e.lezione_id
@@ -624,23 +830,25 @@ $$;
 
 revoke all on function is_facilitatore() from public;
 revoke all on function iscrivi_partecipante(text, uuid, text, boolean, boolean) from public;
-revoke all on function salva_log_pratica(text, date, int, text, text, uuid) from public;
+revoke all on function salva_log_pratica(text, date, int, text, text, uuid, text, text) from public;
 revoke all on function risposte_pseudonime() from public;
 revoke all on function log_pratica_pseudonimi() from public;
 revoke all on function log_pratica_del_partecipante(text) from public;
 revoke all on function email_destinatari_ciclo(uuid) from public;
 revoke all on function programma_del_partecipante(text) from public;
 revoke all on function comunicazioni_del_partecipante(text) from public;
+revoke all on function ciclo_del_partecipante(text) from public;
 
 grant execute on function is_facilitatore() to anon, authenticated;
 grant execute on function iscrivi_partecipante(text, uuid, text, boolean, boolean) to anon, authenticated;
-grant execute on function salva_log_pratica(text, date, int, text, text, uuid) to anon, authenticated;
+grant execute on function salva_log_pratica(text, date, int, text, text, uuid, text, text) to anon, authenticated;
 grant execute on function risposte_pseudonime() to authenticated;
 grant execute on function log_pratica_pseudonimi() to authenticated;
 grant execute on function log_pratica_del_partecipante(text) to anon, authenticated;
 grant execute on function email_destinatari_ciclo(uuid) to authenticated;
 grant execute on function programma_del_partecipante(text) to anon, authenticated;
 grant execute on function comunicazioni_del_partecipante(text) to anon, authenticated;
+grant execute on function ciclo_del_partecipante(text) to anon, authenticated;
 
 create policy "facilitatore legge utenti" on utenti
   for select using (is_facilitatore());

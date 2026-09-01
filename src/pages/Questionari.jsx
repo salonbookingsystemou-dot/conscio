@@ -1,15 +1,24 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
+import { usePartecipante } from '../lib/partecipante.jsx'
 import { calcolaPunteggi } from '../lib/scoring'
 import ScalaLikert from '../components/ScalaLikert.jsx'
 import Disclaimer from '../components/Disclaimer.jsx'
+import ChiediCodice from '../components/ChiediCodice.jsx'
 
-const TIMEPOINTS = [
-  { id: 'T0', label: 'T0 — inizio percorso' },
-  { id: 'T1', label: 'T1 — metà percorso' },
-  { id: 'T2', label: 'T2 — fine percorso' },
-  { id: 'T3', label: 'T3 — follow-up' }
-]
+const ETICHETTE = {
+  T0: { titolo: 'T0 — Inizio', sottotitolo: 'Prima di partire e durante la settimana 1' },
+  T1: { titolo: 'T1 — Metà percorso', sottotitolo: 'Settimane 4 e 5' },
+  T2: { titolo: 'T2 — Fine percorso', sottotitolo: 'Settimane 8 e 9' },
+  T3: { titolo: 'T3 — Follow-up', sottotitolo: 'Dopo la fine del ciclo' }
+}
+
+const STATO_BADGE = {
+  aperto: 'Aperto',
+  in_attesa: 'In attesa',
+  chiuso: 'Concluso',
+  completato: 'Compilato'
+}
 
 const SOTTOSCALE_ETICHETTE = {
   osservare: 'Osservare',
@@ -23,6 +32,9 @@ function messaggioErrore(error) {
   const testo = error?.message || ''
   if (testo.includes('CODICE_NON_TROVATO')) return 'Codice non riconosciuto. Controlla e riprova.'
   if (testo.includes('COMPILAZIONE_GIA_PRESENTE')) return 'Hai già compilato i questionari per questo momento.'
+  if (testo.includes('TIMEPOINT_NON_APERTO')) {
+    return 'Questo questionario non è aperto in questa settimana del ciclo.'
+  }
   if (testo.includes('RISPOSTE_NON_VALIDE') || testo.includes('RISPOSTE_MANCANTI')) {
     return 'Alcune risposte non sono state registrate. Controlla di aver risposto a tutte le domande.'
   }
@@ -35,10 +47,18 @@ function ordinaItem(righe) {
   return [...pss, ...ffmq]
 }
 
+function etichettaSettimana(n) {
+  if (n == null) return ''
+  if (n === 0) return 'Il ciclo non è ancora iniziato.'
+  if (n === 9) return 'Sei nella settimana intensiva (9).'
+  return `Sei nella settimana ${n} del ciclo.`
+}
+
 export default function Questionari() {
-  const [passo, setPasso] = useState('accesso')
-  const [codice, setCodice] = useState('')
-  const [timepoint, setTimepoint] = useState('T0')
+  const { codice, registrato } = usePartecipante()
+  const [passo, setPasso] = useState('scelta')
+  const [piano, setPiano] = useState(null)
+  const [timepoint, setTimepoint] = useState(null)
   const [item, setItem] = useState([])
   const [indice, setIndice] = useState(0)
   const [risposte, setRisposte] = useState({})
@@ -50,8 +70,7 @@ export default function Questionari() {
   const nomeStrumento = corrente?.scala === 'likert_0_4' ? 'PSS-10' : 'FFMQ-I'
   const avanzamento = item.length ? Math.round(((indice + (risposte[corrente?.id] != null ? 1 : 0)) / item.length) * 100) : 0
 
-  async function avviaCompilazione(e) {
-    e.preventDefault()
+  async function caricaPiano() {
     setErrore(null)
     setInvio(true)
 
@@ -61,32 +80,30 @@ export default function Questionari() {
       return
     }
 
-    const codicePulito = codice.trim()
-    const { data: valido, error: errValido } = await supabase.rpc('codice_partecipante_valido', {
-      p_codice: codicePulito
+    const { data, error } = await supabase.rpc('stato_questionari_del_partecipante', {
+      p_codice: codice
     })
 
-    if (errValido || !valido) {
-      setErrore(valido === false ? 'Codice non riconosciuto. Controlla e riprova.' : messaggioErrore(errValido))
+    if (error) {
+      setErrore(messaggioErrore(error))
       setInvio(false)
       return
     }
 
-    const { data: gia, error: errGia } = await supabase.rpc('ha_compilato_timepoint', {
-      p_codice: codicePulito,
-      p_timepoint: timepoint
-    })
+    setPiano(data)
+    setPasso('scelta')
+    setInvio(false)
+  }
 
-    if (errGia) {
-      setErrore(messaggioErrore(errGia))
-      setInvio(false)
-      return
-    }
-    if (gia) {
-      setErrore(`Hai già compilato i questionari per ${timepoint}.`)
-      setInvio(false)
-      return
-    }
+  useEffect(() => {
+    if (registrato && codice) caricaPiano()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [registrato, codice])
+
+  async function avviaTimepoint(tp) {
+    setErrore(null)
+    if (tp.stato !== 'aperto') return
+    setInvio(true)
 
     const { data: righe, error: errItem } = await supabase
       .from('item')
@@ -99,6 +116,7 @@ export default function Questionari() {
       return
     }
 
+    setTimepoint(tp.id)
     setItem(ordinaItem(righe))
     setRisposte({})
     setIndice(0)
@@ -119,7 +137,7 @@ export default function Questionari() {
     setInvio(true)
     const payload = item.map(i => ({ item_id: i.id, valore: risposte[i.id] }))
     const { error } = await supabase.rpc('salva_risposte_questionario', {
-      p_codice: codice.trim(),
+      p_codice: codice,
       p_timepoint: timepoint,
       p_risposte: payload
     })
@@ -140,7 +158,7 @@ export default function Questionari() {
         <p>
           Le risposte per <strong>{timepoint}</strong> sono associate al codice
         </p>
-        <p className="codice-enfasi">{codice.trim().toUpperCase()}</p>
+        <p className="codice-enfasi">{codice.toUpperCase()}</p>
         {punteggi?.pss10 && (
           <p>PSS-10 — punteggio totale: <strong>{punteggi.pss10.totale}</strong> (range {punteggi.pss10.min}–{punteggi.pss10.max})</p>
         )}
@@ -170,7 +188,7 @@ export default function Questionari() {
       <div>
         <p className="meta-riga">
           <span className="badge">{nomeStrumento}</span>
-          <span>{codice.trim().toUpperCase()} · {timepoint}</span>
+          <span>{codice.toUpperCase()} · {timepoint}</span>
           <span>Domanda {indice + 1} di {item.length}</span>
         </p>
         <div className="progress" aria-hidden="true">
@@ -191,7 +209,7 @@ export default function Questionari() {
               disabled={invio}
               onClick={() => {
                 setErrore(null)
-                if (indice === 0) setPasso('accesso')
+                if (indice === 0) setPasso('scelta')
                 else setIndice(i => i - 1)
               }}
             >
@@ -217,56 +235,81 @@ export default function Questionari() {
     )
   }
 
-  return (
-    <div className="layout-due">
-      <div>
-        <h2>Questionari</h2>
-        <Disclaimer />
-        <div className="card">
-          <p>
-            Una domanda alla volta. PSS-10 e FFMQ-I si compilano a T0, T1, T2 e T3.
-            Ti identifichi solo con il codice — mai con il nome.
-          </p>
-          <form onSubmit={avviaCompilazione}>
-            <div className="field">
-              <label htmlFor="codice">Codice partecipante</label>
-              <input
-                id="codice"
-                value={codice}
-                onChange={e => setCodice(e.target.value)}
-                placeholder="es. MBSR-7K2Q"
-                autoComplete="off"
-                required
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="timepoint">Momento di misurazione</label>
-              <select id="timepoint" value={timepoint} onChange={e => setTimepoint(e.target.value)}>
-                {TIMEPOINTS.map(tp => (
-                  <option key={tp.id} value={tp.id}>{tp.label}</option>
-                ))}
-              </select>
-            </div>
-            {timepoint === 'T3' && (
+  if (passo === 'scelta' && piano) {
+    const t3aperto = piano.timepoints?.some(tp => tp.id === 'T3' && tp.stato === 'aperto')
+    const nessunoAperto = !piano.timepoints?.some(tp => tp.stato === 'aperto')
+    return (
+      <div className="layout-due">
+        <div>
+          <h2>Questionari</h2>
+          <Disclaimer />
+          <div className="card">
+            <p>
+              PSS-10 e FFMQ-I si compilano quattro volte, ciascuna nella settimana prevista.
+              Non puoi scegliere un momento futuro o già chiuso.
+            </p>
+            <p className="ciclo-meta">{etichettaSettimana(piano.settimana)}</p>
+            {nessunoAperto && (
+              <p>Nessun questionario è aperto in questa settimana. Torna quando si apre il prossimo momento.</p>
+            )}
+            {t3aperto && (
               <Disclaimer>
                 T3 è il follow-up a distanza: è il momento più facile da dimenticare, e per il
                 percorso è importante quanto gli altri.
               </Disclaimer>
             )}
-            <button className="btn" type="submit" disabled={!codice.trim() || invio}>
-              {invio ? 'Verifica in corso…' : `Inizia ${timepoint}`}
-            </button>
+            <div className="tp-lista">
+              {(piano.timepoints || []).map(tp => {
+                const meta = ETICHETTE[tp.id]
+                return (
+                  <div key={tp.id} className={`tp-card is-${tp.stato}`}>
+                    <div>
+                      <strong>{meta?.titolo || tp.id}</strong>
+                      <span className="ciclo-meta">{tp.quando || meta?.sottotitolo}</span>
+                    </div>
+                    <span className="badge">{STATO_BADGE[tp.stato] || tp.stato}</span>
+                    {tp.stato === 'aperto' && (
+                      <button
+                        className="btn"
+                        type="button"
+                        disabled={invio}
+                        onClick={() => avviaTimepoint(tp)}
+                      >
+                        {invio ? 'Caricamento…' : `Inizia ${tp.id}`}
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
             {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
-          </form>
+          </div>
         </div>
+        <aside>
+          <div className="card card-lato">
+            <h3>Quando si compilano</h3>
+            <ul>
+              <li>T0 all’inizio (settimana 1)</li>
+              <li>T1 a metà (settimane 4–5)</li>
+              <li>T2 alla fine (settimane 8–9)</li>
+              <li>T3 dopo la fine del ciclo</li>
+            </ul>
+          </div>
+        </aside>
       </div>
-      <aside>
-        <div className="card card-lato">
-          <h3>Come funziona il codice</h3>
-          <p>Le risposte restano legate al codice, non al nome. Conservalo come hai fatto all’iscrizione.</p>
-          <p className="codice-esempio">MBSR-7K2Q</p>
-        </div>
-      </aside>
+    )
+  }
+
+  return (
+    <div>
+      <h2>Questionari</h2>
+      <Disclaimer />
+      {registrato ? (
+        <p>Caricamento dei momenti…</p>
+      ) : (
+        <ChiediCodice titolo="Per vedere i questionari di un partecipante, inserisci il codice." />
+      )}
+      {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
     </div>
   )
 }

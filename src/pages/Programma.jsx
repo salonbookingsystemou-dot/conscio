@@ -1,10 +1,14 @@
-import { useState } from 'react'
-import { supabase, supabaseConfigurato, leggiCodice, memorizzaCodice } from '../lib/supabaseClient'
+import { useEffect, useRef, useState } from 'react'
+import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
+import { usePartecipante } from '../lib/partecipante.jsx'
+import ChiediCodice from '../components/ChiediCodice.jsx'
 import Disclaimer from '../components/Disclaimer.jsx'
-
-function oggiISO() {
-  return new Date().toISOString().slice(0, 10)
-}
+import CampoNota from '../components/CampoNota.jsx'
+import CalendarioPratica from '../components/CalendarioPratica.jsx'
+import TracciaGuidata from '../components/TracciaGuidata.jsx'
+import TonoEsperienza from '../components/TonoEsperienza.jsx'
+import TonoMini from '../components/TonoMini.jsx'
+import { addDays, formatISODate, oggiLocaleISO, parseISODate } from '../lib/date.js'
 
 function etichettaTipo(tipo) {
   if (tipo === 'informale') return 'Informale'
@@ -13,17 +17,26 @@ function etichettaTipo(tipo) {
   return tipo || 'Pratica'
 }
 
-function LogSottoEsercizio({ codice, esercizio, onSalvato }) {
+function LogSottoEsercizio({ codice, esercizio, onSalvato, dataScelta, puoRegistrare }) {
   const informale = (esercizio.tipo || '').includes('informale')
-  const [data, setData] = useState(oggiISO())
+  const [data, setData] = useState(dataScelta || oggiLocaleISO())
   const [minuti, setMinuti] = useState(informale ? 5 : 20)
+
+  useEffect(() => {
+    if (dataScelta) setData(dataScelta)
+  }, [dataScelta])
   const [note, setNote] = useState('')
+  const [tonoPrima, setTonoPrima] = useState('')
+  const [tonoDopo, setTonoDopo] = useState('')
   const [invio, setInvio] = useState(false)
   const [errore, setErrore] = useState(null)
   const log = esercizio.log || []
 
+  const notaPronta = note.trim().length > 0
+
   async function registra(e) {
     e.preventDefault()
+    if (!puoRegistrare || !notaPronta) return
     setErrore(null)
     setInvio(true)
     const { error } = await supabase.rpc('salva_log_pratica', {
@@ -32,18 +45,24 @@ function LogSottoEsercizio({ codice, esercizio, onSalvato }) {
       p_durata: Number(minuti),
       p_note: note.trim() || null,
       p_tipo: esercizio.tipo || null,
-      p_esercizio_id: esercizio.id
+      p_esercizio_id: esercizio.id,
+      p_tono_dopo: tonoDopo || null,
+      p_tono_prima: informale ? (tonoPrima || null) : null
     })
     if (error) {
       setErrore(error.message?.includes('CODICE_NON_TROVATO')
         ? 'Codice non riconosciuto.'
         : error.message?.includes('ESERCIZIO_NON_VALIDO')
           ? 'Questa pratica non appartiene al tuo ciclo.'
-          : 'Non è stato possibile registrare la pratica.')
+          : error.message?.includes('NOTA_MANCANTE')
+            ? 'La nota è necessaria per chiudere la sessione.'
+            : 'Non è stato possibile registrare la pratica.')
       setInvio(false)
       return
     }
     setNote('')
+    setTonoPrima('')
+    setTonoDopo('')
     setInvio(false)
     onSalvato()
   }
@@ -58,57 +77,86 @@ function LogSottoEsercizio({ codice, esercizio, onSalvato }) {
       {log.map(riga => (
         <p className="log-riga" key={riga.id}>
           {new Date(riga.data).toLocaleDateString('it-IT')} · {riga.durata_minuti} min
+          <TonoMini riga={riga} />
           {riga.note ? ` — ${riga.note}` : ''}
         </p>
       ))}
-      <form onSubmit={registra}>
-        <div className="riga-due">
-          <div className="field">
-            <label>Data</label>
-            <input type="date" required value={data} onChange={e => setData(e.target.value)} />
-          </div>
-          <div className="field">
-            <label>Minuti</label>
-            <input
-              type="number"
-              min="1"
-              max="240"
-              required
-              value={minuti}
-              onChange={e => setMinuti(e.target.value)}
+      {puoRegistrare ? (
+          <form onSubmit={registra}>
+            <div className="riga-due">
+              <div className="field">
+                <label>Data</label>
+                <input type="date" required value={data} onChange={e => setData(e.target.value)} />
+              </div>
+              <div className="field">
+                <label>Minuti</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="240"
+                  required
+                  value={minuti}
+                  onChange={e => setMinuti(e.target.value)}
+                />
+              </div>
+            </div>
+            {informale && (
+              <TonoEsperienza
+                label="All’inizio"
+                value={tonoPrima}
+                onChange={setTonoPrima}
+                hint="Il tono di ciò che c’era, prima."
+              />
+            )}
+            <TonoEsperienza
+              label="Come ti senti dopo"
+              value={tonoDopo}
+              onChange={setTonoDopo}
+              hint="Un tocco: piacevole, neutro o spiacevole. Non è un voto."
             />
-          </div>
-        </div>
-        <div className="field">
-          <label>{informale ? 'Cosa hai notato (facoltativo)' : 'Nota (facoltativa)'}</label>
-          <textarea
-            rows="2"
-            value={note}
-            onChange={e => setNote(e.target.value)}
-            placeholder={informale ? 'Situazione, prima, dopo — se vuoi' : 'Cosa è sorto, come ti senti dopo — se vuoi'}
-          />
-        </div>
-        <button className="btn" type="submit" disabled={invio}>
-          {invio ? 'Salvataggio…' : 'Registra questa sessione'}
-        </button>
-        {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
-      </form>
+            <CampoNota
+              required
+              label={informale ? 'Cosa hai notato' : 'Nota'}
+              value={note}
+              onChange={setNote}
+              placeholder={informale ? 'Situazione, prima, dopo' : 'Cosa è sorto, come ti senti dopo'}
+            />
+            <button className="btn" type="submit" disabled={invio || !notaPronta}>
+              {invio ? 'Salvataggio…' : 'Registra questa sessione'}
+            </button>
+            {!notaPronta && <p className="hint">La nota è necessaria per chiudere la sessione.</p>}
+            {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+          </form>
+        ) : (
+          <p className="hint">
+            Ascolta prima la traccia guidata fino alla fine: è il materiale della sessione.
+            Poi potrai scrivere la nota e registrare.
+          </p>
+        )}
     </div>
   )
 }
 
 export default function Programma() {
-  const [codice, setCodice] = useState(leggiCodice)
+  const { codice, registrato } = usePartecipante()
   const [lezioni, setLezioni] = useState([])
+  const [ciclo, setCiclo] = useState(null)
+  const [tutteSessioni, setTutteSessioni] = useState([])
+  const [dataScelta, setDataScelta] = useState(oggiLocaleISO)
   const [settimana, setSettimana] = useState(null)
+  const [limite, setLimite] = useState(1)
   const [errore, setErrore] = useState(null)
   const [invio, setInvio] = useState(false)
   const [aperto, setAperto] = useState(false)
+  const [ascoltoOk, setAscoltoOk] = useState(false)
+  const pillsRef = useRef(null)
 
   async function caricaProgramma(codicePulito) {
-    const { data, error } = await supabase.rpc('programma_del_partecipante', {
-      p_codice: codicePulito
-    })
+    const [{ data, error }, { data: cicloData }, { data: log }] = await Promise.all([
+      supabase.rpc('programma_del_partecipante', { p_codice: codicePulito }),
+      supabase.rpc('ciclo_del_partecipante', { p_codice: codicePulito }),
+      supabase.rpc('log_pratica_del_partecipante', { p_codice: codicePulito })
+    ])
     if (error || !data) {
       setErrore(error?.message?.includes('CODICE_NON_TROVATO')
         ? 'Codice non riconosciuto.'
@@ -116,54 +164,61 @@ export default function Programma() {
       return false
     }
     const payload = typeof data === 'string' ? JSON.parse(data) : data
+    const apertaFino = Math.max(1, Math.min(9, payload.settimana_corrente || 1))
     setLezioni(payload.lezioni || [])
-    setSettimana(prev => prev ?? payload.settimana_corrente)
-    memorizzaCodice(codicePulito)
+    setCiclo(cicloData || null)
+    setTutteSessioni(log || [])
+    setLimite(apertaFino)
+    setSettimana(prev => {
+      const scelta = prev ?? apertaFino
+      return scelta > apertaFino ? apertaFino : scelta
+    })
     setAperto(true)
     return true
   }
 
-  async function handleCodice(e) {
-    e.preventDefault()
+  useEffect(() => {
+    if (!registrato || !codice) return undefined
     setErrore(null)
     setInvio(true)
     if (!supabaseConfigurato) {
       setErrore('Connessione non configurata. Riprova più tardi.')
       setInvio(false)
-      return
+      return undefined
     }
-    await caricaProgramma(codice.trim())
-    setInvio(false)
-  }
+    caricaProgramma(codice).finally(() => setInvio(false))
+    return undefined
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [registrato, codice])
 
-  const corrente = lezioni.find(l => l.numero_settimana === settimana) || lezioni[0]
+  const corrente = lezioni.find(l => l.numero_settimana === settimana && l.numero_settimana <= limite)
+    || lezioni.find(l => l.numero_settimana === limite)
+    || lezioni[0]
+
+  useEffect(() => {
+    const attiva = pillsRef.current?.querySelector('.settimana-pill.is-on')
+    attiva?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
+  }, [settimana, aperto])
+  const inizioCiclo = parseISODate(ciclo?.data_inizio)
+  const inizioSettimana = inizioCiclo && corrente
+    ? addDays(inizioCiclo, (Math.max(1, corrente.numero_settimana) - 1) * 7)
+    : null
+  const fineSettimana = inizioSettimana ? addDays(inizioSettimana, 6) : null
 
   return (
     <div>
       <h2>Questa settimana</h2>
       <p className="lead">
-        Tema e pratiche della settimana. Sotto ogni pratica registri la singola sessione:
-        una riga per volta, solo con il codice.
+        Tema e pratiche della settimana in corso. La traccia guidata è il materiale della sessione:
+        va ascoltata per intero, poi si apre il log con una nota. Le settimane successive si sbloccano quando tocca.
       </p>
       <Disclaimer />
 
-      <form className="card" onSubmit={handleCodice}>
-        <div className="field">
-          <label htmlFor="codice">Codice partecipante</label>
-          <input
-            id="codice"
-            required
-            value={codice}
-            onChange={e => setCodice(e.target.value)}
-            placeholder="es. MBSR-7K2Q"
-            autoComplete="off"
-          />
-        </div>
-        <button className="btn" type="submit" disabled={invio}>
-          {invio ? 'Caricamento…' : aperto ? 'Aggiorna' : 'Mostra il programma'}
-        </button>
-        {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
-      </form>
+      {!registrato && (
+        <ChiediCodice titolo="Per vedere la settimana di un partecipante, inserisci il codice." />
+      )}
+      {registrato && invio && !aperto && <p>Caricamento del programma…</p>}
+      {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
 
       {aperto && lezioni.length === 0 && (
         <p>Il programma di questa edizione non è ancora stato caricato.</p>
@@ -171,17 +226,29 @@ export default function Programma() {
 
       {lezioni.length > 0 && (
         <>
-          <div className="chip-riga">
-            {lezioni.map(l => (
-              <button
-                key={l.id || l.numero_settimana}
-                type="button"
-                className={`chip${(corrente && l.numero_settimana === corrente.numero_settimana) ? ' is-on' : ''}`}
-                onClick={() => setSettimana(l.numero_settimana)}
-              >
-                {l.numero_settimana === 9 ? 'Intensiva' : `Sett. ${l.numero_settimana}`}
-              </button>
-            ))}
+          <div className="settimane-pills" ref={pillsRef}>
+            {lezioni.map(l => {
+              const n = l.numero_settimana
+              const inCorso = n === limite
+              const bloccata = n > limite
+              const attiva = corrente && n === corrente.numero_settimana
+              return (
+                <button
+                  key={l.id || n}
+                  type="button"
+                  disabled={bloccata}
+                  aria-disabled={bloccata}
+                  aria-current={inCorso ? 'true' : undefined}
+                  className={`settimana-pill${attiva ? ' is-on' : ''}${inCorso ? ' is-ora' : ''}${bloccata ? ' is-bloccata' : ''}`}
+                  onClick={() => { if (!bloccata) setSettimana(n) }}
+                >
+                  <span className="sett-num">{n === 9 ? 'Int.' : n}</span>
+                  <span className="sett-stato">
+                    {bloccata ? 'Poi' : inCorso ? 'Ora' : n === 9 ? 'Intensiva' : 'Aperta'}
+                  </span>
+                </button>
+              )
+            })}
           </div>
           {corrente && (
             <div className="card">
@@ -189,16 +256,32 @@ export default function Programma() {
                 {corrente.numero_settimana === 9 ? 'Giornata intensiva' : `Settimana ${corrente.numero_settimana}`}
                 {corrente.tema ? ` — ${corrente.tema}` : ''}
               </h3>
+              {inizioSettimana && (
+                <CalendarioPratica
+                  titolo="Questa settimana"
+                  inizio={formatISODate(inizioSettimana)}
+                  fine={formatISODate(fineSettimana)}
+                  sessioni={tutteSessioni}
+                  giornoAttivo={dataScelta}
+                  onGiorno={setDataScelta}
+                  soloIntervallo
+                />
+              )}
               {corrente.pratiche_formali && <p><strong>Formali.</strong> {corrente.pratiche_formali}</p>}
               {corrente.pratiche_informali && <p><strong>Informali.</strong> {corrente.pratiche_informali}</p>}
               {corrente.materiali && <p><strong>Materiali.</strong> {corrente.materiali}</p>}
-              {corrente.traccia_audio && (
-                <div className="traccia-settimana">
-                  <p><strong>Traccia guidata</strong></p>
-                  <audio className="player-audio" controls src={corrente.traccia_audio} preload="metadata">
-                    Il browser non riproduce questa traccia.
-                  </audio>
-                </div>
+              {corrente.traccia_audio ? (
+                <TracciaGuidata
+                  key={corrente.id || corrente.numero_settimana}
+                  src={corrente.traccia_audio}
+                  persistenzaKey={`${codice.trim()}:${corrente.id || corrente.numero_settimana}`}
+                  onCompleto={setAscoltoOk}
+                />
+              ) : (
+                <p className="hint">
+                  La traccia guidata di questa settimana non è ancora disponibile.
+                  Senza traccia puoi comunque registrare la sessione, con una nota.
+                </p>
               )}
               {(corrente.esercizi || []).length === 0 && (
                 <p className="hint">Nessuna pratica assegnata a questa settimana.</p>
@@ -208,6 +291,8 @@ export default function Programma() {
                   key={ex.id || i}
                   codice={codice}
                   esercizio={ex}
+                  dataScelta={dataScelta}
+                  puoRegistrare={!corrente.traccia_audio || ascoltoOk}
                   onSalvato={() => caricaProgramma(codice.trim())}
                 />
               ))}
