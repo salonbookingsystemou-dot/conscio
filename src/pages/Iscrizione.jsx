@@ -53,9 +53,20 @@ function IconaPercorso({ id }) {
       )}
       {id === 'questionari' && (
         <>
-          <rect x="4.2" y="4.4" width="10.4" height="13.2" rx="1.4" {...comune} />
-          <rect x="9.4" y="7.2" width="10.4" height="13.2" rx="1.4" {...comune} />
-          <path d="M12 11.6h5M12 14.6h5" {...comune} />
+          <rect x="8.2" y="2.2" width="7.6" height="3.6" rx="1.1" {...comune} />
+          <rect x="5" y="4.4" width="14" height="16.4" rx="2" {...comune} />
+          <text
+            x="12"
+            y="16.6"
+            textAnchor="middle"
+            fill="currentColor"
+            stroke="none"
+            fontFamily="Fraunces, Georgia, serif"
+            fontSize="10"
+            fontWeight="600"
+          >
+            2
+          </text>
         </>
       )}
     </svg>
@@ -160,13 +171,28 @@ export default function Iscrizione() {
 
   return (
     <div className="iscrizione-pagina">
+    <section className="percorso-blocco" aria-labelledby="percorso-titolo">
+      <h2 id="percorso-titolo">Il percorso</h2>
+      <p className="lead">
+        Otto settimane di pratica guidata, con un appuntamento a settimana in presenza.
+      </p>
+      <div className="percorso-carosello">
+        {SCHEDE_PERCORSO.map(scheda => (
+          <article key={scheda.id} className="percorso-card">
+            <span className="percorso-icona-fondo">
+              <IconaPercorso id={scheda.id} />
+            </span>
+            <h3>{scheda.titolo}</h3>
+            <p>{scheda.testo}</p>
+          </article>
+        ))}
+      </div>
+    </section>
     <div className="layout-due">
       <div>
-        <h2>Iscriviti al percorso</h2>
+        <h2>Iscriviti</h2>
         <p className="lead">
-          Otto settimane di pratica guidata, con un appuntamento a settimana in
-          presenza. Compila i campi qui sotto: riceverai un codice personale da
-          conservare.
+          Compila i campi qui sotto: riceverai un codice personale da conservare.
         </p>
         <form onSubmit={handleSubmit}>
           <div className="field">
@@ -313,20 +339,6 @@ export default function Iscrizione() {
         </div>
       </aside>
     </div>
-    <section className="percorso-blocco" aria-labelledby="percorso-titolo">
-      <h3 id="percorso-titolo">Il percorso</h3>
-      <div className="percorso-carosello">
-        {SCHEDE_PERCORSO.map(scheda => (
-          <article key={scheda.id} className="percorso-card">
-            <span className="percorso-icona-fondo">
-              <IconaPercorso id={scheda.id} />
-            </span>
-            <h4>{scheda.titolo}</h4>
-            <p>{scheda.testo}</p>
-          </article>
-        ))}
-      </div>
-    </section>
     </div>
   )
 }

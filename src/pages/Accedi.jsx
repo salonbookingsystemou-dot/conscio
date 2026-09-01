@@ -19,7 +19,7 @@ export default function Accedi() {
     setInvio(true)
     try {
       if (!supabaseConfigurato) {
-        setErrore('Questa copia del sito non è collegata al database. Apri https://salonbookingsystemou-dot.github.io/conscio/#/accedi e aggiorna la pagina (Cmd+Shift+R).')
+        setErrore('Questa copia del sito non è collegata al database. Apri https://conscio.mnesti.it/#/accedi e aggiorna la pagina (Cmd+Shift+R).')
         return
       }
       await accedi(email.trim(), password)

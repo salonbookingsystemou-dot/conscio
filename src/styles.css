@@ -14,8 +14,14 @@
 
 * { box-sizing: border-box; }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
+  max-width: 100%;
+  overflow-x: hidden;
   background: var(--bg);
   color: var(--ink);
   font-family: 'Inter', sans-serif;
@@ -33,6 +39,8 @@ a { color: var(--moss-dark); }
 
 .shell {
   max-width: 960px;
+  width: 100%;
+  min-width: 0;
   margin: 0 auto;
   padding: 0 24px 64px;
 }
@@ -301,6 +309,8 @@ a { color: var(--moss-dark); }
 .layout-due {
   display: grid;
   gap: 28px;
+  min-width: 0;
+  max-width: 100%;
 }
 @media (min-width: 860px) {
   .layout-due { grid-template-columns: minmax(0, 1.6fr) minmax(240px, 0.9fr); }
@@ -317,18 +327,27 @@ a { color: var(--moss-dark); }
 .iscrizione-pagina {
   display: grid;
   gap: 28px;
+  min-width: 0;
+  max-width: 100%;
 }
-.percorso-blocco h3 {
-  font-size: 15px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ochre);
-  margin-bottom: 12px;
+.percorso-blocco {
+  min-width: 0;
+  max-width: 100%;
+}
+.percorso-blocco h2 {
+  margin-bottom: 0.25em;
+}
+.percorso-blocco .lead {
+  margin-bottom: 16px;
 }
 .percorso-carosello {
   display: flex;
   gap: 12px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
   scroll-padding-inline: 2px;
   padding: 2px 2px 10px;
@@ -337,6 +356,7 @@ a { color: var(--moss-dark); }
 }
 .percorso-card {
   flex: 0 0 min(240px, 78%);
+  min-width: 0;
   scroll-snap-align: start;
   padding: 18px 16px 16px;
   border: 1px solid var(--border);
@@ -347,8 +367,8 @@ a { color: var(--moss-dark); }
 .percorso-icona-fondo {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   margin-bottom: 12px;
   border-radius: 10px;
   background: #E7EDE6;
@@ -359,10 +379,10 @@ a { color: var(--moss-dark); }
   color: var(--ochre);
 }
 .percorso-icona {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
 }
-.percorso-card h4 {
+.percorso-card h3 {
   margin: 0 0 6px;
   font-family: 'Fraunces', serif;
   font-size: 1.15rem;
@@ -424,6 +444,7 @@ a { color: var(--moss-dark); }
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
 }
 .ciclo-card strong {
@@ -1062,15 +1083,45 @@ button.cal-giorno { cursor: pointer; }
   }
 }
 
+html:has(.splash),
+body:has(.splash) {
+  background: #e8ebe4;
+}
+
 .splash {
+  position: relative;
+  isolation: isolate;
   min-height: 100dvh;
+  max-width: 100%;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 40px 24px 56px;
   text-align: center;
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(ellipse 120% 85% at -4% -8%, rgba(75, 107, 87, 0.15) 0%, transparent 56%),
+    radial-gradient(ellipse 70% 50% at 88% 12%, rgba(75, 107, 87, 0.05) 0%, transparent 48%),
+    radial-gradient(ellipse 95% 75% at 112% 110%, rgba(168, 118, 62, 0.12) 0%, transparent 52%),
+    radial-gradient(ellipse 48% 34% at 50% 42%, rgba(251, 250, 246, 0.65) 0%, transparent 68%),
+    radial-gradient(ellipse 80% 70% at 50% 48%, transparent 42%, rgba(47, 68, 56, 0.035) 100%),
+    linear-gradient(168deg, #e4e9e2 0%, #eff1ea 46%, #f3ece3 100%);
+}
+.splash::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.045;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.splash > * {
+  position: relative;
+  z-index: 1;
 }
 .splash-icona {
   display: block;
@@ -1149,7 +1200,8 @@ button.cal-giorno { cursor: pointer; }
 
 .invito-home {
   position: relative;
-  width: min(22rem, calc(100vw - 40px));
+  width: min(22rem, calc(100% - 40px));
+  max-width: 100%;
   padding: 36px 24px 28px;
   border: 1px solid var(--border);
   border-radius: 16px;
