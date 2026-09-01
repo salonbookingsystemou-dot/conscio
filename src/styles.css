@@ -303,21 +303,63 @@ a { color: var(--moss-dark); }
 .card-lato ul { padding-left: 1.1em; margin: 0; }
 
 .ciclo-scelte { display: grid; gap: 10px; }
+.field .ciclo-card,
 .ciclo-card {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 14px 16px;
+  align-items: center;
+  gap: 14px;
+  margin: 0;
+  padding: 16px 18px;
   border: 1px solid var(--border);
-  border-radius: 10px;
-  background: #fff;
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 16px;
   cursor: pointer;
 }
-.ciclo-card.is-on { border-color: var(--moss); }
-.ciclo-card input { width: auto; margin-top: 4px; }
-.ciclo-card strong { display: block; }
-.ciclo-meta { display: block; font-size: 13px; color: var(--ink-soft); }
-.ciclo-card .badge { margin-left: auto; flex-shrink: 0; }
+.ciclo-card.is-on {
+  border-color: var(--moss);
+  background: #F3F6F2;
+  box-shadow: inset 3px 0 0 var(--moss);
+}
+.ciclo-card input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: var(--moss);
+}
+.ciclo-card-corpo {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+.ciclo-card-testata {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ciclo-card strong {
+  display: block;
+  font-family: 'Fraunces', serif;
+  font-size: 1.2rem;
+  font-weight: 500;
+  line-height: 1.25;
+}
+.ciclo-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.ciclo-meta span + span {
+  padding-left: 16px;
+  border-left: 1px solid var(--border);
+}
+.ciclo-card .badge { flex-shrink: 0; }
 
 .tp-lista { display: grid; gap: 10px; margin-top: 16px; }
 .tp-card {

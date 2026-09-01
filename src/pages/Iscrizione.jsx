@@ -97,14 +97,16 @@ export default function Iscrizione() {
                     checked={form.ciclo_id === c.id}
                     onChange={() => setForm({ ...form, ciclo_id: c.id })}
                   />
-                  <span>
-                    <strong>{c.nome_ciclo}</strong>
+                  <span className="ciclo-card-corpo">
+                    <span className="ciclo-card-testata">
+                      <strong>{c.nome_ciclo}</strong>
+                      <span className="badge">{c.stato}</span>
+                    </span>
                     <span className="ciclo-meta">
-                      Inizio {new Date(c.data_inizio).toLocaleDateString('it-IT')}
-                      {c.posti_totali ? ` · ${c.posti_totali} posti` : ''}
+                      <span>Inizio {new Date(c.data_inizio).toLocaleDateString('it-IT')}</span>
+                      {c.posti_totali ? <span>{c.posti_totali} posti</span> : null}
                     </span>
                   </span>
-                  <span className="badge">{c.stato}</span>
                 </label>
               ))}
             </div>
