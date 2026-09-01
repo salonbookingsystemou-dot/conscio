@@ -119,15 +119,8 @@ alter table comunicazioni enable row level security;
 create policy "lettura pubblica cicli in reclutamento" on cicli
   for select using (stato = 'reclutamento');
 
--- L'iscrizione pubblica non può creare un facilitatore né richiedere il Modulo B.
-create policy "iscrizione pubblica" on utenti
-  for insert with check (
-    ruolo = 'partecipante'
-    and consenso_modulo_a = true
-  );
-
-create policy "iscrizione pubblica ciclo" on iscrizioni
-  for insert with check (true);
+-- Iscrizione solo tramite iscrivi_partecipante (SECURITY DEFINER):
+-- niente insert anonimi diretti su utenti o iscrizioni.
 
 -- Compilazione pubblica dei questionari: si leggono solo gli item (niente email).
 -- Le risposte si inseriscono solo tramite le funzioni SECURITY DEFINER qui sotto,
@@ -284,6 +277,8 @@ set search_path = public
 as $$
 declare
   v_utente_id uuid;
+  v_posti int;
+  v_iscritti int;
 begin
   if coalesce(p_consenso_a, false) is not true then
     raise exception 'CONSENSO_A_OBBLIGATORIO';
@@ -293,22 +288,47 @@ begin
     raise exception 'EMAIL_MANCANTE';
   end if;
 
-  if not exists (select 1 from cicli where id = p_ciclo_id and stato = 'reclutamento') then
+  if p_codice is null or trim(p_codice) = '' then
+    raise exception 'CODICE_MANCANTE';
+  end if;
+
+  perform 1 from cicli where id = p_ciclo_id and stato = 'reclutamento' for update;
+  if not found then
     raise exception 'CICLO_NON_DISPONIBILE';
+  end if;
+
+  select posti_totali into v_posti from cicli where id = p_ciclo_id;
+  select count(*) into v_iscritti from iscrizioni where ciclo_id = p_ciclo_id;
+
+  if v_iscritti >= coalesce(v_posti, 0) then
+    raise exception 'CICLO_PIENO';
+  end if;
+
+  if exists (
+    select 1
+    from utenti u
+    join iscrizioni i on i.utente_id = u.id
+    where i.ciclo_id = p_ciclo_id
+      and lower(trim(u.email)) = lower(trim(p_email))
+  ) then
+    raise exception 'EMAIL_GIA_ISCRITTA';
   end if;
 
   insert into utenti (
     codice_partecipante, email, ruolo, stato_screening,
     consenso_modulo_a, consenso_modulo_b
   ) values (
-    p_codice, trim(p_email), 'partecipante', 'in_valutazione',
+    trim(p_codice), trim(p_email), 'partecipante', 'in_valutazione',
     true, coalesce(p_consenso_b, false)
   ) returning id into v_utente_id;
 
   insert into iscrizioni (utente_id, ciclo_id, esito_screening)
   values (v_utente_id, p_ciclo_id, 'in_attesa');
 
-  return jsonb_build_object('ok', true, 'codice', p_codice);
+  return jsonb_build_object('ok', true, 'codice', trim(p_codice));
+exception
+  when unique_violation then
+    raise exception 'CODICE_DUPLICATO';
 end;
 $$;
 

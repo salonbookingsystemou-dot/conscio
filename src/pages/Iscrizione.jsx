@@ -11,6 +11,7 @@ export default function Iscrizione() {
     consenso_modulo_b: false
   })
   const [stato, setStato] = useState(null)
+  const [errore, setErrore] = useState(null)
   const [codiceGenerato, setCodiceGenerato] = useState(null)
 
   useEffect(() => {
@@ -24,21 +25,37 @@ export default function Iscrizione() {
   async function handleSubmit(e) {
     e.preventDefault()
     if (!form.consenso_modulo_a) return
+    setErrore(null)
     setStato('invio')
-    if (!supabaseConfigurato) { setStato('errore'); return }
+    if (!supabaseConfigurato) {
+      setErrore('Connessione non configurata. Riprova più tardi.')
+      setStato(null)
+      return
+    }
 
-    const codice = generaCodicePartecipante()
-    const { data, error } = await supabase.rpc('iscrivi_partecipante', {
-      p_email: form.email,
-      p_ciclo_id: form.ciclo_id,
-      p_codice: codice,
-      p_consenso_a: form.consenso_modulo_a,
-      p_consenso_b: form.consenso_modulo_b
-    })
-
-    if (error || !data?.ok) { setStato('errore'); return }
-    setCodiceGenerato(data.codice || codice)
-    setStato('ok')
+    for (let tentativo = 0; tentativo < 3; tentativo++) {
+      const codice = generaCodicePartecipante()
+      const { data, error } = await supabase.rpc('iscrivi_partecipante', {
+        p_email: form.email,
+        p_ciclo_id: form.ciclo_id,
+        p_codice: codice,
+        p_consenso_a: form.consenso_modulo_a,
+        p_consenso_b: form.consenso_modulo_b
+      })
+      const testo = error?.message || ''
+      if (!error && data?.ok) {
+        setCodiceGenerato(data.codice || codice)
+        setStato('ok')
+        return
+      }
+      if (testo.includes('CODICE_DUPLICATO') && tentativo < 2) continue
+      if (testo.includes('CICLO_PIENO')) setErrore('Questo ciclo ha già raggiunto gli 8 posti.')
+      else if (testo.includes('EMAIL_GIA_ISCRITTA')) setErrore('Questa email è già iscritta a questo ciclo.')
+      else if (testo.includes('CICLO_NON_DISPONIBILE')) setErrore('Il ciclo non è più in reclutamento.')
+      else setErrore('Si è verificato un errore. Riprova.')
+      setStato(null)
+      return
+    }
   }
 
   if (stato === 'ok') {
@@ -128,7 +145,7 @@ export default function Iscrizione() {
           <button className="btn" type="submit" disabled={stato === 'invio' || !form.consenso_modulo_a || !form.ciclo_id}>
             {stato === 'invio' ? 'Invio in corso…' : 'Invia richiesta'}
           </button>
-          {stato === 'errore' && <p style={{ color: 'var(--danger)' }}>Si è verificato un errore. Riprova.</p>}
+          {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
         </form>
       </div>
 
