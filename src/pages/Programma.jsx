@@ -192,6 +192,14 @@ export default function Programma() {
               {corrente.pratiche_formali && <p><strong>Formali.</strong> {corrente.pratiche_formali}</p>}
               {corrente.pratiche_informali && <p><strong>Informali.</strong> {corrente.pratiche_informali}</p>}
               {corrente.materiali && <p><strong>Materiali.</strong> {corrente.materiali}</p>}
+              {corrente.traccia_audio && (
+                <div className="traccia-settimana">
+                  <p><strong>Traccia guidata</strong></p>
+                  <audio className="player-audio" controls src={corrente.traccia_audio} preload="metadata">
+                    Il browser non riproduce questa traccia.
+                  </audio>
+                </div>
+              )}
               {(corrente.esercizi || []).length === 0 && (
                 <p className="hint">Nessuna pratica assegnata a questa settimana.</p>
               )}

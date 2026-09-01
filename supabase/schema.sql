@@ -42,6 +42,7 @@ create table lezioni (
   pratiche_formali text,
   pratiche_informali text,
   materiali text,
+  traccia_audio text,
   unique (ciclo_id, numero_settimana)
 );
 
@@ -494,6 +495,7 @@ begin
         'pratiche_formali', l.pratiche_formali,
         'pratiche_informali', l.pratiche_informali,
         'materiali', l.materiali,
+        'traccia_audio', l.traccia_audio,
         'esercizi', coalesce((
           select jsonb_agg(jsonb_build_object(
             'id', e.id,
@@ -671,3 +673,33 @@ create policy "facilitatore gestisce comunicazioni" on comunicazioni
 -- l'utente in Authentication → Users:
 --   insert into utenti (codice_partecipante, email, ruolo, auth_user_id, consenso_modulo_a)
 --   values ('FACILITATORE', 'tua@email', 'facilitatore', '<uuid da auth.users>', true);
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'tracce-audio',
+  'tracce-audio',
+  true,
+  52428800,
+  array['audio/mpeg','audio/mp3','audio/wav','audio/x-wav','audio/mp4','audio/m4a','audio/x-m4a','audio/aac','audio/ogg','audio/webm']
+)
+on conflict (id) do nothing;
+
+create policy "lettura pubblica tracce"
+on storage.objects for select
+using (bucket_id = 'tracce-audio');
+
+create policy "facilitatore carica tracce"
+on storage.objects for insert
+to authenticated
+with check (bucket_id = 'tracce-audio' and public.is_facilitatore());
+
+create policy "facilitatore aggiorna tracce"
+on storage.objects for update
+to authenticated
+using (bucket_id = 'tracce-audio' and public.is_facilitatore())
+with check (bucket_id = 'tracce-audio' and public.is_facilitatore());
+
+create policy "facilitatore elimina tracce"
+on storage.objects for delete
+to authenticated
+using (bucket_id = 'tracce-audio' and public.is_facilitatore());

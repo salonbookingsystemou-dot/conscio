@@ -388,6 +388,15 @@ a { color: var(--moss-dark); }
   margin: 0 0 6px;
 }
 
+.player-audio {
+  display: block;
+  width: 100%;
+  margin: 8px 0 12px;
+}
+.traccia-settimana {
+  margin: 16px 0;
+}
+
 @media (max-width: 640px) {
   .shell { padding: 0 16px 48px; }
   .topbar { padding: 16px; }
