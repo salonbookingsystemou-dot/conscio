@@ -2,6 +2,8 @@ import { useEffect, useId, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth.jsx'
 import { usePartecipante } from '../lib/partecipante.jsx'
+import iconaConscio from '../assets/icona-conscio.png'
+import { apriInvitoHome, appGiaInHome } from '../lib/invitoHome.js'
 
 export default function Nav() {
   const { facilitatore, esci } = useAuth()
@@ -52,6 +54,17 @@ export default function Nav() {
       ) : (
         <>
           <span className="nav-sep" aria-hidden="true" />
+          {!appGiaInHome() && (
+            <button
+              type="button"
+              onClick={() => {
+                chiudi()
+                apriInvitoHome()
+              }}
+            >
+              Installa app
+            </button>
+          )}
           <button type="button" onClick={() => { chiudi(); esciPartecipante() }}>Esci</button>
         </>
       )}
@@ -71,7 +84,7 @@ export default function Nav() {
     <header className={`topbar${aperto ? ' is-open' : ''}`}>
       <div className="topbar-riga">
         <Link to="/" className="brand" onClick={chiudi}>
-          <span className="brand-mark" aria-hidden="true" />
+          <img className="brand-mark" src={iconaConscio} alt="" />
           Percorso MBSR
         </Link>
         <button

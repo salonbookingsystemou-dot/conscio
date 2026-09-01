@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { usePartecipante } from '../lib/partecipante.jsx'
-import { supabaseConfigurato } from '../lib/supabaseClient'
+import { leggiCodiceRicordato, memorizzaCodiceRicordato, supabaseConfigurato } from '../lib/supabaseClient'
 
 export default function ChiediCodice({
   titolo = 'Inserisci un codice partecipante per vedere questa sezione.'
 }) {
   const { entra } = usePartecipante()
-  const [codice, setCodice] = useState('')
+  const [codice, setCodice] = useState(() => leggiCodiceRicordato())
   const [errore, setErrore] = useState(null)
   const [invio, setInvio] = useState(false)
 
@@ -22,11 +22,12 @@ export default function ChiediCodice({
     try {
       await entra(codice)
     } catch (err) {
-      setErrore(
-        err?.message === 'SCREENING_IN_ATTESA'
-          ? 'Il codice è riconosciuto. Questa sezione si apre dopo l’esito idoneo dello screening.'
-          : 'Codice non riconosciuto. Controlla e riprova.'
-      )
+      if (err?.message === 'SCREENING_IN_ATTESA') {
+        memorizzaCodiceRicordato(codice)
+        setErrore('Il codice è riconosciuto. Questa sezione si apre dopo l’esito idoneo dello screening.')
+      } else {
+        setErrore('Codice non riconosciuto. Controlla e riprova.')
+      }
     } finally {
       setInvio(false)
     }
@@ -40,10 +41,14 @@ export default function ChiediCodice({
           <label htmlFor="codice-sezione">Codice partecipante</label>
           <input
             id="codice-sezione"
+            name="username"
             value={codice}
             onChange={e => setCodice(e.target.value)}
             placeholder="es. MBSR-7K2Q"
-            autoComplete="off"
+            autoComplete="username"
+            autoCapitalize="characters"
+            autoCorrect="off"
+            spellCheck={false}
             required
           />
         </div>

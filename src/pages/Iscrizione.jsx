@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase, supabaseConfigurato, generaCodicePartecipante } from '../lib/supabaseClient'
+import { supabase, supabaseConfigurato, generaCodicePartecipante, memorizzaCodiceRicordato } from '../lib/supabaseClient'
 import Disclaimer from '../components/Disclaimer.jsx'
 
 function IconaDocumento() {
@@ -129,6 +129,7 @@ export default function Iscrizione() {
       const testo = error?.message || ''
       if (!error && data?.ok) {
         const assegnato = data.codice || codice
+        memorizzaCodiceRicordato(assegnato)
         setCodiceGenerato(assegnato)
         setStato('ok')
         return

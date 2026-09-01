@@ -145,10 +145,10 @@ function Informativa() {
 
       <h3>8. Memoria del browser</h3>
       <p>
-        Dopo l’iscrizione o l’accesso, il codice può restare nel browser
-        (localStorage) così non devi reinserirlo ogni volta. Serve solo al
-        funzionamento dell’app. Non usiamo cookie di profilazione né strumenti di
-        statistica di terze parti.
+        Dopo l’iscrizione o l’accesso, il codice può restare su questo dispositivo
+        (memoria del browser) così al prossimo ingresso è già compilato. Puoi
+        dimenticarlo dalla pagina Entra. Serve solo al funzionamento dell’app.
+        Non usiamo cookie di profilazione né strumenti di statistica di terze parti.
       </p>
 
       <h3>9. Maggiorenni</h3>

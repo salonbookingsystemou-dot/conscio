@@ -26,6 +26,7 @@ export const supabase = createClient(
 )
 
 const CHIAVE_CODICE = 'mbsr_codice'
+const CHIAVE_RICORDO = 'mbsr_codice_ricordo'
 
 export function leggiCodice() {
   try {
@@ -35,11 +36,30 @@ export function leggiCodice() {
   }
 }
 
+export function leggiCodiceRicordato() {
+  try {
+    return localStorage.getItem(CHIAVE_RICORDO) || leggiCodice() || ''
+  } catch {
+    return ''
+  }
+}
+
+export function memorizzaCodiceRicordato(codice) {
+  try {
+    const pulito = (codice || '').trim()
+    if (!pulito) return
+    localStorage.setItem(CHIAVE_RICORDO, pulito)
+  } catch {
+    /* archivio non disponibile */
+  }
+}
+
 export function memorizzaCodice(codice) {
   try {
     const pulito = (codice || '').trim()
     if (!pulito) return
     localStorage.setItem(CHIAVE_CODICE, pulito)
+    localStorage.setItem(CHIAVE_RICORDO, pulito)
     sessionStorage.removeItem(CHIAVE_CODICE)
   } catch {
     /* archivio non disponibile */
@@ -50,6 +70,14 @@ export function dimenticaCodice() {
   try {
     localStorage.removeItem(CHIAVE_CODICE)
     sessionStorage.removeItem(CHIAVE_CODICE)
+  } catch {
+    /* archivio non disponibile */
+  }
+}
+
+export function dimenticaCodiceRicordato() {
+  try {
+    localStorage.removeItem(CHIAVE_RICORDO)
   } catch {
     /* archivio non disponibile */
   }

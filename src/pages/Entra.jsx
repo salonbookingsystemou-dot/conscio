@@ -2,7 +2,12 @@ import { useState } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth.jsx'
 import { usePartecipante } from '../lib/partecipante.jsx'
-import { supabaseConfigurato } from '../lib/supabaseClient'
+import {
+  dimenticaCodiceRicordato,
+  leggiCodiceRicordato,
+  memorizzaCodiceRicordato,
+  supabaseConfigurato
+} from '../lib/supabaseClient'
 import Disclaimer from '../components/Disclaimer.jsx'
 
 export default function Entra() {
@@ -12,7 +17,7 @@ export default function Entra() {
   const destinazione = location.state?.da && location.state.da !== '/entra'
     ? location.state.da
     : '/programma'
-  const [codice, setCodice] = useState('')
+  const [codice, setCodice] = useState(() => leggiCodiceRicordato())
   const [errore, setErrore] = useState(null)
   const [invio, setInvio] = useState(false)
 
@@ -32,11 +37,12 @@ export default function Entra() {
     try {
       await entra(codice)
     } catch (err) {
-      setErrore(
-        err?.message === 'SCREENING_IN_ATTESA'
-          ? 'Il codice è riconosciuto. L’accesso alle altre sezioni si apre dopo l’esito idoneo dello screening.'
-          : 'Codice non riconosciuto. Controlla e riprova, oppure iscriviti.'
-      )
+      if (err?.message === 'SCREENING_IN_ATTESA') {
+        memorizzaCodiceRicordato(codice)
+        setErrore('Il codice è riconosciuto. L’accesso alle altre sezioni si apre dopo l’esito idoneo dello screening.')
+      } else {
+        setErrore('Codice non riconosciuto. Controlla e riprova, oppure iscriviti.')
+      }
     } finally {
       setInvio(false)
     }
@@ -57,12 +63,33 @@ export default function Entra() {
               <label htmlFor="codice">Codice partecipante</label>
               <input
                 id="codice"
+                name="username"
                 value={codice}
                 onChange={e => setCodice(e.target.value)}
                 placeholder="es. MBSR-7K2Q"
-                autoComplete="off"
+                autoComplete="username"
+                autoCapitalize="characters"
+                autoCorrect="off"
+                spellCheck={false}
                 required
               />
+              <p className="hint">
+                Su questo dispositivo il codice resta compilato per i prossimi accessi.
+              </p>
+              {leggiCodiceRicordato() && (
+                <p className="hint">
+                  <button
+                    type="button"
+                    className="link-testuale"
+                    onClick={() => {
+                      dimenticaCodiceRicordato()
+                      setCodice('')
+                    }}
+                  >
+                    Dimentica il codice su questo dispositivo
+                  </button>
+                </p>
+              )}
             </div>
             <button className="btn" type="submit" disabled={!codice.trim() || invio}>
               {invio ? 'Verifica in corso…' : 'Entra'}

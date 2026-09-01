@@ -270,6 +270,18 @@ a { color: var(--moss-dark); }
   color: var(--ink-soft);
   margin: 6px 0 0;
 }
+.link-testuale {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--moss-dark);
+  font: inherit;
+  font-size: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
 .hint-consensi { margin-bottom: 12px; }
 .hint-errore { color: var(--danger); }
 
@@ -279,11 +291,11 @@ a { color: var(--moss-dark); }
   gap: 10px;
 }
 .brand-mark {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  background: var(--moss);
-  display: inline-block;
+  width: 32px;
+  height: 32px;
+  display: block;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .layout-due {
@@ -1134,3 +1146,94 @@ button.cal-giorno { cursor: pointer; }
     transform: none;
   }
 }
+
+.invito-home {
+  position: relative;
+  width: min(22rem, calc(100vw - 40px));
+  padding: 36px 24px 28px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink);
+  text-align: center;
+  box-shadow: 0 18px 48px rgba(36, 49, 44, 0.16);
+}
+.invito-home::backdrop {
+  background: rgba(36, 49, 44, 0.38);
+}
+.invito-home-chiudi {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.invito-home-chiudi svg {
+  width: 20px;
+  height: 20px;
+}
+.invito-home-chiudi:hover,
+.invito-home-chiudi:focus-visible {
+  background: #E3E8E0;
+  color: var(--ink);
+  outline: none;
+}
+.invito-home-icona {
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  object-fit: contain;
+}
+.invito-home h2 {
+  font-size: 1.35rem;
+  line-height: 1.3;
+  margin: 0 0 10px;
+}
+.invito-home p {
+  margin: 0 0 16px;
+  color: var(--ink-soft);
+  font-size: 15px;
+}
+.invito-home .btn { margin-bottom: 16px; }
+.invito-home .hint { margin: 0; }
+.invito-home-passi {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+.invito-home-passi li {
+  position: relative;
+  padding: 10px 12px 10px 40px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  background: #F3F6F2;
+  color: var(--ink);
+  font-size: 15px;
+}
+.invito-home-passi li::before {
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--moss);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+  text-align: center;
+}
+.invito-home-passi li:nth-child(1)::before { content: '1'; }
+.invito-home-passi li:nth-child(2)::before { content: '2'; }

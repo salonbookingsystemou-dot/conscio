@@ -13,6 +13,7 @@ import LogPratica from './pages/LogPratica.jsx'
 import Comunicazioni from './pages/Comunicazioni.jsx'
 import Programma from './pages/Programma.jsx'
 import Documento from './pages/Documento.jsx'
+import InvitoHome from './components/InvitoHome.jsx'
 
 export default function App() {
   const { pathname } = useLocation()
@@ -20,6 +21,7 @@ export default function App() {
 
   return (
     <>
+      <InvitoHome />
       {!splash && <Nav />}
       <div className={splash ? undefined : 'shell'}>
         <Routes>
