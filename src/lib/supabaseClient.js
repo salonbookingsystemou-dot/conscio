@@ -25,6 +25,25 @@ export const supabase = createClient(
   }
 )
 
+const CHIAVE_CODICE = 'mbsr_codice'
+
+export function leggiCodice() {
+  try {
+    return sessionStorage.getItem(CHIAVE_CODICE) || ''
+  } catch {
+    return ''
+  }
+}
+
+export function memorizzaCodice(codice) {
+  try {
+    const pulito = (codice || '').trim()
+    if (pulito) sessionStorage.setItem(CHIAVE_CODICE, pulito)
+  } catch {
+    /* sessione non disponibile */
+  }
+}
+
 // Genera un codice partecipante pseudonimizzato, es. "MBSR-7K2Q"
 export function generaCodicePartecipante() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'

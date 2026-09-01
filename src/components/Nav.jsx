@@ -13,8 +13,8 @@ export default function Nav() {
       <div className="nav-links">
         <NavLink to="/" end>Iscrizione</NavLink>
         <NavLink to="/questionari">Questionari</NavLink>
-        <NavLink to="/pratica">Pratica</NavLink>
         <NavLink to="/programma">Settimana</NavLink>
+        <NavLink to="/pratica">Storico</NavLink>
         <NavLink to="/comunicazioni">Avvisi</NavLink>
         {facilitatore && (
           <>

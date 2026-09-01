@@ -194,7 +194,8 @@ export default function Dashboard() {
           <p key={`${l.codice_partecipante}-${l.data}-${idx}`}>
             <span className="badge">{l.codice_partecipante}</span>{' '}
             {new Date(l.data).toLocaleDateString('it-IT')} · {l.durata_minuti} min
-            {l.tipo ? ` · ${l.tipo}` : ''}
+            {l.numero_settimana ? ` · sett. ${l.numero_settimana}` : ''}
+            {l.esercizio ? ` — ${l.esercizio}` : l.tipo ? ` · ${l.tipo}` : ''}
             {l.note ? ` — ${l.note}` : ''}
           </p>
         ))}

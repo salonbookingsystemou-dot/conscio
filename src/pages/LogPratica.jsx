@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
+import { Link } from 'react-router-dom'
+import { supabase, supabaseConfigurato, leggiCodice, memorizzaCodice } from '../lib/supabaseClient'
 import Disclaimer from '../components/Disclaimer.jsx'
 
 const TIPI = [
@@ -15,15 +16,39 @@ function oggiISO() {
 }
 
 export default function LogPratica() {
+  const [codice, setCodice] = useState(leggiCodice)
   const [form, setForm] = useState({
-    codice: '',
     data: oggiISO(),
     durata_minuti: 20,
     tipo: 'seduta',
     note: ''
   })
+  const [storico, setStorico] = useState([])
   const [stato, setStato] = useState(null)
   const [errore, setErrore] = useState(null)
+  const [caricato, setCaricato] = useState(false)
+
+  async function caricaStorico(codicePulito) {
+    const { data, error } = await supabase.rpc('log_pratica_del_partecipante', {
+      p_codice: codicePulito
+    })
+    if (error) return false
+    setStorico(data || [])
+    setCaricato(true)
+    memorizzaCodice(codicePulito)
+    return true
+  }
+
+  async function handleStorico(e) {
+    e.preventDefault()
+    setErrore(null)
+    if (!supabaseConfigurato) {
+      setErrore('Connessione non configurata. Riprova più tardi.')
+      return
+    }
+    const ok = await caricaStorico(codice.trim())
+    if (!ok) setErrore('Codice non riconosciuto, oppure non è stato possibile caricare lo storico.')
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -34,22 +59,13 @@ export default function LogPratica() {
       setStato(null)
       return
     }
-    let { error } = await supabase.rpc('salva_log_pratica', {
-      p_codice: form.codice.trim(),
+    const { error } = await supabase.rpc('salva_log_pratica', {
+      p_codice: codice.trim(),
       p_data: form.data,
       p_durata: Number(form.durata_minuti),
       p_note: form.note.trim() || null,
       p_tipo: form.tipo
     })
-    if (error) {
-      const nota = [form.tipo, form.note.trim()].filter(Boolean).join(' — ') || null
-      ;({ error } = await supabase.rpc('salva_log_pratica', {
-        p_codice: form.codice.trim(),
-        p_data: form.data,
-        p_durata: Number(form.durata_minuti),
-        p_note: nota
-      }))
-    }
     if (error) {
       setErrore(error.message?.includes('CODICE_NON_TROVATO')
         ? 'Codice non riconosciuto. Controlla e riprova.'
@@ -57,44 +73,57 @@ export default function LogPratica() {
       setStato(null)
       return
     }
+    setForm({ ...form, note: '' })
     setStato('ok')
-  }
-
-  if (stato === 'ok') {
-    return (
-      <div className="card card-conferma">
-        <h2>Pratica registrata</h2>
-        <p>Associata al codice</p>
-        <p className="codice-enfasi">{form.codice.trim().toUpperCase()}</p>
-        <button className="btn" type="button" onClick={() => {
-          setForm({ ...form, data: oggiISO(), note: '' })
-          setStato(null)
-        }}>
-          Un’altra pratica
-        </button>
-      </div>
-    )
+    await caricaStorico(codice.trim())
   }
 
   return (
     <div className="layout-due">
       <div>
-        <h2>Log di pratica</h2>
-        <p className="lead">Un minuto, senza formalità. Data, durata, tipo — e una nota solo se vuoi.</p>
+        <h2>Storico di pratica</h2>
+        <p className="lead">
+          Il diario della settimana sta in{' '}
+          <Link to="/programma">Settimana</Link>, sotto ogni pratica.
+          Qui vedi tutte le sessioni e puoi registrare qualcosa fuori programma.
+        </p>
         <Disclaimer />
+
+        <form className="card" onSubmit={handleStorico}>
+          <div className="field">
+            <label htmlFor="codice">Codice partecipante</label>
+            <input
+              id="codice"
+              required
+              value={codice}
+              onChange={e => setCodice(e.target.value)}
+              placeholder="es. MBSR-7K2Q"
+              autoComplete="off"
+            />
+          </div>
+          <button className="btn" type="submit">Mostra lo storico</button>
+          {errore && !stato && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+        </form>
+
+        {caricato && (
+          <div className="card">
+            <h3>Le tue sessioni</h3>
+            {storico.length === 0 && <p>Nessuna sessione ancora registrata.</p>}
+            {storico.map(riga => (
+              <p className="log-riga" key={riga.id}>
+                {new Date(riga.data).toLocaleDateString('it-IT')} · {riga.durata_minuti} min
+                {riga.numero_settimana ? ` · sett. ${riga.numero_settimana}` : ''}
+                {riga.esercizio ? ` — ${riga.esercizio}` : riga.tipo ? ` · ${riga.tipo}` : ''}
+                {riga.note ? ` — ${riga.note}` : ''}
+              </p>
+            ))}
+          </div>
+        )}
+
         <div className="card">
+          <h3>Fuori programma</h3>
+          <p className="hint">Solo se la pratica non corrisponde a un esercizio della settimana.</p>
           <form onSubmit={handleSubmit}>
-            <div className="field">
-              <label htmlFor="codice">Codice partecipante</label>
-              <input
-                id="codice"
-                required
-                value={form.codice}
-                onChange={e => setForm({ ...form, codice: e.target.value })}
-                placeholder="es. MBSR-7K2Q"
-                autoComplete="off"
-              />
-            </div>
             <div className="riga-due">
               <div className="field">
                 <label htmlFor="data">Data</label>
@@ -132,10 +161,11 @@ export default function LogPratica() {
               <label htmlFor="note">Nota (facoltativa)</label>
               <textarea id="note" rows="2" value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} />
             </div>
-            <button className="btn" type="submit" disabled={stato === 'invio'}>
+            <button className="btn" type="submit" disabled={stato === 'invio' || !codice.trim()}>
               {stato === 'invio' ? 'Salvataggio…' : 'Registra'}
             </button>
-            {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+            {stato === 'ok' && <p>Sessione registrata.</p>}
+            {errore && stato && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
           </form>
         </div>
       </div>

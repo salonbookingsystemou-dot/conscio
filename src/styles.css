@@ -371,6 +371,23 @@ a { color: var(--moss-dark); }
   align-items: center;
 }
 
+.pratica-blocco {
+  border-top: 1px solid var(--border);
+  margin-top: 20px;
+  padding-top: 16px;
+}
+.pratica-blocco h4 {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: 17px;
+  margin: 0 0 8px;
+}
+.log-riga {
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin: 0 0 6px;
+}
+
 @media (max-width: 640px) {
   .shell { padding: 0 16px 48px; }
   .topbar { padding: 16px; }
