@@ -3,6 +3,22 @@ import { Link } from 'react-router-dom'
 import { supabase, supabaseConfigurato, generaCodicePartecipante } from '../lib/supabaseClient'
 import Disclaimer from '../components/Disclaimer.jsx'
 
+function IconaDocumento() {
+  return (
+    <svg className="icona-documento" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M7 3.5h7.2L19 8.4V20a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 6 20V5a1.5 1.5 0 0 1 1.5-1.5Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path d="M14.1 3.7V8.2H18.8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M9 12.2h6M9 15.6h6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 export default function Iscrizione() {
   const [cicli, setCicli] = useState([])
   const [form, setForm] = useState({
@@ -198,16 +214,19 @@ export default function Iscrizione() {
           <h3>Documenti</h3>
           <ul className="lista-documenti">
             <li>
+              <IconaDocumento />
               <a href="#/documenti/informativa" target="_blank" rel="noopener noreferrer">
                 Informativa privacy
               </a>
             </li>
             <li>
+              <IconaDocumento />
               <a href="#/documenti/modulo-a" target="_blank" rel="noopener noreferrer">
                 Modulo A — partecipazione
               </a>
             </li>
             <li>
+              <IconaDocumento />
               <a href="#/documenti/modulo-b" target="_blank" rel="noopener noreferrer">
                 Modulo B — social (facoltativo)
               </a>
@@ -226,10 +245,13 @@ export default function Iscrizione() {
         <div className="card card-lato">
           <h3>Il percorso</h3>
           <ul>
-            <li>8 incontri settimanali</li>
-            <li>eventuale giornata intensiva</li>
-            <li>pratiche da fare a casa</li>
-            <li>questionari a T0, T1, T2 e T3, ciascuno nella sua settimana</li>
+            <li>Dura 8 settimane</li>
+            <li>1 appuntamento settimanale di pratica condivisa</li>
+            <li>45′ al giorno di pratica domestica individuale</li>
+            <li>
+              2 questionari da compilare prima, durante, alla fine e a tre mesi
+              dalla fine del ciclo
+            </li>
           </ul>
         </div>
       </aside>

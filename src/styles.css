@@ -438,7 +438,20 @@ a { color: var(--moss-dark); }
   padding: 0;
   margin: 0;
 }
-.lista-documenti li { margin: 0 0 8px; }
+.lista-documenti li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 10px;
+}
+.lista-documenti li:last-child { margin-bottom: 0; }
+.icona-documento {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  color: var(--moss);
+}
 
 .doc-pagina .badge { margin-bottom: 10px; }
 .doc-corpo h3 {
