@@ -193,11 +193,11 @@ export default function TracciaGuidata({
       if (dallInizio) {
         setInCampana(true)
         setInRiproduzione(true)
-        /* Stesso gesto: sblocca la traccia in silenzio e avvia la campana già in RAM. */
-        const sblocco = sbloccaAudio(el)
+        /* Campana PRIMA di ogni altra play(): su iOS il gesto vale solo per la prima. */
         void precaricaCampanaTibetana()
         const suono = suonaCampanaTibetana()
         campanaRef.current = suono
+        const sblocco = sbloccaAudio(el)
         const esito = await suono.attesa
         campanaRef.current = null
         if (annullaAvvioRef.current || esito !== 'fine') {
