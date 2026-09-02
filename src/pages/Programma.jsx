@@ -8,6 +8,7 @@ import CalendarioPratica from '../components/CalendarioPratica.jsx'
 import TracciaGuidata from '../components/TracciaGuidata.jsx'
 import TonoEsperienza from '../components/TonoEsperienza.jsx'
 import VoceLog from '../components/VoceLog.jsx'
+import { precaricaCampanaTibetana } from '../lib/campanaTibetana.js'
 import { addDays, formatISODate, oggiLocaleISO, parseISODate } from '../lib/date.js'
 import {
   ascoltoCompletato,
@@ -204,6 +205,10 @@ export default function Programma() {
   const [aperto, setAperto] = useState(false)
   const [tickAscolto, setTickAscolto] = useState(0)
   const pillsRef = useRef(null)
+
+  useEffect(() => {
+    precaricaCampanaTibetana()
+  }, [])
 
   async function caricaProgramma(codicePulito) {
     const [{ data, error }, { data: cicloData }, { data: log }] = await Promise.all([

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase, supabaseConfigurato, generaCodicePartecipante, memorizzaCodiceRicordato } from '../lib/supabaseClient'
+import Disclaimer from '../components/Disclaimer.jsx'
 
 function IconaPercorso({ id }) {
   const comune = {
@@ -32,13 +33,6 @@ function IconaPercorso({ id }) {
           <path d="M4.6 11.2 12 5.2l7.4 6" {...comune} />
           <path d="M6.4 10.4V19h11.2v-8.6" {...comune} />
           <path d="M10.2 19v-5.2h3.6V19" {...comune} />
-        </>
-      )}
-      {id === 'avvertenze' && (
-        <>
-          <circle cx="12" cy="12" r="8.2" {...comune} />
-          <circle cx="12" cy="7.8" r="0.9" fill="currentColor" stroke="none" />
-          <path d="M12 10.6v5" {...comune} />
         </>
       )}
       {id === 'questionari' && (
@@ -83,12 +77,6 @@ const SCHEDE_PERCORSO = [
     id: 'questionari',
     titolo: 'Due questionari',
     testo: 'Prima, durante, alla fine e a tre mesi dalla fine del ciclo.'
-  },
-  {
-    id: 'avvertenze',
-    titolo: 'Avvertenze',
-    testo: 'Questo percorso è una pratica di consapevolezza (mindfulness) a scopo divulgativo e non sostituisce in alcun modo un percorso terapeutico o una presa in carico psicologica. In caso di difficoltà cliniche, rivolgiti a un professionista sanitario.',
-    enfasi: true
   }
 ]
 
@@ -176,7 +164,7 @@ export default function Iscrizione() {
         {SCHEDE_PERCORSO.map(scheda => (
           <article
             key={scheda.id}
-            className={`percorso-card${scheda.enfasi ? ' is-enfasi' : ''}`}
+            className="percorso-card"
           >
             <span className="percorso-icona-fondo">
               <IconaPercorso id={scheda.id} />
@@ -186,16 +174,19 @@ export default function Iscrizione() {
           </article>
         ))}
       </div>
+      <Disclaimer />
     </section>
     <div className="layout-due">
-      <div>
-        <h2>Iscriviti</h2>
-        <p className="lead">
-          Compila i campi qui sotto: riceverai un codice personale da conservare.
-        </p>
-        <form onSubmit={handleSubmit}>
-          <div className="field">
-            <label>Ciclo</label>
+      <section className="iscrizione-blocco" aria-labelledby="iscrizione-titolo">
+        <header className="iscrizione-testata">
+          <h2 id="iscrizione-titolo">Iscriviti</h2>
+          <p className="lead">
+            Compila i campi qui sotto: riceverai un codice personale da conservare.
+          </p>
+        </header>
+        <form className="iscrizione-form" onSubmit={handleSubmit}>
+          <div className="iscrizione-sezione">
+            <p className="iscrizione-sezione-titolo">Ciclo</p>
             {cicli.length === 0 && <p>Nessun ciclo in reclutamento al momento.</p>}
             <div className="ciclo-scelte">
               {cicli.map(c => (
@@ -221,83 +212,94 @@ export default function Iscrizione() {
               ))}
             </div>
           </div>
-          <div className="field">
-            <label htmlFor="email">Email</label>
+
+          <div className="iscrizione-sezione iscrizione-email">
+            <label className="iscrizione-email-label" htmlFor="email">Email</label>
             <input
               id="email"
+              className="iscrizione-email-input"
               type="email"
               required
+              autoComplete="email"
+              placeholder="nome@esempio.it"
               value={form.email}
               onChange={e => setForm({ ...form, email: e.target.value })}
             />
-            <p className="hint">Serve solo per inviarti il codice e le comunicazioni del gruppo.</p>
-          </div>
-
-          <p className="hint hint-consensi">
-            Prima di inviare, apri i documenti. I due consensi sono indipendenti:
-            il Modulo B non è richiesto per partecipare.
-          </p>
-          <div className="consenso-box">
-            <label>
-              <input
-                type="checkbox"
-                checked={form.letto_informativa}
-                onChange={e => setForm({ ...form, letto_informativa: e.target.checked })}
-              />
-              <span>
-                <strong>Informativa sul trattamento dei dati</strong>
-                <span className="hint">Obbligatoria. Non è un consenso extra: ti dice come usiamo i dati.</span>
-              </span>
-            </label>
-            <p className="doc-apri">
-              <a href="#/documenti/informativa" target="_blank" rel="noopener noreferrer">
-                Leggi l’informativa privacy
-              </a>
-            </p>
-          </div>
-          <div className="consenso-box">
-            <label>
-              <input
-                type="checkbox"
-                checked={form.consenso_modulo_a}
-                onChange={e => setForm({ ...form, consenso_modulo_a: e.target.checked })}
-              />
-              <span>
-                <strong>Modulo A — consenso alla partecipazione</strong>
-                <span className="hint">Obbligatorio per entrare nel percorso.</span>
-              </span>
-            </label>
-            <p className="doc-apri">
-              <a href="#/documenti/modulo-a" target="_blank" rel="noopener noreferrer">
-                Leggi il Modulo A
-              </a>
-            </p>
-          </div>
-          <div className="consenso-box consenso-opz">
-            <label>
-              <input
-                type="checkbox"
-                checked={form.consenso_modulo_b}
-                onChange={e => setForm({ ...form, consenso_modulo_b: e.target.checked })}
-              />
-              <span>
-                <strong>Modulo B — documentazione social (facoltativo)</strong>
-                <span className="hint">Opzionale. Non è richiesto per partecipare e non dipende dal Modulo A.</span>
-              </span>
-            </label>
-            <p className="doc-apri">
-              <a href="#/documenti/modulo-b" target="_blank" rel="noopener noreferrer">
-                Leggi il Modulo B
-              </a>
+            <p className="hint">
+              Serve solo per inviarti il codice e le comunicazioni del gruppo.
             </p>
           </div>
 
-          <button className="btn" type="submit" disabled={stato === 'invio' || !form.letto_informativa || !form.consenso_modulo_a || !form.ciclo_id}>
-            {stato === 'invio' ? 'Invio in corso…' : 'Invia richiesta'}
-          </button>
-          {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+          <div className="iscrizione-sezione iscrizione-consensi">
+            <p className="iscrizione-sezione-titolo">Documenti e consensi</p>
+            <p className="hint hint-consensi">
+              Prima di inviare, apri i documenti. I due consensi sono indipendenti:
+              il Modulo B non è richiesto per partecipare.
+            </p>
+            <div className="consenso-box">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={form.letto_informativa}
+                  onChange={e => setForm({ ...form, letto_informativa: e.target.checked })}
+                />
+                <span>
+                  <strong>Informativa sul trattamento dei dati</strong>
+                  <span className="hint">Obbligatoria. Non è un consenso extra: ti dice come usiamo i dati.</span>
+                </span>
+              </label>
+              <p className="doc-apri">
+                <a href="#/documenti/informativa" target="_blank" rel="noopener noreferrer">
+                  Leggi l’informativa privacy
+                </a>
+              </p>
+            </div>
+            <div className="consenso-box">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={form.consenso_modulo_a}
+                  onChange={e => setForm({ ...form, consenso_modulo_a: e.target.checked })}
+                />
+                <span>
+                  <strong>Modulo A — consenso alla partecipazione</strong>
+                  <span className="hint">Obbligatorio per entrare nel percorso.</span>
+                </span>
+              </label>
+              <p className="doc-apri">
+                <a href="#/documenti/modulo-a" target="_blank" rel="noopener noreferrer">
+                  Leggi il Modulo A
+                </a>
+              </p>
+            </div>
+            <div className="consenso-box consenso-opz">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={form.consenso_modulo_b}
+                  onChange={e => setForm({ ...form, consenso_modulo_b: e.target.checked })}
+                />
+                <span>
+                  <strong>Modulo B — documentazione social (facoltativo)</strong>
+                  <span className="hint">Opzionale. Non è richiesto per partecipare e non dipende dal Modulo A.</span>
+                </span>
+              </label>
+              <p className="doc-apri">
+                <a href="#/documenti/modulo-b" target="_blank" rel="noopener noreferrer">
+                  Leggi il Modulo B
+                </a>
+              </p>
+            </div>
+          </div>
+
+          <div className="iscrizione-azioni">
+            <button className="btn" type="submit" disabled={stato === 'invio' || !form.letto_informativa || !form.consenso_modulo_a || !form.ciclo_id}>
+              {stato === 'invio' ? 'Invio in corso…' : 'Invia richiesta'}
+            </button>
+            {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+          </div>
         </form>
-      </div>
+      </section>
 
       <aside>
         <div className="card card-lato">

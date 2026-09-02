@@ -441,6 +441,96 @@ a { color: var(--moss-dark); }
   min-width: 0;
   max-width: 100%;
 }
+.iscrizione-blocco {
+  min-width: 0;
+  padding: 20px 18px 22px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: inset 3px 0 0 var(--moss);
+}
+.iscrizione-testata h2 {
+  margin: 0 0 0.25em;
+}
+.iscrizione-testata .lead {
+  margin-bottom: 0;
+}
+.iscrizione-form {
+  display: grid;
+  gap: 18px;
+  margin-top: 18px;
+}
+.iscrizione-sezione {
+  min-width: 0;
+}
+.iscrizione-sezione-titolo {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.iscrizione-email {
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--moss) 32%, var(--border));
+  background: color-mix(in srgb, var(--tint) 70%, #fff);
+  box-shadow: inset 3px 0 0 var(--moss);
+}
+.iscrizione-email-label {
+  display: block;
+  margin: 0 0 8px;
+  font-family: 'Fraunces', serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.iscrizione-email-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  border: 1.5px solid color-mix(in srgb, var(--moss) 40%, var(--border));
+  border-radius: 10px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.3;
+}
+.iscrizione-email-input::placeholder {
+  color: color-mix(in srgb, var(--ink-soft) 75%, transparent);
+  font-weight: 400;
+}
+.iscrizione-email-input:focus {
+  outline: none;
+  border-color: var(--moss);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--moss) 18%, transparent);
+}
+.iscrizione-email .hint {
+  margin-top: 8px;
+}
+.iscrizione-consensi .hint-consensi {
+  margin: 0 0 12px;
+}
+.iscrizione-consensi .consenso-box:last-child {
+  margin-bottom: 0;
+}
+.iscrizione-azioni {
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
+}
+.iscrizione-azioni .btn {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  padding: 12px 18px;
+  font-size: 15px;
+}
 .percorso-blocco {
   min-width: 0;
   max-width: 100%;
@@ -489,15 +579,6 @@ a { color: var(--moss-dark); }
   background: var(--tint-ochre);
   color: var(--ochre);
 }
-.percorso-card.is-enfasi {
-  border-color: color-mix(in srgb, var(--ochre) 42%, var(--border));
-  background: color-mix(in srgb, var(--ochre) 9%, var(--surface));
-  box-shadow: inset 3px 0 0 var(--ochre);
-}
-.percorso-card.is-enfasi .percorso-icona-fondo {
-  background: var(--tint-ochre);
-  color: var(--ochre);
-}
 .percorso-icona {
   width: 26px;
   height: 26px;
@@ -516,6 +597,46 @@ a { color: var(--moss-dark); }
   color: var(--ink-soft);
   line-height: 1.45;
 }
+.avvertenza {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin: 16px 0;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, #C45B4A 28%, var(--border));
+  border-radius: 14px;
+  background: color-mix(in srgb, #C45B4A 7%, var(--surface));
+  box-shadow: inset 3px 0 0 #C45B4A;
+}
+.avvertenza-icona {
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  display: block;
+}
+.avvertenza-testo {
+  min-width: 0;
+  flex: 1;
+}
+.avvertenza-titolo {
+  margin: 0 0 4px;
+  font-family: 'Fraunces', serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.25;
+}
+.avvertenza-testo > p:last-child {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+.percorso-blocco .avvertenza {
+  margin-top: 14px;
+  margin-bottom: 0;
+}
 @media (min-width: 860px) {
   .percorso-carosello {
     overflow-x: auto;
@@ -524,9 +645,6 @@ a { color: var(--moss-dark); }
   .percorso-card {
     flex: 1 1 0;
     min-width: 10.5em;
-  }
-  .percorso-card.is-enfasi {
-    flex: 1.3 1 12em;
   }
 }
 
@@ -810,7 +928,12 @@ a { color: var(--moss-dark); }
   outline-offset: 3px;
 }
 .consenso-box strong,
-.consenso-opz strong { display: block; }
+.consenso-opz strong {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
 .consenso-box .doc-apri,
 .consenso-opz .doc-apri {
   margin: 8px 0 0 40px;

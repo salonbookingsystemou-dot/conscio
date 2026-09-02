@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { ascoltoCompletato, memorizzaAscolto, recuperaAscoltoSeManca, registraAscoltoCompleto } from '../lib/ascolto.js'
-import { suonaCampanaTibetana } from '../lib/campanaTibetana.js'
+import {
+  GAP_DOPO_CAMPANA_MS,
+  precaricaCampanaTibetana,
+  suonaCampanaTibetana
+} from '../lib/campanaTibetana.js'
 
 function formattaTempo(secondi) {
   if (!Number.isFinite(secondi) || secondi < 0) return '0:00'
@@ -45,6 +49,7 @@ export default function TracciaGuidata({ src, persistenzaKey, onCompleto, onDura
   const contatoGiro = useRef(ascoltoCompletato(persistenzaKey))
   const campanaRef = useRef(null)
   const ignoraEventiRef = useRef(false)
+  const annullaAvvioRef = useRef(false)
   onCompletoRef.current = onCompleto
   onDurataRef.current = onDurata
   onAscoltoRef.current = onAscolto
@@ -58,6 +63,10 @@ export default function TracciaGuidata({ src, persistenzaKey, onCompleto, onDura
   const [inCampana, setInCampana] = useState(false)
 
   useEffect(() => {
+    precaricaCampanaTibetana()
+  }, [])
+
+  useEffect(() => {
     const gia = ascoltoCompletato(persistenzaKey)
     setCompleto(gia)
     setPercento(gia ? 100 : 0)
@@ -69,6 +78,7 @@ export default function TracciaGuidata({ src, persistenzaKey, onCompleto, onDura
     lastRef.current = 0
     durataNotaRef.current = 0
     contatoGiro.current = gia
+    annullaAvvioRef.current = true
     campanaRef.current?.ferma()
     campanaRef.current = null
     setInCampana(false)
@@ -80,6 +90,7 @@ export default function TracciaGuidata({ src, persistenzaKey, onCompleto, onDura
     onCompletoRef.current?.(gia)
     onDurataRef.current?.(0)
     return () => {
+      annullaAvvioRef.current = true
       campanaRef.current?.ferma()
       campanaRef.current = null
     }
@@ -165,22 +176,38 @@ export default function TracciaGuidata({ src, persistenzaKey, onCompleto, onDura
     const el = audioRef.current
     if (!el) return
     const dallInizio = el.currentTime < 0.15
+    annullaAvvioRef.current = false
     try {
       setErrore(false)
       if (dallInizio) {
         setInCampana(true)
         setInRiproduzione(true)
+        /* Stesso gesto: sblocca la traccia in silenzio e avvia la campana già in RAM. */
+        const sblocco = sbloccaAudio(el)
+        void precaricaCampanaTibetana()
         const suono = suonaCampanaTibetana()
         campanaRef.current = suono
-        const sblocco = sbloccaAudio(el)
         const esito = await suono.attesa
-        await sblocco
         campanaRef.current = null
-        setInCampana(false)
-        if (esito !== 'fine') {
+        if (annullaAvvioRef.current || esito !== 'fine') {
+          setInCampana(false)
           setInRiproduzione(false)
+          await sblocco
           return
         }
+        await new Promise(risolvi => window.setTimeout(risolvi, GAP_DOPO_CAMPANA_MS))
+        if (annullaAvvioRef.current) {
+          setInCampana(false)
+          setInRiproduzione(false)
+          await sblocco
+          return
+        }
+        setInCampana(false)
+        await sblocco
+      }
+      if (annullaAvvioRef.current) {
+        setInRiproduzione(false)
+        return
       }
       await el.play()
       setInRiproduzione(true)
@@ -194,6 +221,7 @@ export default function TracciaGuidata({ src, persistenzaKey, onCompleto, onDura
   }
 
   function pausa() {
+    annullaAvvioRef.current = true
     if (campanaRef.current) {
       campanaRef.current.ferma()
       campanaRef.current = null
@@ -208,6 +236,7 @@ export default function TracciaGuidata({ src, persistenzaKey, onCompleto, onDura
   }
 
   function stop() {
+    annullaAvvioRef.current = true
     if (campanaRef.current) {
       campanaRef.current.ferma()
       campanaRef.current = null
