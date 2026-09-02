@@ -231,18 +231,28 @@ a { color: var(--moss-dark); }
   overflow-wrap: anywhere;
 }
 
-.field { margin-bottom: 16px; }
+.field { margin-bottom: 16px; min-width: 0; }
 .field label { display: block; font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; }
 .field input:not([type="checkbox"]):not([type="radio"]),
 .field select,
 .field textarea {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 6px;
   font-family: inherit;
   font-size: 15px;
   background: #fff;
+}
+.field input[type="date"],
+.field input[type="time"],
+.field input[type="datetime-local"] {
+  display: block;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .btn {
@@ -1168,6 +1178,11 @@ a { color: var(--moss-dark); }
 .riga-due {
   display: grid;
   gap: 12px;
+  min-width: 0;
+  grid-template-columns: 1fr;
+}
+.riga-due > * {
+  min-width: 0;
 }
 @media (min-width: 560px) {
   .riga-due { grid-template-columns: 1fr 1fr; }
@@ -1189,6 +1204,40 @@ a { color: var(--moss-dark); }
   color: inherit;
 }
 .card-click.is-on { border-color: var(--moss); }
+.card-ciclo {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+.card-ciclo.is-on {
+  border-color: var(--moss);
+}
+.card-ciclo-apri {
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  padding: 16px 16px 8px;
+}
+.card-ciclo-apri h3 {
+  margin-top: 0;
+}
+.card-ciclo-azioni {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 12px 12px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  margin-top: 4px;
+  padding-top: 8px;
+}
+.btn-ciclo-elimina {
+  color: var(--danger);
+}
 .posti { font-size: 15px; color: var(--moss-dark); }
 .elenco-iscritti {
   display: flex;

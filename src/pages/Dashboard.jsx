@@ -142,6 +142,30 @@ export default function Dashboard() {
     await carica()
   }
 
+  async function eliminaCiclo(ciclo) {
+    const nome = ciclo?.nome_ciclo || 'questo ciclo'
+    const iscrittiCiclo = iscritti.filter(i => i.ciclo_id === ciclo.id).length
+    const avvisoIscritti = iscrittiCiclo > 0
+      ? ` Ci sono ${iscrittiCiclo} iscrizioni collegate: verranno eliminate insieme al ciclo.`
+      : ''
+    if (!confirm(
+      `Eliminare «${nome}»?`
+      + ' Si cancellano anche settimane, pratiche, comunicazioni e iscrizioni di questa edizione.'
+      + avvisoIscritti
+      + ' I questionari e i log restano legati al codice partecipante.'
+    )) return
+
+    setErrore(null)
+    const { error } = await supabase.from('cicli').delete().eq('id', ciclo.id)
+    if (error) {
+      setErrore('Non è stato possibile eliminare il ciclo.')
+      return
+    }
+    setAperto(prev => (prev === ciclo.id ? null : prev))
+    setCicli(lista => lista.filter(c => c.id !== ciclo.id))
+    await carica()
+  }
+
   function eIdoneo(iscrizione) {
     return iscrizione.esito_screening === 'idoneo' || iscrizione.utenti?.stato_screening === 'idoneo'
   }
@@ -275,20 +299,35 @@ export default function Dashboard() {
         {cicli.map(c => {
           const idonei = contaIdonei(c.id)
           const inScreening = iscritti.filter(i => i.ciclo_id === c.id && !eIdoneo(i)).length
+          const selezionato = aperto === c.id
           return (
-            <button
+            <div
               key={c.id}
-              type="button"
-              className={`card card-click${aperto === c.id ? ' is-on' : ''}`}
-              onClick={() => setAperto(aperto === c.id ? null : c.id)}
+              className={`card card-ciclo${selezionato ? ' is-on' : ''}`}
             >
-              <h3>{c.nome_ciclo} <span className="badge">{c.stato}</span></h3>
-              <p>Inizio {new Date(c.data_inizio).toLocaleDateString('it-IT')}</p>
-              <p className="posti">{idonei} / {c.posti_totali} posti idonei</p>
-              {inScreening > 0 && (
-                <p className="hint">{inScreening} in screening, non occupano un posto</p>
-              )}
-            </button>
+              <button
+                type="button"
+                className="card-ciclo-apri"
+                aria-pressed={selezionato}
+                onClick={() => setAperto(selezionato ? null : c.id)}
+              >
+                <h3>{c.nome_ciclo} <span className="badge">{c.stato}</span></h3>
+                <p>Inizio {new Date(c.data_inizio).toLocaleDateString('it-IT')}</p>
+                <p className="posti">{idonei} / {c.posti_totali} posti idonei</p>
+                {inScreening > 0 && (
+                  <p className="hint">{inScreening} in screening, non occupano un posto</p>
+                )}
+              </button>
+              <div className="card-ciclo-azioni">
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-ciclo-elimina"
+                  onClick={() => eliminaCiclo(c)}
+                >
+                  Elimina
+                </button>
+              </div>
+            </div>
           )
         })}
       </div>
