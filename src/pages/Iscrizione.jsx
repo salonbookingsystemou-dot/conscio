@@ -308,7 +308,7 @@ export default function Iscrizione() {
             Nei questionari e nel log di pratica non compare il tuo nome.
             Ti riconosci solo con un codice, ad esempio:
           </p>
-          <p className="codice-esempio">MBSR-7K2Q</p>
+          <p className="codice-esempio">MBSR-7K2Q8N3P</p>
           <p>Solo tu sai a chi appartiene. Conservalo.</p>
         </div>
       </aside>

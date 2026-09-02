@@ -1127,7 +1127,12 @@ end;
 $$;
 
 -- Solo email operative, senza join a risposte o log.
-create or replace function email_destinatari_ciclo(p_ciclo_id uuid)
+-- Default: idonei con consenso A. Screening può includere chi è ancora in valutazione.
+drop function if exists email_destinatari_ciclo(uuid);
+create or replace function email_destinatari_ciclo(
+  p_ciclo_id uuid,
+  p_includi_in_valutazione boolean default false
+)
 returns table (email text)
 language sql
 security definer
@@ -1139,7 +1144,52 @@ as $$
   where i.ciclo_id = p_ciclo_id
     and u.ruolo = 'partecipante'
     and u.email is not null
+    and u.consenso_modulo_a = true
+    and (
+      u.stato_screening = 'idoneo'
+      or i.esito_screening = 'idoneo'
+      or (
+        p_includi_in_valutazione
+        and coalesce(i.esito_screening, u.stato_screening, 'in_attesa')
+          in ('in_attesa', 'in_valutazione')
+      )
+    )
     and is_facilitatore();
+$$;
+
+-- Separa l’email dal record dopo la chiusura del ciclo (dati di percorso restano sul codice).
+create or replace function separa_email_cicli_conclusi(p_giorni_grazia int default 90)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_n int;
+begin
+  if not is_facilitatore() then
+    raise exception 'NON_AUTORIZZATO';
+  end if;
+
+  update utenti u
+  set email = null
+  where u.ruolo = 'partecipante'
+    and u.email is not null
+    and not exists (
+      select 1
+      from iscrizioni i
+      join cicli c on c.id = i.ciclo_id
+      where i.utente_id = u.id
+        and (
+          c.stato in ('reclutamento', 'attivo')
+          or coalesce(c.data_fine, c.data_inizio + 62)
+            >= (current_date - greatest(coalesce(p_giorni_grazia, 90), 0))
+        )
+    );
+
+  get diagnostics v_n = row_count;
+  return jsonb_build_object('ok', true, 'email_separate', v_n);
+end;
 $$;
 
 revoke all on function is_facilitatore() from public;
@@ -1152,7 +1202,8 @@ revoke all on function salva_log_pratica(text, date, int, text, text, uuid, text
 revoke all on function risposte_pseudonime() from public;
 revoke all on function log_pratica_pseudonimi() from public;
 revoke all on function log_pratica_del_partecipante(text) from public;
-revoke all on function email_destinatari_ciclo(uuid) from public;
+revoke all on function email_destinatari_ciclo(uuid, boolean) from public;
+revoke all on function separa_email_cicli_conclusi(int) from public;
 revoke all on function programma_del_partecipante(text) from public;
 revoke all on function comunicazioni_del_partecipante(text) from public;
 revoke all on function ciclo_del_partecipante(text) from public;
@@ -1163,7 +1214,8 @@ grant execute on function salva_log_pratica(text, date, int, text, text, uuid, t
 grant execute on function risposte_pseudonime() to authenticated;
 grant execute on function log_pratica_pseudonimi() to authenticated;
 grant execute on function log_pratica_del_partecipante(text) to anon, authenticated;
-grant execute on function email_destinatari_ciclo(uuid) to authenticated;
+grant execute on function email_destinatari_ciclo(uuid, boolean) to authenticated;
+grant execute on function separa_email_cicli_conclusi(int) to authenticated;
 grant execute on function programma_del_partecipante(text) to anon, authenticated;
 grant execute on function comunicazioni_del_partecipante(text) to anon, authenticated;
 grant execute on function ciclo_del_partecipante(text) to anon, authenticated;

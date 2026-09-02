@@ -135,6 +135,28 @@ export function formaliAscoltatiNelGiorno(esercizi, codice, data) {
   return conTraccia.every(e => esercizioAscoltatoNelGiorno(e, codice, data))
 }
 
+/** Rimuove cache di ascolto di un codice (uscita dal dispositivo). */
+export function pulisciAscoltoLocale(codice) {
+  const pulito = (codice || '').trim()
+  if (!pulito) return
+  try {
+    const pref = `mbsr_ascolto:${pulito}`
+    const daRimuovere = []
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i)
+      if (k && k.startsWith(pref)) daRimuovere.push(k)
+    }
+    daRimuovere.forEach(k => localStorage.removeItem(k))
+    const registro = leggiRegistro()
+    if (registro[pulito]) {
+      delete registro[pulito]
+      scriviRegistro(registro)
+    }
+  } catch {
+    /* storage non disponibile */
+  }
+}
+
 export function sommaMinutiAscoltati(codice) {
   if (!codice) return 0
   const secondi = eventiDi(codice).reduce((tot, e) => tot + (Number(e.secondi) || 0), 0)

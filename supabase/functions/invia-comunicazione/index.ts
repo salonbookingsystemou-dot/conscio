@@ -80,7 +80,8 @@ Deno.serve(async (req) => {
     com = trovata
 
     const { data: destinatari } = await supabase.rpc('email_destinatari_ciclo', {
-      p_ciclo_id: com.ciclo_id
+      p_ciclo_id: com.ciclo_id,
+      p_includi_in_valutazione: com.tipo === 'screening'
     })
     emails = (destinatari || []).map((r: { email: string }) => r.email).filter(Boolean)
   }

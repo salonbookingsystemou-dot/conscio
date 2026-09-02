@@ -222,7 +222,7 @@ export default function LogPratica() {
         <div className="card card-lato">
           <h3>Come funziona il codice</h3>
           <p>Il log non porta il tuo nome. Solo il codice.</p>
-          <p className="codice-esempio">{codice || 'MBSR-7K2Q'}</p>
+          <p className="codice-esempio">{codice || 'MBSR-7K2Q8N3P'}</p>
         </div>
       </aside>
     </div>

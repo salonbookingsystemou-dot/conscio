@@ -74,7 +74,7 @@ export default function Entra() {
                 name="username"
                 value={codice}
                 onChange={e => setCodice(e.target.value)}
-                placeholder="es. MBSR-7K2Q"
+                placeholder="es. MBSR-7K2Q8N3P"
                 autoComplete="username"
                 autoCapitalize="characters"
                 autoCorrect="off"

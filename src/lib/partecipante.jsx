@@ -1,6 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { dimenticaCodice, leggiCodice, memorizzaCodice, supabase, supabaseConfigurato } from './supabaseClient'
+import { pulisciAscoltoLocale } from './ascolto.js'
 import { sommaMinutiTracce } from './oreAscolto.js'
+
+function chiudiSessioneLocale(codiceAperto) {
+  pulisciAscoltoLocale(codiceAperto || leggiCodice())
+  dimenticaCodice()
+}
 
 const PartecipanteContext = createContext({
   codice: '',
@@ -91,7 +97,7 @@ export function PartecipanteProvider({ children }) {
         setMinutiAscolto(minuti)
         applicaPercorso(percorso)
       } else {
-        dimenticaCodice()
+        chiudiSessioneLocale(salvato)
       }
     }).finally(() => setCaricamento(false))
   }, [applicaPercorso])
@@ -114,7 +120,7 @@ export function PartecipanteProvider({ children }) {
   }
 
   function esci() {
-    dimenticaCodice()
+    chiudiSessioneLocale(codice)
     setCodice('')
     setRegistrato(false)
     setMinutiAscolto(0)

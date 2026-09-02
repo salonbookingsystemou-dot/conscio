@@ -53,7 +53,8 @@ export default function Dashboard() {
   })
 
   async function carica() {
-    const [{ data: listaCicli }, { data: listaIscrizioni }, { data: risposte }, { data: pratica }] = await Promise.all([
+    const [, { data: listaCicli }, { data: listaIscrizioni }, { data: risposte }, { data: pratica }] = await Promise.all([
+      supabase.rpc('separa_email_cicli_conclusi').catch(() => ({ data: null })),
       supabase.from('cicli').select('id, nome_ciclo, data_inizio, data_fine, stato, posti_totali, iscrizioni(count)').order('data_inizio', { ascending: false }),
       supabase.from('iscrizioni').select('id, esito_screening, ciclo_id, utenti(codice_partecipante, email, stato_screening)'),
       supabase.rpc('risposte_pseudonime'),

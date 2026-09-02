@@ -70,7 +70,7 @@ function Informativa() {
       <h3>3. Quali dati raccogliamo</h3>
       <ul>
         <li>indirizzo email (solo per le comunicazioni del percorso);</li>
-        <li>codice partecipante (es. MBSR-7K2Q);</li>
+        <li>codice partecipante (es. MBSR-7K2Q8N3P);</li>
         <li>ciclo scelto e data di iscrizione;</li>
         <li>accettazione del Modulo A e, se la dai, del Modulo B;</li>
         <li>risposte ai questionari PSS-10 e FFMQ-I nei momenti T0, T1, T2 e T3;</li>

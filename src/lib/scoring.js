@@ -49,55 +49,29 @@ function percentoNelRange(valore, min, max) {
   return Math.max(0, Math.min(100, Math.round(((valore - min) / (max - min)) * 100)))
 }
 
-/** Fasce convenzionali PSS-10 (Cohen), presentate come posizione sullo strumento. */
+/** Posizione sul range 0–40 dello strumento, senza cut-off della letteratura clinica. */
 export function orientamentoPss(totale) {
-  const percento = percentoNelRange(totale, 0, 40)
-  if (totale <= 13) {
-    return {
-      id: 'contenuto',
-      etichetta: 'Più contenuto',
-      dettaglio: 'Nella fascia bassa dello strumento PSS-10',
-      percento
-    }
-  }
-  if (totale <= 26) {
-    return {
-      id: 'intermedio',
-      etichetta: 'Intermedio',
-      dettaglio: 'Nella fascia intermedia dello strumento PSS-10',
-      percento
-    }
-  }
-  return {
-    id: 'elevato',
-    etichetta: 'Più elevato',
-    dettaglio: 'Nella fascia alta dello strumento PSS-10',
-    percento
-  }
+  return orientamentoRange(totale, 0, 40)
 }
 
 /** Posizione sul range dello strumento (terzili), senza giudizio clinico. */
 export function orientamentoRange(valore, min, max, {
-  basso = 'Parte bassa del range',
-  medio = 'Parte intermedia del range',
-  alto = 'Parte alta del range'
+  basso = 'Verso il minimo del range',
+  medio = 'Verso il centro del range',
+  alto = 'Verso il massimo del range'
 } = {}) {
   const percento = percentoNelRange(valore, min, max)
   if (percento < 34) {
-    return { id: 'contenuto', etichetta: basso, dettaglio: `Verso ${min} su un range ${min}–${max}`, percento }
+    return { id: 'contenuto', etichetta: basso, dettaglio: `Posizione sul range ${min}–${max}`, percento }
   }
   if (percento < 67) {
-    return { id: 'intermedio', etichetta: medio, dettaglio: `Verso il centro del range ${min}–${max}`, percento }
+    return { id: 'intermedio', etichetta: medio, dettaglio: `Posizione sul range ${min}–${max}`, percento }
   }
-  return { id: 'elevato', etichetta: alto, dettaglio: `Verso ${max} su un range ${min}–${max}`, percento }
+  return { id: 'elevato', etichetta: alto, dettaglio: `Posizione sul range ${min}–${max}`, percento }
 }
 
 export function orientamentoFfmq(totale) {
-  return orientamentoRange(totale, 39, 195, {
-    basso: 'Meno presente nel range',
-    medio: 'Intermedio nel range',
-    alto: 'Più presente nel range'
-  })
+  return orientamentoRange(totale, 39, 195)
 }
 
 /** Range tipico sottoscala FFMQ: 8 item × 1–5. */
