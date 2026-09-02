@@ -164,17 +164,48 @@ export default function Comunicazioni() {
     })
 
     if (errFn) {
-      setMessaggio('Salvata come programmata. L’invio email non è ancora attivo (configura Resend e la funzione invia-comunicazione).')
+      setErrore('Salvata, ma la funzione di invio non ha risposto. Riprova tra un momento.')
     } else if (esito?.motivo === 'RESEND_NON_CONFIGURATO') {
-      setMessaggio(`Salvata come programmata. Destinatari trovati: ${esito.n_destinatari ?? 0}. Per l’invio reale aggiungi il secret RESEND_API_KEY.`)
+      setMessaggio(`Salvata come programmata. Destinatari trovati: ${esito.n_destinatari ?? 0}. Manca il secret RESEND_API_KEY.`)
+    } else if (esito?.motivo === 'NESSUN_DESTINATARIO') {
+      setErrore('Salvata, ma in questo ciclo non c’è nessuna email di partecipante.')
     } else if (esito?.ok) {
       setMessaggio(`Inviata a ${esito.n_destinatari} indirizzi.`)
     } else {
-      setErrore('Salvata, ma l’invio non è andato a buon fine.')
+      setErrore(esito?.errore
+        ? `Salvata, ma Resend ha rifiutato l’invio: ${esito.errore}`
+        : 'Salvata, ma l’invio non è andato a buon fine.')
     }
 
     setInvio(false)
     carica()
+  }
+
+  async function inviaDiNuovo(id) {
+    setErrore(null)
+    setMessaggio(null)
+    setInvio(true)
+    const { data: esito, error: errFn } = await supabase.functions.invoke('invia-comunicazione', {
+      body: { comunicazione_id: id }
+    })
+    if (errFn) setErrore('L’invio non è ripartito. Riprova tra un momento.')
+    else if (esito?.ok) setMessaggio(`Inviata a ${esito.n_destinatari} indirizzi.`)
+    else setErrore(esito?.errore || 'L’invio non è andato a buon fine.')
+    setInvio(false)
+    carica()
+  }
+
+  async function inviaProva() {
+    setErrore(null)
+    setMessaggio(null)
+    setInvio(true)
+    const { data: esito, error: errFn } = await supabase.functions.invoke('invia-comunicazione', {
+      body: { prova: true }
+    })
+    if (errFn) setErrore('La prova non è partita. Riprova tra un momento.')
+    else if (esito?.ok) setMessaggio('Prova inviata alla tua email di accesso. Controlla anche lo spam.')
+    else setErrore(esito?.errore || 'La prova non è andata a buon fine.')
+    setInvio(false)
   }
 
   if (caricamento) return <p>Caricamento…</p>
@@ -227,9 +258,14 @@ export default function Comunicazioni() {
               /> Invia ora via email (Resend)
             </label>
           </div>
-          <button className="btn" type="submit" disabled={invio || !form.ciclo_id}>
-            {invio ? 'Invio in corso…' : form.invia_ora ? 'Salva e invia' : 'Salva come programmata'}
-          </button>
+          <div className="azioni">
+            <button className="btn" type="submit" disabled={invio || !form.ciclo_id}>
+              {invio ? 'Invio in corso…' : form.invia_ora ? 'Salva e invia' : 'Salva come programmata'}
+            </button>
+            <button className="btn btn-ghost" type="button" disabled={invio} onClick={inviaProva}>
+              Invia una prova a me
+            </button>
+          </div>
           {messaggio && <p>{messaggio}</p>}
           {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
         </form>
@@ -243,6 +279,11 @@ export default function Comunicazioni() {
             {c.tipo === 'reminder_t3' && <span className="badge">T3</span>}
           </h3>
           <p>{c.cicli?.nome_ciclo} — {new Date(c.data_invio).toLocaleDateString('it-IT')}</p>
+          {(c.stato === 'errore' || c.stato === 'programmata') && (
+            <button className="btn btn-ghost" type="button" disabled={invio} onClick={() => inviaDiNuovo(c.id)}>
+              Riprova invio
+            </button>
+          )}
         </div>
       ))}
       {lista.length === 0 && <p>Nessuna comunicazione ancora registrata.</p>}

@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { Link, Navigate, useLocation } from 'react-router-dom'
 import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
 import { usePartecipante } from '../lib/partecipante.jsx'
 import { calcolaPunteggi } from '../lib/scoring'
 import ScalaLikert from '../components/ScalaLikert.jsx'
 import Disclaimer from '../components/Disclaimer.jsx'
 import ChiediCodice from '../components/ChiediCodice.jsx'
+import IndicatoreOrientamento from '../components/IndicatoreOrientamento.jsx'
 
 const ETICHETTE = {
   T0: { titolo: 'T0 — Inizio', sottotitolo: 'Prima di partire e durante la settimana 1' },
@@ -55,7 +57,19 @@ function etichettaSettimana(n) {
 }
 
 export default function Questionari() {
-  const { codice, registrato } = usePartecipante()
+  const {
+    codice,
+    registrato,
+    onboardingCompleto,
+    t0Completo,
+    percorsoPronto,
+    aggiornaPercorso
+  } = usePartecipante()
+  const location = useLocation()
+  const daOnboarding = Boolean(location.state?.daOnboarding)
+  const forzatoT0 = daOnboarding || (onboardingCompleto && !t0Completo)
+  const autoAvvioRef = useRef(false)
+
   const [passo, setPasso] = useState('scelta')
   const [piano, setPiano] = useState(null)
   const [timepoint, setTimepoint] = useState(null)
@@ -77,7 +91,7 @@ export default function Questionari() {
     if (!supabaseConfigurato) {
       setErrore('Connessione non configurata. Riprova più tardi.')
       setInvio(false)
-      return
+      return null
     }
 
     const { data, error } = await supabase.rpc('stato_questionari_del_partecipante', {
@@ -87,18 +101,14 @@ export default function Questionari() {
     if (error) {
       setErrore(messaggioErrore(error))
       setInvio(false)
-      return
+      return null
     }
 
     setPiano(data)
     setPasso('scelta')
     setInvio(false)
+    return data
   }
-
-  useEffect(() => {
-    if (registrato && codice) caricaPiano()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [registrato, codice])
 
   async function avviaTimepoint(tp) {
     setErrore(null)
@@ -123,6 +133,71 @@ export default function Questionari() {
     setPasso('domanda')
     setInvio(false)
   }
+
+  async function mostraEsito(tpId) {
+    setErrore(null)
+    setInvio(true)
+    const [{ data: righe, error: errItem }, { data: salvate, error: errRisposte }] = await Promise.all([
+      supabase
+        .from('item')
+        .select('id, questionario_id, ordine, testo, scala, inverso, sottoscala, questionari(nome)')
+        .order('ordine', { ascending: true }),
+      supabase.rpc('risposte_questionario_del_partecipante', {
+        p_codice: codice,
+        p_timepoint: tpId
+      })
+    ])
+
+    if (errItem || !righe?.length) {
+      setErrore('I questionari non sono ancora disponibili. Riprova più tardi.')
+      setInvio(false)
+      return
+    }
+    if (errRisposte || !salvate) {
+      setErrore(errRisposte?.message?.includes('COMPILAZIONE_ASSENTE')
+        ? 'Non risultano risposte salvate per questo momento.'
+        : messaggioErrore(errRisposte) || 'Non è stato possibile caricare l’esito.')
+      setInvio(false)
+      return
+    }
+
+    const lista = typeof salvate === 'string' ? JSON.parse(salvate) : salvate
+    const mappa = {}
+    for (const r of lista || []) {
+      if (r.item_id != null) mappa[r.item_id] = r.valore
+    }
+    const ordinati = ordinaItem(righe)
+    setTimepoint(tpId)
+    setItem(ordinati)
+    setRisposte(mappa)
+    setPunteggi(calcolaPunteggi(ordinati, mappa))
+    setPasso('esito')
+    setInvio(false)
+  }
+
+  useEffect(() => {
+    if (!registrato || !codice) return undefined
+    if (!onboardingCompleto) return undefined
+    autoAvvioRef.current = false
+    caricaPiano()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [registrato, codice, onboardingCompleto])
+
+  useEffect(() => {
+    if (!piano || !forzatoT0 || autoAvvioRef.current || passo !== 'scelta') return
+    const t0 = (piano.timepoints || []).find(tp => tp.id === 'T0')
+    if (!t0) return
+    if (t0.stato === 'completato') {
+      autoAvvioRef.current = true
+      aggiornaPercorso(codice).then(() => mostraEsito('T0'))
+      return
+    }
+    if (t0.stato === 'aperto') {
+      autoAvvioRef.current = true
+      avviaTimepoint(t0)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [piano, forzatoT0, passo])
 
   function rispondi(id, valore) {
     setRisposte(prev => ({ ...prev, [id]: valore }))
@@ -149,34 +224,98 @@ export default function Questionari() {
     setPunteggi(calcolaPunteggi(item, risposte))
     setPasso('esito')
     setInvio(false)
+    await aggiornaPercorso(codice)
+  }
+
+  if (registrato && !onboardingCompleto) {
+    return <Navigate to="/onboarding" replace />
   }
 
   if (passo === 'esito') {
     return (
-      <div className="card">
-        <h2>Compilazione registrata</h2>
-        <p>
-          Le risposte per <strong>{timepoint}</strong> sono associate al codice
-        </p>
-        <p className="codice-enfasi">{codice.toUpperCase()}</p>
-        {punteggi?.pss10 && (
-          <p>PSS-10 — punteggio totale: <strong>{punteggi.pss10.totale}</strong> (range {punteggi.pss10.min}–{punteggi.pss10.max})</p>
+      <div className="esito-compilazione">
+        <header className="esito-testa">
+          <p className="badge">Registrato</p>
+          <h2>Compilazione completata</h2>
+          <p className="lead esito-lead">
+            Le risposte di questo momento sono state salvate e collegate al tuo codice partecipante.
+          </p>
+          <div className="esito-meta">
+            <span className="esito-meta-chip">{timepoint}</span>
+            <span className="esito-meta-codice">{codice.toUpperCase()}</span>
+          </div>
+        </header>
+
+        {(punteggi?.pss10 || punteggi?.ffmq) && (
+          <section className="esito-punteggi" aria-label="Punteggi">
+            <h3 className="esito-sezione-titolo">I tuoi punteggi</h3>
+            <p className="hint esito-punteggi-hint">
+              L’indicatore mostra dove si colloca il punteggio nel range dello strumento.
+              Non è una diagnosi né una valutazione clinica.
+            </p>
+            <div className="esito-griglia">
+              {punteggi?.pss10 && (
+                <article className={`esito-strumento is-${punteggi.pss10.orientamento?.id || 'intermedio'}`}>
+                  <p className="esito-strumento-nome">PSS-10 · stress percepito</p>
+                  <p className="esito-strumento-valore">{punteggi.pss10.totale}</p>
+                  <p className="esito-strumento-range">
+                    Totale · range {punteggi.pss10.min}–{punteggi.pss10.max}
+                  </p>
+                  <IndicatoreOrientamento orientamento={punteggi.pss10.orientamento} />
+                </article>
+              )}
+              {punteggi?.ffmq && (
+                <article className={`esito-strumento is-${punteggi.ffmq.orientamento?.id || 'intermedio'}`}>
+                  <p className="esito-strumento-nome">FFMQ-I · consapevolezza</p>
+                  <p className="esito-strumento-valore">{punteggi.ffmq.totale}</p>
+                  <p className="esito-strumento-range">
+                    Totale · range {punteggi.ffmq.min}–{punteggi.ffmq.max}
+                  </p>
+                  <IndicatoreOrientamento orientamento={punteggi.ffmq.orientamento} />
+                </article>
+              )}
+            </div>
+            {punteggi?.ffmq && (
+              <ul className="esito-sottoscale">
+                {Object.keys(SOTTOSCALE_ETICHETTE).map(chiave => {
+                  const ori = punteggi.ffmq.orientamentiSottoscale?.[chiave]
+                  return (
+                    <li key={chiave}>
+                      <div className="esito-sottoscala-testo">
+                        <span>{SOTTOSCALE_ETICHETTE[chiave]}</span>
+                        <strong>{punteggi.ffmq[chiave]}</strong>
+                      </div>
+                      <IndicatoreOrientamento orientamento={ori} compatto />
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </section>
         )}
-        {punteggi?.ffmq && (
-          <div>
-            <p>FFMQ-I — punteggio totale: <strong>{punteggi.ffmq.totale}</strong> (range {punteggi.ffmq.min}–{punteggi.ffmq.max})</p>
-            <ul>
-              {Object.keys(SOTTOSCALE_ETICHETTE).map(chiave => (
-                <li key={chiave}>{SOTTOSCALE_ETICHETTE[chiave]}: {punteggi.ffmq[chiave]}</li>
-              ))}
-            </ul>
+
+        <Disclaimer>
+          Questi numeri e indicatori descrivono le tue risposte rispetto al range del questionario
+          in questo momento del percorso. Non sono una valutazione clinica e il percorso non
+          sostituisce una presa in carico psicologica o terapeutica professionale.
+        </Disclaimer>
+
+        {timepoint === 'T0' ? (
+          <div className="azioni esito-azioni">
+            <Link className="btn" to="/programma">
+              Apri la settimana di pratica
+            </Link>
+            <button className="btn btn-ghost" type="button" onClick={() => caricaPiano()}>
+              Torna ai questionari
+            </button>
+          </div>
+        ) : (
+          <div className="azioni esito-azioni">
+            <button className="btn btn-ghost" type="button" onClick={() => caricaPiano()}>
+              Torna ai questionari
+            </button>
           </div>
         )}
-        <Disclaimer>
-          Questi numeri descrivono le tue risposte in questo momento del percorso.
-          Non sono una valutazione clinica e il percorso non sostituisce una presa in carico
-          psicologica o terapeutica professionale.
-        </Disclaimer>
       </div>
     )
   }
@@ -186,6 +325,9 @@ export default function Questionari() {
     const haRisposta = risposte[corrente.id] != null
     return (
       <div>
+        {forzatoT0 && timepoint === 'T0' && (
+          <p className="hint">Primo accesso: completa PSS-10 e FFMQ-I (T0) per aprire le settimane.</p>
+        )}
         <p className="meta-riga">
           <span className="badge">{nomeStrumento}</span>
           <span>{codice.toUpperCase()} · {timepoint}</span>
@@ -206,11 +348,13 @@ export default function Questionari() {
             <button
               className="btn btn-ghost"
               type="button"
-              disabled={invio}
+              disabled={invio || (forzatoT0 && timepoint === 'T0' && indice === 0)}
               onClick={() => {
                 setErrore(null)
-                if (indice === 0) setPasso('scelta')
-                else setIndice(i => i - 1)
+                if (indice === 0) {
+                  if (forzatoT0 && timepoint === 'T0') return
+                  setPasso('scelta')
+                } else setIndice(i => i - 1)
               }}
             >
               Precedente
@@ -238,64 +382,110 @@ export default function Questionari() {
   if (passo === 'scelta' && piano) {
     const t3aperto = piano.timepoints?.some(tp => tp.id === 'T3' && tp.stato === 'aperto')
     const nessunoAperto = !piano.timepoints?.some(tp => tp.stato === 'aperto')
+    const t0 = (piano.timepoints || []).find(tp => tp.id === 'T0')
+    const aperti = (piano.timepoints || []).filter(tp => tp.stato === 'aperto')
     return (
-      <div className="layout-due">
-        <div>
+      <div className="questionari-scelta">
+        <header className="questionari-testa">
           <h2>Questionari</h2>
+          <p className="lead">
+            PSS-10 e FFMQ-I si aprono in quattro momenti del ciclo. Puoi compilare
+            solo il momento disponibile ora.
+          </p>
           <Disclaimer />
-          <div className="card">
-            <p>
-              PSS-10 e FFMQ-I si compilano quattro volte, ciascuna nella settimana prevista.
-              Non puoi scegliere un momento futuro o già chiuso.
-            </p>
-            <p className="ciclo-meta">{etichettaSettimana(piano.settimana)}</p>
-            {nessunoAperto && (
-              <p>Nessun questionario è aperto in questa settimana. Torna quando si apre il prossimo momento.</p>
+        </header>
+
+        {forzatoT0 && t0?.stato === 'aperto' && (
+          <p className="questionari-avviso is-azione">
+            Per aprire le settimane, completa prima i questionari iniziali (T0).
+          </p>
+        )}
+        {forzatoT0 && t0 && t0.stato !== 'aperto' && t0.stato !== 'completato' && (
+          <p className="questionari-avviso is-errore">
+            I questionari T0 non risultano aperti in questa finestra. Contatta il facilitatore.
+          </p>
+        )}
+        {percorsoPronto && (
+          <Link className="questionari-scorciatoia" to="/programma">
+            <span>Percorso pronto</span>
+            <strong>Apri la settimana di pratica</strong>
+          </Link>
+        )}
+
+        <section className="questionari-momenti" aria-labelledby="momenti-titolo">
+          <div className="questionari-situazione">
+            <p id="momenti-titolo" className="questionari-situazione-label">Situazione attuale</p>
+            <p className="questionari-situazione-testo">{etichettaSettimana(piano.settimana)}</p>
+            {aperti.length > 0 ? (
+              <p className="hint">
+                {aperti.length === 1
+                  ? `Ora puoi compilare ${aperti[0].id}.`
+                  : `Ora puoi compilare: ${aperti.map(t => t.id).join(', ')}.`}
+              </p>
+            ) : (
+              <p className="hint">
+                Nessun questionario è aperto in questa settimana. Torna quando si apre il prossimo momento.
+              </p>
             )}
-            {t3aperto && (
-              <Disclaimer>
-                T3 è il follow-up a distanza: è il momento più facile da dimenticare, e per il
-                percorso è importante quanto gli altri.
-              </Disclaimer>
-            )}
-            <div className="tp-lista">
-              {(piano.timepoints || []).map(tp => {
-                const meta = ETICHETTE[tp.id]
-                return (
-                  <div key={tp.id} className={`tp-card is-${tp.stato}`}>
-                    <div>
-                      <strong>{meta?.titolo || tp.id}</strong>
-                      <span className="ciclo-meta">{tp.quando || meta?.sottotitolo}</span>
+          </div>
+
+          {t3aperto && (
+            <Disclaimer>
+              T3 è il follow-up a distanza: è il momento più facile da dimenticare, e per il
+              percorso è importante quanto gli altri.
+            </Disclaimer>
+          )}
+
+          <ul className="tp-lista">
+            {(piano.timepoints || []).map(tp => {
+              const meta = ETICHETTE[tp.id]
+              const bloccatoAltri = forzatoT0 && tp.id !== 'T0' && !t0Completo
+              const puoIniziare = tp.stato === 'aperto' && !bloccatoAltri
+              const puoVedere = tp.stato === 'completato'
+              return (
+                <li key={tp.id} className={`tp-card is-${tp.stato}`}>
+                  <div className="tp-card-corpo">
+                    <span className={`tp-stato-punto is-${tp.stato}`} aria-hidden="true" />
+                    <div className="tp-card-testi">
+                      <div className="tp-card-riga">
+                        <strong>{meta?.titolo || tp.id}</strong>
+                        <span className={`badge badge-tp is-${tp.stato}`}>
+                          {STATO_BADGE[tp.stato] || tp.stato}
+                        </span>
+                      </div>
+                      <p className="tp-card-quando">{tp.quando || meta?.sottotitolo}</p>
                     </div>
-                    <span className="badge">{STATO_BADGE[tp.stato] || tp.stato}</span>
-                    {tp.stato === 'aperto' && (
-                      <button
-                        className="btn"
-                        type="button"
-                        disabled={invio}
-                        onClick={() => avviaTimepoint(tp)}
-                      >
-                        {invio ? 'Caricamento…' : `Inizia ${tp.id}`}
-                      </button>
-                    )}
                   </div>
-                )
-              })}
-            </div>
-            {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
-          </div>
-        </div>
-        <aside>
-          <div className="card card-lato">
-            <h3>Quando si compilano</h3>
-            <ul>
-              <li>T0 all’inizio (settimana 1)</li>
-              <li>T1 a metà (settimane 4–5)</li>
-              <li>T2 alla fine (settimane 8–9)</li>
-              <li>T3 dopo la fine del ciclo</li>
-            </ul>
-          </div>
-        </aside>
+                  {(puoIniziare || puoVedere) && (
+                    <div className="tp-card-azione">
+                      {puoIniziare && (
+                        <button
+                          className="btn"
+                          type="button"
+                          disabled={invio}
+                          onClick={() => avviaTimepoint(tp)}
+                        >
+                          {invio ? 'Caricamento…' : `Inizia ${tp.id}`}
+                        </button>
+                      )}
+                      {puoVedere && (
+                        <button
+                          className="btn btn-esito"
+                          type="button"
+                          disabled={invio}
+                          onClick={() => mostraEsito(tp.id)}
+                        >
+                          {invio ? 'Caricamento…' : 'Vedi esito'}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+          {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+        </section>
       </div>
     )
   }

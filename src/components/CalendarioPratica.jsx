@@ -91,10 +91,6 @@ export default function CalendarioPratica({
     for (let i = 0; i < celle.length; i += 7) settimane.push(celle.slice(i, i + 7))
   }
 
-  const indiciTestata = soloIntervallo
-    ? celle.map(c => (c.data.getDay() + 6) % 7)
-    : [0, 1, 2, 3, 4, 5, 6]
-
   const trascorsi = celle.filter(c => (
     c.iso <= oggi &&
     (!inizioCiclo || c.iso >= inizioCiclo) &&
@@ -115,15 +111,6 @@ export default function CalendarioPratica({
           </p>
         )}
       </div>
-      <div
-        className="cal-settimana cal-testata"
-        style={soloIntervallo ? { gridTemplateColumns: `repeat(${celle.length}, minmax(0, 1fr))` } : undefined}
-        aria-hidden="true"
-      >
-        {indiciTestata.map((i, k) => (
-          <span key={`${i}-${k}`}>{etichettaGiornoCorto(i)}</span>
-        ))}
-      </div>
       {settimane.map((riga, i) => {
         const primoDelMese = riga.find(c => c.data.getDate() === 1) || (i === 0 ? riga[0] : null)
         const mese = primoDelMese ? etichettaMese(primoDelMese.data) : ''
@@ -140,6 +127,7 @@ export default function CalendarioPratica({
                 const attivo = giornoAttivo === cella.iso
                 const cliccabile = Boolean(onGiorno)
                 const Tag = cliccabile ? 'button' : 'div'
+                const dow = (cella.data.getDay() + 6) % 7
                 return (
                   <Tag
                     key={cella.iso}
@@ -150,6 +138,7 @@ export default function CalendarioPratica({
                     aria-pressed={cliccabile ? attivo : undefined}
                     onClick={cliccabile ? () => onGiorno(cella.iso) : undefined}
                   >
+                    <span className="cal-dow" aria-hidden="true">{etichettaGiornoCorto(dow)}</span>
                     <span className="cal-num">{cella.data.getDate()}</span>
                     {cella.info.n > 1 && <span className="cal-piu">{cella.info.n}</span>}
                   </Tag>

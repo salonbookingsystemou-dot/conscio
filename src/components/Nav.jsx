@@ -9,7 +9,13 @@ import OreAscolto from './OreAscolto.jsx'
 
 export default function Nav() {
   const { facilitatore, esci } = useAuth()
-  const { registrato, minutiAscolto, esci: esciPartecipante } = usePartecipante()
+  const {
+    registrato,
+    minutiAscolto,
+    esci: esciPartecipante,
+    onboardingCompleto,
+    percorsoPronto
+  } = usePartecipante()
   const { pathname } = useLocation()
   const [aperto, setAperto] = useState(false)
   const menuId = useId()
@@ -40,14 +46,32 @@ export default function Nav() {
     setAperto(false)
   }
 
+  const vociPartecipante = facilitatore ? null : (
+    <>
+      {!onboardingCompleto && (
+        <NavLink to="/onboarding" onClick={chiudi}>Primo accesso</NavLink>
+      )}
+      {onboardingCompleto && (
+        <NavLink to="/questionari" onClick={chiudi}>Questionari</NavLink>
+      )}
+      {percorsoPronto && (
+        <>
+          <NavLink to="/programma" onClick={chiudi}>Settimana</NavLink>
+          <NavLink to="/pratica" onClick={chiudi}>Storico</NavLink>
+          <NavLink to="/comunicazioni" onClick={chiudi}>Avvisi</NavLink>
+        </>
+      )}
+    </>
+  )
+
   const voci = dentro ? (
     <>
-      <NavLink to="/questionari" onClick={chiudi}>Questionari</NavLink>
-      <NavLink to="/programma" onClick={chiudi}>Settimana</NavLink>
-      <NavLink to="/pratica" onClick={chiudi}>Storico</NavLink>
-      <NavLink to="/comunicazioni" onClick={chiudi}>Avvisi</NavLink>
       {facilitatore ? (
         <>
+          <NavLink to="/questionari" onClick={chiudi}>Questionari</NavLink>
+          <NavLink to="/programma" onClick={chiudi}>Settimana</NavLink>
+          <NavLink to="/pratica" onClick={chiudi}>Storico</NavLink>
+          <NavLink to="/comunicazioni" onClick={chiudi}>Avvisi</NavLink>
           <span className="nav-sep" aria-hidden="true" />
           <NavLink to="/dashboard" onClick={chiudi}>Cicli</NavLink>
           <NavLink to="/lezioni" onClick={chiudi}>Lezioni</NavLink>
@@ -55,6 +79,7 @@ export default function Nav() {
         </>
       ) : (
         <>
+          {vociPartecipante}
           <span className="nav-sep" aria-hidden="true" />
           {!appGiaInHome() && (
             <button

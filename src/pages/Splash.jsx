@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../lib/auth.jsx'
-import { usePartecipante } from '../lib/partecipante.jsx'
+import { destinazionePartecipante, usePartecipante } from '../lib/partecipante.jsx'
 import { leggiSplash, SPLASH_DEFAULT } from '../lib/splash.js'
 import iconaConscio from '../assets/icona-conscio.png'
 
 export default function Splash() {
   const { facilitatore } = useAuth()
-  const { registrato } = usePartecipante()
+  const { registrato, onboardingCompleto, t0Completo, percorsoPronto } = usePartecipante()
   const [testo, setTesto] = useState(SPLASH_DEFAULT)
 
   useEffect(() => {
@@ -18,7 +18,15 @@ export default function Splash() {
     return () => { vivo = false }
   }, [])
 
-  const destinazione = facilitatore ? '/dashboard' : registrato ? '/programma' : '/iscrizione'
+  const destinazione = facilitatore
+    ? '/dashboard'
+    : registrato
+      ? destinazionePartecipante({
+        onboarding: onboardingCompleto,
+        t0: t0Completo,
+        pronto: percorsoPronto
+      })
+      : '/iscrizione'
 
   return (
     <main className="splash">

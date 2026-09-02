@@ -14,6 +14,10 @@ create table utenti (
   consenso_modulo_a boolean not null default false,
   consenso_modulo_b boolean not null default false,
   auth_user_id uuid unique,
+  onboarding_completato boolean not null default false,
+  onboarding_completato_il timestamptz,
+  onboarding_q1 text,
+  onboarding_q2 text,
   creato_il timestamptz default now()
 );
 
@@ -39,6 +43,7 @@ create table lezioni (
   ciclo_id uuid references cicli(id) on delete cascade,
   numero_settimana int not null check (numero_settimana between 1 and 9), -- 8 settimane + eventuale giornata intensiva
   tema text,
+  sottotitolo text,
   pratiche_formali text,
   pratiche_informali text,
   materiali text,
@@ -50,7 +55,10 @@ create table esercizi (
   id uuid primary key default gen_random_uuid(),
   lezione_id uuid references lezioni(id) on delete cascade,
   tipo text,
-  descrizione text
+  descrizione text,
+  traccia_audio text,
+  ordine int,
+  durata_minuti int
 );
 
 create table log_pratica (
@@ -677,6 +685,7 @@ begin
         'id', l.id,
         'numero_settimana', l.numero_settimana,
         'tema', l.tema,
+        'sottotitolo', l.sottotitolo,
         'pratiche_formali', l.pratiche_formali,
         'pratiche_informali', l.pratiche_informali,
         'materiali', l.materiali,
@@ -686,6 +695,20 @@ begin
             'id', e.id,
             'tipo', e.tipo,
             'descrizione', e.descrizione,
+            'traccia_audio', coalesce(
+              nullif(e.traccia_audio, ''),
+              case
+                when e.tipo in ('formale', 'a_casa')
+                  and not exists (
+                    select 1 from esercizi e2
+                    where e2.lezione_id = l.id
+                      and nullif(e2.traccia_audio, '') is not null
+                  )
+                then nullif(l.traccia_audio, '')
+              end
+            ),
+            'ordine', coalesce(e.ordine, 0),
+            'durata_minuti', e.durata_minuti,
             'log', coalesce((
               select jsonb_agg(jsonb_build_object(
                 'id', lg.id,
@@ -700,14 +723,175 @@ begin
               where lg.esercizio_id = e.id
                 and lg.utente_id = v_utente_id
             ), '[]'::jsonb)
-          ) order by e.id)
+          ) order by coalesce(e.ordine, 0), e.id)
           from esercizi e where e.lezione_id = l.id
+        ), '[]'::jsonb),
+        'annotazioni_giorno', coalesce((
+          select jsonb_agg(jsonb_build_object(
+            'id', lg.id,
+            'data', lg.data,
+            'durata_minuti', lg.durata_minuti,
+            'tipo', lg.tipo,
+            'note', lg.note,
+            'tono_prima', lg.tono_prima,
+            'tono_dopo', lg.tono_dopo
+          ) order by lg.data desc, lg.id desc)
+          from log_pratica lg
+          where lg.utente_id = v_utente_id
+            and lg.tipo = 'giorno'
+            and lg.esercizio_id is null
+            and lg.data between
+              (v_inizio + ((l.numero_settimana - 1) * 7))
+              and (v_inizio + ((l.numero_settimana - 1) * 7) + 6)
         ), '[]'::jsonb)
       ) order by l.numero_settimana)
       from lezioni l
       where l.ciclo_id = v_ciclo_id
     ), '[]'::jsonb)
   );
+end;
+$$;
+
+
+create or replace function spunta_informale(
+  p_codice text,
+  p_esercizio_id uuid,
+  p_data date,
+  p_fatto boolean
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_utente_id uuid;
+  v_giorno date;
+begin
+  select id into v_utente_id
+  from utenti
+  where upper(trim(codice_partecipante)) = upper(trim(p_codice))
+    and ruolo = 'partecipante';
+
+  if v_utente_id is null then
+    raise exception 'CODICE_NON_TROVATO';
+  end if;
+
+  if not exists (
+    select 1
+    from utenti u
+    left join iscrizioni i on i.utente_id = u.id
+    where u.id = v_utente_id
+      and (u.stato_screening = 'idoneo' or i.esito_screening = 'idoneo')
+  ) then
+    raise exception 'ACCESSO_NON_IDONEO';
+  end if;
+
+  if not exists (
+    select 1
+    from esercizi e
+    join lezioni l on l.id = e.lezione_id
+    join iscrizioni i on i.ciclo_id = l.ciclo_id
+    where e.id = p_esercizio_id
+      and i.utente_id = v_utente_id
+      and e.tipo = 'informale'
+  ) then
+    raise exception 'ESERCIZIO_NON_VALIDO';
+  end if;
+
+  v_giorno := coalesce(p_data, current_date);
+
+  if coalesce(p_fatto, false) then
+    if not exists (
+      select 1 from log_pratica
+      where utente_id = v_utente_id
+        and esercizio_id = p_esercizio_id
+        and data = v_giorno
+        and tipo = 'informale'
+    ) then
+      insert into log_pratica (utente_id, esercizio_id, data, durata_minuti, note, tipo)
+      values (v_utente_id, p_esercizio_id, v_giorno, null, null, 'informale');
+    end if;
+  else
+    delete from log_pratica
+    where utente_id = v_utente_id
+      and esercizio_id = p_esercizio_id
+      and data = v_giorno
+      and tipo = 'informale';
+  end if;
+
+  return jsonb_build_object('ok', true, 'fatto', coalesce(p_fatto, false));
+end;
+$$;
+
+create or replace function salva_annotazione_giorno(
+  p_codice text,
+  p_data date,
+  p_note text,
+  p_durata int default null,
+  p_tono_dopo text default null,
+  p_lezione_id uuid default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_utente_id uuid;
+  v_giorno date;
+  v_dopo text;
+  v_id uuid;
+begin
+  select id into v_utente_id
+  from utenti
+  where upper(trim(codice_partecipante)) = upper(trim(p_codice))
+    and ruolo = 'partecipante';
+
+  if v_utente_id is null then
+    raise exception 'CODICE_NON_TROVATO';
+  end if;
+
+  if not exists (
+    select 1
+    from utenti u
+    left join iscrizioni i on i.utente_id = u.id
+    where u.id = v_utente_id
+      and (u.stato_screening = 'idoneo' or i.esito_screening = 'idoneo')
+  ) then
+    raise exception 'ACCESSO_NON_IDONEO';
+  end if;
+
+  if p_note is null or trim(p_note) = '' then
+    raise exception 'NOTA_MANCANTE';
+  end if;
+
+  v_giorno := coalesce(p_data, current_date);
+  v_dopo := case
+    when p_tono_dopo in ('piacevole', 'neutro', 'spiacevole') then p_tono_dopo
+  end;
+
+  select id into v_id
+  from log_pratica
+  where utente_id = v_utente_id
+    and data = v_giorno
+    and tipo = 'giorno'
+    and esercizio_id is null
+  limit 1;
+
+  if v_id is not null then
+    update log_pratica
+    set note = trim(p_note),
+        durata_minuti = coalesce(p_durata, durata_minuti),
+        tono_dopo = v_dopo
+    where id = v_id;
+  else
+    insert into log_pratica (utente_id, esercizio_id, data, durata_minuti, note, tipo, tono_dopo)
+    values (v_utente_id, null, v_giorno, p_durata, trim(p_note), 'giorno', v_dopo)
+    returning id into v_id;
+  end if;
+
+  return jsonb_build_object('ok', true, 'id', v_id);
 end;
 $$;
 
@@ -959,3 +1143,97 @@ create policy "facilitatore elimina tracce"
 on storage.objects for delete
 to authenticated
 using (bucket_id = 'tracce-audio' and public.is_facilitatore());
+
+create or replace function stato_pronto_percorso(p_codice text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_utente_id uuid;
+  v_onboarding boolean := false;
+  v_t0 boolean := false;
+begin
+  select u.id, coalesce(u.onboarding_completato, false)
+  into v_utente_id, v_onboarding
+  from utenti u
+  where upper(trim(u.codice_partecipante)) = upper(trim(p_codice))
+    and u.ruolo = 'partecipante';
+
+  if v_utente_id is null then
+    raise exception 'CODICE_NON_TROVATO';
+  end if;
+
+  if not exists (
+    select 1
+    from utenti u
+    left join iscrizioni i on i.utente_id = u.id
+    where u.id = v_utente_id
+      and (u.stato_screening = 'idoneo' or i.esito_screening = 'idoneo')
+  ) then
+    raise exception 'ACCESSO_NON_IDONEO';
+  end if;
+
+  v_t0 := ha_compilato_timepoint(p_codice, 'T0');
+
+  return jsonb_build_object(
+    'onboarding', v_onboarding,
+    't0', v_t0,
+    'pronto', (v_onboarding and v_t0)
+  );
+end;
+$$;
+
+create or replace function salva_onboarding(
+  p_codice text,
+  p_q1 text,
+  p_q2 text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_utente_id uuid;
+begin
+  select id into v_utente_id
+  from utenti
+  where upper(trim(codice_partecipante)) = upper(trim(p_codice))
+    and ruolo = 'partecipante';
+
+  if v_utente_id is null then
+    raise exception 'CODICE_NON_TROVATO';
+  end if;
+
+  if not exists (
+    select 1
+    from utenti u
+    left join iscrizioni i on i.utente_id = u.id
+    where u.id = v_utente_id
+      and (u.stato_screening = 'idoneo' or i.esito_screening = 'idoneo')
+  ) then
+    raise exception 'ACCESSO_NON_IDONEO';
+  end if;
+
+  if p_q1 is null or trim(p_q1) = '' or p_q2 is null or trim(p_q2) = '' then
+    raise exception 'RISPOSTE_MANCANTI';
+  end if;
+
+  update utenti
+  set onboarding_q1 = trim(p_q1),
+      onboarding_q2 = trim(p_q2),
+      onboarding_completato = true,
+      onboarding_completato_il = coalesce(onboarding_completato_il, now())
+  where id = v_utente_id;
+
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+revoke all on function stato_pronto_percorso(text) from public;
+revoke all on function salva_onboarding(text, text, text) from public;
+grant execute on function stato_pronto_percorso(text) to anon, authenticated;
+grant execute on function salva_onboarding(text, text, text) to anon, authenticated;
+

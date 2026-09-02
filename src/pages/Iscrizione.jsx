@@ -1,23 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase, supabaseConfigurato, generaCodicePartecipante, memorizzaCodiceRicordato } from '../lib/supabaseClient'
-import Disclaimer from '../components/Disclaimer.jsx'
-
-function IconaDocumento() {
-  return (
-    <svg className="icona-documento" viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M7 3.5h7.2L19 8.4V20a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 6 20V5a1.5 1.5 0 0 1 1.5-1.5Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-      <path d="M14.1 3.7V8.2H18.8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
-      <path d="M9 12.2h6M9 15.6h6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  )
-}
 
 function IconaPercorso({ id }) {
   const comune = {
@@ -49,6 +32,13 @@ function IconaPercorso({ id }) {
           <path d="M4.6 11.2 12 5.2l7.4 6" {...comune} />
           <path d="M6.4 10.4V19h11.2v-8.6" {...comune} />
           <path d="M10.2 19v-5.2h3.6V19" {...comune} />
+        </>
+      )}
+      {id === 'avvertenze' && (
+        <>
+          <circle cx="12" cy="12" r="8.2" {...comune} />
+          <circle cx="12" cy="7.8" r="0.9" fill="currentColor" stroke="none" />
+          <path d="M12 10.6v5" {...comune} />
         </>
       )}
       {id === 'questionari' && (
@@ -93,6 +83,12 @@ const SCHEDE_PERCORSO = [
     id: 'questionari',
     titolo: 'Due questionari',
     testo: 'Prima, durante, alla fine e a tre mesi dalla fine del ciclo.'
+  },
+  {
+    id: 'avvertenze',
+    titolo: 'Avvertenze',
+    testo: 'Questo percorso è una pratica di consapevolezza (mindfulness) a scopo divulgativo e non sostituisce in alcun modo un percorso terapeutico o una presa in carico psicologica. In caso di difficoltà cliniche, rivolgiti a un professionista sanitario.',
+    enfasi: true
   }
 ]
 
@@ -178,7 +174,10 @@ export default function Iscrizione() {
       </p>
       <div className="percorso-carosello">
         {SCHEDE_PERCORSO.map(scheda => (
-          <article key={scheda.id} className="percorso-card">
+          <article
+            key={scheda.id}
+            className={`percorso-card${scheda.enfasi ? ' is-enfasi' : ''}`}
+          >
             <span className="percorso-icona-fondo">
               <IconaPercorso id={scheda.id} />
             </span>
@@ -301,33 +300,6 @@ export default function Iscrizione() {
       </div>
 
       <aside>
-        <div className="card card-lato">
-          <h3>Da sapere</h3>
-          <Disclaimer />
-        </div>
-        <div className="card card-lato">
-          <h3>Documenti</h3>
-          <ul className="lista-documenti">
-            <li>
-              <IconaDocumento />
-              <a href="#/documenti/informativa" target="_blank" rel="noopener noreferrer">
-                Informativa privacy
-              </a>
-            </li>
-            <li>
-              <IconaDocumento />
-              <a href="#/documenti/modulo-a" target="_blank" rel="noopener noreferrer">
-                Modulo A — partecipazione
-              </a>
-            </li>
-            <li>
-              <IconaDocumento />
-              <a href="#/documenti/modulo-b" target="_blank" rel="noopener noreferrer">
-                Modulo B — social (facoltativo)
-              </a>
-            </li>
-          </ul>
-        </div>
         <div className="card card-lato">
           <h3>Come funziona il codice</h3>
           <p>

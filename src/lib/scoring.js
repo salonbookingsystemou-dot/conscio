@@ -1,6 +1,7 @@
 // Formule pubblicate: PSS-10 (Cohen; Fossati 2010 / Mondo et al. 2021)
 // e FFMQ (Baer et al. 2006; Giovannini et al. 2014).
-// I punteggi sono numeri grezzi — nessuna fascia interpretativa.
+// Punteggi grezzi + orientamento rispetto al range dello strumento
+// (nessuna diagnosi né fascia clinica).
 
 const PSS_INVERSI = new Set([4, 5, 7, 8])
 
@@ -41,6 +42,69 @@ function mappaPerOrdine(risposte) {
   return Object.fromEntries(risposte.map(r => [r.ordine, r.valore]))
 }
 
+function percentoNelRange(valore, min, max) {
+  if (!Number.isFinite(valore) || !Number.isFinite(min) || !Number.isFinite(max) || max <= min) {
+    return 0
+  }
+  return Math.max(0, Math.min(100, Math.round(((valore - min) / (max - min)) * 100)))
+}
+
+/** Fasce convenzionali PSS-10 (Cohen), presentate come posizione sullo strumento. */
+export function orientamentoPss(totale) {
+  const percento = percentoNelRange(totale, 0, 40)
+  if (totale <= 13) {
+    return {
+      id: 'contenuto',
+      etichetta: 'Più contenuto',
+      dettaglio: 'Nella fascia bassa dello strumento PSS-10',
+      percento
+    }
+  }
+  if (totale <= 26) {
+    return {
+      id: 'intermedio',
+      etichetta: 'Intermedio',
+      dettaglio: 'Nella fascia intermedia dello strumento PSS-10',
+      percento
+    }
+  }
+  return {
+    id: 'elevato',
+    etichetta: 'Più elevato',
+    dettaglio: 'Nella fascia alta dello strumento PSS-10',
+    percento
+  }
+}
+
+/** Posizione sul range dello strumento (terzili), senza giudizio clinico. */
+export function orientamentoRange(valore, min, max, {
+  basso = 'Parte bassa del range',
+  medio = 'Parte intermedia del range',
+  alto = 'Parte alta del range'
+} = {}) {
+  const percento = percentoNelRange(valore, min, max)
+  if (percento < 34) {
+    return { id: 'contenuto', etichetta: basso, dettaglio: `Verso ${min} su un range ${min}–${max}`, percento }
+  }
+  if (percento < 67) {
+    return { id: 'intermedio', etichetta: medio, dettaglio: `Verso il centro del range ${min}–${max}`, percento }
+  }
+  return { id: 'elevato', etichetta: alto, dettaglio: `Verso ${max} su un range ${min}–${max}`, percento }
+}
+
+export function orientamentoFfmq(totale) {
+  return orientamentoRange(totale, 39, 195, {
+    basso: 'Meno presente nel range',
+    medio: 'Intermedio nel range',
+    alto: 'Più presente nel range'
+  })
+}
+
+/** Range tipico sottoscala FFMQ: 8 item × 1–5. */
+export function orientamentoSottoscalaFfmq(valore) {
+  return orientamentoRange(valore, 8, 40)
+}
+
 export function punteggioPss10(risposte) {
   const perOrdine = mappaPerOrdine(risposte)
   let totale = 0
@@ -49,7 +113,7 @@ export function punteggioPss10(risposte) {
     if (grezzo == null) return null
     totale += PSS_INVERSI.has(ordine) ? invertiLikert(grezzo, 0, 4) : grezzo
   }
-  return { totale, min: 0, max: 40 }
+  return { totale, min: 0, max: 40, orientamento: orientamentoPss(totale) }
 }
 
 export function punteggioFfmq(risposte) {
@@ -80,15 +144,24 @@ export function punteggioFfmq(risposte) {
     return null
   }
 
+  const totale = osservare + descrivere + agire_con_consapevolezza + non_giudicare + non_reagire
   return {
-    totale: osservare + descrivere + agire_con_consapevolezza + non_giudicare + non_reagire,
+    totale,
     osservare,
     descrivere,
     agire_con_consapevolezza,
     non_giudicare,
     non_reagire,
     min: 39,
-    max: 195
+    max: 195,
+    orientamento: orientamentoFfmq(totale),
+    orientamentiSottoscale: {
+      osservare: orientamentoSottoscalaFfmq(osservare),
+      descrivere: orientamentoSottoscalaFfmq(descrivere),
+      agire_con_consapevolezza: orientamentoSottoscalaFfmq(agire_con_consapevolezza),
+      non_giudicare: orientamentoSottoscalaFfmq(non_giudicare),
+      non_reagire: orientamentoSottoscalaFfmq(non_reagire)
+    }
   }
 }
 

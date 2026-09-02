@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth.jsx'
-import { usePartecipante } from '../lib/partecipante.jsx'
+import { destinazionePartecipante, usePartecipante } from '../lib/partecipante.jsx'
 import {
   dimenticaCodiceRicordato,
   leggiCodiceRicordato,
@@ -12,11 +12,19 @@ import Disclaimer from '../components/Disclaimer.jsx'
 
 export default function Entra() {
   const { facilitatore, caricamento: authLoad } = useAuth()
-  const { registrato, caricamento, entra } = usePartecipante()
+  const {
+    registrato,
+    caricamento,
+    entra,
+    onboardingCompleto,
+    t0Completo,
+    percorsoPronto
+  } = usePartecipante()
   const location = useLocation()
-  const destinazione = location.state?.da && location.state.da !== '/entra'
-    ? location.state.da
-    : '/programma'
+  const destinazione = destinazionePartecipante(
+    { onboarding: onboardingCompleto, t0: t0Completo, pronto: percorsoPronto },
+    location.state?.da
+  )
   const [codice, setCodice] = useState(() => leggiCodiceRicordato())
   const [errore, setErrore] = useState(null)
   const [invio, setInvio] = useState(false)

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
 import { usePartecipante } from '../lib/partecipante.jsx'
 import ChiediCodice from '../components/ChiediCodice.jsx'
@@ -9,164 +9,185 @@ import TracciaGuidata from '../components/TracciaGuidata.jsx'
 import TonoEsperienza from '../components/TonoEsperienza.jsx'
 import VoceLog from '../components/VoceLog.jsx'
 import { addDays, formatISODate, oggiLocaleISO, parseISODate } from '../lib/date.js'
-import { ascoltoCompletato } from '../lib/ascolto.js'
+import {
+  ascoltoCompletato,
+  chiaveAscoltoEsercizio,
+  formaliAscoltatiNelGiorno
+} from '../lib/ascolto.js'
 
-function etichettaTipo(tipo) {
-  if (tipo === 'informale') return 'Informale'
-  if (tipo === 'formale') return 'Formale'
-  if (tipo === 'a_casa') return 'A casa'
-  return tipo || 'Pratica'
+function etichettaSettimana(numero) {
+  return numero === 9 ? 'Intensiva' : `Settimana ${numero}`
 }
 
-function etichettaPill(lezione) {
-  if (lezione.tema) return lezione.tema
-  return lezione.numero_settimana === 9 ? 'Intensiva' : 'Settimana'
+function eFormale(esercizio) {
+  const tipo = (esercizio.tipo || '').toLowerCase()
+  return tipo === 'formale' || tipo === 'a_casa'
 }
 
-function minutiDaSecondi(secondi) {
-  if (!Number.isFinite(secondi) || secondi <= 0) return null
-  return Math.max(1, Math.round(secondi / 60))
+function eInformale(esercizio) {
+  return (esercizio.tipo || '').toLowerCase() === 'informale'
 }
 
-function etichettaDurata(secondi) {
-  if (!Number.isFinite(secondi) || secondi <= 0) return null
-  const m = Math.floor(secondi / 60)
-  const s = Math.floor(secondi % 60)
-  return s === 0 ? `${m} min` : `${m} min ${s} s`
+function etichettaDurataMinuti(minuti, secondiTraccia) {
+  if (Number.isFinite(minuti) && minuti > 0) {
+    return minuti === 1 ? '1 minuto' : `${minuti} minuti`
+  }
+  if (Number.isFinite(secondiTraccia) && secondiTraccia > 0) {
+    const m = Math.max(1, Math.round(secondiTraccia / 60))
+    return m === 1 ? '1 minuto' : `${m} minuti`
+  }
+  return null
 }
 
-function LogSottoEsercizio({ codice, esercizio, onSalvato, dataScelta, puoRegistrare, haTraccia, durataTraccia }) {
-  const informale = (esercizio.tipo || '').includes('informale')
-  const [data, setData] = useState(dataScelta || oggiLocaleISO())
-  const [minuti, setMinuti] = useState(informale ? 5 : 20)
-  const minutiTraccia = minutiDaSecondi(durataTraccia)
-  const durataPronta = haTraccia ? minutiTraccia != null : Number(minuti) > 0
+function spuntatoNelGiorno(esercizio, data) {
+  const giorno = String(data).slice(0, 10)
+  return (esercizio.log || []).some(r =>
+    String(r.data).slice(0, 10) === giorno && r.tipo === 'informale'
+  )
+}
 
-  useEffect(() => {
-    if (dataScelta) setData(dataScelta)
-  }, [dataScelta])
+function AnnotazioniGiorno({
+  codice,
+  data,
+  durataMinuti,
+  annotazioni,
+  puoRegistrare,
+  onSalvato
+}) {
   const [note, setNote] = useState('')
-  const [tonoPrima, setTonoPrima] = useState('')
   const [tonoDopo, setTonoDopo] = useState('')
   const [invio, setInvio] = useState(false)
   const [errore, setErrore] = useState(null)
-  const log = esercizio.log || []
+  const delGiorno = (annotazioni || []).filter(a => String(a.data).slice(0, 10) === String(data).slice(0, 10))
 
   const notaPronta = note.trim().length > 0
 
   async function registra(e) {
     e.preventDefault()
-    const durata = haTraccia ? minutiTraccia : Number(minuti)
-    if (!puoRegistrare || !notaPronta || !durata) return
+    if (!puoRegistrare || !notaPronta) return
     setErrore(null)
     setInvio(true)
-    const { error } = await supabase.rpc('salva_log_pratica', {
+    const { error } = await supabase.rpc('salva_annotazione_giorno', {
       p_codice: codice.trim(),
       p_data: data,
-      p_durata: durata,
-      p_note: note.trim() || null,
-      p_tipo: esercizio.tipo || null,
-      p_esercizio_id: esercizio.id,
-      p_tono_dopo: tonoDopo || null,
-      p_tono_prima: informale ? (tonoPrima || null) : null
+      p_note: note.trim(),
+      p_durata: durataMinuti > 0 ? durataMinuti : null,
+      p_tono_dopo: tonoDopo || null
     })
     if (error) {
       setErrore(error.message?.includes('CODICE_NON_TROVATO')
         ? 'Codice non riconosciuto.'
-        : error.message?.includes('ESERCIZIO_NON_VALIDO')
-          ? 'Questa pratica non appartiene al tuo ciclo.'
-          : error.message?.includes('NOTA_MANCANTE')
-            ? 'La nota è necessaria per chiudere la sessione.'
-            : 'Non è stato possibile registrare la pratica.')
+        : error.message?.includes('NOTA_MANCANTE')
+          ? 'La nota è necessaria per chiudere la sessione.'
+          : 'Non è stato possibile salvare l’annotazione.')
       setInvio(false)
       return
     }
     setNote('')
-    setTonoPrima('')
     setTonoDopo('')
     setInvio(false)
     onSalvato()
   }
 
-  return (
-    <div className="pratica-blocco">
-      <h4>
-        <span className="badge">{etichettaTipo(esercizio.tipo)}</span>
-        {' '}{esercizio.descrizione}
-      </h4>
-      {!puoRegistrare ? (
+  if (!puoRegistrare) {
+    return (
+      <div className="annotazioni-giorno is-bloccato">
+        <h3>Annotazioni del giorno</h3>
         <p className="hint">
-          Ascolta prima la traccia guidata fino alla fine: è il materiale della sessione.
-          Poi potrai scrivere la nota e registrare.
+          Ascolta prima le tracce delle pratiche formali di oggi. Poi si apre questo spazio.
         </p>
-      ) : (
-        <>
-          {log.length === 0 && <p className="hint">Nessuna sessione ancora registrata per questa pratica.</p>}
-          <div className="elenco-log">
-            {log.map(riga => (
-              <VoceLog key={riga.id} riga={riga} />
-            ))}
-          </div>
-          <form onSubmit={registra}>
-            {haTraccia ? (
-              <div className="field">
-                <label>Data</label>
-                <input type="date" required value={data} onChange={e => setData(e.target.value)} />
-                <p className="hint">
-                  {etichettaDurata(durataTraccia)
-                    ? `Durata della sessione: ${etichettaDurata(durataTraccia)}, dalla traccia guidata.`
-                    : 'La durata della sessione è quella della traccia guidata.'}
-                </p>
-              </div>
-            ) : (
-              <div className="riga-due">
-                <div className="field">
-                  <label>Data</label>
-                  <input type="date" required value={data} onChange={e => setData(e.target.value)} />
-                </div>
-                <div className="field">
-                  <label>Minuti</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="240"
-                    required
-                    value={minuti}
-                    onChange={e => setMinuti(e.target.value)}
-                  />
-                </div>
-              </div>
-            )}
-            {informale && (
-              <TonoEsperienza
-                label="All’inizio"
-                value={tonoPrima}
-                onChange={setTonoPrima}
-                hint="Il tono di ciò che c’era, prima."
-              />
-            )}
-            <TonoEsperienza
-              label="Come ti senti dopo"
-              value={tonoDopo}
-              onChange={setTonoDopo}
-              hint="Un tocco: piacevole, neutro o spiacevole. Non è un voto."
-            />
-            <CampoNota
-              required
-              label={informale ? 'Cosa hai notato' : 'Nota'}
-              value={note}
-              onChange={setNote}
-              placeholder={informale ? 'Situazione, prima, dopo' : 'Cosa è sorto, come ti senti dopo'}
-            />
-            <button className="btn" type="submit" disabled={invio || !notaPronta || !durataPronta}>
-              {invio ? 'Salvataggio…' : 'Registra questa sessione'}
-            </button>
-            {!notaPronta && <p className="hint">La nota è necessaria per chiudere la sessione.</p>}
-            {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
-          </form>
-        </>
+      </div>
+    )
+  }
+
+  return (
+    <div className="annotazioni-giorno">
+      <h3>Annotazioni del giorno</h3>
+      {delGiorno.length > 0 && (
+        <div className="elenco-log">
+          {delGiorno.map(riga => (
+            <VoceLog key={riga.id} riga={riga} />
+          ))}
+        </div>
       )}
+      <form onSubmit={registra}>
+        <TonoEsperienza
+          label="Come ti senti dopo"
+          value={tonoDopo}
+          onChange={setTonoDopo}
+          hint="Un tocco: piacevole, neutro o spiacevole. Non è un voto."
+        />
+        <CampoNota
+          required
+          label="Nota"
+          value={note}
+          onChange={setNote}
+          placeholder="Cosa è sorto, come ti senti dopo"
+        />
+        <button className="btn" type="submit" disabled={invio || !notaPronta}>
+          {invio ? 'Salvataggio…' : 'Registra la pratica di oggi'}
+        </button>
+        {!notaPronta && <p className="hint">La nota è necessaria per chiudere la sessione.</p>}
+        {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+      </form>
     </div>
+  )
+}
+
+function TaskFormale({
+  esercizio,
+  codice,
+  data,
+  onAscolto,
+  onCompletoGiorno,
+  aggiornaAscolto
+}) {
+  const chiave = chiaveAscoltoEsercizio(codice, esercizio.id, data)
+  const [ascoltata, setAscoltata] = useState(() => ascoltoCompletato(chiave))
+  const [durataSec, setDurataSec] = useState(0)
+  const haTraccia = Boolean(esercizio.traccia_audio)
+
+  useEffect(() => {
+    setAscoltata(ascoltoCompletato(chiave))
+    setDurataSec(0)
+  }, [chiave])
+
+  function suCompleto(ok) {
+    setAscoltata(Boolean(ok))
+    onCompletoGiorno?.()
+  }
+
+  const durataLabel = etichettaDurataMinuti(esercizio.durata_minuti, durataSec)
+
+  return (
+    <article className={`task-pratica${ascoltata ? ' is-fatta' : ''}`}>
+      <div className="task-pratica-testa">
+        <span className={`task-punto${ascoltata ? ' is-fatto' : ''}`} aria-hidden="true" />
+        <div className="task-pratica-testi">
+          <h4>{esercizio.descrizione}</h4>
+          <p className="hint">
+            {[durataLabel, haTraccia ? 'traccia audio' : null, ascoltata ? 'ascoltata oggi' : null]
+              .filter(Boolean)
+              .join(' · ')}
+          </p>
+        </div>
+      </div>
+      {haTraccia ? (
+        <TracciaGuidata
+          key={chiave}
+          src={esercizio.traccia_audio}
+          persistenzaKey={chiave}
+          onCompleto={suCompleto}
+          onDurata={setDurataSec}
+          onAscolto={() => {
+            aggiornaAscolto?.()
+            onAscolto?.()
+          }}
+        />
+      ) : (
+        <p className="hint">Nessuna traccia ancora collegata a questa pratica.</p>
+      )}
+    </article>
   )
 }
 
@@ -175,14 +196,13 @@ export default function Programma() {
   const [lezioni, setLezioni] = useState([])
   const [ciclo, setCiclo] = useState(null)
   const [tutteSessioni, setTutteSessioni] = useState([])
-  const [dataScelta, setDataScelta] = useState(oggiLocaleISO)
+  const [dataScelta, setDataScelta] = useState(() => oggiLocaleISO())
   const [settimana, setSettimana] = useState(null)
   const [limite, setLimite] = useState(1)
   const [errore, setErrore] = useState(null)
   const [invio, setInvio] = useState(false)
   const [aperto, setAperto] = useState(false)
-  const [ascoltoOk, setAscoltoOk] = useState(false)
-  const [durataTraccia, setDurataTraccia] = useState(0)
+  const [tickAscolto, setTickAscolto] = useState(0)
   const pillsRef = useRef(null)
 
   async function caricaProgramma(codicePulito) {
@@ -233,36 +253,80 @@ export default function Programma() {
     const attiva = pillsRef.current?.querySelector('.settimana-pill.is-on')
     attiva?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
   }, [settimana, aperto])
+
   const inizioCiclo = parseISODate(ciclo?.data_inizio)
   const inizioSettimana = inizioCiclo && corrente
     ? addDays(inizioCiclo, (Math.max(1, corrente.numero_settimana) - 1) * 7)
     : null
   const fineSettimana = inizioSettimana ? addDays(inizioSettimana, 6) : null
-  const srcTraccia = corrente?.traccia_audio || null
-  const chiaveAscolto = corrente && codice
-    ? `${codice.trim()}:${corrente.id || corrente.numero_settimana}`
-    : null
 
   useEffect(() => {
-    setDurataTraccia(0)
-    if (!srcTraccia || !chiaveAscolto) {
-      setAscoltoOk(false)
+    if (!inizioSettimana || !fineSettimana) return
+    const inizio = formatISODate(inizioSettimana)
+    const fine = formatISODate(fineSettimana)
+    const oggi = oggiLocaleISO()
+    setDataScelta(prev => {
+      if (prev >= inizio && prev <= fine) return prev
+      if (oggi >= inizio && oggi <= fine) return oggi
+      return inizio
+    })
+  }, [inizioSettimana, fineSettimana, settimana])
+
+  const esercizi = useMemo(() => {
+    const lista = [...(corrente?.esercizi || [])]
+    lista.sort((a, b) => (a.ordine || 0) - (b.ordine || 0) || String(a.id).localeCompare(String(b.id)))
+    return lista
+  }, [corrente])
+
+  const formali = esercizi.filter(eFormale)
+  const informali = esercizi.filter(eInformale)
+
+  const ascoltoOk = useMemo(() => {
+    if (!codice || !corrente) return false
+    return formaliAscoltatiNelGiorno(formali, codice.trim(), dataScelta)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [codice, corrente, dataScelta, formali, tickAscolto])
+
+  const durataGiorno = useMemo(() => {
+    return formali.reduce((tot, ex) => {
+      if (Number.isFinite(ex.durata_minuti) && ex.durata_minuti > 0) return tot + ex.durata_minuti
+      return tot
+    }, 0)
+  }, [formali])
+
+  async function toggleInformale(esercizio, fatto) {
+    setErrore(null)
+    const { error } = await supabase.rpc('spunta_informale', {
+      p_codice: codice.trim(),
+      p_esercizio_id: esercizio.id,
+      p_data: dataScelta,
+      p_fatto: fatto
+    })
+    if (error) {
+      setErrore('Non è stato possibile aggiornare la pratica informale.')
       return
     }
-    setAscoltoOk(ascoltoCompletato(chiaveAscolto))
-  }, [chiaveAscolto, srcTraccia])
+    caricaProgramma(codice.trim())
+  }
+
+  const badgeSettimana = corrente
+    ? corrente.numero_settimana === 9
+      ? 'Giornata intensiva'
+      : `Questa settimana · ${corrente.numero_settimana} di 8`
+    : null
 
   return (
     <div>
-      <h2>Questa settimana</h2>
-      <p className="lead">
-        Tema e pratiche della settimana in corso. La traccia guidata è il materiale della sessione:
-        va ascoltata per intero, poi si apre il log con una nota. Le settimane successive si sbloccano quando tocca.
-      </p>
-      <Disclaimer />
-
       {!registrato && (
-        <ChiediCodice titolo="Per vedere la settimana di un partecipante, inserisci il codice." />
+        <>
+          <h2>Questa settimana</h2>
+          <p className="lead">
+            Tema e pratiche della settimana in corso. Ogni giorno ascolti le tracce formali,
+            spunti le informali e poi apri le annotazioni.
+          </p>
+          <Disclaimer />
+          <ChiediCodice titolo="Per vedere la settimana di un partecipante, inserisci il codice." />
+        </>
       )}
       {registrato && invio && !aperto && <p>Caricamento del programma…</p>}
       {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
@@ -279,6 +343,7 @@ export default function Programma() {
               const inCorso = n === limite
               const bloccata = n > limite
               const attiva = corrente && n === corrente.numero_settimana
+              const etichetta = etichettaSettimana(n)
               return (
                 <button
                   key={l.id || n}
@@ -287,71 +352,98 @@ export default function Programma() {
                   aria-disabled={bloccata}
                   aria-current={inCorso ? 'true' : undefined}
                   aria-label={
-                    n === 9
-                      ? `${etichettaPill(l)}${bloccata ? ', non ancora aperta' : inCorso ? ', in corso' : ''}`
-                      : `Settimana ${n}${l.tema ? `, ${l.tema}` : ''}${bloccata ? ', non ancora aperta' : inCorso ? ', in corso' : ''}`
+                    `${etichetta}${l.tema ? `, ${l.tema}` : ''}${bloccata ? ', non ancora aperta' : inCorso ? ', in corso' : ''}`
                   }
                   className={`settimana-pill${attiva ? ' is-on' : ''}${inCorso ? ' is-ora' : ''}${bloccata ? ' is-bloccata' : ''}`}
                   onClick={() => { if (!bloccata) setSettimana(n) }}
                 >
-                  <span className="sett-num" aria-hidden="true">{n === 9 ? 'Int.' : n}</span>
-                  <span className="sett-stato">{etichettaPill(l)}</span>
+                  <span className="sett-riga">
+                    <span className="sett-etichetta">{etichetta}</span>
+                    {inCorso && <span className="sett-ora">in corso</span>}
+                    {bloccata && <span className="sett-lock">chiusa</span>}
+                  </span>
+                  <span className="sett-tema">{l.tema || (n === 9 ? 'Giornata intensiva' : `Settimana ${n}`)}</span>
                 </button>
               )
             })}
           </div>
+
           {corrente && (
-            <div className="card">
-              <h3>
-                {corrente.numero_settimana === 9 ? 'Giornata intensiva' : `Settimana ${corrente.numero_settimana}`}
-                {corrente.tema ? ` — ${corrente.tema}` : ''}
-              </h3>
+            <div className="card settimana-vista">
+              {badgeSettimana && <p className="badge badge-settimana">{badgeSettimana}</p>}
+              <h2 className="settimana-titolo">{corrente.tema || `Settimana ${corrente.numero_settimana}`}</h2>
+              {corrente.sottotitolo && <p className="lead settimana-sottotitolo">{corrente.sottotitolo}</p>}
+              <Disclaimer />
+
               {inizioSettimana && (
                 <CalendarioPratica
                   titolo="Questa settimana"
                   inizio={formatISODate(inizioSettimana)}
                   fine={formatISODate(fineSettimana)}
-                  sessioni={tutteSessioni}
+                  sessioni={tutteSessioni.filter(s => s.tipo === 'giorno')}
                   giornoAttivo={dataScelta}
                   onGiorno={setDataScelta}
                   soloIntervallo
                 />
               )}
-              {corrente.pratiche_formali && <p><strong>Formali.</strong> {corrente.pratiche_formali}</p>}
-              {corrente.pratiche_informali && <p><strong>Informali.</strong> {corrente.pratiche_informali}</p>}
-              {corrente.materiali && <p><strong>Materiali.</strong> {corrente.materiali}</p>}
-              {srcTraccia ? (
-                <TracciaGuidata
-                  key={corrente.id || corrente.numero_settimana}
-                  src={srcTraccia}
-                  persistenzaKey={`${codice.trim()}:${corrente.id || corrente.numero_settimana}`}
-                  onCompleto={setAscoltoOk}
-                  onDurata={setDurataTraccia}
-                />
-              ) : (
-                <p className="hint">
-                  La traccia guidata di questa settimana non è ancora disponibile.
-                  Senza traccia puoi comunque registrare la sessione, con una nota.
-                </p>
+
+              <section className="blocco-giorno" aria-labelledby="da-fare-titolo">
+                <h3 id="da-fare-titolo">Da fare ogni giorno</h3>
+                {formali.length === 0 && (
+                  <p className="hint">Nessuna pratica formale assegnata a questa settimana.</p>
+                )}
+                <div className="lista-task">
+                  {formali.map(ex => (
+                    <TaskFormale
+                      key={`${ex.id}-${dataScelta}`}
+                      esercizio={ex}
+                      codice={codice.trim()}
+                      data={dataScelta}
+                      aggiornaAscolto={aggiornaAscolto}
+                      onCompletoGiorno={() => setTickAscolto(t => t + 1)}
+                      onAscolto={() => setTickAscolto(t => t + 1)}
+                    />
+                  ))}
+                </div>
+              </section>
+
+              {informali.length > 0 && (
+                <section className="blocco-informali" aria-labelledby="informali-titolo">
+                  <h3 id="informali-titolo">Pratiche informali</h3>
+                  <p className="hint">Tocca per spuntare quelle fatte oggi.</p>
+                  <div className="chip-riga chip-informali">
+                    {informali.map(ex => {
+                      const fatta = spuntatoNelGiorno(ex, dataScelta)
+                      return (
+                        <button
+                          key={ex.id}
+                          type="button"
+                          className={`chip chip-spunta${fatta ? ' is-on' : ''}`}
+                          aria-pressed={fatta}
+                          onClick={() => toggleInformale(ex, !fatta)}
+                        >
+                          <span className={`chip-check${fatta ? ' is-fatto' : ''}`} aria-hidden="true">
+                            {fatta ? '✓' : ''}
+                          </span>
+                          <span className="chip-testo">{ex.descrizione}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </section>
               )}
-              {(corrente.esercizi || []).length === 0 && (
-                <p className="hint">Nessuna pratica assegnata a questa settimana.</p>
-              )}
-              {(corrente.esercizi || []).map((ex, i) => (
-                <LogSottoEsercizio
-                  key={ex.id || i}
-                  codice={codice}
-                  esercizio={ex}
-                  dataScelta={dataScelta}
-                  puoRegistrare={!srcTraccia || ascoltoOk}
-                  haTraccia={!!srcTraccia}
-                  durataTraccia={durataTraccia}
-                  onSalvato={() => {
-                    caricaProgramma(codice.trim())
-                    aggiornaAscolto()
-                  }}
-                />
-              ))}
+
+              <AnnotazioniGiorno
+                codice={codice}
+                data={dataScelta}
+                durataMinuti={durataGiorno}
+                annotazioni={corrente.annotazioni_giorno || []}
+                puoRegistrare={ascoltoOk}
+                onSalvato={() => {
+                  caricaProgramma(codice.trim())
+                  aggiornaAscolto()
+                }}
+              />
             </div>
           )}
         </>

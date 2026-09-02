@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient'
 const LEZIONE_VUOTA = {
   numero_settimana: 1,
   tema: '',
+  sottotitolo: '',
   pratiche_formali: '',
   pratiche_informali: '',
   materiali: '',
@@ -26,6 +27,7 @@ export default function Lezioni() {
   const [esercizio, setEsercizio] = useState({ lezione_id: '', tipo: 'a_casa', descrizione: '' })
   const [fileAudio, setFileAudio] = useState(null)
   const [caricamentoAudio, setCaricamentoAudio] = useState(false)
+  const [caricamentoEsercizioId, setCaricamentoEsercizioId] = useState(null)
   const [errore, setErrore] = useState(null)
 
   useEffect(() => {
@@ -41,19 +43,22 @@ export default function Lezioni() {
     if (!id) { setLezioni([]); return }
     const { data } = await supabase
       .from('lezioni')
-      .select('id, numero_settimana, tema, pratiche_formali, pratiche_informali, materiali, traccia_audio, esercizi(id, tipo, descrizione)')
+      .select('id, numero_settimana, tema, sottotitolo, pratiche_formali, pratiche_informali, materiali, traccia_audio, esercizi(id, tipo, descrizione, traccia_audio, ordine, durata_minuti)')
       .eq('ciclo_id', id)
       .order('numero_settimana', { ascending: true })
-    setLezioni(data || [])
+    setLezioni((data || []).map(l => ({
+      ...l,
+      esercizi: [...(l.esercizi || [])].sort((a, b) => (a.ordine || 0) - (b.ordine || 0))
+    })))
   }
 
   useEffect(() => { caricaLezioni(cicloId) }, [cicloId])
 
-  async function caricaTraccia(file, settimana) {
+  async function caricaTraccia(file, chiavePath) {
     if (file.size > AUDIO_MAX) {
       throw new Error('AUDIO_TROPPO_GRANDE')
     }
-    const path = `${cicloId}/s${settimana}-${Date.now()}.${estensioneAudio(file.name)}`
+    const path = `${cicloId}/${chiavePath}-${Date.now()}.${estensioneAudio(file.name)}`
     const { error } = await supabase.storage.from('tracce-audio').upload(path, file, {
       upsert: false,
       contentType: file.type || 'audio/mpeg'
@@ -71,7 +76,7 @@ export default function Lezioni() {
     let traccia = form.traccia_audio || null
     try {
       if (fileAudio) {
-        traccia = await caricaTraccia(fileAudio, form.numero_settimana)
+        traccia = await caricaTraccia(fileAudio, `s${form.numero_settimana}`)
       }
     } catch (err) {
       setCaricamentoAudio(false)
@@ -84,6 +89,7 @@ export default function Lezioni() {
       ciclo_id: cicloId,
       numero_settimana: Number(form.numero_settimana),
       tema: form.tema,
+      sottotitolo: form.sottotitolo || null,
       pratiche_formali: form.pratiche_formali,
       pratiche_informali: form.pratiche_informali,
       materiali: form.materiali,
@@ -123,6 +129,29 @@ export default function Lezioni() {
     caricaLezioni(cicloId)
   }
 
+  async function caricaTracciaEsercizio(esercizioId, settimana, file) {
+    if (!file) return
+    setErrore(null)
+    setCaricamentoEsercizioId(esercizioId)
+    try {
+      const url = await caricaTraccia(file, `s${settimana}-ex-${esercizioId.slice(0, 8)}`)
+      const { error } = await supabase.from('esercizi').update({ traccia_audio: url }).eq('id', esercizioId)
+      if (error) throw error
+      await caricaLezioni(cicloId)
+    } catch (err) {
+      setErrore(err?.message === 'AUDIO_TROPPO_GRANDE'
+        ? 'La traccia deve pesare al massimo 50 MB.'
+        : 'Non è stato possibile caricare la traccia sull’esercizio.')
+    } finally {
+      setCaricamentoEsercizioId(null)
+    }
+  }
+
+  async function rimuoviTracciaEsercizio(esercizioId) {
+    await supabase.from('esercizi').update({ traccia_audio: null }).eq('id', esercizioId)
+    caricaLezioni(cicloId)
+  }
+
   return (
     <div>
       <h2>Lezioni ed esercizi</h2>
@@ -156,6 +185,14 @@ export default function Lezioni() {
           <div className="field">
             <label>Tema</label>
             <input value={form.tema} onChange={e => setForm({ ...form, tema: e.target.value })} />
+          </div>
+          <div className="field">
+            <label>Sottotitolo (facoltativo)</label>
+            <input
+              value={form.sottotitolo}
+              onChange={e => setForm({ ...form, sottotitolo: e.target.value })}
+              placeholder="Breve riga sotto il tema"
+            />
           </div>
           <div className="field">
             <label>Pratiche formali</label>
@@ -229,6 +266,7 @@ export default function Lezioni() {
             <button className="btn btn-ghost" type="button" onClick={() => { setModificaId(l.id); setFileAudio(null); setForm({
               numero_settimana: l.numero_settimana,
               tema: l.tema || '',
+              sottotitolo: l.sottotitolo || '',
               pratiche_formali: l.pratiche_formali || '',
               pratiche_informali: l.pratiche_informali || '',
               materiali: l.materiali || '',
@@ -238,10 +276,39 @@ export default function Lezioni() {
           </div>
           <h3>Pratiche a casa</h3>
           {(l.esercizi || []).map(ex => (
-            <p key={ex.id}>
-              <span className="badge">{ex.tipo}</span> {ex.descrizione}{' '}
-              <button className="btn btn-ghost" type="button" onClick={() => eliminaEsercizio(ex.id)}>Rimuovi</button>
-            </p>
+            <div className="esercizio-riga" key={ex.id}>
+              <p>
+                <span className="badge">{ex.tipo}</span> {ex.descrizione}{' '}
+                <button className="btn btn-ghost" type="button" onClick={() => eliminaEsercizio(ex.id)}>Rimuovi</button>
+              </p>
+              {(ex.tipo === 'formale' || ex.tipo === 'a_casa') && (
+                <div className="field">
+                  <label htmlFor={`audio-ex-${ex.id}`}>Traccia audio di questa pratica</label>
+                  <input
+                    id={`audio-ex-${ex.id}`}
+                    type="file"
+                    accept="audio/*"
+                    disabled={caricamentoEsercizioId === ex.id}
+                    onChange={e => {
+                      const file = e.target.files?.[0]
+                      e.target.value = ''
+                      caricaTracciaEsercizio(ex.id, l.numero_settimana, file)
+                    }}
+                  />
+                  {caricamentoEsercizioId === ex.id && <p className="hint">Caricamento…</p>}
+                  {ex.traccia_audio && (
+                    <p>
+                      <audio className="player-audio" controls src={ex.traccia_audio} preload="metadata">
+                        Il browser non riproduce questa traccia.
+                      </audio>
+                      <button className="btn btn-ghost" type="button" onClick={() => rimuoviTracciaEsercizio(ex.id)}>
+                        Rimuovi traccia
+                      </button>
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
           ))}
           <form onSubmit={aggiungiEsercizio}>
             <div className="field">

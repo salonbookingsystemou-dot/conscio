@@ -7,7 +7,11 @@ const PartecipanteContext = createContext({
   registrato: false,
   caricamento: true,
   minutiAscolto: 0,
+  onboardingCompleto: false,
+  t0Completo: false,
+  percorsoPronto: false,
   aggiornaAscolto: async () => {},
+  aggiornaPercorso: async () => {},
   entra: async () => {},
   esci: () => {}
 })
@@ -25,11 +29,34 @@ async function codiceValido(codice) {
   return (await statoAccesso(codice)) === 'ok'
 }
 
+async function leggiStatoPercorso(codice) {
+  if (!codice || !supabaseConfigurato) {
+    return { onboarding: false, t0: false, pronto: false }
+  }
+  const { data, error } = await supabase.rpc('stato_pronto_percorso', { p_codice: codice })
+  if (error || !data) return { onboarding: false, t0: false, pronto: false }
+  const payload = typeof data === 'string' ? JSON.parse(data) : data
+  return {
+    onboarding: Boolean(payload.onboarding),
+    t0: Boolean(payload.t0),
+    pronto: Boolean(payload.pronto)
+  }
+}
+
 export function PartecipanteProvider({ children }) {
   const [codice, setCodice] = useState('')
   const [registrato, setRegistrato] = useState(false)
   const [caricamento, setCaricamento] = useState(true)
   const [minutiAscolto, setMinutiAscolto] = useState(0)
+  const [onboardingCompleto, setOnboardingCompleto] = useState(false)
+  const [t0Completo, setT0Completo] = useState(false)
+  const [percorsoPronto, setPercorsoPronto] = useState(false)
+
+  const applicaPercorso = useCallback(stato => {
+    setOnboardingCompleto(Boolean(stato.onboarding))
+    setT0Completo(Boolean(stato.t0))
+    setPercorsoPronto(Boolean(stato.pronto))
+  }, [])
 
   const aggiornaAscolto = useCallback(async (valore = codice) => {
     if (!valore) {
@@ -38,6 +65,14 @@ export function PartecipanteProvider({ children }) {
     }
     setMinutiAscolto(await sommaMinutiTracce(valore))
   }, [codice])
+
+  const aggiornaPercorso = useCallback(async (valore = codice) => {
+    if (!valore) {
+      applicaPercorso({ onboarding: false, t0: false, pronto: false })
+      return
+    }
+    applicaPercorso(await leggiStatoPercorso(valore))
+  }, [applicaPercorso, codice])
 
   useEffect(() => {
     const salvato = leggiCodice()
@@ -49,12 +84,17 @@ export function PartecipanteProvider({ children }) {
       if (ok) {
         setCodice(salvato)
         setRegistrato(true)
-        setMinutiAscolto(await sommaMinutiTracce(salvato))
+        const [minuti, percorso] = await Promise.all([
+          sommaMinutiTracce(salvato),
+          leggiStatoPercorso(salvato)
+        ])
+        setMinutiAscolto(minuti)
+        applicaPercorso(percorso)
       } else {
         dimenticaCodice()
       }
     }).finally(() => setCaricamento(false))
-  }, [])
+  }, [applicaPercorso])
 
   async function entra(valore) {
     const pulito = (valore || '').trim()
@@ -64,7 +104,13 @@ export function PartecipanteProvider({ children }) {
     memorizzaCodice(pulito)
     setCodice(pulito)
     setRegistrato(true)
-    setMinutiAscolto(await sommaMinutiTracce(pulito))
+    const [minuti, percorso] = await Promise.all([
+      sommaMinutiTracce(pulito),
+      leggiStatoPercorso(pulito)
+    ])
+    setMinutiAscolto(minuti)
+    applicaPercorso(percorso)
+    return percorso
   }
 
   function esci() {
@@ -72,10 +118,23 @@ export function PartecipanteProvider({ children }) {
     setCodice('')
     setRegistrato(false)
     setMinutiAscolto(0)
+    applicaPercorso({ onboarding: false, t0: false, pronto: false })
   }
 
   return (
-    <PartecipanteContext.Provider value={{ codice, registrato, caricamento, minutiAscolto, aggiornaAscolto, entra, esci }}>
+    <PartecipanteContext.Provider value={{
+      codice,
+      registrato,
+      caricamento,
+      minutiAscolto,
+      onboardingCompleto,
+      t0Completo,
+      percorsoPronto,
+      aggiornaAscolto,
+      aggiornaPercorso,
+      entra,
+      esci
+    }}>
       {children}
     </PartecipanteContext.Provider>
   )
@@ -83,4 +142,15 @@ export function PartecipanteProvider({ children }) {
 
 export function usePartecipante() {
   return useContext(PartecipanteContext)
+}
+
+/** Destinazione dopo login in base allo stato del percorso. */
+export function destinazionePartecipante({ onboarding, t0, pronto }, richiesta) {
+  if (pronto) {
+    if (richiesta && richiesta !== '/entra' && richiesta !== '/onboarding') return richiesta
+    return '/programma'
+  }
+  if (!onboarding) return '/onboarding'
+  if (!t0) return '/questionari'
+  return '/programma'
 }

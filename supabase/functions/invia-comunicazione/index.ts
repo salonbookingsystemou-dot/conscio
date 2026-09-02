@@ -16,6 +16,26 @@ function json(body: unknown, status = 200) {
   })
 }
 
+function messaggioResend(body: unknown, status: number) {
+  if (body && typeof body === 'object') {
+    const rec = body as { message?: unknown; error?: unknown }
+    if (typeof rec.message === 'string' && rec.message.trim()) return rec.message
+    if (typeof rec.error === 'string' && rec.error.trim()) return rec.error
+  }
+  return `Resend ha risposto ${status}`
+}
+
+function italianoResend(testo: string) {
+  const basso = testo.toLowerCase()
+  if (basso.includes('example.com') || basso.includes('testing email')) {
+    return 'Resend non invia a indirizzi di prova (es. @example.com). Usa un’email reale del partecipante.'
+  }
+  if (basso.includes('not verified') || basso.includes('domain')) {
+    return 'Il mittente non è verificato su Resend. Controlla il dominio in RESEND_FROM.'
+  }
+  return testo
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
 
@@ -31,21 +51,41 @@ Deno.serve(async (req) => {
   const { data: isFac } = await supabase.rpc('is_facilitatore')
   if (!isFac) return json({ error: 'NON_AUTORIZZATO' }, 401)
 
-  const { comunicazione_id } = await req.json()
-  if (!comunicazione_id) return json({ error: 'ID_MANCANTE' }, 400)
+  const corpo = await req.json()
+  const comunicazione_id = corpo?.comunicazione_id
+  const prova = Boolean(corpo?.prova)
+  if (!comunicazione_id && !prova) return json({ error: 'ID_MANCANTE' }, 400)
 
-  const { data: com, error: errCom } = await supabase
-    .from('comunicazioni')
-    .select('id, ciclo_id, oggetto, tipo, testo')
-    .eq('id', comunicazione_id)
-    .single()
+  let emails: string[] = []
+  let com: { id?: string, oggetto?: string, tipo?: string, testo?: string } | null = null
 
-  if (errCom || !com) return json({ error: 'COMUNICAZIONE_NON_TROVATA' }, 404)
+  if (prova) {
+    const { data: sessione } = await supabase.auth.getUser()
+    const mia = sessione?.user?.email
+    if (!mia) return json({ ok: false, motivo: 'NESSUN_DESTINATARIO' }, 400)
+    emails = [mia]
+    com = {
+      oggetto: 'Prova invio — Percorso MBSR',
+      tipo: 'prova',
+      testo: 'Questa è una prova di invio da Resend. Se la leggi, le email operative sono collegate.'
+    }
+  } else {
+    const { data: trovata, error: errCom } = await supabase
+      .from('comunicazioni')
+      .select('id, ciclo_id, oggetto, tipo, testo')
+      .eq('id', comunicazione_id)
+      .single()
 
-  const { data: destinatari } = await supabase.rpc('email_destinatari_ciclo', {
-    p_ciclo_id: com.ciclo_id
-  })
-  const emails = (destinatari || []).map((r: { email: string }) => r.email).filter(Boolean)
+    if (errCom || !trovata) return json({ error: 'COMUNICAZIONE_NON_TROVATA' }, 404)
+    com = trovata
+
+    const { data: destinatari } = await supabase.rpc('email_destinatari_ciclo', {
+      p_ciclo_id: com.ciclo_id
+    })
+    emails = (destinatari || []).map((r: { email: string }) => r.email).filter(Boolean)
+  }
+
+  if (!com) return json({ error: 'COMUNICAZIONE_NON_TROVATA' }, 404)
 
   const apiKey = Deno.env.get('RESEND_API_KEY')
   if (!apiKey) {
@@ -53,13 +93,16 @@ Deno.serve(async (req) => {
   }
 
   if (emails.length === 0) {
-    await supabase.from('comunicazioni').update({ stato: 'errore' }).eq('id', com.id)
+    if (com.id) {
+      await supabase.from('comunicazioni').update({ stato: 'errore' }).eq('id', com.id)
+    }
     return json({ ok: false, motivo: 'NESSUN_DESTINATARIO' }, 400)
   }
 
   const from = Deno.env.get('RESEND_FROM') || 'Percorso MBSR <noreply@mnesti.it>'
   const oggetto = com.oggetto || com.tipo
   let inviate = 0
+  const errori: string[] = []
 
   for (const to of emails) {
     const res = await fetch('https://api.resend.com/emails', {
@@ -71,18 +114,29 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         from,
         to: [to],
+        reply_to: 'contact@wordpresschef.it',
         subject: oggetto,
         text: com.testo
       })
     })
+    const corpo = await res.json().catch(() => null)
     if (res.ok) inviate += 1
+    else errori.push(italianoResend(messaggioResend(corpo, res.status)))
   }
 
-  const stato = inviate > 0 ? 'inviata' : 'errore'
-  await supabase.from('comunicazioni').update({
-    stato,
-    data_invio: new Date().toISOString()
-  }).eq('id', com.id)
+  if (com.id) {
+    const stato = inviate > 0 ? 'inviata' : 'errore'
+    await supabase.from('comunicazioni').update({
+      stato,
+      data_invio: new Date().toISOString()
+    }).eq('id', com.id)
+  }
 
-  return json({ ok: inviate > 0, n_destinatari: inviate })
+  return json({
+    ok: inviate > 0,
+    n_destinatari: inviate,
+    n_previsti: emails.length,
+    motivo: inviate === 0 ? 'RESEND_ERRORE' : undefined,
+    errore: errori[0]
+  })
 })
