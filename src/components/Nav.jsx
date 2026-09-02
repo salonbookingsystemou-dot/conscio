@@ -74,7 +74,7 @@ export default function Nav() {
           <NavLink to="/comunicazioni" onClick={chiudi}>Avvisi</NavLink>
           <span className="nav-sep" aria-hidden="true" />
           <NavLink to="/dashboard" onClick={chiudi}>Cicli</NavLink>
-          <NavLink to="/lezioni" onClick={chiudi}>Lezioni</NavLink>
+          <NavLink to="/lezioni" onClick={chiudi}>Settimane</NavLink>
           <button type="button" onClick={() => { chiudi(); esci() }}>Esci</button>
         </>
       ) : (

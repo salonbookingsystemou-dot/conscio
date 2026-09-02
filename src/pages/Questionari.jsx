@@ -49,9 +49,15 @@ function ordinaItem(righe) {
   return [...pss, ...ffmq]
 }
 
-function etichettaSettimana(n) {
+function etichettaSettimana(n, dataInizio) {
   if (n == null) return ''
-  if (n === 0) return 'Il ciclo non è ancora iniziato.'
+  if (n === 0) {
+    if (dataInizio) {
+      const quando = new Date(`${String(dataInizio).slice(0, 10)}T12:00:00`).toLocaleDateString('it-IT')
+      return `Ciclo in partenza il ${quando}. T0 è già disponibile.`
+    }
+    return 'Il ciclo non è ancora iniziato.'
+  }
   if (n === 9) return 'Sei nella settimana intensiva (9).'
   return `Sei nella settimana ${n} del ciclo.`
 }
@@ -415,7 +421,7 @@ export default function Questionari() {
         <section className="questionari-momenti" aria-labelledby="momenti-titolo">
           <div className="questionari-situazione">
             <p id="momenti-titolo" className="questionari-situazione-label">Situazione attuale</p>
-            <p className="questionari-situazione-testo">{etichettaSettimana(piano.settimana)}</p>
+            <p className="questionari-situazione-testo">{etichettaSettimana(piano.settimana, piano.data_inizio)}</p>
             {aperti.length > 0 ? (
               <p className="hint">
                 {aperti.length === 1

@@ -85,6 +85,16 @@ export default function Dashboard() {
     carica()
   }
 
+  async function aggiornaCiclo(id, patch) {
+    setErrore(null)
+    const { error } = await supabase.from('cicli').update(patch).eq('id', id)
+    if (error) {
+      setErrore('Non è stato possibile aggiornare il ciclo.')
+      return
+    }
+    await carica()
+  }
+
   function eIdoneo(iscrizione) {
     return iscrizione.esito_screening === 'idoneo' || iscrizione.utenti?.stato_screening === 'idoneo'
   }
@@ -236,6 +246,40 @@ export default function Dashboard() {
         })}
       </div>
       {cicli.length === 0 && <p>Nessun ciclo ancora creato.</p>}
+
+      {cicloAperto && (
+        <div className="card">
+          <h3>Stato del ciclo</h3>
+          <p className="voce-log-settimana">{cicloAperto.nome_ciclo}</p>
+          <div className="riga-due">
+            <div className="field">
+              <label htmlFor="ciclo-stato">Stato</label>
+              <select
+                id="ciclo-stato"
+                value={cicloAperto.stato}
+                onChange={e => aggiornaCiclo(cicloAperto.id, { stato: e.target.value })}
+              >
+                <option value="reclutamento">reclutamento</option>
+                <option value="attivo">attivo</option>
+                <option value="concluso">concluso</option>
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor="ciclo-inizio">Data di inizio</label>
+              <input
+                id="ciclo-inizio"
+                type="date"
+                value={String(cicloAperto.data_inizio).slice(0, 10)}
+                onChange={e => aggiornaCiclo(cicloAperto.id, { data_inizio: e.target.value })}
+              />
+            </div>
+          </div>
+          <p className="hint">
+            Prima della data di inizio i questionari mostrano che il ciclo non è partito;
+            T0 resta comunque disponibile.
+          </p>
+        </div>
+      )}
 
       {cicloAperto && (
         <div className="card">

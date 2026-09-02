@@ -1,34 +1,55 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 
-const LEZIONE_VUOTA = {
-  numero_settimana: 1,
-  tema: '',
-  sottotitolo: '',
-  pratiche_formali: '',
-  pratiche_informali: '',
-  materiali: '',
-  traccia_audio: ''
+const AUDIO_MAX = 50 * 1024 * 1024
+const NUMERI_SETTIMANA = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+function etichettaSettimana(numero) {
+  return numero === 9 ? 'Intensiva' : `Settimana ${numero}`
 }
 
-const AUDIO_MAX = 50 * 1024 * 1024
+function eFormale(esercizio) {
+  const tipo = (esercizio.tipo || '').toLowerCase()
+  return tipo === 'formale' || tipo === 'a_casa'
+}
+
+function eInformale(esercizio) {
+  return (esercizio.tipo || '').toLowerCase() === 'informale'
+}
 
 function estensioneAudio(nome) {
   const pezzo = (nome || '').split('.').pop()
   return (pezzo || 'mp3').toLowerCase().replace(/[^a-z0-9]/g, '') || 'mp3'
 }
 
+function metaVuota(numero = 1) {
+  return {
+    numero_settimana: numero,
+    tema: '',
+    sottotitolo: '',
+    materiali: '',
+    pratiche_formali: '',
+    pratiche_informali: '',
+    traccia_audio: ''
+  }
+}
+
 export default function Lezioni() {
   const [cicli, setCicli] = useState([])
   const [cicloId, setCicloId] = useState('')
   const [lezioni, setLezioni] = useState([])
-  const [form, setForm] = useState(LEZIONE_VUOTA)
-  const [modificaId, setModificaId] = useState(null)
-  const [esercizio, setEsercizio] = useState({ lezione_id: '', tipo: 'a_casa', descrizione: '' })
-  const [fileAudio, setFileAudio] = useState(null)
+  const [settimana, setSettimana] = useState(1)
+  const [meta, setMeta] = useState(metaVuota(1))
+  const [fileAudioSettimana, setFileAudioSettimana] = useState(null)
+  const [nuovaFormale, setNuovaFormale] = useState({ descrizione: '', durata_minuti: '' })
+  const [nuovaInformale, setNuovaInformale] = useState('')
+  const [modificaEx, setModificaEx] = useState(null)
   const [caricamentoAudio, setCaricamentoAudio] = useState(false)
   const [caricamentoEsercizioId, setCaricamentoEsercizioId] = useState(null)
+  const [invioMeta, setInvioMeta] = useState(false)
   const [errore, setErrore] = useState(null)
+  const [okMsg, setOkMsg] = useState(null)
+  const pillsRef = useRef(null)
 
   useEffect(() => {
     supabase.from('cicli').select('id, nome_ciclo, stato').order('data_inizio', { ascending: false })
@@ -40,7 +61,10 @@ export default function Lezioni() {
   }, [])
 
   async function caricaLezioni(id) {
-    if (!id) { setLezioni([]); return }
+    if (!id) {
+      setLezioni([])
+      return
+    }
     const { data } = await supabase
       .from('lezioni')
       .select('id, numero_settimana, tema, sottotitolo, pratiche_formali, pratiche_informali, materiali, traccia_audio, esercizi(id, tipo, descrizione, traccia_audio, ordine, durata_minuti)')
@@ -52,12 +76,47 @@ export default function Lezioni() {
     })))
   }
 
-  useEffect(() => { caricaLezioni(cicloId) }, [cicloId])
+  useEffect(() => {
+    caricaLezioni(cicloId)
+  }, [cicloId])
+
+  const corrente = useMemo(
+    () => lezioni.find(l => l.numero_settimana === Number(settimana)) || null,
+    [lezioni, settimana]
+  )
+
+  useEffect(() => {
+    if (corrente) {
+      setMeta({
+        numero_settimana: corrente.numero_settimana,
+        tema: corrente.tema || '',
+        sottotitolo: corrente.sottotitolo || '',
+        materiali: corrente.materiali || '',
+        pratiche_formali: corrente.pratiche_formali || '',
+        pratiche_informali: corrente.pratiche_informali || '',
+        traccia_audio: corrente.traccia_audio || ''
+      })
+    } else {
+      setMeta(metaVuota(settimana))
+    }
+    setFileAudioSettimana(null)
+    setNuovaFormale({ descrizione: '', durata_minuti: '' })
+    setNuovaInformale('')
+    setModificaEx(null)
+    setOkMsg(null)
+  }, [corrente, settimana])
+
+  useEffect(() => {
+    const attiva = pillsRef.current?.querySelector('.settimana-pill.is-on')
+    attiva?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
+  }, [settimana, lezioni.length])
+
+  const esercizi = corrente?.esercizi || []
+  const formali = esercizi.filter(eFormale)
+  const informali = esercizi.filter(eInformale)
 
   async function caricaTraccia(file, chiavePath) {
-    if (file.size > AUDIO_MAX) {
-      throw new Error('AUDIO_TROPPO_GRANDE')
-    }
+    if (file.size > AUDIO_MAX) throw new Error('AUDIO_TROPPO_GRANDE')
     const path = `${cicloId}/${chiavePath}-${Date.now()}.${estensioneAudio(file.name)}`
     const { error } = await supabase.storage.from('tracce-audio').upload(path, file, {
       upsert: false,
@@ -68,68 +127,98 @@ export default function Lezioni() {
     return data.publicUrl
   }
 
-  async function salvaLezione(e) {
+  async function salvaMeta(e) {
     e.preventDefault()
     setErrore(null)
+    setOkMsg(null)
     if (!cicloId) return
-    setCaricamentoAudio(Boolean(fileAudio))
-    let traccia = form.traccia_audio || null
+    setInvioMeta(true)
+    setCaricamentoAudio(Boolean(fileAudioSettimana))
+    let traccia = meta.traccia_audio || null
     try {
-      if (fileAudio) {
-        traccia = await caricaTraccia(fileAudio, `s${form.numero_settimana}`)
+      if (fileAudioSettimana) {
+        traccia = await caricaTraccia(fileAudioSettimana, `s${meta.numero_settimana}`)
       }
     } catch (err) {
       setCaricamentoAudio(false)
+      setInvioMeta(false)
       setErrore(err?.message === 'AUDIO_TROPPO_GRANDE'
         ? 'La traccia deve pesare al massimo 50 MB.'
         : 'Non è stato possibile caricare la traccia audio.')
       return
     }
+
     const payload = {
       ciclo_id: cicloId,
-      numero_settimana: Number(form.numero_settimana),
-      tema: form.tema,
-      sottotitolo: form.sottotitolo || null,
-      pratiche_formali: form.pratiche_formali,
-      pratiche_informali: form.pratiche_informali,
-      materiali: form.materiali,
+      numero_settimana: Number(settimana),
+      tema: meta.tema.trim(),
+      sottotitolo: meta.sottotitolo.trim() || null,
+      materiali: meta.materiali.trim() || null,
+      pratiche_formali: meta.pratiche_formali || '',
+      pratiche_informali: meta.pratiche_informali || '',
       traccia_audio: traccia
     }
-    const { error } = modificaId
-      ? await supabase.from('lezioni').update(payload).eq('id', modificaId)
+
+    const { error } = corrente
+      ? await supabase.from('lezioni').update(payload).eq('id', corrente.id)
       : await supabase.from('lezioni').insert(payload)
+
     setCaricamentoAudio(false)
-    if (error) { setErrore('Non è stato possibile salvare la lezione. Controlla che il numero settimana non sia già usato.'); return }
-    setForm(LEZIONE_VUOTA)
-    setFileAudio(null)
-    setModificaId(null)
-    caricaLezioni(cicloId)
+    setInvioMeta(false)
+    if (error) {
+      setErrore('Non è stato possibile salvare la settimana. Controlla che il numero non sia già usato.')
+      return
+    }
+    setFileAudioSettimana(null)
+    setOkMsg(corrente ? 'Settimana aggiornata.' : 'Settimana creata.')
+    await caricaLezioni(cicloId)
   }
 
-  async function eliminaLezione(id) {
-    if (!confirm('Eliminare questa lezione e i relativi esercizi?')) return
-    await supabase.from('lezioni').delete().eq('id', id)
-    caricaLezioni(cicloId)
+  async function eliminaLezione() {
+    if (!corrente) return
+    if (!confirm('Eliminare questa settimana e tutte le pratiche collegate?')) return
+    await supabase.from('lezioni').delete().eq('id', corrente.id)
+    setOkMsg(null)
+    await caricaLezioni(cicloId)
   }
 
-  async function aggiungiEsercizio(e) {
-    e.preventDefault()
-    if (!esercizio.lezione_id || !esercizio.descrizione.trim()) return
-    await supabase.from('esercizi').insert({
-      lezione_id: esercizio.lezione_id,
-      tipo: esercizio.tipo,
-      descrizione: esercizio.descrizione.trim()
-    })
-    setEsercizio({ lezione_id: esercizio.lezione_id, tipo: 'a_casa', descrizione: '' })
-    caricaLezioni(cicloId)
+  async function aggiungiEsercizio(tipo, descrizione, durataMinuti) {
+    if (!corrente || !descrizione.trim()) return
+    setErrore(null)
+    const ordine = (esercizi.reduce((max, ex) => Math.max(max, ex.ordine || 0), 0) || 0) + 1
+    const payload = {
+      lezione_id: corrente.id,
+      tipo,
+      descrizione: descrizione.trim(),
+      ordine
+    }
+    const durata = Number(durataMinuti)
+    if (Number.isFinite(durata) && durata > 0) payload.durata_minuti = durata
+    const { error } = await supabase.from('esercizi').insert(payload)
+    if (error) {
+      setErrore('Non è stato possibile aggiungere la pratica.')
+      return
+    }
+    await caricaLezioni(cicloId)
+  }
+
+  async function aggiornaEsercizio(id, patch) {
+    setErrore(null)
+    const { error } = await supabase.from('esercizi').update(patch).eq('id', id)
+    if (error) {
+      setErrore('Non è stato possibile aggiornare la pratica.')
+      return
+    }
+    setModificaEx(null)
+    await caricaLezioni(cicloId)
   }
 
   async function eliminaEsercizio(id) {
     await supabase.from('esercizi').delete().eq('id', id)
-    caricaLezioni(cicloId)
+    await caricaLezioni(cicloId)
   }
 
-  async function caricaTracciaEsercizio(esercizioId, settimana, file) {
+  async function caricaTracciaEsercizio(esercizioId, file) {
     if (!file) return
     setErrore(null)
     setCaricamentoEsercizioId(esercizioId)
@@ -149,191 +238,377 @@ export default function Lezioni() {
 
   async function rimuoviTracciaEsercizio(esercizioId) {
     await supabase.from('esercizi').update({ traccia_audio: null }).eq('id', esercizioId)
-    caricaLezioni(cicloId)
+    await caricaLezioni(cicloId)
   }
 
+  const badgeSettimana = Number(settimana) === 9
+    ? 'Giornata intensiva'
+    : `Settimana ${settimana} di 8`
+
   return (
-    <div>
-      <h2>Lezioni ed esercizi</h2>
-      <p className="disclaimer">
-        Ogni lezione corrisponde a una settimana del programma (1–8) o alla giornata intensiva (9).
-        Qui raccogli tema, pratiche formali e informali, e le pratiche da fare a casa.
+    <div className="lezioni-gestione">
+      <h2>Settimane di pratica</h2>
+      <p className="lead">
+        Stessa struttura che vedono i partecipanti: tema, pratiche formali con audio,
+        pratiche informali da spuntare.
       </p>
 
-      <div className="field">
-        <label>Ciclo</label>
-        <select value={cicloId} onChange={e => setCicloId(e.target.value)}>
+      <div className="field lezioni-ciclo">
+        <label htmlFor="ciclo-lezioni">Ciclo</label>
+        <select id="ciclo-lezioni" value={cicloId} onChange={e => setCicloId(e.target.value)}>
           {cicli.length === 0 && <option value="">Nessun ciclo</option>}
-          {cicli.map(c => <option key={c.id} value={c.id}>{c.nome_ciclo} ({c.stato})</option>)}
+          {cicli.map(c => (
+            <option key={c.id} value={c.id}>{c.nome_ciclo} ({c.stato})</option>
+          ))}
         </select>
       </div>
 
-      <div className="card">
-        <h3>{modificaId ? 'Modifica lezione' : 'Nuova lezione'}</h3>
-        <form onSubmit={salvaLezione}>
-          <div className="field">
-            <label>Numero settimana (9 = giornata intensiva)</label>
-            <input
-              type="number"
-              min="1"
-              max="9"
-              required
-              value={form.numero_settimana}
-              onChange={e => setForm({ ...form, numero_settimana: e.target.value })}
-            />
-          </div>
-          <div className="field">
-            <label>Tema</label>
-            <input value={form.tema} onChange={e => setForm({ ...form, tema: e.target.value })} />
-          </div>
-          <div className="field">
-            <label>Sottotitolo (facoltativo)</label>
-            <input
-              value={form.sottotitolo}
-              onChange={e => setForm({ ...form, sottotitolo: e.target.value })}
-              placeholder="Breve riga sotto il tema"
-            />
-          </div>
-          <div className="field">
-            <label>Pratiche formali</label>
-            <textarea rows="3" value={form.pratiche_formali} onChange={e => setForm({ ...form, pratiche_formali: e.target.value })} />
-          </div>
-          <div className="field">
-            <label>Pratiche informali</label>
-            <textarea rows="3" value={form.pratiche_informali} onChange={e => setForm({ ...form, pratiche_informali: e.target.value })} />
-          </div>
-          <div className="field">
-            <label>Materiali</label>
-            <textarea rows="2" value={form.materiali} onChange={e => setForm({ ...form, materiali: e.target.value })} />
-          </div>
-          <div className="field">
-            <label htmlFor="traccia">Traccia audio (facoltativa)</label>
-            <input
-              id="traccia"
-              type="file"
-              accept="audio/*"
-              onChange={e => setFileAudio(e.target.files?.[0] || null)}
-            />
-            <p className="hint">MP3, WAV o M4A, massimo 50 MB. Serve per la pratica guidata di questa settimana.</p>
-            {fileAudio && <p className="hint">Nuovo file: {fileAudio.name}</p>}
-            {!fileAudio && form.traccia_audio && (
-              <p>
-                <audio className="player-audio" controls src={form.traccia_audio} preload="metadata">
-                  Il browser non riproduce questa traccia.
-                </audio>
-                <button
-                  className="btn btn-ghost"
-                  type="button"
-                  onClick={() => setForm({ ...form, traccia_audio: '' })}
-                >
-                  Rimuovi traccia
-                </button>
-              </p>
-            )}
-          </div>
-          <div className="azioni">
-            <button className="btn" type="submit" disabled={caricamentoAudio}>
-              {caricamentoAudio ? 'Caricamento audio…' : modificaId ? 'Salva modifiche' : 'Aggiungi lezione'}
-            </button>
-            {modificaId && (
-              <button className="btn btn-ghost" type="button" onClick={() => { setModificaId(null); setForm(LEZIONE_VUOTA); setFileAudio(null) }}>
-                Annulla
-              </button>
-            )}
-          </div>
-          {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
-        </form>
-      </div>
-
-      {lezioni.map(l => (
-        <div className="card" key={l.id}>
-          <h3>
-            {l.numero_settimana === 9 ? 'Giornata intensiva' : `Settimana ${l.numero_settimana}`}
-            {l.tema ? ` — ${l.tema}` : ''}
-          </h3>
-          {l.pratiche_formali && <p><strong>Formali:</strong> {l.pratiche_formali}</p>}
-          {l.pratiche_informali && <p><strong>Informali:</strong> {l.pratiche_informali}</p>}
-          {l.materiali && <p><strong>Materiali:</strong> {l.materiali}</p>}
-          {l.traccia_audio && (
-            <p>
-              <strong>Traccia audio</strong>
-              <audio className="player-audio" controls src={l.traccia_audio} preload="metadata">
-                Il browser non riproduce questa traccia.
-              </audio>
-            </p>
-          )}
-          <div className="azioni">
-            <button className="btn btn-ghost" type="button" onClick={() => { setModificaId(l.id); setFileAudio(null); setForm({
-              numero_settimana: l.numero_settimana,
-              tema: l.tema || '',
-              sottotitolo: l.sottotitolo || '',
-              pratiche_formali: l.pratiche_formali || '',
-              pratiche_informali: l.pratiche_informali || '',
-              materiali: l.materiali || '',
-              traccia_audio: l.traccia_audio || ''
-            }) }}>Modifica</button>
-            <button className="btn btn-ghost" type="button" onClick={() => eliminaLezione(l.id)}>Elimina</button>
-          </div>
-          <h3>Pratiche a casa</h3>
-          {(l.esercizi || []).map(ex => (
-            <div className="esercizio-riga" key={ex.id}>
-              <p>
-                <span className="badge">{ex.tipo}</span> {ex.descrizione}{' '}
-                <button className="btn btn-ghost" type="button" onClick={() => eliminaEsercizio(ex.id)}>Rimuovi</button>
-              </p>
-              {(ex.tipo === 'formale' || ex.tipo === 'a_casa') && (
-                <div className="field">
-                  <label htmlFor={`audio-ex-${ex.id}`}>Traccia audio di questa pratica</label>
-                  <input
-                    id={`audio-ex-${ex.id}`}
-                    type="file"
-                    accept="audio/*"
-                    disabled={caricamentoEsercizioId === ex.id}
-                    onChange={e => {
-                      const file = e.target.files?.[0]
-                      e.target.value = ''
-                      caricaTracciaEsercizio(ex.id, l.numero_settimana, file)
-                    }}
-                  />
-                  {caricamentoEsercizioId === ex.id && <p className="hint">Caricamento…</p>}
-                  {ex.traccia_audio && (
-                    <p>
-                      <audio className="player-audio" controls src={ex.traccia_audio} preload="metadata">
-                        Il browser non riproduce questa traccia.
-                      </audio>
-                      <button className="btn btn-ghost" type="button" onClick={() => rimuoviTracciaEsercizio(ex.id)}>
-                        Rimuovi traccia
-                      </button>
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-          <form onSubmit={aggiungiEsercizio}>
-            <div className="field">
-              <label>Tipo</label>
-              <select
-                value={esercizio.lezione_id === l.id ? esercizio.tipo : 'a_casa'}
-                onChange={e => setEsercizio({ lezione_id: l.id, tipo: e.target.value, descrizione: esercizio.lezione_id === l.id ? esercizio.descrizione : '' })}
+      {cicloId && (
+        <div className="settimane-pills" ref={pillsRef}>
+          {NUMERI_SETTIMANA.map(n => {
+            const presente = lezioni.some(l => l.numero_settimana === n)
+            const attiva = Number(settimana) === n
+            return (
+              <button
+                key={n}
+                type="button"
+                className={`settimana-pill${attiva ? ' is-on' : ''}${presente ? '' : ' is-vuota'}`}
+                aria-current={attiva ? 'true' : undefined}
+                onClick={() => setSettimana(n)}
               >
-                <option value="a_casa">a casa</option>
-                <option value="formale">formale</option>
-                <option value="informale">informale</option>
-              </select>
-            </div>
+                <span className="sett-riga">
+                  <span className="sett-etichetta">{etichettaSettimana(n)}</span>
+                  {!presente && <span className="sett-lock">da creare</span>}
+                </span>
+                <span className="sett-tema">
+                  {lezioni.find(l => l.numero_settimana === n)?.tema
+                    || (n === 9 ? 'Giornata intensiva' : `Settimana ${n}`)}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {cicloId && (
+        <div className="card settimana-vista">
+          <p className="badge badge-settimana">{badgeSettimana}</p>
+
+          <form onSubmit={salvaMeta} className="lezioni-meta">
             <div className="field">
-              <label>Descrizione della pratica</label>
+              <label htmlFor="tema-sett">Tema</label>
               <input
-                value={esercizio.lezione_id === l.id ? esercizio.descrizione : ''}
-                onChange={e => setEsercizio({ lezione_id: l.id, tipo: esercizio.lezione_id === l.id ? esercizio.tipo : 'a_casa', descrizione: e.target.value })}
+                id="tema-sett"
+                className="lezioni-tema-input"
+                required
+                value={meta.tema}
+                onChange={e => setMeta({ ...meta, tema: e.target.value })}
+                placeholder={Number(settimana) === 9 ? 'Giornata intensiva' : `Tema settimana ${settimana}`}
               />
             </div>
-            <button className="btn" type="submit">Aggiungi pratica</button>
+            <div className="field">
+              <label htmlFor="sotto-sett">Sottotitolo (facoltativo)</label>
+              <input
+                id="sotto-sett"
+                value={meta.sottotitolo}
+                onChange={e => setMeta({ ...meta, sottotitolo: e.target.value })}
+                placeholder="Breve riga sotto il tema"
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="mat-sett">Materiali (facoltativo)</label>
+              <textarea
+                id="mat-sett"
+                rows="2"
+                value={meta.materiali}
+                onChange={e => setMeta({ ...meta, materiali: e.target.value })}
+                placeholder="Link o note per il gruppo"
+              />
+            </div>
+
+            <details className="lezioni-avanzate">
+              <summary>Traccia audio di settimana (facoltativa)</summary>
+              <p className="hint">
+                Nella pratica giornaliera l’audio principale è sulle pratiche formali qui sotto.
+                Questa traccia resta disponibile come materiale di settimana.
+              </p>
+              <input
+                type="file"
+                accept="audio/*"
+                onChange={e => setFileAudioSettimana(e.target.files?.[0] || null)}
+              />
+              {fileAudioSettimana && <p className="hint">Nuovo file: {fileAudioSettimana.name}</p>}
+              {!fileAudioSettimana && meta.traccia_audio && (
+                <div className="lezioni-audio-riga">
+                  <audio className="player-audio" controls src={meta.traccia_audio} preload="metadata">
+                    Il browser non riproduce questa traccia.
+                  </audio>
+                  <button
+                    className="btn btn-ghost"
+                    type="button"
+                    onClick={() => setMeta({ ...meta, traccia_audio: '' })}
+                  >
+                    Rimuovi
+                  </button>
+                </div>
+              )}
+            </details>
+
+            <div className="azioni">
+              <button className="btn" type="submit" disabled={invioMeta || caricamentoAudio}>
+                {caricamentoAudio
+                  ? 'Caricamento audio…'
+                  : corrente
+                    ? 'Salva tema e materiali'
+                    : 'Crea questa settimana'}
+              </button>
+              {corrente && (
+                <button className="btn btn-ghost" type="button" onClick={eliminaLezione}>
+                  Elimina settimana
+                </button>
+              )}
+            </div>
+            {okMsg && <p className="hint">{okMsg}</p>}
+            {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
           </form>
+
+          {!corrente && (
+            <p className="hint lezioni-hint-crea">
+              Salva prima tema e materiali: poi potrai aggiungere le pratiche formali e informali
+              come nella vista partecipante.
+            </p>
+          )}
+
+          {corrente && (
+            <>
+              <section className="blocco-giorno" aria-labelledby="formali-admin-titolo">
+                <h3 id="formali-admin-titolo">Da fare ogni giorno</h3>
+                <p className="hint">Pratiche formali con traccia audio — come le vedono i partecipanti.</p>
+
+                <div className="lista-task">
+                  {formali.length === 0 && (
+                    <p className="hint">Nessuna pratica formale ancora. Aggiungine una sotto.</p>
+                  )}
+                  {formali.map(ex => (
+                    <article className="task-pratica" key={ex.id}>
+                      <div className="task-pratica-testa">
+                        <span className="task-punto" aria-hidden="true" />
+                        <div className="task-pratica-testi">
+                          {modificaEx?.id === ex.id ? (
+                            <div className="lezioni-edit-ex">
+                              <input
+                                value={modificaEx.descrizione}
+                                onChange={e => setModificaEx({ ...modificaEx, descrizione: e.target.value })}
+                                aria-label="Descrizione pratica"
+                              />
+                              <input
+                                type="number"
+                                min="1"
+                                max="180"
+                                placeholder="min"
+                                value={modificaEx.durata_minuti}
+                                onChange={e => setModificaEx({ ...modificaEx, durata_minuti: e.target.value })}
+                                aria-label="Durata in minuti"
+                              />
+                              <div className="azioni">
+                                <button
+                                  className="btn"
+                                  type="button"
+                                  onClick={() => aggiornaEsercizio(ex.id, {
+                                    descrizione: modificaEx.descrizione.trim(),
+                                    durata_minuti: Number(modificaEx.durata_minuti) > 0
+                                      ? Number(modificaEx.durata_minuti)
+                                      : null
+                                  })}
+                                >
+                                  Salva
+                                </button>
+                                <button className="btn btn-ghost" type="button" onClick={() => setModificaEx(null)}>
+                                  Annulla
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <h4>{ex.descrizione}</h4>
+                              <p className="hint">
+                                {[
+                                  Number.isFinite(ex.durata_minuti) && ex.durata_minuti > 0
+                                    ? `${ex.durata_minuti} min`
+                                    : null,
+                                  ex.traccia_audio ? 'traccia audio' : 'senza traccia',
+                                  ex.tipo === 'a_casa' ? 'tipo: a casa' : 'tipo: formale'
+                                ].filter(Boolean).join(' · ')}
+                              </p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {modificaEx?.id !== ex.id && (
+                        <>
+                          {ex.traccia_audio ? (
+                            <div className="lezioni-audio-riga">
+                              <audio className="player-audio" controls src={ex.traccia_audio} preload="metadata">
+                                Il browser non riproduce questa traccia.
+                              </audio>
+                              <button className="btn btn-ghost" type="button" onClick={() => rimuoviTracciaEsercizio(ex.id)}>
+                                Rimuovi audio
+                              </button>
+                            </div>
+                          ) : (
+                            <p className="hint">Nessuna traccia ancora collegata a questa pratica.</p>
+                          )}
+                          <div className="lezioni-ex-azioni">
+                            <label className="btn btn-ghost lezioni-file-btn">
+                              {caricamentoEsercizioId === ex.id ? 'Caricamento…' : 'Carica audio'}
+                              <input
+                                type="file"
+                                accept="audio/*"
+                                hidden
+                                disabled={caricamentoEsercizioId === ex.id}
+                                onChange={e => {
+                                  const file = e.target.files?.[0]
+                                  e.target.value = ''
+                                  caricaTracciaEsercizio(ex.id, file)
+                                }}
+                              />
+                            </label>
+                            <button
+                              className="btn btn-ghost"
+                              type="button"
+                              onClick={() => setModificaEx({
+                                id: ex.id,
+                                descrizione: ex.descrizione || '',
+                                durata_minuti: ex.durata_minuti || ''
+                              })}
+                            >
+                              Modifica
+                            </button>
+                            <button className="btn btn-ghost" type="button" onClick={() => eliminaEsercizio(ex.id)}>
+                              Rimuovi
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </article>
+                  ))}
+                </div>
+
+                <form
+                  className="lezioni-aggiungi"
+                  onSubmit={async e => {
+                    e.preventDefault()
+                    await aggiungiEsercizio('formale', nuovaFormale.descrizione, nuovaFormale.durata_minuti)
+                    setNuovaFormale({ descrizione: '', durata_minuti: '' })
+                  }}
+                >
+                  <div className="riga-due">
+                    <div className="field">
+                      <label htmlFor="nuova-formale">Nuova pratica formale</label>
+                      <input
+                        id="nuova-formale"
+                        required
+                        value={nuovaFormale.descrizione}
+                        onChange={e => setNuovaFormale({ ...nuovaFormale, descrizione: e.target.value })}
+                        placeholder="es. Body scan guidato"
+                      />
+                    </div>
+                    <div className="field">
+                      <label htmlFor="durata-formale">Minuti</label>
+                      <input
+                        id="durata-formale"
+                        type="number"
+                        min="1"
+                        max="180"
+                        value={nuovaFormale.durata_minuti}
+                        onChange={e => setNuovaFormale({ ...nuovaFormale, durata_minuti: e.target.value })}
+                        placeholder="45"
+                      />
+                    </div>
+                  </div>
+                  <button className="btn" type="submit">Aggiungi pratica formale</button>
+                </form>
+              </section>
+
+              <section className="blocco-informali" aria-labelledby="informali-admin-titolo">
+                <h3 id="informali-admin-titolo">Pratiche informali</h3>
+                <p className="hint">Compare come chip da spuntare nella giornata.</p>
+
+                <div className="chip-riga chip-informali">
+                  {informali.length === 0 && (
+                    <p className="hint">Nessuna pratica informale ancora.</p>
+                  )}
+                  {informali.map(ex => (
+                    <div key={ex.id} className="chip chip-spunta is-on lezioni-chip-admin">
+                      <span className="chip-check is-fatto" aria-hidden="true">✓</span>
+                      {modificaEx?.id === ex.id ? (
+                        <span className="lezioni-edit-ex lezioni-edit-chip">
+                          <input
+                            value={modificaEx.descrizione}
+                            onChange={e => setModificaEx({ ...modificaEx, descrizione: e.target.value })}
+                          />
+                          <button
+                            className="btn"
+                            type="button"
+                            onClick={() => aggiornaEsercizio(ex.id, {
+                              descrizione: modificaEx.descrizione.trim()
+                            })}
+                          >
+                            Salva
+                          </button>
+                          <button className="btn btn-ghost" type="button" onClick={() => setModificaEx(null)}>
+                            Annulla
+                          </button>
+                        </span>
+                      ) : (
+                        <>
+                          <span className="chip-testo">{ex.descrizione}</span>
+                          <button
+                            className="link-testuale"
+                            type="button"
+                            onClick={() => setModificaEx({ id: ex.id, descrizione: ex.descrizione || '', durata_minuti: '' })}
+                          >
+                            Modifica
+                          </button>
+                          <button className="link-testuale" type="button" onClick={() => eliminaEsercizio(ex.id)}>
+                            Rimuovi
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <form
+                  className="lezioni-aggiungi"
+                  onSubmit={async e => {
+                    e.preventDefault()
+                    await aggiungiEsercizio('informale', nuovaInformale)
+                    setNuovaInformale('')
+                  }}
+                >
+                  <div className="field">
+                    <label htmlFor="nuova-informale">Nuova pratica informale</label>
+                    <input
+                      id="nuova-informale"
+                      required
+                      value={nuovaInformale}
+                      onChange={e => setNuovaInformale(e.target.value)}
+                      placeholder="es. Portare attenzione a un’attività quotidiana"
+                    />
+                  </div>
+                  <button className="btn" type="submit">Aggiungi pratica informale</button>
+                </form>
+              </section>
+            </>
+          )}
         </div>
-      ))}
-      {cicloId && lezioni.length === 0 && <p>Nessuna lezione ancora configurata per questo ciclo.</p>}
+      )}
+
+      {cicloId && lezioni.length === 0 && (
+        <p className="hint">Nessuna settimana ancora configurata: scegline una sopra e crea il tema.</p>
+      )}
     </div>
   )
 }
