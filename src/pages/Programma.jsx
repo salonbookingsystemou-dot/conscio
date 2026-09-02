@@ -12,8 +12,12 @@ import { precaricaCampanaTibetana } from '../lib/campanaTibetana.js'
 import { addDays, formatISODate, oggiLocaleISO, parseISODate } from '../lib/date.js'
 import {
   ascoltoCompletato,
+  ascoltoNeiLog,
   chiaveAscoltoEsercizio,
-  formaliAscoltatiNelGiorno
+  formaliAscoltatiNelGiorno,
+  memorizzaAscoltiDaProgramma,
+  salvaAscoltoFormale,
+  sincronizzaAscoltiLocaliVersoServer
 } from '../lib/ascolto.js'
 
 function etichettaSettimana(numero) {
@@ -144,14 +148,16 @@ function TaskFormale({
   aggiornaAscolto
 }) {
   const chiave = chiaveAscoltoEsercizio(codice, esercizio.id, data)
-  const [ascoltata, setAscoltata] = useState(() => ascoltoCompletato(chiave))
+  const [ascoltata, setAscoltata] = useState(
+    () => ascoltoNeiLog(esercizio, data) || ascoltoCompletato(chiave)
+  )
   const [durataSec, setDurataSec] = useState(0)
   const haTraccia = Boolean(esercizio.traccia_audio)
 
   useEffect(() => {
-    setAscoltata(ascoltoCompletato(chiave))
+    setAscoltata(ascoltoNeiLog(esercizio, data) || ascoltoCompletato(chiave))
     setDurataSec(0)
-  }, [chiave])
+  }, [chiave, esercizio, data])
 
   function suCompleto(ok) {
     setAscoltata(Boolean(ok))
@@ -180,6 +186,16 @@ function TaskFormale({
           persistenzaKey={chiave}
           onCompleto={suCompleto}
           onDurata={setDurataSec}
+          onPersistenza={async secondi => {
+            await salvaAscoltoFormale({
+              codice,
+              esercizioId: esercizio.id,
+              data,
+              secondi
+            })
+            aggiornaAscolto?.()
+            onAscolto?.()
+          }}
           onAscolto={() => {
             aggiornaAscolto?.()
             onAscolto?.()
@@ -211,6 +227,7 @@ export default function Programma() {
   }, [])
 
   async function caricaProgramma(codicePulito) {
+    await sincronizzaAscoltiLocaliVersoServer(codicePulito)
     const [{ data, error }, { data: cicloData }, { data: log }] = await Promise.all([
       supabase.rpc('programma_del_partecipante', { p_codice: codicePulito }),
       supabase.rpc('ciclo_del_partecipante', { p_codice: codicePulito }),
@@ -224,7 +241,9 @@ export default function Programma() {
     }
     const payload = typeof data === 'string' ? JSON.parse(data) : data
     const apertaFino = Math.max(1, Math.min(9, payload.settimana_corrente || 1))
-    setLezioni(payload.lezioni || [])
+    const lezioniCaricate = payload.lezioni || []
+    memorizzaAscoltiDaProgramma(codicePulito, lezioniCaricate)
+    setLezioni(lezioniCaricate)
     setCiclo(cicloData || null)
     setTutteSessioni(log || [])
     setLimite(apertaFino)

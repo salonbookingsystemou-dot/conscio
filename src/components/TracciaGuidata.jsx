@@ -38,13 +38,21 @@ function IconaStop() {
   )
 }
 
-export default function TracciaGuidata({ src, persistenzaKey, onCompleto, onDurata, onAscolto }) {
+export default function TracciaGuidata({
+  src,
+  persistenzaKey,
+  onCompleto,
+  onDurata,
+  onAscolto,
+  onPersistenza
+}) {
   const audioRef = useRef(null)
   const playedRef = useRef(0)
   const lastRef = useRef(0)
   const onCompletoRef = useRef(onCompleto)
   const onDurataRef = useRef(onDurata)
   const onAscoltoRef = useRef(onAscolto)
+  const onPersistenzaRef = useRef(onPersistenza)
   const durataNotaRef = useRef(0)
   const contatoGiro = useRef(ascoltoCompletato(persistenzaKey))
   const campanaRef = useRef(null)
@@ -53,6 +61,7 @@ export default function TracciaGuidata({ src, persistenzaKey, onCompleto, onDura
   onCompletoRef.current = onCompleto
   onDurataRef.current = onDurata
   onAscoltoRef.current = onAscolto
+  onPersistenzaRef.current = onPersistenza
 
   const [completo, setCompleto] = useState(() => ascoltoCompletato(persistenzaKey))
   const [percento, setPercento] = useState(() => (ascoltoCompletato(persistenzaKey) ? 100 : 0))
@@ -113,9 +122,11 @@ export default function TracciaGuidata({ src, persistenzaKey, onCompleto, onDura
     const d = Number.isFinite(secondi) && secondi > 0 ? secondi : audioRef.current?.duration
     if (Number.isFinite(d) && d > 0) {
       registraAscoltoCompleto(persistenzaKey, d)
+      onPersistenzaRef.current?.(d)
       onAscoltoRef.current?.()
     } else {
       memorizzaAscolto(persistenzaKey)
+      onPersistenzaRef.current?.(0)
     }
     setCompleto(true)
     setPercento(100)
