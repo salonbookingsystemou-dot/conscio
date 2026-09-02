@@ -1,6 +1,6 @@
 import { Link, Navigate, useParams } from 'react-router-dom'
 import Disclaimer from '../components/Disclaimer.jsx'
-import { EMAIL_CONTATTO } from '../lib/contatti.js'
+import { EMAIL_CONTATTO, GARANTE_URL, SITO_APP, STRUMENTI, TITOLARE } from '../lib/contatti.js'
 
 const MAIL = <a href={`mailto:${EMAIL_CONTATTO}`}>{EMAIL_CONTATTO}</a>
 
@@ -8,7 +8,7 @@ const DOCS = {
   informativa: {
     titolo: 'Informativa sul trattamento dei dati',
     badge: 'Art. 13 GDPR',
-    lead: 'Questo testo ti dice quali dati usiamo, perché e quali diritti hai. Va letto prima di iscriverti. Non è un consenso: i consensi sono nei Moduli A e B.'
+    lead: 'Questo testo ti dice chi è il titolare, quali dati usiamo, su quale base e quali diritti hai. Va letto prima di iscriverti. Non è un consenso: i consensi sono nei Moduli A e B.'
   },
   'modulo-a': {
     titolo: 'Modulo A — consenso alla partecipazione',
@@ -19,6 +19,16 @@ const DOCS = {
     titolo: 'Modulo B — documentazione social',
     badge: 'Facoltativo',
     lead: 'Non è richiesto per partecipare. Puoi rifiutarlo o ritirarlo in qualsiasi momento senza conseguenze sul percorso.'
+  },
+  diritti: {
+    titolo: 'Come esercitare i tuoi diritti',
+    badge: 'Procedura',
+    lead: 'Passi concreti per accesso, portabilità, correzione e cancellazione. Vale per questo percorso pilota.'
+  },
+  'uso-punteggi': {
+    titolo: 'Uso dei punteggi PSS-10 e FFMQ-I',
+    badge: 'Protocollo',
+    lead: 'Limiti di lettura dei numeri per chi partecipa e per chi conduce il percorso. Non è un uso clinico.'
   }
 }
 
@@ -27,44 +37,44 @@ function Informativa() {
     <>
       <h3>1. Chi tratta i dati</h3>
       <p>
-        Titolare del trattamento è chi conduce questo percorso pilota, nell’ambito di
-        un progetto di studio in Discipline Psicosociali (Uninettuno). Non è uno
-        psicologo abilitato e non svolge un’attività sanitaria.
+        <strong>Titolare del trattamento:</strong> {TITOLARE.nome}, {TITOLARE.ruolo}.
+        Sede: {TITOLARE.indirizzo}. Contesto: {TITOLARE.contesto}.
       </p>
-      <p>Per ogni richiesta sui dati: {MAIL}.</p>
-      <p className="hint">
-        Prima della pubblicazione definitiva, il titolare va indicato con nome e
-        recapito completi. L’email sopra è il contatto operativo attuale.
+      <p>
+        Recapito: {MAIL}. Sito dell’applicazione:{' '}
+        <a href={SITO_APP}>{SITO_APP}</a>.
       </p>
+      <p>{TITOLARE.nota}</p>
 
       <h3>2. Perché trattiamo i dati e su quale base</h3>
       <ul>
         <li>
-          <strong>Iscrizione e accesso al percorso</strong> (email, ciclo, codice
-          partecipante, consenso al Modulo A): per evadere la tua richiesta di
-          partecipazione.
+          <strong>Iscrizione e accesso</strong> (email, ciclo, codice, consenso A):
+          art. 6, par. 1, lett. b) GDPR — misure precontrattuali e gestione della
+          partecipazione che hai chiesto.
         </li>
         <li>
-          <strong>Comunicazioni operative</strong> (esito dello screening, avvisi del
-          gruppo, promemoria sui questionari): per far funzionare il percorso a cui
-          ti sei iscritto.
+          <strong>Comunicazioni operative</strong> (esito screening, avvisi, promemoria):
+          art. 6, par. 1, lett. b) GDPR — far funzionare il percorso a cui ti sei iscritto.
         </li>
         <li>
-          <strong>Questionari e log di pratica</strong> (PSS-10, FFMQ-I, note,
-          orari, tono dell’esperienza): per il percorso e per lo studio pilota, solo
-          se accetti il Modulo A. Le risposte si legano al codice, non al nome.
+          <strong>Questionari, onboarding e log di pratica</strong> (PSS-10, FFMQ-I, note,
+          ascolti, tono): art. 6, par. 1, lett. a) e, se descrivono come stai,
+          art. 9, par. 2, lett. a) GDPR — consenso esplicito nel Modulo A, per il
+          percorso e lo studio pilota. Le risposte si legano al codice, non al nome.
         </li>
         <li>
-          <strong>Documentazione social</strong> (foto, video, audio, eventuali
-          didascalie): solo se accetti il Modulo B, con un consenso separato.
+          <strong>Documentazione social</strong>: art. 6, par. 1, lett. a) GDPR —
+          consenso separato nel Modulo B.
+        </li>
+        <li>
+          <strong>Prove di consenso e sicurezza dell’app</strong>: art. 6, par. 1, lett. c)
+          e f) GDPR — dimostrare i consensi e tenere l’applicazione utilizzabile.
         </li>
       </ul>
       <p>
-        Se i questionari o le note descrivono come stai, possono rientrare tra i
-        dati particolari previsti dall’art. 9 del GDPR. In quel caso la base è il
-        consenso esplicito che dai nel Modulo A. Il percorso resta una pratica di
-        consapevolezza a scopo di ricerca: non è una diagnosi e non è una presa in
-        carico.
+        Il percorso resta una pratica di meditazione sulla consapevolezza a scopo
+        educativo e divulgativo: non è una diagnosi e non è una presa in carico.
       </p>
 
       <h3>3. Quali dati raccogliamo</h3>
@@ -105,32 +115,27 @@ function Informativa() {
 
       <h3>5. Quanto tempo li teniamo</h3>
       <p>
-        L’email resta per la durata del ciclo e per il tempo necessario a chiudere
-        lo studio pilota e le comunicazioni residue. Poi la cancelliamo o la
-        separiamo in modo che non sia più usata per scriverti.
-      </p>
-      <p>
-        I dati legati al codice (questionari e log) restano per il tempo necessario
-        a completare l’analisi del pilota. Se chiedi di uscire dal percorso, non
-        raccogliamo altri dati. Quanto già raccolto in forma di codice può essere
-        conservato se serve a non spezzare lo studio, nei limiti previsti dalla
-        legge.
+        L’email resta per la durata del ciclo. Dopo la chiusura del ciclo, se non
+        restano edizioni aperte, viene separata dal record (non più usata per
+        scriverti) entro 90 giorni. I dati legati al codice restano per l’analisi
+        del pilota. Se chiedi di uscire, non raccogliamo altri dati; quanto già
+        raccolto in forma di codice può restare se serve a non spezzare lo studio,
+        nei limiti di legge.
       </p>
 
       <h3>6. I tuoi diritti</h3>
-      <p>Puoi chiedere, scrivendo a {MAIL}:</p>
-      <ul>
-        <li>accesso a ciò che abbiamo su di te;</li>
-        <li>correzione di dati inesatti;</li>
-        <li>cancellazione, nei casi previsti;</li>
-        <li>limitazione del trattamento;</li>
-        <li>portabilità dei dati che ci hai fornito;</li>
-        <li>opposizione, nei casi previsti;</li>
-        <li>revoca del consenso, senza pregiudicare quanto fatto prima della revoca.</li>
-      </ul>
       <p>
-        Puoi anche presentare reclamo al Garante per la protezione dei dati
-        personali (garanteprivacy.it).
+        Puoi esercitarli come descritto nella{' '}
+        <Link to="/documenti/diritti">procedura operativa</Link>. In sintesi:
+        accesso e portabilità dalla pagina <Link to="/dati">I tuoi dati</Link>;
+        correzione, limitazione, opposizione, revoca e cancellazione scrivendo a {MAIL}
+        indicando il codice partecipante.
+      </p>
+      <p>
+        Reclamo:{' '}
+        <a href={GARANTE_URL} target="_blank" rel="noopener noreferrer">
+          Garante per la protezione dei dati personali
+        </a>.
       </p>
       <p>
         Revocare il Modulo B non tocca la partecipazione. Revocare il Modulo A
@@ -153,6 +158,110 @@ function Informativa() {
 
       <h3>9. Maggiorenni</h3>
       <p>Il percorso è pensato per persone maggiorenni. Non iscriverti se hai meno di 18 anni.</p>
+
+      <h3>10. Strumenti di autovalutazione e limiti d’uso</h3>
+      <ul>
+        {STRUMENTI.map(s => (
+          <li key={s.id}>
+            <strong>{s.nome}.</strong> {s.testo}
+          </li>
+        ))}
+      </ul>
+      <p>
+        I numeri non sono una valutazione clinica e non servono a decidere idoneità,
+        terapia o urgenza. Dettaglio:{' '}
+        <Link to="/documenti/uso-punteggi">uso dei punteggi</Link>.
+      </p>
+    </>
+  )
+}
+
+function Diritti() {
+  return (
+    <>
+      <h3>1. Cosa serve per riconoscerti</h3>
+      <p>
+        Scrivi a {MAIL} dal recapito con cui ti sei iscritto e indica il codice
+        partecipante. Senza codice non possiamo collegare la richiesta al record
+        corretto. Rispondiamo di solito entro 30 giorni.
+      </p>
+
+      <h3>2. Accesso e portabilità</h3>
+      <ol>
+        <li>Entra nell’app con il codice.</li>
+        <li>
+          Apri <Link to="/dati">I tuoi dati</Link> e scarica il file JSON.
+        </li>
+        <li>
+          Se non riesci, scrivi a {MAIL}: ti inviamo lo stesso contenuto sul recapito
+          dell’iscrizione.
+        </li>
+      </ol>
+      <p>
+        Il file contiene email (se ancora presente), consensi, iscrizioni, item e
+        valori dei questionari, note di pratica. Non contiene dati di altri.
+      </p>
+
+      <h3>3. Correzione, limitazione, opposizione, revoca</h3>
+      <p>
+        Scrivi a {MAIL} cosa va corretto o limitato. La revoca del Modulo B ferma
+        l’uso dei materiali social. La revoca del Modulo A chiude l’accesso al
+        percorso e ferma nuova raccolta.
+      </p>
+
+      <h3>4. Cancellazione</h3>
+      <ol>
+        <li>Invia la richiesta a {MAIL} con il codice.</li>
+        <li>
+          Chi conduce il percorso usa la funzione di rimozione in area riservata
+          (cancella il record e, in cascata, risposte e log).
+        </li>
+        <li>
+          Se lo studio è in corso, può restare una copia solo-codice senza email,
+          solo se serve a non spezzare l’analisi e nei limiti di legge: te lo
+          comunichiamo.
+        </li>
+      </ol>
+
+      <h3>5. Reclamo</h3>
+      <p>
+        <a href={GARANTE_URL} target="_blank" rel="noopener noreferrer">
+          Garante per la protezione dei dati personali
+        </a>.
+      </p>
+    </>
+  )
+}
+
+function UsoPunteggi() {
+  return (
+    <>
+      <p>
+        PSS-10 e FFMQ-I in questo pilota descrivono le risposte rispetto al range
+        dello strumento. Non producono diagnosi, non sostituiscono un professionista
+        sanitario e non decidono l’idoneità al gruppo.
+      </p>
+      <h3>Chi partecipa</h3>
+      <ul>
+        <li>Vedi il totale e dove sta sul range min–max dello strumento.</li>
+        <li>Non ci sono fasce cliniche (niente «basso / alto stress» da letteratura).</li>
+        <li>Se stai male, rivolgiti a un professionista sanitario, non a questi numeri.</li>
+      </ul>
+      <h3>Chi conduce il percorso</h3>
+      <ul>
+        <li>Guarda i totali solo per codice, per descrivere il gruppo dello studio.</li>
+        <li>Non usare i numeri per triage, esclusione, «rischio» o consiglio terapeutico.</li>
+        <li>Non unire i totali all’email nelle analisi o nelle comunicazioni di gruppo.</li>
+        <li>Lo screening resta in linguaggio non clinico (idoneo / in valutazione / da ricontattare).</li>
+      </ul>
+      <h3>Fonti degli strumenti</h3>
+      <ul>
+        {STRUMENTI.map(s => (
+          <li key={s.id}>
+            <strong>{s.nome}.</strong> {s.testo}
+          </li>
+        ))}
+      </ul>
     </>
   )
 }
@@ -246,7 +355,9 @@ function ModuloB() {
 const CORPI = {
   informativa: Informativa,
   'modulo-a': ModuloA,
-  'modulo-b': ModuloB
+  'modulo-b': ModuloB,
+  diritti: Diritti,
+  'uso-punteggi': UsoPunteggi
 }
 
 export default function Documento() {
@@ -265,14 +376,20 @@ export default function Documento() {
         <Corpo />
       </div>
       <p className="hint">
-        Testo del 1 settembre 2026, pensato per il pilota. Va riletto da un
-        professionista (avvocato o DPO) e, per lo studio, dal comitato etico di
-        riferimento prima di usarlo come versione definitiva.
+        Testo del 2 settembre 2026, per il pilota. Un avvocato, un DPO o il
+        comitato etico di ateneo possono ancora rileggerlo; i contenuti operativi
+        (titolare, basi, diritti, strumenti) sono quelli usati in applicazione.
       </p>
       <div className="doc-azioni">
         <Link className="btn" to="/iscrizione">Torna all’iscrizione</Link>
         {slug !== 'informativa' && (
           <Link className="btn btn-ghost" to="/documenti/informativa">Informativa privacy</Link>
+        )}
+        {slug !== 'diritti' && (
+          <Link className="btn btn-ghost" to="/documenti/diritti">Diritti</Link>
+        )}
+        {slug !== 'uso-punteggi' && (
+          <Link className="btn btn-ghost" to="/documenti/uso-punteggi">Uso dei punteggi</Link>
         )}
         {slug !== 'modulo-a' && (
           <Link className="btn btn-ghost" to="/documenti/modulo-a">Modulo A</Link>

@@ -15,6 +15,7 @@ import Comunicazioni from './pages/Comunicazioni.jsx'
 import Programma from './pages/Programma.jsx'
 import Onboarding from './pages/Onboarding.jsx'
 import Documento from './pages/Documento.jsx'
+import IMieiDati from './pages/IMieiDati.jsx'
 import InvitoHome from './components/InvitoHome.jsx'
 
 export default function App() {
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="/" element={<Splash />} />
           <Route path="/iscrizione" element={<Iscrizione />} />
           <Route path="/documenti/:slug" element={<Documento />} />
+          <Route path="/dati" element={<IMieiDati />} />
           <Route path="/entra" element={<Entra />} />
           <Route path="/onboarding" element={<SoloRegistrato><Onboarding /></SoloRegistrato>} />
           <Route path="/questionari" element={<SoloRegistrato><Questionari /></SoloRegistrato>} />

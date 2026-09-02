@@ -92,6 +92,7 @@ export default function Nav() {
               Installa app
             </button>
           )}
+          <NavLink to="/dati" onClick={chiudi}>I tuoi dati</NavLink>
           <button type="button" onClick={() => { chiudi(); esciPartecipante() }}>Esci</button>
         </>
       )}

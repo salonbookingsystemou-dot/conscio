@@ -4,6 +4,7 @@ import { punteggioFfmq, punteggioPss10 } from '../lib/scoring'
 import GraficiTono from '../components/GraficiTono.jsx'
 import { ElencoLog } from '../components/VoceLog.jsx'
 import EditorSplash from '../components/EditorSplash.jsx'
+import { EMAIL_CONTATTO, STRUMENTI } from '../lib/contatti.js'
 
 const ESITI = [
   { id: 'in_attesa', label: 'In attesa' },
@@ -113,7 +114,8 @@ export default function Dashboard() {
     const codice = iscrizione.utenti?.codice_partecipante
     if (!codice) return
     const ok = window.confirm(
-      `Rimuovere ${iscrizione.utenti?.email || codice} dal ciclo? Se era idonea, il posto si libera.`
+      `Cancellare ${iscrizione.utenti?.email || codice} (diritto all’oblio / uscita dal percorso)? ` +
+      `Si cancellano anche risposte e log. Se era idonea, il posto si libera.`
     )
     if (!ok) return
     setErrore(null)
@@ -140,6 +142,26 @@ export default function Dashboard() {
   return (
     <div>
       <EditorSplash />
+
+      <div className="card">
+        <h3>Uso dei dati e dei punteggi</h3>
+        <p>
+          I totali PSS-10 e FFMQ-I sono numeri grezzi sul range dello strumento.
+          Non sono una valutazione clinica. Non usarli per triage, esclusione,
+          «rischio» o consiglio terapeutico. Lo screening resta idoneo / in
+          valutazione / da ricontattare.
+        </p>
+        <p className="hint">
+          Richieste di accesso, correzione o cancellazione: {EMAIL_CONTATTO}, con il
+          codice. Per cancellare un record usa «Rimuovi» qui sotto. Fonti:{' '}
+          {STRUMENTI.map(s => s.nome).join(', ')}.
+        </p>
+        <p className="hint">
+          <a href="#/documenti/uso-punteggi">Protocollo uso punteggi</a>
+          {' · '}
+          <a href="#/documenti/diritti">Procedura diritti</a>
+        </p>
+      </div>
 
       <h2>Cicli</h2>
       <p className="lead">
@@ -254,7 +276,10 @@ export default function Dashboard() {
 
       <div className="card">
         <h3>Dati di ricerca (solo codice)</h3>
-        <p className="disclaimer">Questa sezione non mostra l’email. Numeri grezzi, senza interpretazione clinica.</p>
+        <p className="disclaimer">
+          Questa sezione non mostra l’email. Numeri grezzi sul range dello strumento,
+          senza interpretazione clinica e senza uso per triage.
+        </p>
         {punteggi.length === 0 && <p>Nessuna compilazione ancora registrata.</p>}
         {punteggi.map(p => (
           <p key={`${p.codice}-${p.timepoint}-${p.questionario}`}>
