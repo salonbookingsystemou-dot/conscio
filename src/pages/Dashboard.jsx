@@ -54,17 +54,53 @@ export default function Dashboard() {
   })
 
   async function carica() {
-    const [, { data: listaCicli }, { data: listaIscrizioni }, { data: risposte }, { data: pratica }] = await Promise.all([
-      supabase.rpc('separa_email_cicli_conclusi').catch(() => ({ data: null })),
-      supabase.from('cicli').select('id, nome_ciclo, data_inizio, data_fine, stato, posti_totali, iscrizioni(count)').order('data_inizio', { ascending: false }),
-      supabase.from('iscrizioni').select('id, esito_screening, ciclo_id, utenti(codice_partecipante, email, stato_screening)'),
-      supabase.rpc('risposte_pseudonime'),
-      supabase.rpc('log_pratica_pseudonimi')
-    ])
-    setCicli(listaCicli || [])
-    setIscritti(listaIscrizioni || [])
-    setPunteggi(aggregaPunteggi(risposte))
-    setLog(pratica || [])
+    try {
+      const risultati = await Promise.allSettled([
+        supabase.rpc('separa_email_cicli_conclusi'),
+        supabase
+          .from('cicli')
+          .select('id, nome_ciclo, data_inizio, data_fine, stato, posti_totali, iscrizioni(count)')
+          .order('data_inizio', { ascending: false }),
+        supabase
+          .from('iscrizioni')
+          .select('id, esito_screening, ciclo_id, utenti(codice_partecipante, email, stato_screening)'),
+        supabase.rpc('risposte_pseudonime'),
+        supabase.rpc('log_pratica_pseudonimi')
+      ])
+
+      const cicliRes = risultati[1]
+      if (cicliRes.status === 'fulfilled') {
+        const { data, error } = cicliRes.value
+        if (error) {
+          setErrore('Non è stato possibile caricare i cicli.')
+        } else {
+          setCicli(data || [])
+          setAperto(prev => {
+            if (prev && (data || []).some(c => c.id === prev)) return prev
+            return (data && data[0]?.id) || null
+          })
+        }
+      } else {
+        setErrore('Non è stato possibile caricare i cicli.')
+      }
+
+      const iscrRes = risultati[2]
+      if (iscrRes.status === 'fulfilled' && !iscrRes.value.error) {
+        setIscritti(iscrRes.value.data || [])
+      }
+
+      const rispRes = risultati[3]
+      if (rispRes.status === 'fulfilled' && !rispRes.value.error) {
+        setPunteggi(aggregaPunteggi(rispRes.value.data))
+      }
+
+      const logRes = risultati[4]
+      if (logRes.status === 'fulfilled' && !logRes.value.error) {
+        setLog(logRes.value.data || [])
+      }
+    } catch {
+      setErrore('Non è stato possibile aggiornare la dashboard.')
+    }
   }
 
   useEffect(() => { carica() }, [])
@@ -72,14 +108,25 @@ export default function Dashboard() {
   async function creaCiclo(e) {
     e.preventDefault()
     setErrore(null)
-    const { error } = await supabase.from('cicli').insert({
-      nome_ciclo: form.nome_ciclo,
+    const { data, error } = await supabase.from('cicli').insert({
+      nome_ciclo: form.nome_ciclo.trim(),
       data_inizio: form.data_inizio,
       data_fine: form.data_fine || null,
       posti_totali: Number(form.posti_totali) || 8,
       stato: form.stato
+    }).select('id, nome_ciclo, data_inizio, data_fine, stato, posti_totali').single()
+
+    if (error || !data) {
+      setErrore('Non è stato possibile creare il ciclo.')
+      return
+    }
+
+    const nuovo = { ...data, iscrizioni: [{ count: 0 }] }
+    setCicli(lista => {
+      const senza = lista.filter(c => c.id !== nuovo.id)
+      return [nuovo, ...senza].sort((a, b) => String(b.data_inizio).localeCompare(String(a.data_inizio)))
     })
-    if (error) { setErrore('Non è stato possibile creare il ciclo.'); return }
+    setAperto(nuovo.id)
     setForm({ nome_ciclo: '', data_inizio: '', data_fine: '', posti_totali: 8, stato: 'reclutamento' })
     setMostraForm(false)
     carica()

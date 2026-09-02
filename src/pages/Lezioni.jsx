@@ -52,12 +52,18 @@ export default function Lezioni() {
   const pillsRef = useRef(null)
 
   useEffect(() => {
+    let vivo = true
     supabase.from('cicli').select('id, nome_ciclo, stato').order('data_inizio', { ascending: false })
       .then(({ data }) => {
+        if (!vivo) return
         const lista = data || []
         setCicli(lista)
-        if (lista[0] && !cicloId) setCicloId(lista[0].id)
+        setCicloId(prev => {
+          if (prev && lista.some(c => c.id === prev)) return prev
+          return lista[0]?.id || ''
+        })
       })
+    return () => { vivo = false }
   }, [])
 
   async function caricaLezioni(id) {
