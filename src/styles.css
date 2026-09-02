@@ -1314,6 +1314,215 @@ a { color: var(--moss-dark); }
   margin-bottom: 6px;
   font-size: 13px;
 }
+
+/* Dettaglio singolo ciclo */
+.dash-ciclo {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+.dash-ciclo-indietro {
+  align-self: flex-start;
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.dash-ciclo-indietro:hover {
+  color: var(--moss-dark);
+}
+.dash-ciclo-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px 20px;
+  padding-bottom: 4px;
+}
+.dash-ciclo-hero-testo {
+  min-width: 0;
+  flex: 1 1 16rem;
+}
+.dash-ciclo-titolo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+}
+.dash-ciclo-titolo h2 {
+  margin: 0;
+  font-size: clamp(1.55rem, 2.4vw, 1.9rem);
+  line-height: 1.15;
+}
+.dash-ciclo-meta {
+  margin: 8px 0 0;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.4;
+}
+.dash-ciclo-stats {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) {
+  .dash-ciclo-stats { grid-template-columns: repeat(3, 1fr); }
+}
+.dash-ciclo-stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dash-ciclo-stat-label {
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+.dash-ciclo-stat-valore {
+  font-family: 'Fraunces', serif;
+  font-size: 1.55rem;
+  font-weight: 500;
+  line-height: 1.1;
+  color: var(--ink);
+}
+.dash-ciclo-stat-valore.is-attenzione { color: var(--ochre); }
+.dash-ciclo-stat-valore-sm {
+  font-size: 1.05rem;
+  line-height: 1.25;
+}
+.dash-ciclo-sezione {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 18px 16px;
+  min-width: 0;
+}
+.dash-ciclo-sezione-testa {
+  margin-bottom: 14px;
+}
+.dash-ciclo-sezione-testa h3 {
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.15rem;
+}
+.dash-ciclo-sezione-testa .hint {
+  margin: 0;
+  max-width: 42em;
+}
+.dash-ciclo-conteggio {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5em;
+  height: 1.5em;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--tint);
+  color: var(--moss-dark);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+}
+.dash-ciclo-campi {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 720px) {
+  .dash-ciclo-campi { grid-template-columns: repeat(3, 1fr); }
+}
+.dash-ciclo-campi .field { margin: 0; }
+.dash-ciclo-vuoto {
+  padding: 18px 4px 8px;
+  text-align: center;
+}
+.dash-ciclo-vuoto p {
+  margin: 0;
+}
+.dash-ciclo-vuoto .hint {
+  margin-top: 6px;
+}
+.dash-iscrizioni {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
+}
+.dash-iscrizione {
+  display: grid;
+  gap: 10px 12px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  grid-template-columns: 1fr;
+}
+.dash-iscrizione:last-child { border-bottom: none; }
+@media (min-width: 720px) {
+  .dash-iscrizione {
+    grid-template-columns: minmax(0, 1.4fr) minmax(10rem, 0.8fr) auto;
+  }
+}
+.dash-iscrizione-persona {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  min-width: 0;
+}
+.dash-iscrizione-email {
+  font-size: 14px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.dash-iscrizione-esito {
+  margin: 0;
+  min-width: 0;
+}
+.dash-iscrizione-esito select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  background: #fff;
+}
+.dash-ciclo-pericolo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  padding: 14px 16px;
+  border: 1px dashed color-mix(in srgb, var(--danger) 35%, var(--border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--danger) 4%, var(--surface));
+}
+.dash-ciclo-pericolo-titolo {
+  margin: 0 0 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--danger);
+}
+.dash-ciclo-pericolo .hint {
+  margin: 0;
+  max-width: 36em;
+}
+.dash-ciclo-pericolo .btn-ciclo-elimina {
+  flex: 0 0 auto;
+}
 .dash-kpi {
   display: grid;
   gap: 10px;

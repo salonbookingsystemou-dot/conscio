@@ -267,6 +267,24 @@ export default function Dashboard() {
   }
 
   const cicloAperto = cicli.find(c => c.id === aperto)
+  const iscrittiCiclo = useMemo(
+    () => (aperto ? iscritti.filter(i => i.ciclo_id === aperto) : []),
+    [iscritti, aperto]
+  )
+  const sintesiCiclo = useMemo(() => {
+    if (!cicloAperto) return null
+    const idonei = iscrittiCiclo.filter(eIdoneo).length
+    const inAttesa = iscrittiCiclo.length - idonei
+    const posti = cicloAperto.posti_totali || 8
+    const avanzamento = etichettaAvanzamento(cicloAperto)
+    return {
+      idonei,
+      inAttesa,
+      posti,
+      pctPosti: Math.min(100, Math.round((idonei / posti) * 100)),
+      avanzamento
+    }
+  }, [cicloAperto, iscrittiCiclo])
 
   const kpi = useMemo(() => {
     const attivi = iscritti.filter(i => eIdoneo(i)).length
@@ -510,28 +528,175 @@ export default function Dashboard() {
             </>
           )}
 
-          {cicloAperto && (
-            <>
-              <header className="dash-panel-testa">
-                <div>
-                  <button
-                    type="button"
-                    className="link-testuale dash-indietro"
-                    onClick={() => setAperto(null)}
-                  >
-                    ← Tutti i cicli
-                  </button>
-                  <h2>{cicloAperto.nome_ciclo}</h2>
-                  <p className="lead">
-                    {etichettaPeriodo(cicloAperto.data_inizio, cicloAperto.data_fine)}
-                    {' · '}
-                    <span className={`badge badge-stato is-${cicloAperto.stato}`}>
-                      {etichettaStato(cicloAperto.stato)}
+          {cicloAperto && sintesiCiclo && (
+              <div className="dash-ciclo">
+                <button
+                  type="button"
+                  className="link-testuale dash-ciclo-indietro"
+                  onClick={() => setAperto(null)}
+                >
+                  ← Tutti i cicli
+                </button>
+
+                <header className="dash-ciclo-hero">
+                  <div className="dash-ciclo-hero-testo">
+                    <div className="dash-ciclo-titolo">
+                      <h2>{cicloAperto.nome_ciclo}</h2>
+                      <span className={`badge badge-stato is-${cicloAperto.stato}`}>
+                        {etichettaStato(cicloAperto.stato)}
+                      </span>
+                    </div>
+                    <p className="dash-ciclo-meta">
+                      {etichettaPeriodo(cicloAperto.data_inizio, cicloAperto.data_fine)}
+                      <span aria-hidden="true"> · </span>
+                      {sintesiCiclo.avanzamento.testo}
+                    </p>
+                  </div>
+                  <Link className="btn" to="/lezioni">Apri Lezioni</Link>
+                </header>
+
+                <div className="dash-ciclo-stats" aria-label="Sintesi del ciclo">
+                  <div className="dash-ciclo-stat">
+                    <span className="dash-ciclo-stat-label">Posti idonei</span>
+                    <strong className="dash-ciclo-stat-valore">
+                      {sintesiCiclo.idonei} / {sintesiCiclo.posti}
+                    </strong>
+                    <span className="dash-barra" aria-hidden="true">
+                      <span
+                        className="dash-barra-fill is-posti"
+                        style={{ width: `${sintesiCiclo.pctPosti}%` }}
+                      />
                     </span>
-                  </p>
+                  </div>
+                  <div className="dash-ciclo-stat">
+                    <span className="dash-ciclo-stat-label">In attesa</span>
+                    <strong className={`dash-ciclo-stat-valore${sintesiCiclo.inAttesa > 0 ? ' is-attenzione' : ''}`}>
+                      {sintesiCiclo.inAttesa}
+                    </strong>
+                  </div>
+                  <div className="dash-ciclo-stat">
+                    <span className="dash-ciclo-stat-label">Avanzamento</span>
+                    <strong className="dash-ciclo-stat-valore dash-ciclo-stat-valore-sm">
+                      {sintesiCiclo.avanzamento.testo}
+                    </strong>
+                    <span className="dash-barra" aria-hidden="true">
+                      <span
+                        className={`dash-barra-fill is-${sintesiCiclo.avanzamento.tono}`}
+                        style={{ width: `${sintesiCiclo.avanzamento.pct}%` }}
+                      />
+                    </span>
+                  </div>
                 </div>
-                <div className="dash-panel-azioni">
-                  <Link className="btn btn-ghost" to="/lezioni">Lezioni</Link>
+
+                <section className="dash-ciclo-sezione" aria-labelledby="ciclo-impostazioni-titolo">
+                  <header className="dash-ciclo-sezione-testa">
+                    <div>
+                      <h3 id="ciclo-impostazioni-titolo">Date e stato</h3>
+                      <p className="hint">
+                        Prima dell’inizio i questionari segnalano che il ciclo non è partito; T0 resta disponibile.
+                        Senza data di fine si usano circa 9 settimane dall’inizio.
+                      </p>
+                    </div>
+                  </header>
+                  <div className="dash-ciclo-campi">
+                    <div className="field">
+                      <label htmlFor="ciclo-stato">Stato</label>
+                      <select
+                        id="ciclo-stato"
+                        value={cicloAperto.stato}
+                        onChange={e => aggiornaCiclo(cicloAperto.id, { stato: e.target.value })}
+                      >
+                        <option value="reclutamento">reclutamento</option>
+                        <option value="attivo">attivo</option>
+                        <option value="concluso">concluso</option>
+                      </select>
+                    </div>
+                    <div className="field">
+                      <label htmlFor="ciclo-inizio">Data di inizio</label>
+                      <input
+                        id="ciclo-inizio"
+                        type="date"
+                        value={String(cicloAperto.data_inizio).slice(0, 10)}
+                        onChange={e => aggiornaCiclo(cicloAperto.id, { data_inizio: e.target.value })}
+                      />
+                    </div>
+                    <div className="field">
+                      <label htmlFor="ciclo-fine">Data di fine</label>
+                      <input
+                        id="ciclo-fine"
+                        type="date"
+                        value={cicloAperto.data_fine ? String(cicloAperto.data_fine).slice(0, 10) : ''}
+                        min={String(cicloAperto.data_inizio).slice(0, 10)}
+                        onChange={e => aggiornaCiclo(cicloAperto.id, {
+                          data_fine: e.target.value || null
+                        })}
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                <section className="dash-ciclo-sezione" aria-labelledby="ciclo-iscrizioni-titolo">
+                  <header className="dash-ciclo-sezione-testa">
+                    <div>
+                      <h3 id="ciclo-iscrizioni-titolo">
+                        Iscrizioni
+                        <span className="dash-ciclo-conteggio">{iscrittiCiclo.length}</span>
+                      </h3>
+                      <p className="hint">
+                        L’email serve solo al contatto. Nei dati di ricerca resta il codice.
+                      </p>
+                    </div>
+                  </header>
+
+                  {iscrittiCiclo.length === 0 ? (
+                    <div className="dash-ciclo-vuoto" role="status">
+                      <p>Nessuna iscrizione in questo ciclo.</p>
+                      <p className="hint">
+                        Quando qualcuno si iscrive, qui gestisci lo screening e i posti idonei.
+                      </p>
+                    </div>
+                  ) : (
+                    <ul className="dash-iscrizioni">
+                      {iscrittiCiclo.map(i => (
+                        <li key={i.id} className="dash-iscrizione">
+                          <div className="dash-iscrizione-persona">
+                            <span className="badge">{i.utenti?.codice_partecipante || '—'}</span>
+                            <span className="dash-iscrizione-email">
+                              {i.utenti?.email || 'Nessuna email'}
+                            </span>
+                          </div>
+                          <label className="dash-iscrizione-esito">
+                            <select
+                              value={i.esito_screening || 'in_attesa'}
+                              onChange={e => aggiornaEsito(i, e.target.value)}
+                              aria-label={`Screening ${i.utenti?.codice_partecipante || ''}`}
+                            >
+                              {ESITI.map(e => (
+                                <option key={e.id} value={e.id}>{e.label}</option>
+                              ))}
+                            </select>
+                          </label>
+                          <button
+                            type="button"
+                            className="btn-elimina"
+                            onClick={() => eliminaIscritto(i)}
+                          >
+                            Rimuovi
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+
+                <footer className="dash-ciclo-pericolo">
+                  <div>
+                    <p className="dash-ciclo-pericolo-titolo">Zona delicata</p>
+                    <p className="hint">
+                      Elimina l’edizione e i dati collegati (settimane, pratiche, iscrizioni).
+                      Questionari e log restano sul codice partecipante.
+                    </p>
+                  </div>
                   <button
                     type="button"
                     className="btn btn-ghost btn-ciclo-elimina"
@@ -539,76 +704,8 @@ export default function Dashboard() {
                   >
                     Elimina ciclo
                   </button>
-                </div>
-              </header>
-
-              <div className="card">
-                <h3>Stato del ciclo</h3>
-                <div className="riga-due">
-                  <div className="field">
-                    <label htmlFor="ciclo-stato">Stato</label>
-                    <select
-                      id="ciclo-stato"
-                      value={cicloAperto.stato}
-                      onChange={e => aggiornaCiclo(cicloAperto.id, { stato: e.target.value })}
-                    >
-                      <option value="reclutamento">reclutamento</option>
-                      <option value="attivo">attivo</option>
-                      <option value="concluso">concluso</option>
-                    </select>
-                  </div>
-                  <div className="field">
-                    <label htmlFor="ciclo-inizio">Data di inizio</label>
-                    <input
-                      id="ciclo-inizio"
-                      type="date"
-                      value={String(cicloAperto.data_inizio).slice(0, 10)}
-                      onChange={e => aggiornaCiclo(cicloAperto.id, { data_inizio: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <p className="hint">
-                  Prima della data di inizio i questionari mostrano che il ciclo non è partito;
-                  T0 resta comunque disponibile.
-                </p>
+                </footer>
               </div>
-
-              <div className="card">
-                <h3>Iscrizioni e screening</h3>
-                <p className="hint">L’email serve solo al contatto. Nei dati di ricerca resta il codice.</p>
-                {iscritti.filter(i => i.ciclo_id === cicloAperto.id).length === 0 && (
-                  <p>Nessuna iscrizione.</p>
-                )}
-                <div className="elenco-iscritti">
-                  {iscritti.filter(i => i.ciclo_id === cicloAperto.id).map(i => (
-                    <article key={i.id} className="voce-iscritto">
-                      <header className="voce-iscritto-testata">
-                        <span className="badge">{i.utenti?.codice_partecipante || '—'}</span>
-                      </header>
-                      <p className="voce-iscritto-email">{i.utenti?.email || 'Nessuna email'}</p>
-                      <div className="voce-iscritto-azioni">
-                        <label className="voce-iscritto-esito">
-                          <span>Screening</span>
-                          <select
-                            value={i.esito_screening || 'in_attesa'}
-                            onChange={e => aggiornaEsito(i, e.target.value)}
-                          >
-                            {ESITI.map(e => <option key={e.id} value={e.id}>{e.label}</option>)}
-                          </select>
-                        </label>
-                        <button
-                          type="button"
-                          className="btn-elimina"
-                          onClick={() => eliminaIscritto(i)}
-                        >
-                          Rimuovi
-                        </button>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </div>
-            </>
           )}
         </div>
       )}
