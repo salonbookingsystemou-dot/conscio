@@ -45,9 +45,11 @@ export default function Entra() {
     try {
       await entra(codice)
     } catch (err) {
-      if (err?.message === 'SCREENING_IN_ATTESA') {
+      if (err?.message === 'SCREENING_IN_ATTESA' || err?.code === 'SCREENING_IN_ATTESA') {
         memorizzaCodiceRicordato(codice)
         setErrore('Il codice è riconosciuto. L’accesso alle altre sezioni si apre dopo l’esito idoneo dello screening.')
+      } else if (err?.code === 'TROPPI_TENTATIVI' || err?.message === 'TROPPI_TENTATIVI') {
+        setErrore('Troppi tentativi. Riprova tra qualche minuto.')
       } else {
         setErrore('Codice non riconosciuto. Controlla e riprova, oppure iscriviti.')
       }

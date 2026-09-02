@@ -24,7 +24,11 @@ export default function Accedi() {
       }
       await accedi(email.trim(), password)
     } catch (err) {
-      setErrore('Accesso non riuscito. Usa email e password del file ACCESSO-FACILITATORE.txt, senza spazi.')
+      if (err?.code === 'TROPPI_TENTATIVI' || err?.message === 'TROPPI_TENTATIVI') {
+        setErrore('Troppi tentativi. Riprova tra qualche minuto.')
+      } else {
+        setErrore('Accesso non riuscito. Controlla email e password e riprova.')
+      }
     } finally {
       setInvio(false)
     }

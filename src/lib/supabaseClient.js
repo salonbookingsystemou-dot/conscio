@@ -25,6 +25,38 @@ export const supabase = createClient(
   }
 )
 
+/** Chiama l’edge function porta (Entra / Iscrizione / Accedi) con tetto tentativi. */
+export async function chiamaPorta(corpo) {
+  if (!supabaseConfigurato) {
+    const err = new Error('CONFIG_MANCANTE')
+    err.code = 'CONFIG_MANCANTE'
+    throw err
+  }
+  const res = await fetch(`${url}/functions/v1/porta`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${anonKey}`,
+      apikey: anonKey
+    },
+    body: JSON.stringify(corpo)
+  })
+  let payload = null
+  try {
+    payload = await res.json()
+  } catch {
+    payload = null
+  }
+  const codice = payload?.error || (!res.ok ? 'ERRORE' : null)
+  if (codice) {
+    const err = new Error(codice)
+    err.code = codice
+    err.status = res.status
+    throw err
+  }
+  return payload
+}
+
 const CHIAVE_CODICE = 'mbsr_codice'
 const CHIAVE_RICORDO = 'mbsr_codice_ricordo'
 

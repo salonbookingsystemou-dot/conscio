@@ -43,6 +43,16 @@ Le comunicazioni si salvano sempre nel database. Per l’invio reale:
 
 Senza la chiave la comunicazione resta `programmata`. L’email dei partecipanti serve solo al contatto operativo: non viene unita alle risposte o ai log.
 
+## Protezione accessi (porta)
+
+Entra, Iscrizione e Accedi facilitatore passano dall’edge function `porta` (tetto tentativi per IP hashato).
+
+1. Nell’SQL editor esegui `supabase/migrazione_limiti_accesso.sql`.
+2. Distribuisci: `supabase functions deploy porta`.
+3. Opzionale in Auth (dashboard Supabase): protezione password compromesse e MFA sull’account facilitatore.
+
+Frontend e SQL/edge vanno aggiornati insieme: dopo il revoke, le RPC `stato_accesso_codice` e `iscrivi_partecipante` non sono più chiamabili con la chiave anon.
+
 ## Struttura dati
 
 Vedi `supabase/schema.sql` per lo schema completo. Le tabelle principali:

@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import { dimenticaCodice, leggiCodice, memorizzaCodice, supabase, supabaseConfigurato } from './supabaseClient'
+import { chiamaPorta, dimenticaCodice, leggiCodice, memorizzaCodice, supabase, supabaseConfigurato } from './supabaseClient'
 import { pulisciAscoltoLocale } from './ascolto.js'
 import { sommaMinutiTracce } from './oreAscolto.js'
 
@@ -24,11 +24,13 @@ const PartecipanteContext = createContext({
 
 async function statoAccesso(codice) {
   if (!codice || !supabaseConfigurato) return 'non_trovato'
-  const { data, error } = await supabase.rpc('stato_accesso_codice', {
-    p_codice: codice
-  })
-  if (error) return 'non_trovato'
-  return data || 'non_trovato'
+  try {
+    const data = await chiamaPorta({ azione: 'stato', codice })
+    return data?.stato || 'non_trovato'
+  } catch (err) {
+    if (err?.code === 'TROPPI_TENTATIVI') throw err
+    return 'non_trovato'
+  }
 }
 
 async function codiceValido(codice) {
@@ -86,25 +88,44 @@ export function PartecipanteProvider({ children }) {
       setCaricamento(false)
       return
     }
+    async function apriSessione(codiceAperto) {
+      setCodice(codiceAperto)
+      setRegistrato(true)
+      const [minuti, percorso] = await Promise.all([
+        sommaMinutiTracce(codiceAperto),
+        leggiStatoPercorso(codiceAperto)
+      ])
+      setMinutiAscolto(minuti)
+      applicaPercorso(percorso)
+    }
     codiceValido(salvato).then(async ok => {
-      if (ok) {
-        setCodice(salvato)
-        setRegistrato(true)
-        const [minuti, percorso] = await Promise.all([
-          sommaMinutiTracce(salvato),
-          leggiStatoPercorso(salvato)
-        ])
-        setMinutiAscolto(minuti)
-        applicaPercorso(percorso)
-      } else {
-        chiudiSessioneLocale(salvato)
+      if (ok) await apriSessione(salvato)
+      else chiudiSessioneLocale(salvato)
+    }).catch(async err => {
+      if (err?.code === 'TROPPI_TENTATIVI') {
+        try {
+          await apriSessione(salvato)
+          return
+        } catch {
+          /* percorso non leggibile: lascia sessione locale minima */
+          setCodice(salvato)
+          setRegistrato(true)
+          return
+        }
       }
+      chiudiSessioneLocale(salvato)
     }).finally(() => setCaricamento(false))
   }, [applicaPercorso])
 
   async function entra(valore) {
     const pulito = (valore || '').trim()
-    const stato = await statoAccesso(pulito)
+    let stato
+    try {
+      stato = await statoAccesso(pulito)
+    } catch (err) {
+      if (err?.code === 'TROPPI_TENTATIVI') throw err
+      throw new Error('CODICE_NON_TROVATO')
+    }
     if (stato === 'in_attesa') throw new Error('SCREENING_IN_ATTESA')
     if (stato !== 'ok') throw new Error('CODICE_NON_TROVATO')
     memorizzaCodice(pulito)

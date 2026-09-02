@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase, supabaseConfigurato, generaCodicePartecipante, memorizzaCodiceRicordato } from '../lib/supabaseClient'
+import {
+  chiamaPorta,
+  supabase,
+  supabaseConfigurato,
+  generaCodicePartecipante,
+  memorizzaCodiceRicordato
+} from '../lib/supabaseClient'
 import Disclaimer from '../components/Disclaimer.jsx'
 
 function IconaPercorso({ id }) {
@@ -87,7 +93,8 @@ export default function Iscrizione() {
     ciclo_id: '',
     letto_informativa: false,
     consenso_modulo_a: false,
-    consenso_modulo_b: false
+    consenso_modulo_b: false,
+    sito_web: ''
   })
   const [stato, setStato] = useState(null)
   const [errore, setErrore] = useState(null)
@@ -114,28 +121,38 @@ export default function Iscrizione() {
 
     for (let tentativo = 0; tentativo < 3; tentativo++) {
       const codice = generaCodicePartecipante()
-      const { data, error } = await supabase.rpc('iscrivi_partecipante', {
-        p_email: form.email,
-        p_ciclo_id: form.ciclo_id,
-        p_codice: codice,
-        p_consenso_a: form.consenso_modulo_a,
-        p_consenso_b: form.consenso_modulo_b
-      })
-      const testo = error?.message || ''
-      if (!error && data?.ok) {
-        const assegnato = data.codice || codice
-        memorizzaCodiceRicordato(assegnato)
-        setCodiceGenerato(assegnato)
-        setStato('ok')
+      try {
+        const data = await chiamaPorta({
+          azione: 'iscrivi',
+          email: form.email,
+          ciclo_id: form.ciclo_id,
+          codice,
+          consenso_a: form.consenso_modulo_a,
+          consenso_b: form.consenso_modulo_b,
+          sito_web: form.sito_web
+        })
+        if (data?.ok) {
+          const assegnato = data.codice || codice
+          memorizzaCodiceRicordato(assegnato)
+          setCodiceGenerato(assegnato)
+          setStato('ok')
+          return
+        }
+        setErrore('Si è verificato un errore. Riprova.')
+        setStato(null)
+        return
+      } catch (err) {
+        const testo = err?.code || err?.message || ''
+        if (testo.includes('CODICE_DUPLICATO') && tentativo < 2) continue
+        if (testo.includes('TROPPI_TENTATIVI')) setErrore('Troppi tentativi. Riprova tra qualche minuto.')
+        else if (testo.includes('CODA_ISCRIZIONI_PIENA')) setErrore('Le richieste in coda per questo ciclo sono al completo. Riprova più tardi.')
+        else if (testo.includes('CICLO_PIENO')) setErrore('I posti idonei di questo ciclo sono già al completo.')
+        else if (testo.includes('EMAIL_GIA_ISCRITTA')) setErrore('Questa email è già iscritta a questo ciclo.')
+        else if (testo.includes('CICLO_NON_DISPONIBILE')) setErrore('Il ciclo non è più in reclutamento.')
+        else setErrore('Si è verificato un errore. Riprova.')
+        setStato(null)
         return
       }
-      if (testo.includes('CODICE_DUPLICATO') && tentativo < 2) continue
-      if (testo.includes('CICLO_PIENO')) setErrore('I posti idonei di questo ciclo sono già al completo.')
-      else if (testo.includes('EMAIL_GIA_ISCRITTA')) setErrore('Questa email è già iscritta a questo ciclo.')
-      else if (testo.includes('CICLO_NON_DISPONIBILE')) setErrore('Il ciclo non è più in reclutamento.')
-      else setErrore('Si è verificato un errore. Riprova.')
-      setStato(null)
-      return
     }
   }
 
@@ -228,6 +245,18 @@ export default function Iscrizione() {
             <p className="hint">
               Serve solo per inviarti il codice e le comunicazioni del gruppo.
             </p>
+            <div className="campo-trappola" aria-hidden="true">
+              <label htmlFor="sito_web">Sito web</label>
+              <input
+                id="sito_web"
+                name="sito_web"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                value={form.sito_web}
+                onChange={e => setForm({ ...form, sito_web: e.target.value })}
+              />
+            </div>
           </div>
 
           <div className="iscrizione-sezione iscrizione-consensi">

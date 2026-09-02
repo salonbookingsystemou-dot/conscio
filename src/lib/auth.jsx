@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { supabase, supabaseConfigurato } from './supabaseClient'
+import { chiamaPorta, supabase, supabaseConfigurato } from './supabaseClient'
 
 const AuthContext = createContext({
   sessione: null,
@@ -43,11 +43,24 @@ export function AuthProvider({ children }) {
   }, [])
 
   async function accedi(email, password) {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    const data = await chiamaPorta({
+      azione: 'facilitatore',
+      email: (email || '').trim(),
+      password
+    })
+    if (!data?.session?.access_token || !data?.session?.refresh_token) {
+      const err = new Error('ACCESSO_NON_RIUSCITO')
+      err.code = 'ACCESSO_NON_RIUSCITO'
+      throw err
+    }
+    const { data: applicata, error } = await supabase.auth.setSession({
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token
+    })
     if (error) throw error
-    setSessione(data.session)
-    await aggiornaRuolo(data.session)
-    return data.session
+    setSessione(applicata.session)
+    await aggiornaRuolo(applicata.session)
+    return applicata.session
   }
 
   async function esci() {
