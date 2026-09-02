@@ -17,6 +17,7 @@ import Onboarding from './pages/Onboarding.jsx'
 import Documento from './pages/Documento.jsx'
 import IMieiDati from './pages/IMieiDati.jsx'
 import InvitoHome from './components/InvitoHome.jsx'
+import Footer from './components/Footer.jsx'
 
 export default function App() {
   const { pathname } = useLocation()
@@ -43,6 +44,7 @@ export default function App() {
           <Route path="/lezioni" element={<SoloFacilitatore><Lezioni /></SoloFacilitatore>} />
         </Routes>
       </div>
+      <Footer />
     </>
   )
 }

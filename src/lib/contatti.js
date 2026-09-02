@@ -2,6 +2,14 @@ export const EMAIL_CONTATTO = 'contact@wordpresschef.it'
 export const SITO_APP = 'https://conscio.mnesti.it'
 export const GARANTE_URL = 'https://www.garanteprivacy.it/'
 
+/** Ente organizzatore (footer e riferimenti pubblici). */
+export const ORGANIZZAZIONE = {
+  nome: 'STUDIO HANUMAN',
+  descrizione: 'A.S.D. riconosciuta dal C.O.N.I.',
+  via: 'Via San Leonardo, 14',
+  citta: 'Ariano Irpino (AV)'
+}
+
 /** Identità del titolare per l’informativa (art. 13). */
 export const TITOLARE = {
   nome: 'Dimitri Grassi',

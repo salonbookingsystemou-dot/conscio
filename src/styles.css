@@ -55,6 +55,38 @@ a { color: var(--moss-dark); }
   padding-right: max(24px, env(safe-area-inset-right, 0px));
 }
 
+.site-footer {
+  margin-top: 48px;
+  padding: 28px 24px calc(28px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 70%, var(--surface));
+  color: var(--ink-soft);
+  text-align: center;
+}
+.site-footer-inner {
+  max-width: 960px;
+  margin: 0 auto;
+}
+.site-footer-nome {
+  margin: 0 0 2px;
+  font-family: 'Fraunces', serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+}
+.site-footer-desc,
+.site-footer-indirizzo {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+}
+.site-footer-desc {
+  margin-bottom: 8px;
+}
+
 .topbar {
   position: sticky;
   top: 0;
