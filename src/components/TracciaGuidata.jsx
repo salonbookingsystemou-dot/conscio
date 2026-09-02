@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ascoltoCompletato, memorizzaAscolto, recuperaAscoltoSeManca, registraAscoltoCompleto } from '../lib/ascolto.js'
+import { ascoltoCompletato, recuperaAscoltoSeManca, registraAscoltoCompleto } from '../lib/ascolto.js'
 import {
   GAP_DOPO_CAMPANA_MS,
   precaricaCampanaTibetana,
@@ -58,6 +58,7 @@ export default function TracciaGuidata({
   const campanaRef = useRef(null)
   const ignoraEventiRef = useRef(false)
   const annullaAvvioRef = useRef(false)
+  const contaAscoltoRef = useRef(false)
   onCompletoRef.current = onCompleto
   onDurataRef.current = onDurata
   onAscoltoRef.current = onAscolto
@@ -87,6 +88,7 @@ export default function TracciaGuidata({
     lastRef.current = 0
     durataNotaRef.current = 0
     contatoGiro.current = gia
+    contaAscoltoRef.current = false
     annullaAvvioRef.current = true
     campanaRef.current?.ferma()
     campanaRef.current = null
@@ -117,29 +119,28 @@ export default function TracciaGuidata({
   }
 
   function marca(secondi) {
-    if (contatoGiro.current) return
-    contatoGiro.current = true
+    if (contatoGiro.current || !contaAscoltoRef.current) return
     const d = Number.isFinite(secondi) && secondi > 0 ? secondi : audioRef.current?.duration
-    if (Number.isFinite(d) && d > 0) {
-      registraAscoltoCompleto(persistenzaKey, d)
-      onPersistenzaRef.current?.(d)
-      onAscoltoRef.current?.()
-    } else {
-      memorizzaAscolto(persistenzaKey)
-      onPersistenzaRef.current?.(0)
-    }
+    if (!Number.isFinite(d) || d < 8) return
+    const ascoltato = playedRef.current
+    if (ascoltato < d * 0.9) return
+    contatoGiro.current = true
+    registraAscoltoCompleto(persistenzaKey, d)
+    onPersistenzaRef.current?.(d)
+    onAscoltoRef.current?.()
     setCompleto(true)
     setPercento(100)
     onCompletoRef.current?.(true)
   }
 
   function onTimeUpdate(e) {
+    if (ignoraEventiRef.current || !contaAscoltoRef.current) return
     const el = e.currentTarget
     const t = el.currentTime
     const d = el.duration
     setPosizione(t)
     if (Number.isFinite(d) && d > 0) registraDurata(d)
-    if (!Number.isFinite(d) || d <= 0) return
+    if (!Number.isFinite(d) || d < 8) return
     const delta = t - lastRef.current
     if (delta > 0 && delta < 1.5) playedRef.current += delta
     lastRef.current = t
@@ -150,13 +151,15 @@ export default function TracciaGuidata({
   }
 
   function onSeeking(e) {
+    if (ignoraEventiRef.current || !contaAscoltoRef.current) return
     lastRef.current = e.currentTarget.currentTime
   }
 
   function onEnded(e) {
+    if (ignoraEventiRef.current || !contaAscoltoRef.current) return
     setInRiproduzione(false)
     const d = e.currentTarget.duration
-    if (Number.isFinite(d) && playedRef.current >= d * 0.9) marca()
+    if (Number.isFinite(d) && d >= 8 && playedRef.current >= d * 0.9) marca(d)
   }
 
   function onLoadedMetadata(e) {
@@ -191,6 +194,8 @@ export default function TracciaGuidata({
     try {
       setErrore(false)
       if (dallInizio) {
+        contaAscoltoRef.current = false
+        ignoraEventiRef.current = true
         setInCampana(true)
         setInRiproduzione(true)
         /* Campana PRIMA di ogni altra play(): su iOS il gesto vale solo per la prima. */
@@ -203,6 +208,7 @@ export default function TracciaGuidata({
         if (annullaAvvioRef.current || esito !== 'fine') {
           setInCampana(false)
           setInRiproduzione(false)
+          ignoraEventiRef.current = false
           await sblocco
           return
         }
@@ -210,16 +216,23 @@ export default function TracciaGuidata({
         if (annullaAvvioRef.current) {
           setInCampana(false)
           setInRiproduzione(false)
+          ignoraEventiRef.current = false
           await sblocco
           return
         }
         setInCampana(false)
         await sblocco
+        el.pause()
+        el.currentTime = 0
+        playedRef.current = 0
+        lastRef.current = 0
+        ignoraEventiRef.current = false
       }
       if (annullaAvvioRef.current) {
         setInRiproduzione(false)
         return
       }
+      contaAscoltoRef.current = true
       await el.play()
       setInRiproduzione(true)
     } catch {

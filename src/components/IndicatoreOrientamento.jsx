@@ -22,8 +22,8 @@ export default function IndicatoreOrientamento({ orientamento, compatto = false 
       </div>
       {!compatto && (
         <div className="orientamento-estremi" aria-hidden="true">
-          <span>Minimo del range</span>
-          <span>Massimo del range</span>
+          <span>Min</span>
+          <span>Max</span>
         </div>
       )}
     </div>

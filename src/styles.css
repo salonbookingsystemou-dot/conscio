@@ -2505,7 +2505,6 @@ body:has(.splash) {
   justify-content: space-between;
   margin-top: 4px;
   font-size: 10px;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
   color: var(--ink-soft);
 }
