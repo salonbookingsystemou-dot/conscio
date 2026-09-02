@@ -1940,6 +1940,27 @@ a { color: var(--moss-dark); }
   height: 1px;
   overflow: hidden;
 }
+.entra-recupero {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.entra-recupero-titolo {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+}
+.entra-recupero-form .hint {
+  margin-top: 0;
+}
+.entra-recupero-azioni {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+}
+.hint-ok {
+  color: var(--moss-dark);
+}
 .traccia-settimana {
   position: relative;
   margin: 16px 0;

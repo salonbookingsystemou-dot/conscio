@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { usePartecipante } from '../lib/partecipante.jsx'
 import { leggiCodiceRicordato, memorizzaCodiceRicordato, supabaseConfigurato } from '../lib/supabaseClient'
 
@@ -59,6 +60,9 @@ export default function ChiediCodice({
         </button>
         {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
       </form>
+      <p className="hint">
+        <Link to="/entra#recupera">Hai dimenticato il codice?</Link>
+      </p>
     </div>
   )
 }

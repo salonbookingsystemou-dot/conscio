@@ -1,6 +1,7 @@
-// Porta unica per Entra, Iscrizione e Accedi facilitatore.
+// Porta unica per Entra, Iscrizione, recupero codice e Accedi facilitatore.
 // Applica tetti tentativi per IP (hash) prima delle RPC / Auth.
 // Richiede: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY.
+// Opzionale per email codice: RESEND_API_KEY, RESEND_FROM.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -8,6 +9,10 @@ const cors = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
 }
+
+const REPLY_TO = 'contact@wordpresschef.it'
+const MSG_RECUPERA_OK =
+  'Se l’indirizzo è presente in anagrafe con email ancora attiva, riceverai il codice a breve. Controlla anche lo spam.'
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -49,6 +54,80 @@ function messaggioErrore(err: { message?: string } | null): string {
   if (testo.includes('EMAIL_MANCANTE')) return 'EMAIL_MANCANTE'
   if (testo.includes('CODICE_MANCANTE')) return 'CODICE_MANCANTE'
   return 'ERRORE'
+}
+
+function emailValida(email: string): boolean {
+  if (!email || email.length > 200) return false
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
+/** Evita che % e _ in ilike diventino jolly SQL. */
+function escapeIlike(s: string): string {
+  return s.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_')
+}
+
+async function inviaCodiceEmail(opts: {
+  to: string
+  codice: string
+  oggetto: string
+  testo: string
+}): Promise<boolean> {
+  const apiKey = Deno.env.get('RESEND_API_KEY')
+  if (!apiKey) return false
+  const from = Deno.env.get('RESEND_FROM') || 'Percorso MBSR <noreply@mnesti.it>'
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from,
+        to: [opts.to],
+        reply_to: REPLY_TO,
+        subject: opts.oggetto,
+        text: opts.testo
+      })
+    })
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+function testoRecupero(codice: string): string {
+  return [
+    'Ciao,',
+    '',
+    'Hai chiesto di ricevere di nuovo il tuo codice partecipante per il Percorso MBSR.',
+    '',
+    `Il tuo codice è: ${codice}`,
+    '',
+    'Usalo nella pagina Entra dell’app. Conservalo in un posto sicuro.',
+    'Se non hai fatto tu questa richiesta, puoi ignorare questo messaggio.',
+    '',
+    `Per assistenza: ${REPLY_TO}`,
+    '',
+    '— Percorso MBSR'
+  ].join('\n')
+}
+
+function testoIscrizione(codice: string): string {
+  return [
+    'Ciao,',
+    '',
+    'La tua iscrizione al Percorso MBSR è stata registrata.',
+    '',
+    `Il tuo codice partecipante è: ${codice}`,
+    '',
+    'Conservalo: ti servirà per entrare nell’app dopo lo screening.',
+    'Non condividiamo il tuo nome: nel percorso ti riconosci solo con questo codice.',
+    '',
+    `Per assistenza: ${REPLY_TO}`,
+    '',
+    '— Percorso MBSR'
+  ].join('\n')
 }
 
 Deno.serve(async (req) => {
@@ -128,7 +207,61 @@ Deno.serve(async (req) => {
       const status = codiceErr === 'TROPPI_TENTATIVI' ? 429 : 400
       return json({ error: codiceErr }, status)
     }
+
+    const assegnato =
+      data && typeof data === 'object' && 'codice' in data && typeof (data as { codice: unknown }).codice === 'string'
+        ? (data as { codice: string }).codice
+        : codice
+    if (emailValida(email) && assegnato) {
+      // Best effort: l’iscrizione resta valida anche se Resend fallisce.
+      await inviaCodiceEmail({
+        to: email,
+        codice: assegnato,
+        oggetto: 'Il tuo codice partecipante — Percorso MBSR',
+        testo: testoIscrizione(assegnato)
+      })
+    }
+
     return json(data ?? { ok: true })
+  }
+
+  if (azione === 'recupera') {
+    const honeypot = typeof corpo.sito_web === 'string' ? corpo.sito_web.trim() : ''
+    if (honeypot) return json({ ok: true, messaggio: MSG_RECUPERA_OK })
+
+    const emailRaw = typeof corpo.email === 'string' ? corpo.email.trim().toLowerCase() : ''
+    if (!emailValida(emailRaw)) return json({ error: 'EMAIL_MANCANTE' }, 400)
+
+    const bloccoIp = await limita('recupera_ip', chiaveIp, 5, 3600)
+    if (bloccoIp) return bloccoIp
+    const chiaveEmail = await hashChiave(`recupera:${emailRaw}`)
+    const bloccoEmail = await limita('recupera_email', chiaveEmail, 3, 86400)
+    if (bloccoEmail) return bloccoEmail
+
+    // Risposta sempre uguale: niente enumerazione email ↔ codice a schermo.
+    const { data: trovati } = await admin
+      .from('utenti')
+      .select('codice_partecipante, email')
+      .eq('ruolo', 'partecipante')
+      .ilike('email', escapeIlike(emailRaw))
+      .not('email', 'is', null)
+      .limit(3)
+
+    const match = (trovati || []).find(
+      (u: { email?: string | null; codice_partecipante?: string | null }) =>
+        (u.email || '').trim().toLowerCase() === emailRaw && Boolean(u.codice_partecipante)
+    )
+
+    if (match?.codice_partecipante) {
+      await inviaCodiceEmail({
+        to: emailRaw,
+        codice: match.codice_partecipante,
+        oggetto: 'Recupero codice partecipante — Percorso MBSR',
+        testo: testoRecupero(match.codice_partecipante)
+      })
+    }
+
+    return json({ ok: true, messaggio: MSG_RECUPERA_OK })
   }
 
   if (azione === 'facilitatore') {

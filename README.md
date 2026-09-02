@@ -45,11 +45,14 @@ Senza la chiave la comunicazione resta `programmata`. L’email dei partecipanti
 
 ## Protezione accessi (porta)
 
-Entra, Iscrizione e Accedi facilitatore passano dall’edge function `porta` (tetto tentativi per IP hashato).
+Entra, Iscrizione, recupero codice e Accedi facilitatore passano dall’edge function `porta` (tetto tentativi per IP hashato).
 
 1. Nell’SQL editor esegui `supabase/migrazione_limiti_accesso.sql`.
 2. Distribuisci: `supabase functions deploy porta`.
-3. Opzionale in Auth (dashboard Supabase): protezione password compromesse e MFA sull’account facilitatore.
+3. Per inviare il codice all’iscrizione e al recupero, la funzione usa gli stessi secret Resend di `invia-comunicazione` (`RESEND_API_KEY`, opzionale `RESEND_FROM`).
+4. Opzionale in Auth (dashboard Supabase): protezione password compromesse e MFA sull’account facilitatore.
+
+Il recupero codice è “cieco”: l’app non mostra mai email↔codice; se l’email è in anagrafe e non ancora separata, Resend invia il codice. La risposta a schermo è sempre generica.
 
 Frontend e SQL/edge vanno aggiornati insieme: dopo il revoke, le RPC `stato_accesso_codice` e `iscrivi_partecipante` non sono più chiamabili con la chiave anon.
 

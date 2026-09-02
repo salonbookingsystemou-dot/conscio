@@ -160,7 +160,7 @@ export default function Iscrizione() {
     return (
       <div className="card card-conferma">
         <h2>Iscrizione ricevuta</h2>
-        <p>Conserva questo codice. Lo userai per entrare dopo l’esito dello screening, se l’esito è idoneo. Non useremo il tuo nome.</p>
+        <p>Conserva questo codice. Lo userai per entrare dopo l’esito dello screening, se l’esito è idoneo. Non useremo il tuo nome. Ti abbiamo inviato lo stesso codice anche all’email di iscrizione (controlla lo spam).</p>
         <p className="codice-enfasi">{codiceGenerato}</p>
         <p>Riceverai una comunicazione con l’esito e i prossimi passi. Le altre sezioni si aprono solo a chi è idoneo.</p>
         <div className="azioni">
