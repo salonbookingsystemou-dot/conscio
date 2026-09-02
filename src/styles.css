@@ -1239,6 +1239,226 @@ a { color: var(--moss-dark); }
   color: var(--danger);
 }
 .posti { font-size: 15px; color: var(--moss-dark); }
+
+/* Dashboard facilitatore a tab + overview cicli */
+.dash-tabs {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  padding: 4px 2px 14px;
+  margin: 0 0 8px;
+  touch-action: pan-x;
+}
+.dash-tabs::-webkit-scrollbar { display: none; }
+.dash-tab {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.dash-tab:hover {
+  border-color: color-mix(in srgb, var(--moss) 45%, var(--border));
+  background: var(--tint);
+}
+.dash-tab.is-on {
+  border-color: var(--moss);
+  background: var(--moss);
+  color: #fff;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--moss) 22%, transparent);
+}
+.dash-tab:focus-visible {
+  outline: 2px solid var(--moss);
+  outline-offset: 2px;
+}
+.dash-panel {
+  min-width: 0;
+}
+.dash-panel-testa {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 16px;
+  margin-bottom: 16px;
+}
+.dash-panel-testa h2 {
+  margin: 0 0 4px;
+}
+.dash-panel-testa .lead {
+  margin: 0;
+  max-width: 36em;
+}
+.dash-panel-azioni {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.dash-indietro {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+.dash-kpi {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 16px;
+}
+@media (min-width: 720px) {
+  .dash-kpi { grid-template-columns: repeat(4, 1fr); }
+}
+.dash-kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 14px 12px;
+  min-width: 0;
+}
+.dash-kpi-label {
+  margin: 0 0 6px;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+.dash-kpi-valore {
+  margin: 0;
+  font-size: 1.55rem;
+  line-height: 1.15;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.dash-kpi-valore.is-attenzione {
+  color: var(--ochre);
+}
+.dash-tabella {
+  padding: 0;
+  overflow: hidden;
+}
+.dash-tabella-testata {
+  display: none;
+  grid-template-columns: 1.4fr 0.85fr 1fr 1.2fr auto;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+@media (min-width: 860px) {
+  .dash-tabella-testata { display: grid; }
+}
+.dash-tabella-vuoto {
+  margin: 0;
+  padding: 20px 16px;
+}
+.dash-riga-ciclo {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  align-items: center;
+}
+.dash-riga-ciclo:last-child {
+  border-bottom: 0;
+}
+@media (min-width: 860px) {
+  .dash-riga-ciclo {
+    grid-template-columns: 1.4fr 0.85fr 1fr 1.2fr auto;
+    gap: 12px;
+  }
+}
+.dash-riga-ciclo-nome {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.dash-riga-ciclo-nome strong {
+  font-size: 1.02rem;
+}
+.dash-riga-progresso {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.dash-barra {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--border) 70%, #fff);
+  overflow: hidden;
+}
+.dash-barra-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--moss);
+}
+.dash-barra-fill.is-posti {
+  background: var(--moss);
+}
+.dash-barra-fill.is-attivo {
+  background: var(--ochre);
+}
+.dash-barra-fill.is-attesa {
+  background: color-mix(in srgb, var(--ochre) 45%, var(--border));
+}
+.dash-barra-fill.is-chiuso {
+  background: color-mix(in srgb, var(--ink-soft) 55%, var(--border));
+}
+.dash-riga-azioni {
+  display: flex;
+  justify-content: flex-start;
+}
+@media (min-width: 860px) {
+  .dash-riga-azioni { justify-content: flex-end; }
+}
+.badge-stato.is-attivo {
+  background: var(--tint);
+  color: var(--moss-dark);
+}
+.badge-stato.is-reclutamento {
+  background: var(--tint-ochre);
+  color: color-mix(in srgb, var(--ochre) 70%, #000);
+}
+.badge-stato.is-concluso {
+  background: color-mix(in srgb, var(--ink-soft) 12%, #fff);
+  color: var(--ink-soft);
+}
+.dash-nota-privacy {
+  margin: 16px 0 8px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--ochre);
+  background: color-mix(in srgb, var(--tint-ochre) 45%, #fff);
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.45;
+  border-radius: 0 10px 10px 0;
+}
 .elenco-iscritti {
   display: flex;
   flex-direction: column;
@@ -2146,6 +2366,58 @@ body:has(.splash) {
 .settimana-sottotitolo {
   margin: 0 0 12px;
   color: var(--ink-soft);
+}
+.settimana-vuoto {
+  position: relative;
+  margin: 8px 0 24px;
+  padding: 28px 22px 26px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--moss) 22%, var(--border));
+  background:
+    radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--tint-ochre) 55%, transparent), transparent 55%),
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--tint) 80%, #fff) 0%,
+      color-mix(in srgb, var(--surface) 88%, var(--tint)) 100%
+    );
+  box-shadow: inset 3px 0 0 var(--moss);
+  overflow: hidden;
+  text-align: left;
+}
+.settimana-vuoto-visuale {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 14px;
+  color: var(--moss);
+}
+.settimana-vuoto-icona {
+  width: min(140px, 46vw);
+  height: auto;
+  opacity: 0.9;
+}
+.settimana-vuoto .badge-settimana {
+  margin-bottom: 10px;
+}
+.settimana-vuoto .settimana-titolo {
+  margin: 0 0 8px;
+}
+.settimana-vuoto-azioni {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.settimana-vuoto-nota {
+  margin-top: 14px;
+  max-width: 34em;
+}
+.task-pratica-vuoto {
+  border-style: dashed;
+  background: color-mix(in srgb, var(--tint) 40%, #fff);
+}
+.task-pratica-vuoto .task-punto {
+  border-style: dashed;
 }
 .blocco-giorno,
 .blocco-informali {

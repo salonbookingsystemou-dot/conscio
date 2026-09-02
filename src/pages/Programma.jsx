@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
+import { useAuth } from '../lib/auth.jsx'
 import { usePartecipante } from '../lib/partecipante.jsx'
 import ChiediCodice from '../components/ChiediCodice.jsx'
 import Disclaimer from '../components/Disclaimer.jsx'
@@ -42,6 +44,65 @@ function etichettaDurataMinuti(minuti, secondiTraccia) {
     return m === 1 ? '1 minuto' : `${m} minuti`
   }
   return null
+}
+
+function VuotoProgramma({ ciclo, facilitatore }) {
+  const nome = ciclo?.nome_ciclo
+  const inizio = ciclo?.data_inizio
+    ? new Date(`${String(ciclo.data_inizio).slice(0, 10)}T12:00:00`).toLocaleDateString('it-IT')
+    : null
+
+  return (
+    <div className="settimana-vuoto" role="status">
+      <div className="settimana-vuoto-visuale" aria-hidden="true">
+        <svg className="settimana-vuoto-icona" viewBox="0 0 120 88" fill="none">
+          <rect x="8" y="18" width="104" height="62" rx="14" stroke="currentColor" strokeWidth="2.2" />
+          <path d="M8 38h104" stroke="currentColor" strokeWidth="2.2" />
+          <path d="M34 10v16M86 10v16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+          <rect x="22" y="48" width="18" height="14" rx="4" fill="currentColor" opacity="0.18" />
+          <rect x="48" y="48" width="18" height="14" rx="4" fill="currentColor" opacity="0.12" />
+          <rect x="74" y="48" width="18" height="14" rx="4" stroke="currentColor" strokeWidth="1.8" strokeDasharray="3 3" opacity="0.55" />
+        </svg>
+      </div>
+      <p className="badge badge-settimana">Programma in preparazione</p>
+      <h2 className="settimana-titolo">Ancora nessuna settimana</h2>
+      <p className="lead settimana-sottotitolo">
+        {nome
+          ? `Per «${nome}» non ci sono ancora temi né pratiche da seguire giorno per giorno.`
+          : 'Il programma di questa edizione non ha ancora settimane e pratiche pubblicate.'}
+        {inizio ? ` L’inizio previsto è il ${inizio}.` : ''}
+      </p>
+      {facilitatore ? (
+        <div className="settimana-vuoto-azioni">
+          <Link className="btn" to="/lezioni">Apri Lezioni</Link>
+          <p className="hint">
+            Da Lezioni crei le settimane, le pratiche formali con audio e le informali.
+          </p>
+        </div>
+      ) : (
+        <p className="hint settimana-vuoto-nota">
+          Quando il percorso sarà pronto, qui trovi il tema della settimana, le tracce
+          da ascoltare e le pratiche da spuntare.
+        </p>
+      )}
+    </div>
+  )
+}
+
+function VuotoFormali() {
+  return (
+    <div className="task-pratica task-pratica-vuoto" role="status">
+      <div className="task-pratica-testa">
+        <span className="task-punto" aria-hidden="true" />
+        <div className="task-pratica-testi">
+          <h4>Pratiche in arrivo</h4>
+          <p className="hint">
+            In questa settimana non ci sono ancora pratiche formali con traccia audio.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function spuntatoNelGiorno(esercizio, data) {
@@ -209,6 +270,7 @@ function TaskFormale({
 }
 
 export default function Programma() {
+  const { facilitatore } = useAuth()
   const { codice, registrato, aggiornaAscolto } = usePartecipante()
   const [lezioni, setLezioni] = useState([])
   const [ciclo, setCiclo] = useState(null)
@@ -356,7 +418,7 @@ export default function Programma() {
       {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
 
       {aperto && lezioni.length === 0 && (
-        <p>Il programma di questa edizione non è ancora stato caricato.</p>
+        <VuotoProgramma ciclo={ciclo} facilitatore={facilitatore} />
       )}
 
       {lezioni.length > 0 && (
@@ -413,22 +475,23 @@ export default function Programma() {
 
               <section className="blocco-giorno" aria-labelledby="da-fare-titolo">
                 <h3 id="da-fare-titolo">Da fare ogni giorno</h3>
-                {formali.length === 0 && (
-                  <p className="hint">Nessuna pratica formale assegnata a questa settimana.</p>
+                {formali.length === 0 ? (
+                  <VuotoFormali />
+                ) : (
+                  <div className="lista-task">
+                    {formali.map(ex => (
+                      <TaskFormale
+                        key={`${ex.id}-${dataScelta}`}
+                        esercizio={ex}
+                        codice={codice.trim()}
+                        data={dataScelta}
+                        aggiornaAscolto={aggiornaAscolto}
+                        onCompletoGiorno={() => setTickAscolto(t => t + 1)}
+                        onAscolto={() => setTickAscolto(t => t + 1)}
+                      />
+                    ))}
+                  </div>
                 )}
-                <div className="lista-task">
-                  {formali.map(ex => (
-                    <TaskFormale
-                      key={`${ex.id}-${dataScelta}`}
-                      esercizio={ex}
-                      codice={codice.trim()}
-                      data={dataScelta}
-                      aggiornaAscolto={aggiornaAscolto}
-                      onCompletoGiorno={() => setTickAscolto(t => t + 1)}
-                      onAscolto={() => setTickAscolto(t => t + 1)}
-                    />
-                  ))}
-                </div>
               </section>
 
               {informali.length > 0 && (
