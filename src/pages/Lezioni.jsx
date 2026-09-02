@@ -253,9 +253,9 @@ export default function Lezioni() {
 
   return (
     <div className="lezioni-gestione">
-      <h2>Settimane di pratica</h2>
+      <h2>Lezioni e pratiche</h2>
       <p className="lead">
-        Stessa struttura che vedono i partecipanti: tema, pratiche formali con audio,
+        Stessa struttura che vedono i partecipanti in «Settimana»: tema, pratiche formali con audio,
         pratiche informali da spuntare.
       </p>
 
