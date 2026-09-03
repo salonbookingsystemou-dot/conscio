@@ -412,6 +412,101 @@ a { color: var(--moss-dark); }
   margin-bottom: 0;
 }
 
+.box-codice-privacy {
+  background: color-mix(in srgb, var(--tint) 55%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--moss) 22%, var(--border));
+  border-radius: 14px;
+  padding: 16px 16px 15px;
+  margin: 0 0 16px;
+  color: var(--ink);
+}
+.box-codice-privacy-testa {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.box-codice-privacy-mark {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: var(--moss);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--moss) 12%, transparent);
+}
+.box-codice-privacy-icona {
+  width: 30px;
+  height: 30px;
+  display: block;
+}
+.box-codice-privacy-kicker {
+  margin: 0 0 2px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--moss-dark);
+}
+.box-codice-privacy h3 {
+  margin: 0;
+  font-family: 'Fraunces', serif;
+  font-size: 1.12rem;
+  font-weight: 500;
+  line-height: 1.25;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink);
+}
+.box-codice-privacy > p {
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.box-codice-privacy > p:last-child {
+  margin-bottom: 0;
+}
+.box-codice-privacy-esempio-label {
+  margin: 2px 0 6px !important;
+  font-size: 11px !important;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.box-codice-privacy-esempio {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px !important;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid color-mix(in srgb, var(--moss) 18%, var(--border));
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  color: var(--moss-dark);
+}
+.box-codice-privacy-chiave {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--moss);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--moss) 18%, transparent);
+  flex-shrink: 0;
+}
+.box-codice-privacy-chiusura {
+  font-size: 13px !important;
+}
+.box-codice-privacy-chiusura a {
+  color: var(--moss-dark);
+}
+
 .lead {
   color: var(--ink-soft);
   margin: 0 0 20px;

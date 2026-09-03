@@ -8,6 +8,7 @@ import {
   memorizzaCodiceRicordato
 } from '../lib/supabaseClient'
 import Disclaimer from '../components/Disclaimer.jsx'
+import BoxCodicePrivacy from '../components/BoxCodicePrivacy.jsx'
 
 function IconaPercorso({ id }) {
   const comune = {
@@ -331,15 +332,7 @@ export default function Iscrizione() {
       </section>
 
       <aside>
-        <div className="card card-lato">
-          <h3>Come funziona il codice</h3>
-          <p>
-            Nei questionari e nel log di pratica non compare il tuo nome.
-            Ti riconosci solo con un codice, ad esempio:
-          </p>
-          <p className="codice-esempio">MBSR-7K2Q8N3P</p>
-          <p>Solo tu sai a chi appartiene. Conservalo.</p>
-        </div>
+        <BoxCodicePrivacy />
       </aside>
     </div>
     </div>

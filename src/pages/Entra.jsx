@@ -10,6 +10,7 @@ import {
   supabaseConfigurato
 } from '../lib/supabaseClient'
 import Disclaimer from '../components/Disclaimer.jsx'
+import BoxCodicePrivacy from '../components/BoxCodicePrivacy.jsx'
 import { EMAIL_CONTATTO } from '../lib/contatti.js'
 
 export default function Entra() {
@@ -227,6 +228,7 @@ export default function Entra() {
         </div>
       </div>
       <aside>
+        <BoxCodicePrivacy />
         <div className="card card-lato">
           <h3>Non hai ancora il codice?</h3>
           <p>Prima iscriviti: riceverai un codice personale da conservare (a schermo e via email).</p>
