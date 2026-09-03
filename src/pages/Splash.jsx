@@ -1,13 +1,19 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth.jsx'
 import { destinazionePartecipante, usePartecipante } from '../lib/partecipante.jsx'
 import { leggiSplash, SPLASH_DEFAULT } from '../lib/splash.js'
 import iconaConscio from '../assets/icona-conscio.png'
 
 export default function Splash() {
-  const { facilitatore } = useAuth()
-  const { registrato, onboardingCompleto, t0Completo, percorsoPronto } = usePartecipante()
+  const { facilitatore, caricamento: authLoad } = useAuth()
+  const {
+    registrato,
+    caricamento,
+    onboardingCompleto,
+    t0Completo,
+    percorsoPronto
+  } = usePartecipante()
   const [testo, setTesto] = useState(SPLASH_DEFAULT)
 
   useEffect(() => {
@@ -18,15 +24,21 @@ export default function Splash() {
     return () => { vivo = false }
   }, [])
 
-  const destinazione = facilitatore
-    ? '/dashboard'
-    : registrato
-      ? destinazionePartecipante({
-        onboarding: onboardingCompleto,
-        t0: t0Completo,
-        pronto: percorsoPronto
-      })
-      : '/iscrizione'
+  if (!authLoad && !caricamento) {
+    if (facilitatore) return <Navigate to="/dashboard" replace />
+    if (registrato) {
+      const dove = percorsoPronto
+        ? '/programma'
+        : destinazionePartecipante({
+          onboarding: onboardingCompleto,
+          t0: t0Completo,
+          pronto: percorsoPronto
+        })
+      return <Navigate to={dove} replace />
+    }
+  }
+
+  const destinazione = '/iscrizione'
 
   return (
     <main className="splash">
