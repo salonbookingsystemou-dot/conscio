@@ -5,7 +5,7 @@ import { usePartecipante } from '../lib/partecipante.jsx'
 import ChiediCodice from '../components/ChiediCodice.jsx'
 import Disclaimer from '../components/Disclaimer.jsx'
 import CalendarioPratica from '../components/CalendarioPratica.jsx'
-import { ElencoLog } from '../components/VoceLog.jsx'
+import GraficoAndamentoPratica from '../components/GraficoAndamentoPratica.jsx'
 
 export default function LogPratica() {
   const { codice, registrato } = usePartecipante()
@@ -51,7 +51,7 @@ export default function LogPratica() {
       <p className="lead">
         Il diario della settimana sta in{' '}
         <Link to="/programma">Settimana</Link>, sotto ogni pratica.
-        Qui il calendario mostra i giorni con sessione e quelli senza.
+        Qui vedi l’andamento del tono nel tempo, collegato alle sessioni.
       </p>
       <Disclaimer />
 
@@ -76,20 +76,21 @@ export default function LogPratica() {
           <div className="card">
             <h3>
               {giornoAttivo
-                ? `Sessioni del ${new Date(`${giornoAttivo}T12:00:00`).toLocaleDateString('it-IT')}`
-                : 'Le tue sessioni'}
+                ? `Andamento del ${new Date(`${giornoAttivo}T12:00:00`).toLocaleDateString('it-IT')}`
+                : 'Andamento del tono'}
             </h3>
             {giornoAttivo && (
               <p className="hint">
                 <button type="button" className="btn btn-ghost" onClick={() => setGiornoAttivo(null)}>
-                  Mostra tutte
+                  Mostra tutto il percorso
                 </button>
               </p>
             )}
-            {visibili.length === 0 && (
+            {visibili.length === 0 ? (
               <p>{giornoAttivo ? 'Nessuna sessione in questo giorno.' : 'Nessuna sessione ancora registrata.'}</p>
+            ) : (
+              <GraficoAndamentoPratica sessioni={visibili} />
             )}
-            <ElencoLog righe={visibili} />
           </div>
         </>
       )}

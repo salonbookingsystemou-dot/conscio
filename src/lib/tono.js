@@ -36,6 +36,55 @@ function etichettaDataCorta(iso) {
   return data.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })
 }
 
+function etichettaTipoPratica(tipo) {
+  if (tipo === 'informale') return 'Informale'
+  if (tipo === 'formale') return 'Formale'
+  if (tipo === 'a_casa') return 'A casa'
+  if (tipo === 'body_scan') return 'Body scan'
+  if (tipo === 'seduta') return 'Meditazione seduta'
+  if (tipo === 'yoga') return 'Yoga consapevole'
+  if (tipo === 'ascolto') return 'Ascolto'
+  if (tipo === 'altro') return 'Altro'
+  return tipo || 'Pratica'
+}
+
+/** Una sessione = un punto, per l’andamento personale (nota al tap). */
+export function serieSessioniTono(righe) {
+  const punti = []
+  const contaGiorno = new Map()
+  const ordinate = [...(righe || [])].sort((a, b) => {
+    const da = String(a.data || '').slice(0, 10)
+    const db = String(b.data || '').slice(0, 10)
+    if (da !== db) return da.localeCompare(db)
+    return String(a.id || '').localeCompare(String(b.id || ''))
+  })
+
+  for (const riga of ordinate) {
+    const campo = riga.tono_dopo ? 'tono_dopo' : (riga.tono_prima ? 'tono_prima' : null)
+    if (!campo) continue
+    const valore = valoreTono(riga[campo])
+    if (valore == null) continue
+    const iso = String(riga.data || '').slice(0, 10)
+    if (!iso) continue
+    const n = (contaGiorno.get(iso) || 0) + 1
+    contaGiorno.set(iso, n)
+    punti.push({
+      id: riga.id || `${iso}-${n}`,
+      iso,
+      data: etichettaDataCorta(iso),
+      etichetta: n > 1 ? `${etichettaDataCorta(iso)} · ${n}` : etichettaDataCorta(iso),
+      valore,
+      tono: riga[campo],
+      momento: campo === 'tono_prima' ? 'All’inizio' : 'Dopo la pratica',
+      nota: (riga.note || '').trim(),
+      tipo: etichettaTipoPratica(riga.esercizio || riga.tipo),
+      minuti: riga.durata_minuti || null,
+      settimana: riga.numero_settimana || null
+    })
+  }
+  return punti
+}
+
 export function serieTonoGiornaliera(righe, campo = 'tono_dopo') {
   const perGiorno = new Map()
   for (const riga of righe || []) {
