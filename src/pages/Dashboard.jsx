@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { punteggioFfmq, punteggioPss10 } from '../lib/scoring'
 import GraficiTono from '../components/GraficiTono.jsx'
-import { ElencoLog } from '../components/VoceLog.jsx'
 import EditorSplash from '../components/EditorSplash.jsx'
 import { EMAIL_CONTATTO, STRUMENTI } from '../lib/contatti.js'
 import { addDays, formatISODate, oggiLocaleISO, parseISODate } from '../lib/date.js'
@@ -759,7 +758,7 @@ export default function Dashboard() {
             <div>
               <h2>Pratica</h2>
               <p className="lead">
-                Tono e log
+                Tono
                 {cicloAperto ? ` per «${cicloAperto.nome_ciclo}»` : ' di tutti i cicli'}
                 , solo per codice.
               </p>
@@ -771,11 +770,6 @@ export default function Dashboard() {
             </p>
           )}
           <GraficiTono sessioni={logVista} ambito={cicloAperto?.nome_ciclo} />
-          <div className="card">
-            <h3>Log di pratica</h3>
-            {logVista.length === 0 && <p>Nessun log ancora registrato.</p>}
-            <ElencoLog righe={logVista} raggruppaCodice />
-          </div>
         </div>
       )}
 
