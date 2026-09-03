@@ -5,8 +5,6 @@ import { usePartecipante } from '../lib/partecipante.jsx'
 import { pulisciAscoltoLocale } from '../lib/ascolto.js'
 import { EMAIL_CONTATTO } from '../lib/contatti.js'
 import ChiediCodice from '../components/ChiediCodice.jsx'
-import Disclaimer from '../components/Disclaimer.jsx'
-
 function scaricaJson(nome, dati) {
   const blob = new Blob([JSON.stringify(dati, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
@@ -104,7 +102,6 @@ export default function IMieiDati() {
         Qui eserciti accesso e portabilità: scarichi ciò che è collegato al tuo codice.
         Puoi anche azzerare questionari, diario e onboarding.
       </p>
-      <Disclaimer />
 
       {!registrato && (
         <ChiediCodice titolo="Per scaricare i tuoi dati, inserisci il codice partecipante." />

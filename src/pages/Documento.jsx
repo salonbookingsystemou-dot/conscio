@@ -1,5 +1,4 @@
 import { Link, Navigate, useParams } from 'react-router-dom'
-import Disclaimer from '../components/Disclaimer.jsx'
 import { EMAIL_CONTATTO, GARANTE_URL, SITO_APP, STRUMENTI, TITOLARE } from '../lib/contatti.js'
 
 const MAIL = <a href={`mailto:${EMAIL_CONTATTO}`}>{EMAIL_CONTATTO}</a>
@@ -371,7 +370,6 @@ export default function Documento() {
       <p className="badge">{meta.badge}</p>
       <h2>{meta.titolo}</h2>
       <p className="lead">{meta.lead}</p>
-      <Disclaimer />
       <div className="doc-corpo">
         <Corpo />
       </div>

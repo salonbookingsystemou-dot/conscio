@@ -398,7 +398,6 @@ export default function Questionari() {
             PSS-10 e FFMQ-I si aprono in quattro momenti del ciclo. Puoi compilare
             solo il momento disponibile ora.
           </p>
-          <Disclaimer />
         </header>
 
         {forzatoT0 && t0?.stato === 'aperto' && (
@@ -436,10 +435,10 @@ export default function Questionari() {
           </div>
 
           {t3aperto && (
-            <Disclaimer>
+            <p className="questionari-avviso is-azione">
               T3 è il follow-up a distanza: è il momento più facile da dimenticare, e per il
               percorso è importante quanto gli altri.
-            </Disclaimer>
+            </p>
           )}
 
           <ul className="tp-lista">
@@ -499,7 +498,6 @@ export default function Questionari() {
   return (
     <div>
       <h2>Questionari</h2>
-      <Disclaimer />
       {registrato ? (
         <p>Caricamento dei momenti…</p>
       ) : (

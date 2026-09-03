@@ -4,7 +4,6 @@ import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
 import { useAuth } from '../lib/auth.jsx'
 import { usePartecipante } from '../lib/partecipante.jsx'
 import ChiediCodice from '../components/ChiediCodice.jsx'
-import Disclaimer from '../components/Disclaimer.jsx'
 import CampoNota from '../components/CampoNota.jsx'
 import CalendarioPratica from '../components/CalendarioPratica.jsx'
 import TracciaGuidata from '../components/TracciaGuidata.jsx'
@@ -410,7 +409,6 @@ export default function Programma() {
             Tema e pratiche della settimana in corso. Ogni giorno ascolti le tracce formali,
             spunti le informali e poi apri le annotazioni.
           </p>
-          <Disclaimer />
           <ChiediCodice titolo="Per vedere la settimana di un partecipante, inserisci il codice." />
         </>
       )}
@@ -459,7 +457,6 @@ export default function Programma() {
               {badgeSettimana && <p className="badge badge-settimana">{badgeSettimana}</p>}
               <h2 className="settimana-titolo">{corrente.tema || `Settimana ${corrente.numero_settimana}`}</h2>
               {corrente.sottotitolo && <p className="lead settimana-sottotitolo">{corrente.sottotitolo}</p>}
-              <Disclaimer />
 
               {inizioSettimana && (
                 <CalendarioPratica

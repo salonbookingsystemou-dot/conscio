@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
 import { useAuth } from '../lib/auth.jsx'
 import { usePartecipante } from '../lib/partecipante.jsx'
-import Disclaimer from '../components/Disclaimer.jsx'
 import ChiediCodice from '../components/ChiediCodice.jsx'
 
 const TIPI = [
@@ -67,7 +66,6 @@ function AvvisiPartecipante() {
     <div>
       <h2>Avvisi</h2>
       <p className="lead">Promemoria e annunci del tuo ciclo, in ordine di tempo. Il follow-up T3 è segnalato.</p>
-      <Disclaimer />
       {!registrato && (
         <ChiediCodice titolo="Per vedere gli avvisi di un partecipante, inserisci il codice." />
       )}

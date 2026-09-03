@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
 import { usePartecipante } from '../lib/partecipante.jsx'
 import ChiediCodice from '../components/ChiediCodice.jsx'
-import Disclaimer from '../components/Disclaimer.jsx'
 import CalendarioPratica from '../components/CalendarioPratica.jsx'
 import GraficoAndamentoPratica from '../components/GraficoAndamentoPratica.jsx'
 
@@ -53,7 +52,6 @@ export default function LogPratica() {
         <Link to="/programma">Settimana</Link>, sotto ogni pratica.
         Qui vedi l’andamento del tono nel tempo, collegato alle sessioni.
       </p>
-      <Disclaimer />
 
       {!registrato && (
         <ChiediCodice titolo="Per vedere lo storico di un partecipante, inserisci il codice." />
