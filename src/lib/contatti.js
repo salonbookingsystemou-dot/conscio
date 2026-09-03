@@ -1,10 +1,12 @@
 export const EMAIL_CONTATTO = 'contact@wordpresschef.it'
 export const SITO_APP = 'https://conscio.mnesti.it'
+export const SITO_HANUMAN = 'https://www.hanumanstudio.it/'
 export const GARANTE_URL = 'https://www.garanteprivacy.it/'
 
-/** Ente organizzatore (footer e riferimenti pubblici). */
+/** Ente organizzatore (riferimenti pubblici). */
 export const ORGANIZZAZIONE = {
-  nome: 'STUDIO HANUMAN',
+  nome: 'A.S.D. HANUMAN',
+  sito: SITO_HANUMAN,
   descrizione: 'A.S.D. riconosciuta dal C.O.N.I.',
   via: 'Via San Leonardo, 14',
   citta: 'Ariano Irpino (AV)'
