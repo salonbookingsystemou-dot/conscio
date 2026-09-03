@@ -754,15 +754,42 @@ a { color: var(--moss-dark); }
   line-height: 1.45;
 }
 .avvertenza {
+  position: relative;
   display: flex;
   gap: 14px;
   align-items: flex-start;
   margin: 16px 0;
-  padding: 14px 16px;
+  padding: 14px 40px 14px 16px;
   border: 1px solid color-mix(in srgb, #C45B4A 28%, var(--border));
   border-radius: 14px;
   background: color-mix(in srgb, #C45B4A 7%, var(--surface));
   box-shadow: inset 3px 0 0 #C45B4A;
+}
+.avvertenza-chiudi {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.avvertenza-chiudi svg {
+  width: 18px;
+  height: 18px;
+}
+.avvertenza-chiudi:hover,
+.avvertenza-chiudi:focus-visible {
+  background: color-mix(in srgb, #C45B4A 10%, var(--surface));
+  color: var(--ink);
+  outline: none;
 }
 .avvertenza-icona {
   flex: 0 0 auto;
