@@ -405,30 +405,30 @@ a { color: var(--moss-dark); }
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: transparent;
-  border: none;
-  color: var(--moss-dark);
+  background: color-mix(in srgb, var(--tint) 80%, #fff);
+  border: 1px solid color-mix(in srgb, var(--moss) 18%, var(--border));
+  color: var(--moss);
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 .avviso-dati-icona {
-  width: 44px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
   display: block;
 }
 .avviso-dati-testo {
   min-width: 0;
   flex: 1;
 }
-.avviso-dati-titolo {
+.avviso-dati-testo .avviso-dati-titolo {
   margin: 0 0 6px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--moss-dark);
   line-height: 1.3;
 }
-.avviso-dati-testo p {
+.avviso-dati-testo p:not(.avviso-dati-titolo) {
   margin: 0 0 8px;
   font-size: 13px;
   font-weight: 400;
