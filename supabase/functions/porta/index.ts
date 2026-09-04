@@ -4,6 +4,7 @@
 // Opzionale per email codice: RESEND_API_KEY, RESEND_FROM.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { htmlConFirma, testoConFirma } from '../_shared/firmaEmail.ts'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -66,11 +67,11 @@ function escapeIlike(s: string): string {
   return s.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_')
 }
 
-async function inviaCodiceEmail(opts: {
+async function inviaEmail(opts: {
   to: string
-  codice: string
   oggetto: string
   testo: string
+  replyTo?: string
 }): Promise<boolean> {
   const apiKey = Deno.env.get('RESEND_API_KEY')
   if (!apiKey) return false
@@ -85,15 +86,29 @@ async function inviaCodiceEmail(opts: {
       body: JSON.stringify({
         from,
         to: [opts.to],
-        reply_to: REPLY_TO,
+        reply_to: opts.replyTo || REPLY_TO,
         subject: opts.oggetto,
-        text: opts.testo
+        text: testoConFirma(opts.testo),
+        html: htmlConFirma(opts.testo)
       })
     })
     return res.ok
   } catch {
     return false
   }
+}
+
+function inviaCodiceEmail(opts: {
+  to: string
+  codice: string
+  oggetto: string
+  testo: string
+}): Promise<boolean> {
+  return inviaEmail({
+    to: opts.to,
+    oggetto: opts.oggetto,
+    testo: opts.testo
+  })
 }
 
 function testoRecupero(codice: string): string {
@@ -127,6 +142,30 @@ function testoIscrizione(codice: string): string {
     `Per assistenza: ${REPLY_TO}`,
     '',
     '— Percorso MBSR'
+  ].join('\n')
+}
+
+function testoAvvisoIscrizione(opts: {
+  email: string
+  codice: string
+  soloRemoto: boolean
+  nomeCiclo: string | null
+}): string {
+  const destinazione = opts.soloRemoto
+    ? 'Modalità: solo da remoto (non collegato a un ciclo)'
+    : opts.nomeCiclo
+      ? `Ciclo: ${opts.nomeCiclo}`
+      : 'Ciclo: in presenza'
+  return [
+    'Nuova iscrizione al Percorso MBSR.',
+    '',
+    `Email: ${opts.email}`,
+    `Codice: ${opts.codice}`,
+    destinazione,
+    '',
+    'Lo screening si gestisce dalla dashboard.',
+    '',
+    '— App Conscio'
   ].join('\n')
 }
 
@@ -215,13 +254,37 @@ Deno.serve(async (req) => {
         ? (data as { codice: string }).codice
         : codice
     if (emailValida(email) && assegnato) {
+      let nomeCiclo: string | null = null
+      if (!solo_remoto && ciclo_id) {
+        const { data: ciclo } = await admin
+          .from('cicli')
+          .select('nome_ciclo')
+          .eq('id', ciclo_id)
+          .maybeSingle()
+        nomeCiclo = typeof ciclo?.nome_ciclo === 'string' ? ciclo.nome_ciclo : null
+      }
       // Best effort: l’iscrizione resta valida anche se Resend fallisce.
-      await inviaCodiceEmail({
-        to: email,
-        codice: assegnato,
-        oggetto: 'Il tuo codice partecipante — Percorso MBSR',
-        testo: testoIscrizione(assegnato)
-      })
+      await Promise.all([
+        inviaCodiceEmail({
+          to: email,
+          codice: assegnato,
+          oggetto: 'Il tuo codice partecipante — Percorso MBSR',
+          testo: testoIscrizione(assegnato)
+        }),
+        inviaEmail({
+          to: REPLY_TO,
+          oggetto: solo_remoto
+            ? 'Nuova iscrizione — solo da remoto'
+            : 'Nuova iscrizione — Percorso MBSR',
+          testo: testoAvvisoIscrizione({
+            email,
+            codice: assegnato,
+            soloRemoto: solo_remoto,
+            nomeCiclo
+          }),
+          replyTo: email
+        })
+      ])
     }
 
     return json(data ?? { ok: true })
@@ -294,6 +357,22 @@ Deno.serve(async (req) => {
         user: data.session.user
       }
     })
+  }
+
+  if (azione === 'prova_firma') {
+    const blocco = await limita('prova_firma', chiaveIp, 3, 3600)
+    if (blocco) return blocco
+    const ok = await inviaEmail({
+      to: REPLY_TO,
+      oggetto: 'Prova firma — Percorso MBSR',
+      testo: [
+        'Questa è una prova di invio.',
+        '',
+        'Se la leggi, le notifiche operative sono collegate e in calce vedi la firma con l’icona dell’app.'
+      ].join('\n')
+    })
+    if (!ok) return json({ error: 'INVIO_NON_RIUSCITO' }, 502)
+    return json({ ok: true, destinatario: REPLY_TO })
   }
 
   return json({ error: 'AZIONE_NON_VALIDA' }, 400)

@@ -52,7 +52,7 @@ Entra, Iscrizione, recupero codice e Accedi facilitatore passano dall’edge fun
    Per la fruizione remota: `supabase/migrazione_modalita_fruizione.sql`
    e `supabase/migrazione_iscrizione_solo_remoto.sql`. Poi ridistribuisci `porta`.
 2. Distribuisci: `supabase functions deploy porta`.
-3. Per inviare il codice all’iscrizione e al recupero, la funzione usa gli stessi secret Resend di `invia-comunicazione` (`RESEND_API_KEY`, opzionale `RESEND_FROM`).
+3. Per inviare il codice all’iscrizione e al recupero, la funzione usa gli stessi secret Resend di `invia-comunicazione` (`RESEND_API_KEY`, opzionale `RESEND_FROM`). A ogni iscrizione parte anche un avviso a `contact@wordpresschef.it`.
 4. Opzionale in Auth (dashboard Supabase): protezione password compromesse e MFA sull’account facilitatore.
 
 Il recupero codice è “cieco”: l’app non mostra mai email↔codice; se l’email è in anagrafe e non ancora separata, Resend invia il codice. La risposta a schermo è sempre generica.

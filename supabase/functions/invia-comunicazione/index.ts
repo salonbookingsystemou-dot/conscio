@@ -3,6 +3,7 @@
 // Non legge risposte né log: usa solo email_destinatari_ciclo.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { htmlConFirma, testoConFirma } from '../_shared/firmaEmail.ts'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -117,7 +118,8 @@ Deno.serve(async (req) => {
         to: [to],
         reply_to: 'contact@wordpresschef.it',
         subject: oggetto,
-        text: com.testo
+        text: testoConFirma(com.testo || ''),
+        html: htmlConFirma(com.testo || '')
       })
     })
     const corpo = await res.json().catch(() => null)
