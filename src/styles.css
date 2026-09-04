@@ -889,6 +889,35 @@ a { color: var(--moss-dark); }
   border-left: 1px solid var(--border);
 }
 .ciclo-card .badge { flex-shrink: 0; }
+@media (max-width: 640px) {
+  .ciclo-card {
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+  }
+  .ciclo-card input {
+    margin-top: 2px;
+  }
+  .ciclo-card-testata {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  .ciclo-card strong {
+    font-size: 1.1rem;
+  }
+  .ciclo-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  .ciclo-meta span + span {
+    padding-left: 0;
+    border-left: none;
+  }
+}
 
 .tp-lista {
   list-style: none;
