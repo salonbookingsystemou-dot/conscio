@@ -235,11 +235,9 @@ export default function Iscrizione() {
                 <span className="ciclo-card-corpo">
                   <span className="ciclo-card-testata">
                     <strong>Solo da remoto</strong>
-                    <span className="badge">remoto</span>
                   </span>
                   <span className="ciclo-meta">
-                    <span>Senza ciclo in corso</span>
-                    <span>Non occupa posti in presenza</span>
+                    <span>Svolto in autonomia da casa</span>
                   </span>
                 </span>
               </label>
