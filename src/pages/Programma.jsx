@@ -25,6 +25,33 @@ function etichettaSettimana(numero) {
   return numero === 9 ? 'Intensiva' : `Settimana ${numero}`
 }
 
+function linkIncontroSicuro(valore) {
+  const pulito = String(valore || '').trim()
+  return /^https:\/\//i.test(pulito) ? pulito : null
+}
+
+function InvitoIncontroRemoto({ link }) {
+  const sicuro = linkIncontroSicuro(link)
+  return (
+    <aside className="invito-remoto" aria-label="Incontro di gruppo da remoto">
+      <p className="invito-remoto-titolo">Fruisci da remoto</p>
+      <p>
+        Non sei in presenza all’appuntamento di gruppo. Il percorso in app è lo stesso:
+        settimane, tracce e questionari.
+      </p>
+      {sicuro ? (
+        <a className="btn" href={sicuro} target="_blank" rel="noopener noreferrer">
+          Entra all’incontro
+        </a>
+      ) : (
+        <p className="hint">
+          Il link dell’incontro comparirà qui quando chi conduce il percorso lo pubblicherà.
+        </p>
+      )}
+    </aside>
+  )
+}
+
 function eFormale(esercizio) {
   const tipo = (esercizio.tipo || '').toLowerCase()
   return tipo === 'formale' || tipo === 'a_casa'
@@ -47,6 +74,7 @@ function etichettaDurataMinuti(minuti, secondiTraccia) {
 
 function VuotoProgramma({ ciclo, facilitatore }) {
   const nome = ciclo?.nome_ciclo
+  const remotoSenzaCiclo = ciclo?.modalita_fruizione === 'remoto' && !ciclo?.data_inizio
   const inizio = ciclo?.data_inizio
     ? new Date(`${String(ciclo.data_inizio).slice(0, 10)}T12:00:00`).toLocaleDateString('it-IT')
     : null
@@ -63,13 +91,19 @@ function VuotoProgramma({ ciclo, facilitatore }) {
           <rect x="74" y="48" width="18" height="14" rx="4" stroke="currentColor" strokeWidth="1.8" strokeDasharray="3 3" opacity="0.55" />
         </svg>
       </div>
-      <p className="badge badge-settimana">Programma in preparazione</p>
-      <h2 className="settimana-titolo">Ancora nessuna settimana</h2>
+      <p className="badge badge-settimana">
+        {remotoSenzaCiclo ? 'Percorso da remoto' : 'Programma in preparazione'}
+      </p>
+      <h2 className="settimana-titolo">
+        {remotoSenzaCiclo ? 'Non sei collegato a un ciclo' : 'Ancora nessuna settimana'}
+      </h2>
       <p className="lead settimana-sottotitolo">
-        {nome
-          ? `Per «${nome}» non ci sono ancora temi né pratiche da seguire giorno per giorno.`
-          : 'Il programma di questa edizione non ha ancora settimane e pratiche pubblicate.'}
-        {inizio ? ` L’inizio previsto è il ${inizio}.` : ''}
+        {remotoSenzaCiclo
+          ? 'Hai chiesto di fruire solo da remoto. Le settimane e le tracce si aprono quando chi conduce ti collega a un percorso, senza occupare i posti in presenza.'
+          : nome
+            ? `Per «${nome}» non ci sono ancora temi né pratiche da seguire giorno per giorno.`
+            : 'Il programma di questa edizione non ha ancora settimane e pratiche pubblicate.'}
+        {!remotoSenzaCiclo && inizio ? ` L’inizio previsto è il ${inizio}.` : ''}
       </p>
       {facilitatore ? (
         <div className="settimana-vuoto-azioni">
@@ -414,6 +448,10 @@ export default function Programma() {
       )}
       {registrato && invio && !aperto && <p>Caricamento del programma…</p>}
       {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+
+      {aperto && ciclo?.modalita_fruizione === 'remoto' && ciclo?.data_inizio && (
+        <InvitoIncontroRemoto link={ciclo.link_incontro} />
+      )}
 
       {aperto && lezioni.length === 0 && (
         <VuotoProgramma ciclo={ciclo} facilitatore={facilitatore} />

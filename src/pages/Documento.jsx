@@ -80,7 +80,7 @@ function Informativa() {
       <ul>
         <li>indirizzo email (solo per le comunicazioni del percorso);</li>
         <li>codice partecipante (es. MBSR-7K2Q8N3P);</li>
-        <li>ciclo scelto e data di iscrizione;</li>
+        <li>ciclo scelto oppure richiesta di iscrizione solo da remoto (senza ciclo in corso), data di iscrizione e modalità di fruizione;</li>
         <li>accettazione del Modulo A e, se la dai, del Modulo B;</li>
         <li>risposte ai questionari PSS-10 e FFMQ-I nei momenti T0, T1, T2 e T3;</li>
         <li>
@@ -280,7 +280,9 @@ function ModuloA() {
         <li>
           Ho capito che questo è un percorso di pratica di consapevolezza
           (mindfulness) a scopo di ricerca, in gruppo, della durata di otto
-          settimane, con eventuale giornata intensiva. Non è un percorso
+          settimane, con eventuale giornata intensiva. L’appuntamento settimanale
+          è di norma in presenza. Posso chiedere in iscrizione di fruire solo da
+          remoto, senza legarmi al ciclo in corso. Non è un percorso
           terapeutico, non è una presa in carico psicologica e non è condotto da
           uno psicologo abilitato.
         </li>

@@ -190,17 +190,19 @@ Deno.serve(async (req) => {
     if (bloccoGiorno) return bloccoGiorno
 
     const email = typeof corpo.email === 'string' ? corpo.email.trim() : ''
-    const ciclo_id = typeof corpo.ciclo_id === 'string' ? corpo.ciclo_id : ''
+    const ciclo_id = typeof corpo.ciclo_id === 'string' ? corpo.ciclo_id.trim() : ''
     const codice = typeof corpo.codice === 'string' ? corpo.codice.trim() : ''
     const consenso_a = Boolean(corpo.consenso_a)
     const consenso_b = Boolean(corpo.consenso_b)
+    const solo_remoto = Boolean(corpo.solo_remoto)
 
     const { data, error } = await admin.rpc('iscrivi_partecipante', {
       p_email: email,
-      p_ciclo_id: ciclo_id,
+      p_ciclo_id: solo_remoto || !ciclo_id ? null : ciclo_id,
       p_codice: codice,
       p_consenso_a: consenso_a,
-      p_consenso_b: consenso_b
+      p_consenso_b: consenso_b,
+      p_solo_remoto: solo_remoto
     })
     if (error) {
       const codiceErr = messaggioErrore(error)

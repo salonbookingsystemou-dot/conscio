@@ -14,6 +14,11 @@ const ESITI = [
   { id: 'da_ricontattare', label: 'Da ricontattare' }
 ]
 
+const MODALITA = [
+  { id: 'presenza', label: 'In presenza' },
+  { id: 'remoto', label: 'Da remoto' }
+]
+
 const TAB = [
   { id: 'cicli', label: 'Cicli' },
   { id: 'questionari', label: 'Questionari' },
@@ -49,6 +54,16 @@ function aggregaPunteggi(righe) {
 
 function eIdoneo(iscrizione) {
   return iscrizione.esito_screening === 'idoneo' || iscrizione.utenti?.stato_screening === 'idoneo'
+}
+
+function eRemoto(iscrizione) {
+  return (iscrizione.modalita_fruizione || 'presenza') === 'remoto'
+}
+
+function linkIncontroValido(valore) {
+  const pulito = String(valore || '').trim()
+  if (!pulito) return null
+  return /^https:\/\//i.test(pulito) ? pulito : false
 }
 
 function etichettaPeriodo(inizioIso, fineIso) {
@@ -112,6 +127,7 @@ export default function Dashboard() {
     posti_totali: 8,
     stato: 'reclutamento'
   })
+  const [linkIncontro, setLinkIncontro] = useState('')
 
   async function carica() {
     try {
@@ -119,11 +135,11 @@ export default function Dashboard() {
         supabase.rpc('separa_email_cicli_conclusi'),
         supabase
           .from('cicli')
-          .select('id, nome_ciclo, data_inizio, data_fine, stato, posti_totali, iscrizioni(count)')
+          .select('id, nome_ciclo, data_inizio, data_fine, stato, posti_totali, link_incontro, iscrizioni(count)')
           .order('data_inizio', { ascending: false }),
         supabase
           .from('iscrizioni')
-          .select('id, esito_screening, ciclo_id, utenti(codice_partecipante, email, stato_screening)'),
+          .select('id, esito_screening, modalita_fruizione, ciclo_id, utenti(codice_partecipante, email, stato_screening)'),
         supabase.rpc('risposte_pseudonime'),
         supabase.rpc('log_pratica_pseudonimi')
       ])
@@ -174,7 +190,7 @@ export default function Dashboard() {
       data_fine: form.data_fine || null,
       posti_totali: Number(form.posti_totali) || 8,
       stato: form.stato
-    }).select('id, nome_ciclo, data_inizio, data_fine, stato, posti_totali').single()
+    }).select('id, nome_ciclo, data_inizio, data_fine, stato, posti_totali, link_incontro').single()
 
     if (error || !data) {
       setErrore('Non è stato possibile creare il ciclo.')
@@ -227,8 +243,16 @@ export default function Dashboard() {
     await carica()
   }
 
-  function contaIdonei(cicloId) {
-    return iscritti.filter(i => i.ciclo_id === cicloId && eIdoneo(i)).length
+  function contaIdoneiPresenza(cicloId) {
+    return iscritti.filter(i => i.ciclo_id === cicloId && eIdoneo(i) && !eRemoto(i)).length
+  }
+
+  function contaIdoneiRemoti(cicloId) {
+    return iscritti.filter(i => i.ciclo_id === cicloId && eIdoneo(i) && eRemoto(i)).length
+  }
+
+  function messaggioPostiPieni() {
+    return 'I posti in presenza di questo ciclo sono già al completo. Puoi ancora segnare la persona come da remoto.'
   }
 
   async function aggiornaEsito(iscrizione, esito) {
@@ -238,7 +262,7 @@ export default function Dashboard() {
       p_esito: esito
     })
     if (error?.message?.includes('POSTI_IDONEI_PIENI')) {
-      setErrore('I posti idonei di questo ciclo sono già al completo.')
+      setErrore(messaggioPostiPieni())
       return
     }
     if (error) {
@@ -246,6 +270,52 @@ export default function Dashboard() {
       return
     }
     carica()
+  }
+
+  async function aggiornaModalita(iscrizione, modalita) {
+    setErrore(null)
+    const { error } = await supabase.rpc('imposta_modalita_fruizione', {
+      p_iscrizione_id: iscrizione.id,
+      p_modalita: modalita
+    })
+    if (error?.message?.includes('POSTI_IDONEI_PIENI')) {
+      setErrore(messaggioPostiPieni())
+      return
+    }
+    if (error?.message?.includes('CICLO_MANCANTE')) {
+      setErrore('Per passare in presenza collega prima questa iscrizione a un ciclo.')
+      return
+    }
+    if (error) {
+      setErrore('Non è stato possibile aggiornare la modalità di fruizione.')
+      return
+    }
+    carica()
+  }
+
+  async function assegnaACiclo(iscrizione, cicloId) {
+    if (!cicloId) return
+    setErrore(null)
+    const { error } = await supabase.rpc('assegna_iscrizione_a_ciclo', {
+      p_iscrizione_id: iscrizione.id,
+      p_ciclo_id: cicloId
+    })
+    if (error) {
+      setErrore('Non è stato possibile collegare questa iscrizione a un ciclo.')
+      return
+    }
+    carica()
+  }
+
+  async function salvaLinkIncontro() {
+    if (!cicloAperto) return
+    const valido = linkIncontroValido(linkIncontro)
+    if (valido === false) {
+      setErrore('Il link dell’incontro deve iniziare con https://')
+      return
+    }
+    setErrore(null)
+    await aggiornaCiclo(cicloAperto.id, { link_incontro: valido })
   }
 
   async function eliminaIscritto(iscrizione) {
@@ -266,21 +336,34 @@ export default function Dashboard() {
   }
 
   const cicloAperto = cicli.find(c => c.id === aperto)
+
+  useEffect(() => {
+    setLinkIncontro(cicloAperto?.link_incontro || '')
+  }, [cicloAperto?.id, cicloAperto?.link_incontro])
+
   const iscrittiCiclo = useMemo(
     () => (aperto ? iscritti.filter(i => i.ciclo_id === aperto) : []),
     [iscritti, aperto]
   )
+  const iscrittiRemotiLiberi = useMemo(
+    () => iscritti.filter(i => !i.ciclo_id),
+    [iscritti]
+  )
   const sintesiCiclo = useMemo(() => {
     if (!cicloAperto) return null
-    const idonei = iscrittiCiclo.filter(eIdoneo).length
+    const idoneiPresenza = iscrittiCiclo.filter(i => eIdoneo(i) && !eRemoto(i)).length
+    const idoneiRemoti = iscrittiCiclo.filter(i => eIdoneo(i) && eRemoto(i)).length
+    const idonei = idoneiPresenza + idoneiRemoti
     const inAttesa = iscrittiCiclo.length - idonei
     const posti = cicloAperto.posti_totali || 8
     const avanzamento = etichettaAvanzamento(cicloAperto)
     return {
       idonei,
+      idoneiPresenza,
+      idoneiRemoti,
       inAttesa,
       posti,
-      pctPosti: Math.min(100, Math.round((idonei / posti) * 100)),
+      pctPosti: Math.min(100, Math.round((idoneiPresenza / posti) * 100)),
       avanzamento
     }
   }, [cicloAperto, iscrittiCiclo])
@@ -447,7 +530,7 @@ export default function Dashboard() {
                     </div>
                     <div className="riga-due">
                       <div className="field">
-                        <label>Posti</label>
+                        <label>Posti in presenza</label>
                         <input type="number" min="1" max="8" value={form.posti_totali} onChange={e => setForm({ ...form, posti_totali: e.target.value })} />
                       </div>
                       <div className="field">
@@ -476,9 +559,10 @@ export default function Dashboard() {
                   <p className="dash-tabella-vuoto">Nessun ciclo ancora creato.</p>
                 )}
                 {cicli.map(c => {
-                  const idonei = contaIdonei(c.id)
+                  const idoneiPresenza = contaIdoneiPresenza(c.id)
+                  const remoti = contaIdoneiRemoti(c.id)
                   const posti = c.posti_totali || 8
-                  const pctPosti = Math.min(100, Math.round((idonei / posti) * 100))
+                  const pctPosti = Math.min(100, Math.round((idoneiPresenza / posti) * 100))
                   const avanzamento = etichettaAvanzamento(c)
                   return (
                     <article key={c.id} className="dash-riga-ciclo">
@@ -492,7 +576,10 @@ export default function Dashboard() {
                         </span>
                       </div>
                       <div className="dash-riga-progresso">
-                        <span>{idonei} / {posti} posti</span>
+                        <span>
+                          {idoneiPresenza} / {posti} in presenza
+                          {remoti > 0 ? ` · ${remoti} remot${remoti === 1 ? 'o' : 'i'}` : ''}
+                        </span>
                         <span className="dash-barra" aria-hidden="true">
                           <span className="dash-barra-fill is-posti" style={{ width: `${pctPosti}%` }} />
                         </span>
@@ -519,6 +606,70 @@ export default function Dashboard() {
                   )
                 })}
               </div>
+
+              <section className="dash-ciclo-sezione" aria-labelledby="remoti-liberi-titolo">
+                <header className="dash-ciclo-sezione-testa">
+                  <div>
+                    <h3 id="remoti-liberi-titolo">
+                      Solo da remoto
+                      <span className="dash-ciclo-conteggio">{iscrittiRemotiLiberi.length}</span>
+                    </h3>
+                    <p className="hint">
+                      Si sono iscritti senza il ciclo in corso. Non occupano posti in presenza.
+                      Dopo lo screening puoi collegarli a un’edizione, restando da remoto.
+                    </p>
+                  </div>
+                </header>
+                {iscrittiRemotiLiberi.length === 0 ? (
+                  <div className="dash-ciclo-vuoto" role="status">
+                    <p>Nessuna iscrizione solo remota in attesa di ciclo.</p>
+                  </div>
+                ) : (
+                  <ul className="dash-iscrizioni">
+                    {iscrittiRemotiLiberi.map(i => (
+                      <li key={i.id} className="dash-iscrizione is-libera">
+                        <div className="dash-iscrizione-persona">
+                          <span className="badge">{i.utenti?.codice_partecipante || '—'}</span>
+                          <span className="badge badge-modalita is-remoto">remoto</span>
+                          <span className="dash-iscrizione-email">
+                            {i.utenti?.email || 'Nessuna email'}
+                          </span>
+                        </div>
+                        <label className="dash-iscrizione-esito">
+                          <select
+                            value={i.esito_screening || 'in_attesa'}
+                            onChange={e => aggiornaEsito(i, e.target.value)}
+                            aria-label={`Screening ${i.utenti?.codice_partecipante || ''}`}
+                          >
+                            {ESITI.map(e => (
+                              <option key={e.id} value={e.id}>{e.label}</option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="dash-iscrizione-esito">
+                          <select
+                            defaultValue=""
+                            onChange={e => assegnaACiclo(i, e.target.value)}
+                            aria-label={`Collega ${i.utenti?.codice_partecipante || ''} a un ciclo`}
+                          >
+                            <option value="">Collega a un ciclo…</option>
+                            {cicli.map(c => (
+                              <option key={c.id} value={c.id}>{c.nome_ciclo}</option>
+                            ))}
+                          </select>
+                        </label>
+                        <button
+                          type="button"
+                          className="btn-elimina"
+                          onClick={() => eliminaIscritto(i)}
+                        >
+                          Rimuovi
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
 
               <p className="dash-nota-privacy">
                 Le risposte ai questionari sono consultabili solo in forma aggregata e per codice
@@ -556,9 +707,9 @@ export default function Dashboard() {
 
                 <div className="dash-ciclo-stats" aria-label="Sintesi del ciclo">
                   <div className="dash-ciclo-stat">
-                    <span className="dash-ciclo-stat-label">Posti idonei</span>
+                    <span className="dash-ciclo-stat-label">In presenza</span>
                     <strong className="dash-ciclo-stat-valore">
-                      {sintesiCiclo.idonei} / {sintesiCiclo.posti}
+                      {sintesiCiclo.idoneiPresenza} / {sintesiCiclo.posti}
                     </strong>
                     <span className="dash-barra" aria-hidden="true">
                       <span
@@ -566,6 +717,12 @@ export default function Dashboard() {
                         style={{ width: `${sintesiCiclo.pctPosti}%` }}
                       />
                     </span>
+                  </div>
+                  <div className="dash-ciclo-stat">
+                    <span className="dash-ciclo-stat-label">Da remoto</span>
+                    <strong className="dash-ciclo-stat-valore">
+                      {sintesiCiclo.idoneiRemoti}
+                    </strong>
                   </div>
                   <div className="dash-ciclo-stat">
                     <span className="dash-ciclo-stat-label">In attesa</span>
@@ -594,6 +751,7 @@ export default function Dashboard() {
                       <p className="hint">
                         Prima dell’inizio i questionari segnalano che il ciclo non è partito; T0 resta disponibile.
                         Senza data di fine si usano circa 9 settimane dall’inizio.
+                        Il link dell’incontro è visibile solo a chi fruisce da remoto.
                       </p>
                     </div>
                   </header>
@@ -631,6 +789,23 @@ export default function Dashboard() {
                         })}
                       />
                     </div>
+                    <div className="field dash-ciclo-campo-largo">
+                      <label htmlFor="ciclo-link">Link incontro remoto</label>
+                      <div className="dash-ciclo-link">
+                        <input
+                          id="ciclo-link"
+                          type="url"
+                          inputMode="url"
+                          placeholder="https://…"
+                          value={linkIncontro}
+                          onChange={e => setLinkIncontro(e.target.value)}
+                          onBlur={salvaLinkIncontro}
+                        />
+                        <button type="button" className="btn btn-ghost" onClick={salvaLinkIncontro}>
+                          Salva
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </section>
 
@@ -643,6 +818,8 @@ export default function Dashboard() {
                       </h3>
                       <p className="hint">
                         L’email serve solo al contatto. Nei dati di ricerca resta il codice.
+                        I posti in presenza valgono solo per chi è idoneo e in stanza:
+                        da remoto non occupano un posto.
                       </p>
                     </div>
                   </header>
@@ -651,7 +828,7 @@ export default function Dashboard() {
                     <div className="dash-ciclo-vuoto" role="status">
                       <p>Nessuna iscrizione in questo ciclo.</p>
                       <p className="hint">
-                        Quando qualcuno si iscrive, qui gestisci lo screening e i posti idonei.
+                        Quando qualcuno si iscrive, qui gestisci screening, modalità e posti in presenza.
                       </p>
                     </div>
                   ) : (
@@ -660,6 +837,9 @@ export default function Dashboard() {
                         <li key={i.id} className="dash-iscrizione">
                           <div className="dash-iscrizione-persona">
                             <span className="badge">{i.utenti?.codice_partecipante || '—'}</span>
+                            {eRemoto(i) && (
+                              <span className="badge badge-modalita is-remoto">remoto</span>
+                            )}
                             <span className="dash-iscrizione-email">
                               {i.utenti?.email || 'Nessuna email'}
                             </span>
@@ -672,6 +852,17 @@ export default function Dashboard() {
                             >
                               {ESITI.map(e => (
                                 <option key={e.id} value={e.id}>{e.label}</option>
+                              ))}
+                            </select>
+                          </label>
+                          <label className="dash-iscrizione-esito">
+                            <select
+                              value={i.modalita_fruizione || 'presenza'}
+                              onChange={e => aggiornaModalita(i, e.target.value)}
+                              aria-label={`Modalità ${i.utenti?.codice_partecipante || ''}`}
+                            >
+                              {MODALITA.map(m => (
+                                <option key={m.id} value={m.id}>{m.label}</option>
                               ))}
                             </select>
                           </label>

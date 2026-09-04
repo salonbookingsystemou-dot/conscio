@@ -27,7 +27,8 @@ create table cicli (
   data_inizio date not null,
   data_fine date,
   stato text not null default 'reclutamento' check (stato in ('reclutamento', 'attivo', 'concluso')),
-  posti_totali int not null default 8
+  posti_totali int not null default 8,
+  link_incontro text check (link_incontro is null or link_incontro ~* '^https://')
 );
 
 create table iscrizioni (
@@ -35,7 +36,8 @@ create table iscrizioni (
   utente_id uuid references utenti(id) on delete cascade,
   ciclo_id uuid references cicli(id) on delete cascade,
   data_iscrizione timestamptz default now(),
-  esito_screening text default 'in_attesa'
+  esito_screening text default 'in_attesa',
+  modalita_fruizione text not null default 'presenza' check (modalita_fruizione in ('presenza', 'remoto'))
 );
 
 create table lezioni (
@@ -426,7 +428,8 @@ create or replace function iscrivi_partecipante(
   p_ciclo_id uuid,
   p_codice text,
   p_consenso_a boolean,
-  p_consenso_b boolean
+  p_consenso_b boolean,
+  p_solo_remoto boolean default false
 )
 returns jsonb
 language plpgsql
@@ -436,8 +439,13 @@ as $$
 declare
   v_utente_id uuid;
   v_posti int;
-  v_iscritti int;
+  v_coda int;
+  v_ciclo uuid;
+  v_solo boolean;
 begin
+  v_solo := coalesce(p_solo_remoto, false);
+  v_ciclo := case when v_solo then null else p_ciclo_id end;
+
   if coalesce(p_consenso_a, false) is not true then
     raise exception 'CONSENSO_A_OBBLIGATORIO';
   end if;
@@ -450,30 +458,42 @@ begin
     raise exception 'CODICE_MANCANTE';
   end if;
 
-  perform 1 from cicli where id = p_ciclo_id and stato = 'reclutamento' for update;
-  if not found then
-    raise exception 'CICLO_NON_DISPONIBILE';
-  end if;
-
-  select posti_totali into v_posti from cicli where id = p_ciclo_id;
-  select count(*) into v_iscritti
-  from iscrizioni i
-  join utenti u on u.id = i.utente_id
-  where i.ciclo_id = p_ciclo_id
-    and (i.esito_screening = 'idoneo' or u.stato_screening = 'idoneo');
-
-  if v_iscritti >= coalesce(v_posti, 0) then
-    raise exception 'CICLO_PIENO';
-  end if;
-
   if exists (
     select 1
     from utenti u
     join iscrizioni i on i.utente_id = u.id
-    where i.ciclo_id = p_ciclo_id
+    where u.ruolo = 'partecipante'
       and lower(trim(u.email)) = lower(trim(p_email))
   ) then
     raise exception 'EMAIL_GIA_ISCRITTA';
+  end if;
+
+  if v_solo then
+    select count(*) into v_coda
+    from iscrizioni i
+    join utenti u on u.id = i.utente_id
+    where i.ciclo_id is null
+      and not (i.esito_screening = 'idoneo' or u.stato_screening = 'idoneo');
+    if v_coda >= 30 then
+      raise exception 'CODA_ISCRIZIONI_PIENA';
+    end if;
+  else
+    if v_ciclo is null then
+      raise exception 'CICLO_NON_DISPONIBILE';
+    end if;
+    perform 1 from cicli where id = v_ciclo and stato = 'reclutamento' for update;
+    if not found then
+      raise exception 'CICLO_NON_DISPONIBILE';
+    end if;
+    select posti_totali into v_posti from cicli where id = v_ciclo;
+    select count(*) into v_coda
+    from iscrizioni i
+    join utenti u on u.id = i.utente_id
+    where i.ciclo_id = v_ciclo
+      and not (i.esito_screening = 'idoneo' or u.stato_screening = 'idoneo');
+    if v_coda >= greatest(coalesce(v_posti, 0) * 2, 30) then
+      raise exception 'CODA_ISCRIZIONI_PIENA';
+    end if;
   end if;
 
   insert into utenti (
@@ -484,10 +504,15 @@ begin
     true, coalesce(p_consenso_b, false)
   ) returning id into v_utente_id;
 
-  insert into iscrizioni (utente_id, ciclo_id, esito_screening)
-  values (v_utente_id, p_ciclo_id, 'in_attesa');
+  insert into iscrizioni (utente_id, ciclo_id, esito_screening, modalita_fruizione)
+  values (
+    v_utente_id,
+    v_ciclo,
+    'in_attesa',
+    case when v_solo then 'remoto' else 'presenza' end
+  );
 
-  return jsonb_build_object('ok', true, 'codice', trim(p_codice));
+  return jsonb_build_object('ok', true, 'codice', trim(p_codice), 'solo_remoto', v_solo);
 exception
   when unique_violation then
     raise exception 'CODICE_DUPLICATO';
@@ -1049,6 +1074,8 @@ declare
   v_inizio date;
   v_fine date;
   v_nome text;
+  v_modalita text;
+  v_link text;
 begin
   select u.id into v_utente_id
   from utenti u
@@ -1059,22 +1086,38 @@ begin
     raise exception 'CODICE_NON_TROVATO';
   end if;
 
-  select c.data_inizio, coalesce(c.data_fine, c.data_inizio + 62), c.nome_ciclo
-    into v_inizio, v_fine, v_nome
+  select c.data_inizio,
+         case when c.id is null then null else coalesce(c.data_fine, c.data_inizio + 62) end,
+         c.nome_ciclo,
+         coalesce(i.modalita_fruizione, 'presenza'),
+         case
+           when coalesce(i.modalita_fruizione, 'presenza') = 'remoto'
+           then c.link_incontro
+           else null
+         end
+    into v_inizio, v_fine, v_nome, v_modalita, v_link
   from iscrizioni i
-  join cicli c on c.id = i.ciclo_id
+  left join cicli c on c.id = i.ciclo_id
   where i.utente_id = v_utente_id
   order by i.data_iscrizione desc
   limit 1;
 
-  if v_inizio is null then
-    return jsonb_build_object('nome_ciclo', null, 'data_inizio', null, 'data_fine', null);
+  if not found then
+    return jsonb_build_object(
+      'nome_ciclo', null,
+      'data_inizio', null,
+      'data_fine', null,
+      'modalita_fruizione', null,
+      'link_incontro', null
+    );
   end if;
 
   return jsonb_build_object(
     'nome_ciclo', v_nome,
     'data_inizio', v_inizio,
-    'data_fine', v_fine
+    'data_fine', v_fine,
+    'modalita_fruizione', v_modalita,
+    'link_incontro', v_link
   );
 end;
 $$;
@@ -1266,7 +1309,7 @@ revoke all on function salva_annotazione_giorno(text, date, text, int, text, uui
 revoke all on function registra_ascolto_formale(text, uuid, date, int) from public;
 revoke all on function minuti_ascolto_del_partecipante(text) from public;
 revoke all on function esporta_dati_del_partecipante(text) from public;
-revoke all on function iscrivi_partecipante(text, uuid, text, boolean, boolean) from public;
+revoke all on function iscrivi_partecipante(text, uuid, text, boolean, boolean, boolean) from public;
 revoke all on function salva_log_pratica(text, date, int, text, text, uuid, text, text) from public;
 revoke all on function risposte_pseudonime() from public;
 revoke all on function log_pratica_pseudonimi() from public;
@@ -1278,7 +1321,7 @@ revoke all on function comunicazioni_del_partecipante(text) from public;
 revoke all on function ciclo_del_partecipante(text) from public;
 
 grant execute on function is_facilitatore() to anon, authenticated;
-grant execute on function iscrivi_partecipante(text, uuid, text, boolean, boolean) to anon, authenticated;
+grant execute on function iscrivi_partecipante(text, uuid, text, boolean, boolean, boolean) to anon, authenticated;
 grant execute on function salva_log_pratica(text, date, int, text, text, uuid, text, text) to anon, authenticated;
 grant execute on function risposte_pseudonime() to authenticated;
 grant execute on function log_pratica_pseudonimi() to authenticated;

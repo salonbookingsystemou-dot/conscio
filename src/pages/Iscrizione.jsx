@@ -35,6 +35,14 @@ function IconaPercorso({ id }) {
           <path d="M12.4 16.6c.6-1.6 2.2-3.2 4-3.2 1.8 0 3.6 1.6 4.2 4.8" {...comune} />
         </>
       )}
+      {id === 'remoto' && (
+        <>
+          <rect x="3.6" y="5.2" width="16.8" height="11.2" rx="2" {...comune} />
+          <path d="M8.2 19.2h7.6M12 16.4v2.8" {...comune} />
+          <circle cx="12" cy="10.4" r="1.7" {...comune} />
+          <path d="M9.2 13.6c.6-1.2 1.6-1.8 2.8-1.8s2.2.6 2.8 1.8" {...comune} />
+        </>
+      )}
       {id === 'casa' && (
         <>
           <path d="M4.6 11.2 12 5.2l7.4 6" {...comune} />
@@ -72,8 +80,13 @@ const SCHEDE_PERCORSO = [
   },
   {
     id: 'presenza',
-    titolo: 'In presenza',
-    testo: 'Un appuntamento a settimana di pratica condivisa.'
+    titolo: 'In gruppo',
+    testo: 'Un appuntamento a settimana di pratica condivisa, di norma in presenza.'
+  },
+  {
+    id: 'remoto',
+    titolo: 'Anche da remoto',
+    testo: 'Puoi chiedere di iscriverti solo da remoto, senza agganciarti al ciclo in corso.'
   },
   {
     id: 'casa',
@@ -92,6 +105,7 @@ export default function Iscrizione() {
   const [form, setForm] = useState({
     email: '',
     ciclo_id: '',
+    solo_remoto: false,
     letto_informativa: false,
     consenso_modulo_a: false,
     consenso_modulo_b: false,
@@ -126,7 +140,8 @@ export default function Iscrizione() {
         const data = await chiamaPorta({
           azione: 'iscrivi',
           email: form.email,
-          ciclo_id: form.ciclo_id,
+          ciclo_id: form.solo_remoto ? null : form.ciclo_id,
+          solo_remoto: form.solo_remoto,
           codice,
           consenso_a: form.consenso_modulo_a,
           consenso_b: form.consenso_modulo_b,
@@ -146,9 +161,9 @@ export default function Iscrizione() {
         const testo = err?.code || err?.message || ''
         if (testo.includes('CODICE_DUPLICATO') && tentativo < 2) continue
         if (testo.includes('TROPPI_TENTATIVI')) setErrore('Troppi tentativi. Riprova tra qualche minuto.')
-        else if (testo.includes('CODA_ISCRIZIONI_PIENA')) setErrore('Le richieste in coda per questo ciclo sono al completo. Riprova più tardi.')
+        else if (testo.includes('CODA_ISCRIZIONI_PIENA')) setErrore('Le richieste in coda sono al completo. Riprova più tardi.')
         else if (testo.includes('CICLO_PIENO')) setErrore('I posti idonei di questo ciclo sono già al completo.')
-        else if (testo.includes('EMAIL_GIA_ISCRITTA')) setErrore('Questa email è già iscritta a questo ciclo.')
+        else if (testo.includes('EMAIL_GIA_ISCRITTA')) setErrore('Questa email è già iscritta.')
         else if (testo.includes('CICLO_NON_DISPONIBILE')) setErrore('Il ciclo non è più in reclutamento.')
         else setErrore('Si è verificato un errore. Riprova.')
         setStato(null)
@@ -164,6 +179,9 @@ export default function Iscrizione() {
         <p>Conserva questo codice. Lo userai per entrare dopo l’esito dello screening, se l’esito è idoneo. Non useremo il tuo nome. Ti abbiamo inviato lo stesso codice anche all’email di iscrizione (controlla lo spam).</p>
         <p className="codice-enfasi">{codiceGenerato}</p>
         <p>Riceverai una comunicazione con l’esito e i prossimi passi. Le altre sezioni si aprono solo a chi è idoneo.</p>
+        {form.solo_remoto && (
+          <p>Hai chiesto di iscriverti solo da remoto: non sei collegato al ciclo in corso. Chi conduce ti scriverà i prossimi passi.</p>
+        )}
         <div className="azioni">
           <Link className="btn" to="/">Torna all’inizio</Link>
         </div>
@@ -176,7 +194,8 @@ export default function Iscrizione() {
     <section className="percorso-blocco" aria-labelledby="percorso-titolo">
       <h2 id="percorso-titolo">Il percorso</h2>
       <p className="lead">
-        Otto settimane di pratica guidata, con un appuntamento a settimana in presenza.
+        Otto settimane di pratica guidata, con un appuntamento a settimana di pratica
+        condivisa. Chi non può seguire l’edizione in corso può iscriversi solo da remoto.
       </p>
       <div className="percorso-carosello">
         {SCHEDE_PERCORSO.map(scheda => (
@@ -205,16 +224,33 @@ export default function Iscrizione() {
         <form className="iscrizione-form" onSubmit={handleSubmit}>
           <div className="iscrizione-sezione">
             <p className="iscrizione-sezione-titolo">Ciclo</p>
-            {cicli.length === 0 && <p>Nessun ciclo in reclutamento al momento.</p>}
             <div className="ciclo-scelte">
+              <label className={`ciclo-card${form.solo_remoto ? ' is-on' : ''}`}>
+                <input
+                  type="radio"
+                  name="ciclo"
+                  checked={form.solo_remoto}
+                  onChange={() => setForm({ ...form, solo_remoto: true, ciclo_id: '' })}
+                />
+                <span className="ciclo-card-corpo">
+                  <span className="ciclo-card-testata">
+                    <strong>Solo da remoto</strong>
+                    <span className="badge">remoto</span>
+                  </span>
+                  <span className="ciclo-meta">
+                    <span>Senza ciclo in corso</span>
+                    <span>Non occupa posti in presenza</span>
+                  </span>
+                </span>
+              </label>
               {cicli.map(c => (
                 <label key={c.id} className={`ciclo-card${form.ciclo_id === c.id ? ' is-on' : ''}`}>
                   <input
                     type="radio"
                     name="ciclo"
-                    required
+                    required={!form.solo_remoto}
                     checked={form.ciclo_id === c.id}
-                    onChange={() => setForm({ ...form, ciclo_id: c.id })}
+                    onChange={() => setForm({ ...form, ciclo_id: c.id, solo_remoto: false })}
                   />
                   <span className="ciclo-card-corpo">
                     <span className="ciclo-card-testata">
@@ -223,12 +259,15 @@ export default function Iscrizione() {
                     </span>
                     <span className="ciclo-meta">
                       <span>Inizio {new Date(c.data_inizio).toLocaleDateString('it-IT')}</span>
-                      {c.posti_totali ? <span>{c.posti_totali} posti</span> : null}
+                      {c.posti_totali ? <span>{c.posti_totali} posti in presenza</span> : null}
                     </span>
                   </span>
                 </label>
               ))}
             </div>
+            {cicli.length === 0 && !form.solo_remoto && (
+              <p>Nessun ciclo in reclutamento al momento. Puoi comunque iscriverti solo da remoto.</p>
+            )}
           </div>
 
           <div className="iscrizione-sezione iscrizione-email">
@@ -323,7 +362,7 @@ export default function Iscrizione() {
           </div>
 
           <div className="iscrizione-azioni">
-            <button className="btn" type="submit" disabled={stato === 'invio' || !form.letto_informativa || !form.consenso_modulo_a || !form.ciclo_id}>
+            <button className="btn" type="submit" disabled={stato === 'invio' || !form.letto_informativa || !form.consenso_modulo_a || (!form.solo_remoto && !form.ciclo_id)}>
               {stato === 'invio' ? 'Invio in corso…' : 'Invia richiesta'}
             </button>
             {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}

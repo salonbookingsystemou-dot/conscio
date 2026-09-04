@@ -11,7 +11,8 @@ PWA per gestire iscrizioni, cicli, lezioni, questionari e comunicazioni del perc
 
 1. **Crea un progetto Supabase** (https://supabase.com), region EU.
 2. Nell'SQL editor esegui `supabase/schema.sql`, poi `supabase/seed_questionari.sql`.
-   Se lo schema era già stato applicato: `migrazione_questionari.sql` e `migrazione_facilitatore.sql`.
+   Se lo schema era già stato applicato: le `migrazione_*.sql` in ordine, inclusa
+   `migrazione_modalita_fruizione.sql` (posti in presenza + fruizione remota).
 3. In Authentication → Users crea l’account del facilitatore. Poi in SQL:
 
    ```
@@ -48,6 +49,8 @@ Senza la chiave la comunicazione resta `programmata`. L’email dei partecipanti
 Entra, Iscrizione, recupero codice e Accedi facilitatore passano dall’edge function `porta` (tetto tentativi per IP hashato).
 
 1. Nell’SQL editor esegui `supabase/migrazione_limiti_accesso.sql`.
+   Per la fruizione remota: `supabase/migrazione_modalita_fruizione.sql`
+   e `supabase/migrazione_iscrizione_solo_remoto.sql`. Poi ridistribuisci `porta`.
 2. Distribuisci: `supabase functions deploy porta`.
 3. Per inviare il codice all’iscrizione e al recupero, la funzione usa gli stessi secret Resend di `invia-comunicazione` (`RESEND_API_KEY`, opzionale `RESEND_FROM`).
 4. Opzionale in Auth (dashboard Supabase): protezione password compromesse e MFA sull’account facilitatore.
@@ -61,8 +64,8 @@ Frontend e SQL/edge vanno aggiornati insieme: dopo il revoke, le RPC `stato_acce
 Vedi `supabase/schema.sql` per lo schema completo. Le tabelle principali:
 - `utenti` — pseudonimizzati tramite `codice_partecipante`, con i due consensi
   (`consenso_modulo_a`, `consenso_modulo_b`) sempre indipendenti tra loro
-- `cicli` — le edizioni del corso
-- `iscrizioni` — collega utenti a cicli, con stato di screening in linguaggio non clinico
+- `cicli` — le edizioni del corso (`posti_totali` = posti in presenza; `link_incontro` solo per chi è remoto)
+- `iscrizioni` — collega utenti a cicli (o resta senza ciclo se «solo da remoto»), con screening non clinico e modalità `presenza` | `remoto`
 - `lezioni` / `esercizi` — struttura settimanale a 8 settimane con pratiche formali/informali
 - `questionari` / `item` / `risposte` — PSS-10 e FFMQ-I, con timepoint T0/T1/T2/T3
 - `comunicazioni` — promemoria e annunci per ciclo
