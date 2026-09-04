@@ -3199,6 +3199,75 @@ body:has(.splash) {
   font-size: 12px;
   align-self: center;
 }
+.lezioni-errore {
+  color: var(--danger);
+  margin: 0 0 16px;
+}
+.lezioni-libreria {
+  margin: 0 0 20px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--tint) 35%, #fff);
+}
+.lezioni-libreria summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--moss-dark);
+}
+.lezioni-libreria-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5em;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--moss) 16%, #fff);
+  font-size: 12px;
+  font-weight: 600;
+}
+.lezioni-libreria-carica {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+  margin: 12px 0;
+}
+.lezioni-libreria-carica .field {
+  flex: 1 1 220px;
+  margin: 0;
+}
+.lezioni-libreria-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.lezioni-libreria-riga {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+}
+.lezioni-libreria-testi strong {
+  display: block;
+  font-size: 15px;
+}
+.lezioni-libreria-riga .player-audio {
+  margin: 8px 0 4px;
+}
+.lezioni-selettore-traccia {
+  min-width: min(100%, 220px);
+  max-width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  background: #fff;
+}
 .annotazioni-giorno.is-bloccato {
   opacity: 1;
   border-style: dashed;

@@ -12,7 +12,8 @@ PWA per gestire iscrizioni, cicli, lezioni, questionari e comunicazioni del perc
 1. **Crea un progetto Supabase** (https://supabase.com), region EU.
 2. Nell'SQL editor esegui `supabase/schema.sql`, poi `supabase/seed_questionari.sql`.
    Se lo schema era già stato applicato: le `migrazione_*.sql` in ordine, inclusa
-   `migrazione_modalita_fruizione.sql` (posti in presenza + fruizione remota).
+   `migrazione_modalita_fruizione.sql` (posti in presenza + fruizione remota) e
+   `migrazione_libreria_tracce.sql` (catalogo audio riusabile tra settimane e cicli).
 3. In Authentication → Users crea l’account del facilitatore. Poi in SQL:
 
    ```
@@ -66,6 +67,7 @@ Vedi `supabase/schema.sql` per lo schema completo. Le tabelle principali:
   (`consenso_modulo_a`, `consenso_modulo_b`) sempre indipendenti tra loro
 - `cicli` — le edizioni del corso (`posti_totali` = posti in presenza; `link_incontro` solo per chi è remoto)
 - `iscrizioni` — collega utenti a cicli (o resta senza ciclo se «solo da remoto»), con screening non clinico e modalità `presenza` | `remoto`
+- `tracce` — libreria audio condivisa; `lezioni` e `esercizi` la collegano con `traccia_id`
 - `lezioni` / `esercizi` — struttura settimanale a 8 settimane con pratiche formali/informali
 - `questionari` / `item` / `risposte` — PSS-10 e FFMQ-I, con timepoint T0/T1/T2/T3
 - `comunicazioni` — promemoria e annunci per ciclo

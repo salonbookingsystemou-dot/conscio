@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import LibreriaTracce, { SelettoreTraccia } from '../components/LibreriaTracce.jsx'
+import {
+  creaTraccia,
+  elencaTracce,
+  messaggioErroreTraccia,
+  titoloDaNomeFile,
+  urlTracciaDi,
+  usiTracce
+} from '../lib/tracce'
 
-const AUDIO_MAX = 50 * 1024 * 1024
 const NUMERI_SETTIMANA = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 function etichettaSettimana(numero) {
@@ -17,11 +25,6 @@ function eInformale(esercizio) {
   return (esercizio.tipo || '').toLowerCase() === 'informale'
 }
 
-function estensioneAudio(nome) {
-  const pezzo = (nome || '').split('.').pop()
-  return (pezzo || 'mp3').toLowerCase().replace(/[^a-z0-9]/g, '') || 'mp3'
-}
-
 function metaVuota(numero = 1) {
   return {
     numero_settimana: numero,
@@ -30,7 +33,8 @@ function metaVuota(numero = 1) {
     materiali: '',
     pratiche_formali: '',
     pratiche_informali: '',
-    traccia_audio: ''
+    traccia_audio: '',
+    traccia_id: ''
   }
 }
 
@@ -38,6 +42,8 @@ export default function Lezioni() {
   const [cicli, setCicli] = useState([])
   const [cicloId, setCicloId] = useState('')
   const [lezioni, setLezioni] = useState([])
+  const [libreria, setLibreria] = useState([])
+  const [usi, setUsi] = useState({})
   const [settimana, setSettimana] = useState(1)
   const [meta, setMeta] = useState(metaVuota(1))
   const [fileAudioSettimana, setFileAudioSettimana] = useState(null)
@@ -46,10 +52,21 @@ export default function Lezioni() {
   const [modificaEx, setModificaEx] = useState(null)
   const [caricamentoAudio, setCaricamentoAudio] = useState(false)
   const [caricamentoEsercizioId, setCaricamentoEsercizioId] = useState(null)
+  const [caricamentoLibreriaId, setCaricamentoLibreriaId] = useState(null)
   const [invioMeta, setInvioMeta] = useState(false)
   const [errore, setErrore] = useState(null)
   const [okMsg, setOkMsg] = useState(null)
   const pillsRef = useRef(null)
+
+  async function caricaLibreria() {
+    try {
+      const [lista, conteggi] = await Promise.all([elencaTracce(), usiTracce()])
+      setLibreria(lista)
+      setUsi(conteggi)
+    } catch {
+      setErrore('Non è stato possibile leggere la libreria tracce. Esegui la migrazione SQL se non l’hai ancora applicata.')
+    }
+  }
 
   useEffect(() => {
     let vivo = true
@@ -63,6 +80,7 @@ export default function Lezioni() {
           return lista[0]?.id || ''
         })
       })
+    caricaLibreria()
     return () => { vivo = false }
   }, [])
 
@@ -71,11 +89,19 @@ export default function Lezioni() {
       setLezioni([])
       return
     }
-    const { data } = await supabase
+    const colonne = 'id, numero_settimana, tema, sottotitolo, pratiche_formali, pratiche_informali, materiali, traccia_audio, traccia_id, esercizi(id, tipo, descrizione, traccia_audio, traccia_id, ordine, durata_minuti)'
+    let { data, error } = await supabase
       .from('lezioni')
-      .select('id, numero_settimana, tema, sottotitolo, pratiche_formali, pratiche_informali, materiali, traccia_audio, esercizi(id, tipo, descrizione, traccia_audio, ordine, durata_minuti)')
+      .select(colonne)
       .eq('ciclo_id', id)
       .order('numero_settimana', { ascending: true })
+    if (error) {
+      ({ data } = await supabase
+        .from('lezioni')
+        .select('id, numero_settimana, tema, sottotitolo, pratiche_formali, pratiche_informali, materiali, traccia_audio, esercizi(id, tipo, descrizione, traccia_audio, ordine, durata_minuti)')
+        .eq('ciclo_id', id)
+        .order('numero_settimana', { ascending: true }))
+    }
     setLezioni((data || []).map(l => ({
       ...l,
       esercizi: [...(l.esercizi || [])].sort((a, b) => (a.ordine || 0) - (b.ordine || 0))
@@ -100,7 +126,8 @@ export default function Lezioni() {
         materiali: corrente.materiali || '',
         pratiche_formali: corrente.pratiche_formali || '',
         pratiche_informali: corrente.pratiche_informali || '',
-        traccia_audio: corrente.traccia_audio || ''
+        traccia_audio: corrente.traccia_audio || '',
+        traccia_id: corrente.traccia_id || ''
       })
     } else {
       setMeta(metaVuota(settimana))
@@ -120,17 +147,14 @@ export default function Lezioni() {
   const esercizi = corrente?.esercizi || []
   const formali = esercizi.filter(eFormale)
   const informali = esercizi.filter(eInformale)
+  const urlSettimana = urlTracciaDi(meta, libreria)
 
-  async function caricaTraccia(file, chiavePath) {
-    if (file.size > AUDIO_MAX) throw new Error('AUDIO_TROPPO_GRANDE')
-    const path = `${cicloId}/${chiavePath}-${Date.now()}.${estensioneAudio(file.name)}`
-    const { error } = await supabase.storage.from('tracce-audio').upload(path, file, {
-      upsert: false,
-      contentType: file.type || 'audio/mpeg'
-    })
-    if (error) throw error
-    const { data } = supabase.storage.from('tracce-audio').getPublicUrl(path)
-    return data.publicUrl
+  function segnalaErrore(err) {
+    setErrore(messaggioErroreTraccia(err))
+  }
+
+  async function assicuraTracciaDaFile(file, titolo) {
+    return creaTraccia(file, { titolo })
   }
 
   async function salvaMeta(e) {
@@ -140,17 +164,26 @@ export default function Lezioni() {
     if (!cicloId) return
     setInvioMeta(true)
     setCaricamentoAudio(Boolean(fileAudioSettimana))
-    let traccia = meta.traccia_audio || null
+    let tracciaId = meta.traccia_id || null
+    let tracciaUrl = meta.traccia_audio || null
     try {
       if (fileAudioSettimana) {
-        traccia = await caricaTraccia(fileAudioSettimana, `s${meta.numero_settimana}`)
+        const creata = await assicuraTracciaDaFile(
+          fileAudioSettimana,
+          meta.tema.trim() || `Settimana ${meta.numero_settimana}`
+        )
+        tracciaId = creata.id
+        tracciaUrl = creata.url
+      } else if (tracciaId) {
+        const scelta = libreria.find(t => t.id === tracciaId)
+        if (scelta) tracciaUrl = scelta.url
+      } else {
+        tracciaUrl = null
       }
     } catch (err) {
       setCaricamentoAudio(false)
       setInvioMeta(false)
-      setErrore(err?.message === 'AUDIO_TROPPO_GRANDE'
-        ? 'La traccia deve pesare al massimo 50 MB.'
-        : 'Non è stato possibile caricare la traccia audio.')
+      segnalaErrore(err)
       return
     }
 
@@ -162,7 +195,8 @@ export default function Lezioni() {
       materiali: meta.materiali.trim() || null,
       pratiche_formali: meta.pratiche_formali || '',
       pratiche_informali: meta.pratiche_informali || '',
-      traccia_audio: traccia
+      traccia_audio: tracciaUrl,
+      traccia_id: tracciaId
     }
 
     const { error } = corrente
@@ -177,7 +211,7 @@ export default function Lezioni() {
     }
     setFileAudioSettimana(null)
     setOkMsg(corrente ? 'Settimana aggiornata.' : 'Settimana creata.')
-    await caricaLezioni(cicloId)
+    await Promise.all([caricaLezioni(cicloId), caricaLibreria()])
   }
 
   async function eliminaLezione() {
@@ -185,7 +219,7 @@ export default function Lezioni() {
     if (!confirm('Eliminare questa settimana e tutte le pratiche collegate?')) return
     await supabase.from('lezioni').delete().eq('id', corrente.id)
     setOkMsg(null)
-    await caricaLezioni(cicloId)
+    await Promise.all([caricaLezioni(cicloId), caricaLibreria()])
   }
 
   async function aggiungiEsercizio(tipo, descrizione, durataMinuti) {
@@ -221,30 +255,52 @@ export default function Lezioni() {
 
   async function eliminaEsercizio(id) {
     await supabase.from('esercizi').delete().eq('id', id)
-    await caricaLezioni(cicloId)
+    await Promise.all([caricaLezioni(cicloId), caricaLibreria()])
   }
 
-  async function caricaTracciaEsercizio(esercizioId, file) {
+  async function collegaTracciaEsercizio(esercizioId, tracciaId) {
+    const scelta = libreria.find(t => t.id === tracciaId)
+    if (!scelta) return
+    setErrore(null)
+    const { error } = await supabase.from('esercizi').update({
+      traccia_id: scelta.id,
+      traccia_audio: scelta.url
+    }).eq('id', esercizioId)
+    if (error) {
+      setErrore('Non è stato possibile collegare la traccia.')
+      return
+    }
+    await Promise.all([caricaLezioni(cicloId), caricaLibreria()])
+  }
+
+  async function caricaTracciaEsercizio(esercizio, file) {
     if (!file) return
     setErrore(null)
-    setCaricamentoEsercizioId(esercizioId)
+    setCaricamentoEsercizioId(esercizio.id)
     try {
-      const url = await caricaTraccia(file, `s${settimana}-ex-${esercizioId.slice(0, 8)}`)
-      const { error } = await supabase.from('esercizi').update({ traccia_audio: url }).eq('id', esercizioId)
+      const creata = await assicuraTracciaDaFile(
+        file,
+        esercizio.descrizione || titoloDaNomeFile(file.name)
+      )
+      const { error } = await supabase.from('esercizi').update({
+        traccia_id: creata.id,
+        traccia_audio: creata.url
+      }).eq('id', esercizio.id)
       if (error) throw error
-      await caricaLezioni(cicloId)
+      await Promise.all([caricaLezioni(cicloId), caricaLibreria()])
     } catch (err) {
-      setErrore(err?.message === 'AUDIO_TROPPO_GRANDE'
-        ? 'La traccia deve pesare al massimo 50 MB.'
-        : 'Non è stato possibile caricare la traccia sull’esercizio.')
+      segnalaErrore(err)
     } finally {
       setCaricamentoEsercizioId(null)
     }
   }
 
   async function rimuoviTracciaEsercizio(esercizioId) {
-    await supabase.from('esercizi').update({ traccia_audio: null }).eq('id', esercizioId)
-    await caricaLezioni(cicloId)
+    await supabase.from('esercizi').update({
+      traccia_id: null,
+      traccia_audio: null
+    }).eq('id', esercizioId)
+    await Promise.all([caricaLezioni(cicloId), caricaLibreria()])
   }
 
   const badgeSettimana = Number(settimana) === 9
@@ -256,8 +312,18 @@ export default function Lezioni() {
       <h2>Lezioni e pratiche</h2>
       <p className="lead">
         Stessa struttura che vedono i partecipanti in «Settimana»: tema, pratiche formali con audio,
-        pratiche informali da spuntare.
+        pratiche informali da spuntare. Le tracce stanno in libreria: un file, tanti collegamenti.
       </p>
+
+      <LibreriaTracce
+        tracce={libreria}
+        usi={usi}
+        onAggiorna={caricaLibreria}
+        onErrore={segnalaErrore}
+        caricamentoId={caricamentoLibreriaId}
+        setCaricamentoId={setCaricamentoLibreriaId}
+      />
+      {errore && <p className="lezioni-errore">{errore}</p>}
 
       <div className="field lezioni-ciclo">
         <label htmlFor="ciclo-lezioni">Ciclo</label>
@@ -338,21 +404,35 @@ export default function Lezioni() {
                 Nella pratica giornaliera l’audio principale è sulle pratiche formali qui sotto.
                 Questa traccia resta disponibile come materiale di settimana.
               </p>
+              <SelettoreTraccia
+                valore={meta.traccia_id}
+                tracce={libreria}
+                etichettaVuoto={meta.traccia_id || meta.traccia_audio ? 'Scollega traccia' : 'Collega dalla libreria…'}
+                onCambia={id => {
+                  const scelta = libreria.find(t => t.id === id)
+                  setMeta({
+                    ...meta,
+                    traccia_id: id || '',
+                    traccia_audio: scelta?.url || ''
+                  })
+                  setFileAudioSettimana(null)
+                }}
+              />
               <input
                 type="file"
                 accept="audio/*"
                 onChange={e => setFileAudioSettimana(e.target.files?.[0] || null)}
               />
-              {fileAudioSettimana && <p className="hint">Nuovo file: {fileAudioSettimana.name}</p>}
-              {!fileAudioSettimana && meta.traccia_audio && (
+              {fileAudioSettimana && <p className="hint">Nuovo file: {fileAudioSettimana.name} — va in libreria al salvataggio.</p>}
+              {!fileAudioSettimana && urlSettimana && (
                 <div className="lezioni-audio-riga">
-                  <audio className="player-audio" controls src={meta.traccia_audio} preload="metadata">
+                  <audio className="player-audio" controls src={urlSettimana} preload="metadata">
                     Il browser non riproduce questa traccia.
                   </audio>
                   <button
                     className="btn btn-ghost"
                     type="button"
-                    onClick={() => setMeta({ ...meta, traccia_audio: '' })}
+                    onClick={() => setMeta({ ...meta, traccia_audio: '', traccia_id: '' })}
                   >
                     Rimuovi
                   </button>
@@ -395,110 +475,123 @@ export default function Lezioni() {
                   {formali.length === 0 && (
                     <p className="hint">Nessuna pratica formale ancora. Aggiungine una sotto.</p>
                   )}
-                  {formali.map(ex => (
-                    <article className="task-pratica" key={ex.id}>
-                      <div className="task-pratica-testa">
-                        <span className="task-punto" aria-hidden="true" />
-                        <div className="task-pratica-testi">
-                          {modificaEx?.id === ex.id ? (
-                            <div className="lezioni-edit-ex">
-                              <input
-                                value={modificaEx.descrizione}
-                                onChange={e => setModificaEx({ ...modificaEx, descrizione: e.target.value })}
-                                aria-label="Descrizione pratica"
-                              />
-                              <input
-                                type="number"
-                                min="1"
-                                max="180"
-                                placeholder="min"
-                                value={modificaEx.durata_minuti}
-                                onChange={e => setModificaEx({ ...modificaEx, durata_minuti: e.target.value })}
-                                aria-label="Durata in minuti"
-                              />
-                              <div className="azioni">
-                                <button
-                                  className="btn"
-                                  type="button"
-                                  onClick={() => aggiornaEsercizio(ex.id, {
-                                    descrizione: modificaEx.descrizione.trim(),
-                                    durata_minuti: Number(modificaEx.durata_minuti) > 0
-                                      ? Number(modificaEx.durata_minuti)
-                                      : null
-                                  })}
-                                >
-                                  Salva
-                                </button>
-                                <button className="btn btn-ghost" type="button" onClick={() => setModificaEx(null)}>
-                                  Annulla
+                  {formali.map(ex => {
+                    const urlEx = urlTracciaDi(ex, libreria)
+                    const titoloEx = libreria.find(t => t.id === ex.traccia_id)?.titolo
+                    return (
+                      <article className="task-pratica" key={ex.id}>
+                        <div className="task-pratica-testa">
+                          <span className="task-punto" aria-hidden="true" />
+                          <div className="task-pratica-testi">
+                            {modificaEx?.id === ex.id ? (
+                              <div className="lezioni-edit-ex">
+                                <input
+                                  value={modificaEx.descrizione}
+                                  onChange={e => setModificaEx({ ...modificaEx, descrizione: e.target.value })}
+                                  aria-label="Descrizione pratica"
+                                />
+                                <input
+                                  type="number"
+                                  min="1"
+                                  max="180"
+                                  placeholder="min"
+                                  value={modificaEx.durata_minuti}
+                                  onChange={e => setModificaEx({ ...modificaEx, durata_minuti: e.target.value })}
+                                  aria-label="Durata in minuti"
+                                />
+                                <div className="azioni">
+                                  <button
+                                    className="btn"
+                                    type="button"
+                                    onClick={() => aggiornaEsercizio(ex.id, {
+                                      descrizione: modificaEx.descrizione.trim(),
+                                      durata_minuti: Number(modificaEx.durata_minuti) > 0
+                                        ? Number(modificaEx.durata_minuti)
+                                        : null
+                                    })}
+                                  >
+                                    Salva
+                                  </button>
+                                  <button className="btn btn-ghost" type="button" onClick={() => setModificaEx(null)}>
+                                    Annulla
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                <h4>{ex.descrizione}</h4>
+                                <p className="hint">
+                                  {[
+                                    Number.isFinite(ex.durata_minuti) && ex.durata_minuti > 0
+                                      ? `${ex.durata_minuti} min`
+                                      : null,
+                                    titoloEx || (urlEx ? 'traccia audio' : 'senza traccia'),
+                                    ex.tipo === 'a_casa' ? 'tipo: a casa' : 'tipo: formale'
+                                  ].filter(Boolean).join(' · ')}
+                                </p>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        {modificaEx?.id !== ex.id && (
+                          <>
+                            {urlEx ? (
+                              <div className="lezioni-audio-riga">
+                                <audio className="player-audio" controls src={urlEx} preload="metadata">
+                                  Il browser non riproduce questa traccia.
+                                </audio>
+                                <button className="btn btn-ghost" type="button" onClick={() => rimuoviTracciaEsercizio(ex.id)}>
+                                  Scollega
                                 </button>
                               </div>
-                            </div>
-                          ) : (
-                            <>
-                              <h4>{ex.descrizione}</h4>
-                              <p className="hint">
-                                {[
-                                  Number.isFinite(ex.durata_minuti) && ex.durata_minuti > 0
-                                    ? `${ex.durata_minuti} min`
-                                    : null,
-                                  ex.traccia_audio ? 'traccia audio' : 'senza traccia',
-                                  ex.tipo === 'a_casa' ? 'tipo: a casa' : 'tipo: formale'
-                                ].filter(Boolean).join(' · ')}
-                              </p>
-                            </>
-                          )}
-                        </div>
-                      </div>
-
-                      {modificaEx?.id !== ex.id && (
-                        <>
-                          {ex.traccia_audio ? (
-                            <div className="lezioni-audio-riga">
-                              <audio className="player-audio" controls src={ex.traccia_audio} preload="metadata">
-                                Il browser non riproduce questa traccia.
-                              </audio>
-                              <button className="btn btn-ghost" type="button" onClick={() => rimuoviTracciaEsercizio(ex.id)}>
-                                Rimuovi audio
-                              </button>
-                            </div>
-                          ) : (
-                            <p className="hint">Nessuna traccia ancora collegata a questa pratica.</p>
-                          )}
-                          <div className="lezioni-ex-azioni">
-                            <label className="btn btn-ghost lezioni-file-btn">
-                              {caricamentoEsercizioId === ex.id ? 'Caricamento…' : 'Carica audio'}
-                              <input
-                                type="file"
-                                accept="audio/*"
-                                hidden
-                                disabled={caricamentoEsercizioId === ex.id}
-                                onChange={e => {
-                                  const file = e.target.files?.[0]
-                                  e.target.value = ''
-                                  caricaTracciaEsercizio(ex.id, file)
+                            ) : (
+                              <p className="hint">Nessuna traccia ancora collegata a questa pratica.</p>
+                            )}
+                            <div className="lezioni-ex-azioni">
+                              <SelettoreTraccia
+                                valore={ex.traccia_id}
+                                tracce={libreria}
+                                etichettaVuoto={ex.traccia_id || urlEx ? 'Scollega traccia' : 'Collega dalla libreria…'}
+                                onCambia={id => {
+                                  if (!id) rimuoviTracciaEsercizio(ex.id)
+                                  else collegaTracciaEsercizio(ex.id, id)
                                 }}
                               />
-                            </label>
-                            <button
-                              className="btn btn-ghost"
-                              type="button"
-                              onClick={() => setModificaEx({
-                                id: ex.id,
-                                descrizione: ex.descrizione || '',
-                                durata_minuti: ex.durata_minuti || ''
-                              })}
-                            >
-                              Modifica
-                            </button>
-                            <button className="btn btn-ghost" type="button" onClick={() => eliminaEsercizio(ex.id)}>
-                              Rimuovi
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </article>
-                  ))}
+                              <label className="btn btn-ghost lezioni-file-btn">
+                                {caricamentoEsercizioId === ex.id ? 'Caricamento…' : 'Carica nuova'}
+                                <input
+                                  type="file"
+                                  accept="audio/*"
+                                  hidden
+                                  disabled={caricamentoEsercizioId === ex.id}
+                                  onChange={e => {
+                                    const file = e.target.files?.[0]
+                                    e.target.value = ''
+                                    caricaTracciaEsercizio(ex, file)
+                                  }}
+                                />
+                              </label>
+                              <button
+                                className="btn btn-ghost"
+                                type="button"
+                                onClick={() => setModificaEx({
+                                  id: ex.id,
+                                  descrizione: ex.descrizione || '',
+                                  durata_minuti: ex.durata_minuti || ''
+                                })}
+                              >
+                                Modifica
+                              </button>
+                              <button className="btn btn-ghost" type="button" onClick={() => eliminaEsercizio(ex.id)}>
+                                Rimuovi
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </article>
+                    )
+                  })}
                 </div>
 
                 <form

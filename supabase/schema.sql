@@ -40,6 +40,15 @@ create table iscrizioni (
   modalita_fruizione text not null default 'presenza' check (modalita_fruizione in ('presenza', 'remoto'))
 );
 
+create table tracce (
+  id uuid primary key default gen_random_uuid(),
+  titolo text not null,
+  url text not null unique,
+  storage_path text,
+  durata_minuti int,
+  creato_il timestamptz default now()
+);
+
 create table lezioni (
   id uuid primary key default gen_random_uuid(),
   ciclo_id uuid references cicli(id) on delete cascade,
@@ -50,6 +59,7 @@ create table lezioni (
   pratiche_informali text,
   materiali text,
   traccia_audio text,
+  traccia_id uuid references tracce(id) on delete set null,
   unique (ciclo_id, numero_settimana)
 );
 
@@ -59,9 +69,13 @@ create table esercizi (
   tipo text,
   descrizione text,
   traccia_audio text,
+  traccia_id uuid references tracce(id) on delete set null,
   ordine int,
   durata_minuti int
 );
+
+create index if not exists lezioni_traccia_id_idx on lezioni(traccia_id);
+create index if not exists esercizi_traccia_id_idx on esercizi(traccia_id);
 
 create table log_pratica (
   id uuid primary key default gen_random_uuid(),
@@ -120,6 +134,7 @@ create table comunicazioni (
 alter table utenti enable row level security;
 alter table cicli enable row level security;
 alter table iscrizioni enable row level security;
+alter table tracce enable row level security;
 alter table lezioni enable row level security;
 alter table esercizi enable row level security;
 alter table log_pratica enable row level security;
@@ -714,22 +729,33 @@ begin
         'pratiche_formali', l.pratiche_formali,
         'pratiche_informali', l.pratiche_informali,
         'materiali', l.materiali,
-        'traccia_audio', l.traccia_audio,
+        'traccia_audio', coalesce(
+          (select t.url from tracce t where t.id = l.traccia_id),
+          nullif(l.traccia_audio, '')
+        ),
         'esercizi', coalesce((
           select jsonb_agg(jsonb_build_object(
             'id', e.id,
             'tipo', e.tipo,
             'descrizione', e.descrizione,
             'traccia_audio', coalesce(
+              (select t.url from tracce t where t.id = e.traccia_id),
               nullif(e.traccia_audio, ''),
               case
                 when e.tipo in ('formale', 'a_casa')
                   and not exists (
                     select 1 from esercizi e2
+                    left join tracce t2 on t2.id = e2.traccia_id
                     where e2.lezione_id = l.id
-                      and nullif(e2.traccia_audio, '') is not null
+                      and (
+                        t2.url is not null
+                        or nullif(e2.traccia_audio, '') is not null
+                      )
                   )
-                then nullif(l.traccia_audio, '')
+                then coalesce(
+                  (select ts.url from tracce ts where ts.id = l.traccia_id),
+                  nullif(l.traccia_audio, '')
+                )
               end
             ),
             'ordine', coalesce(e.ordine, 0),
@@ -1354,6 +1380,11 @@ create policy "facilitatore legge iscrizioni" on iscrizioni
 
 create policy "facilitatore aggiorna iscrizioni" on iscrizioni
   for update using (is_facilitatore()) with check (is_facilitatore());
+
+create policy "facilitatore gestisce tracce" on tracce
+  for all using (is_facilitatore()) with check (is_facilitatore());
+
+grant select, insert, update, delete on tracce to authenticated;
 
 create policy "facilitatore gestisce lezioni" on lezioni
   for all using (is_facilitatore()) with check (is_facilitatore());
