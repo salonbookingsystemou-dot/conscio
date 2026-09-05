@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, Navigate, useLocation } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
 import { usePartecipante } from '../lib/partecipante.jsx'
 import { calcolaPunteggi } from '../lib/scoring'
@@ -73,6 +73,7 @@ export default function Questionari() {
     aggiornaPercorso
   } = usePartecipante()
   const location = useLocation()
+  const navigate = useNavigate()
   const daOnboarding = Boolean(location.state?.daOnboarding)
   const forzatoT0 = daOnboarding || (onboardingCompleto && !t0Completo)
   const autoAvvioRef = useRef(false)
@@ -196,7 +197,7 @@ export default function Questionari() {
     if (!t0) return
     if (t0.stato === 'completato') {
       autoAvvioRef.current = true
-      aggiornaPercorso(codice).then(() => mostraEsito('T0'))
+      aggiornaPercorso(codice).then(() => navigate('/programma', { replace: true }))
       return
     }
     if (t0.stato === 'aperto') {
@@ -228,10 +229,14 @@ export default function Questionari() {
       setInvio(false)
       return
     }
+    await aggiornaPercorso(codice)
+    if (timepoint === 'T0') {
+      navigate('/programma', { replace: true })
+      return
+    }
     setPunteggi(calcolaPunteggi(item, risposte))
     setPasso('esito')
     setInvio(false)
-    await aggiornaPercorso(codice)
   }
 
   if (registrato && !onboardingCompleto) {
@@ -333,7 +338,9 @@ export default function Questionari() {
     return (
       <div>
         {forzatoT0 && timepoint === 'T0' && (
-          <p className="hint">Primo accesso: completa PSS-10 e FFMQ-I (T0) per aprire le settimane.</p>
+          <p className="hint hint-ultimo-step">
+            Ancora un ultimo step prima di iniziare la pratica. Dedica cinque minuti per rispondere al questionario.
+          </p>
         )}
         <p className="meta-riga">
           <span className="badge">{nomeStrumento}</span>
