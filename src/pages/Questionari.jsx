@@ -50,17 +50,26 @@ function ordinaItem(righe) {
   return [...pss, ...ffmq]
 }
 
-function etichettaSettimana(n, dataInizio) {
+function etichettaSettimana(n, dataInizio, personale) {
   if (n == null) return ''
   if (n === 0) {
+    if (personale) {
+      return 'T0 è disponibile. Le settimane di pratica partono dal primo ascolto.'
+    }
     if (dataInizio) {
       const quando = new Date(`${String(dataInizio).slice(0, 10)}T12:00:00`).toLocaleDateString('it-IT')
       return `Ciclo in partenza il ${quando}. T0 è già disponibile.`
     }
     return 'Il ciclo non è ancora iniziato.'
   }
-  if (n === 9) return 'Sei nella settimana intensiva (9).'
-  return `Sei nella settimana ${n} del ciclo.`
+  if (n === 9) {
+    return personale
+      ? 'Sei nella settimana intensiva (9) del tuo percorso.'
+      : 'Sei nella settimana intensiva (9).'
+  }
+  return personale
+    ? `Sei nella settimana ${n} del tuo percorso.`
+    : `Sei nella settimana ${n} del ciclo.`
 }
 
 export default function Questionari() {
@@ -403,14 +412,14 @@ export default function Questionari() {
         <header className="questionari-testa">
           <h2>Questionari</h2>
           <p className="lead">
-            PSS-10 e FFMQ-I si aprono in quattro momenti del ciclo. Puoi compilare
+            PSS-10 e FFMQ-I si aprono in quattro momenti del percorso. Puoi compilare
             solo il momento disponibile ora.
           </p>
         </header>
 
         {forzatoT0 && t0?.stato === 'aperto' && (
           <p className="questionari-avviso is-azione">
-            Per aprire le settimane, completa prima i questionari iniziali (T0).
+            Per iniziare le pratiche meditative, completa prima il questionario iniziale (T0).
           </p>
         )}
         {forzatoT0 && t0 && t0.stato !== 'aperto' && t0.stato !== 'completato' && (
@@ -428,7 +437,7 @@ export default function Questionari() {
         <section className="questionari-momenti" aria-labelledby="momenti-titolo">
           <div className="questionari-situazione">
             <p id="momenti-titolo" className="questionari-situazione-label">Situazione attuale</p>
-            <p className="questionari-situazione-testo">{etichettaSettimana(piano.settimana, piano.data_inizio)}</p>
+            <p className="questionari-situazione-testo">{etichettaSettimana(piano.settimana, piano.data_inizio, piano.orologio_personale)}</p>
             {aperti.length > 0 ? (
               <p className="hint">
                 {aperti.length === 1

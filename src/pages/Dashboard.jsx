@@ -624,14 +624,15 @@ export default function Dashboard() {
                       <span className="dash-ciclo-conteggio">{iscrittiRemotiLiberi.length}</span>
                     </h3>
                     <p className="hint">
-                      Si sono iscritti senza il ciclo in corso. Non occupano posti in presenza.
-                      Dopo lo screening puoi collegarli a un’edizione, restando da remoto.
+                      Usano le stesse settimane del ciclo in presenza, con un orologio personale:
+                      dopo il T0 si apre la settimana 1, le successive partono dal primo ascolto.
+                      Non occupano posti in aula.
                     </p>
                   </div>
                 </header>
                 {iscrittiRemotiLiberi.length === 0 ? (
                   <div className="dash-ciclo-vuoto" role="status">
-                    <p>Nessuna iscrizione solo remota in attesa di ciclo.</p>
+                    <p>Nessuna iscrizione solo remota.</p>
                   </div>
                 ) : (
                   <ul className="dash-iscrizioni">

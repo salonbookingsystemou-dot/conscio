@@ -86,7 +86,7 @@ const SCHEDE_PERCORSO = [
   {
     id: 'remoto',
     titolo: 'Anche da remoto',
-    testo: 'Puoi chiedere di iscriverti solo da remoto, senza agganciarti al ciclo in corso.'
+    testo: 'Pratichi con le stesse settimane, al tuo ritmo, senza occupare un posto in aula.'
   },
   {
     id: 'casa',
@@ -180,7 +180,7 @@ export default function Iscrizione() {
         <p className="codice-enfasi">{codiceGenerato}</p>
         <p>Riceverai una comunicazione con l’esito e i prossimi passi. Le altre sezioni si aprono solo a chi è idoneo.</p>
         {form.solo_remoto && (
-          <p>Hai chiesto di iscriverti solo da remoto: non sei collegato al ciclo in corso. Chi conduce ti scriverà i prossimi passi.</p>
+          <p>Hai chiesto di iscriverti solo da remoto: non occupi un posto in aula. Dopo l’idoneità, onboarding e T0, le settimane seguono il tuo ritmo di pratica.</p>
         )}
         <div className="azioni">
           <Link className="btn" to="/">Torna all’inizio</Link>
@@ -237,7 +237,7 @@ export default function Iscrizione() {
                     <strong>Solo da remoto</strong>
                   </span>
                   <span className="ciclo-meta">
-                    <span>Svolto in autonomia da casa</span>
+                    <span>Stesse settimane, al tuo ritmo</span>
                   </span>
                 </span>
               </label>

@@ -76,7 +76,7 @@ function etichettaDurataMinuti(minuti, secondiTraccia) {
 
 function VuotoProgramma({ ciclo, facilitatore }) {
   const nome = ciclo?.nome_ciclo
-  const remotoSenzaCiclo = ciclo?.modalita_fruizione === 'remoto' && !ciclo?.data_inizio
+  const remotoPersonale = ciclo?.orologio_personale
   const inizio = ciclo?.data_inizio
     ? new Date(`${String(ciclo.data_inizio).slice(0, 10)}T12:00:00`).toLocaleDateString('it-IT')
     : null
@@ -94,18 +94,16 @@ function VuotoProgramma({ ciclo, facilitatore }) {
         </svg>
       </div>
       <p className="badge badge-settimana">
-        {remotoSenzaCiclo ? 'Percorso da remoto' : 'Programma in preparazione'}
+        {remotoPersonale ? 'Percorso da remoto' : 'Programma in preparazione'}
       </p>
-      <h2 className="settimana-titolo">
-        {remotoSenzaCiclo ? 'Non sei collegato a un ciclo' : 'Ancora nessuna settimana'}
-      </h2>
+      <h2 className="settimana-titolo">Ancora nessuna settimana</h2>
       <p className="lead settimana-sottotitolo">
-        {remotoSenzaCiclo
-          ? 'Hai chiesto di fruire solo da remoto. Le settimane e le tracce si aprono quando chi conduce ti collega a un percorso, senza occupare i posti in presenza.'
+        {remotoPersonale
+          ? 'Le pratiche arrivano dal ciclo in presenza. Quando chi conduce le pubblica, le trovi qui, al tuo ritmo.'
           : nome
             ? `Per «${nome}» non ci sono ancora temi né pratiche da seguire giorno per giorno.`
             : 'Il programma di questa edizione non ha ancora settimane e pratiche pubblicate.'}
-        {!remotoSenzaCiclo && inizio ? ` L’inizio previsto è il ${inizio}.` : ''}
+        {!remotoPersonale && inizio ? ` L’inizio previsto è il ${inizio}.` : ''}
       </p>
       {facilitatore ? (
         <div className="settimana-vuoto-azioni">
@@ -451,7 +449,13 @@ export default function Programma() {
       {registrato && invio && !aperto && <StatoAttesa etichetta="Caricamento del programma…" />}
       {errore && <p className="campo-errore" role="alert">{errore}</p>}
 
-      {aperto && ciclo?.modalita_fruizione === 'remoto' && ciclo?.data_inizio && (
+      {aperto && ciclo?.orologio_personale && !ciclo?.orologio_avviato && lezioni.length > 0 && (
+        <p className="questionari-avviso is-azione">
+          La settimana 1 è aperta. L’orologio del percorso parte al primo ascolto.
+        </p>
+      )}
+
+      {aperto && ciclo?.modalita_fruizione === 'remoto' && ciclo?.link_incontro && (
         <InvitoIncontroRemoto link={ciclo.link_incontro} />
       )}
 
