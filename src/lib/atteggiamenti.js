@@ -1,56 +1,56 @@
-/** Dieci atteggiamenti della mindfulness (orientamento alla pratica). */
+/** Dieci atteggiamenti della mindfulness (Stahl e Goldstein, orientamento alla pratica). */
 export const ATTEGGIAMENTI = [
   {
     titolo: 'Non giudizio',
     testo: 'Notare ciò che sorge — pensieri, sensazioni, emozioni — senza etichettarlo subito come giusto o sbagliato.'
   },
   {
-    titolo: 'Pazienza',
-    testo: 'Lasciare alle cose il tempo di dispiegarsi. La pratica non chiede di forzare un risultato.'
-  },
-  {
     titolo: 'Mente del principiante',
     testo: 'Guardare ogni momento come se fosse nuovo, anche quando sembra familiare.'
   },
   {
-    titolo: 'Fiducia',
-    testo: 'Affidarsi alla propria esperienza diretta e alla capacità di stare presenti, passo dopo passo.'
+    titolo: 'Riconoscimento',
+    testo: 'Qualità della consapevolezza che ci consente di validare e riconoscere le cose per come sono.'
   },
   {
     titolo: 'Non sforzarsi',
-    testo: 'Essere con ciò che c’è, senza inseguire uno stato particolare da raggiungere.'
+    testo: 'Qualità della consapevolezza che ci consente di non aggrapparci, non opporci al cambiamento e a non allontanarci da ciò che emerge nel momento presente. Non provare ad andare da nessuna parte se non dove già siamo.'
   },
   {
-    titolo: 'Accettazione',
-    testo: 'Vedere chiaramente la situazione presente, così com’è, prima di decidere come muoversi.'
+    titolo: 'Equanimità',
+    testo: 'Qualità della consapevolezza che ci consente di comprendere in profondità la natura del cambiamento e di restare con esso con un grande senso di chiarezza e compassione.'
   },
   {
-    titolo: 'Lasciar andare',
-    testo: 'Allentare la presa su ciò a cui ci aggrappiamo — idee, aspettative, resistenze — quando è possibile.'
+    titolo: 'Lasciar essere',
+    testo: 'Lasciare che le cose siano come sono, senza alcun bisogno di allontanarci da ciò che è presente.'
   },
   {
-    titolo: 'Gentilezza',
-    testo: 'Portare attenzione con tono amichevole verso sé e verso ciò che si incontra nella pratica.'
+    titolo: 'Affidamento',
+    testo: 'Qualità della consapevolezza che ci consente di vedere con i nostri occhi, dalla nostra esperienza, ciò che è vero da ciò che non lo è.'
+  },
+  {
+    titolo: 'Auto compassione',
+    testo: 'Qualità della consapevolezza che ci consente di coltivare amore per noi stessi così come siamo, senza colpevolizzarci o criticarci.'
   },
   {
     titolo: 'Gratitudine',
-    testo: 'Riconoscere, anche in piccolo, ciò che sostiene o apre lo spazio della presenza.'
+    testo: 'Qualità della consapevolezza che ci consente di godere di ogni singolo momento con un profondo senso di apprezzamento e gratitudine.'
   },
   {
     titolo: 'Generosità',
-    testo: 'Offrire attenzione, tempo e disponibilità — a sé e agli altri — senza chiedere un ritorno immediato.'
+    testo: 'Qualità della consapevolezza che ci aiuta a comprendere il valore dell’offrire la propria presenza piuttosto che aggrapparsi alle cose.'
   }
 ]
 
 export const DOMANDE_ONBOARDING = [
   {
     id: 'q1',
-    label: 'Cosa ti ha portato a partecipare a questo percorso?',
+    label: 'Cosa mi ha portato a partecipare a questo percorso?',
     placeholder: 'Scrivi liberamente, anche poche frasi'
   },
   {
     id: 'q2',
-    label: 'Cosa ti aspetti da queste settimane di pratica?',
+    label: 'Cosa mi aspetto da queste settimane di pratica?',
     placeholder: 'Scrivi liberamente, anche poche frasi'
   }
 ]

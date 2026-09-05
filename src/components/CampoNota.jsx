@@ -98,7 +98,7 @@ export default function CampoNota({
             aria-pressed={inAscolto}
           >
             <IconaMicrofono />
-            {inAscolto ? 'Interrompi' : 'Registra nota'}
+            {inAscolto ? 'Interrompi' : 'Usa la voce'}
           </button>
           <p className="hint">
             {!isMicrophoneAvailable

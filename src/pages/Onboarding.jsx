@@ -95,25 +95,25 @@ export default function Onboarding() {
 
       {idPasso === 'intro' && (
         <div className="card">
-          <h2>Benvenuto nel percorso</h2>
+          <h2>Benvenuto</h2>
           <p className="lead">
-            Prima di aprire le settimane di pratica, ti chiediamo due risposte brevi
-            e di scorrere i dieci atteggiamenti della mindfulness. Poi compilerai i
-            questionari iniziali (T0).
+            Prima di cominciare la pratica ti chiediamo di rispondere a due semplici
+            domande, leggere i dieci atteggiamenti della mindfulness e rispondere al
+            questionario T0.
           </p>
           <AvvisoDatiPseudonimi />
           <p className="hint">Questo passaggio non si può saltare: serve una sola volta.</p>
           <div className="azioni">
             <button className="btn btn-avanti" type="button" onClick={() => setPasso(1)}>
-              Inizia
+              Ho capito, sono pronto
             </button>
           </div>
         </div>
       )}
 
       {(idPasso === 'q1' || idPasso === 'q2') && (
-        <div className="card">
-          <h2>Due domande</h2>
+        <div className="card onboarding-domande">
+          <p className="lead">Prova a rispondere con sincerità</p>
           <CampoNota
             required
             label={idPasso === 'q1' ? DOMANDE_ONBOARDING[0].label : DOMANDE_ONBOARDING[1].label}
@@ -140,7 +140,7 @@ export default function Onboarding() {
 
       {idPasso === 'atteggiamenti' && att && (
         <div className="card onboarding-atteggiamenti">
-          <h2>Dieci atteggiamenti</h2>
+          <h2>Gli atteggiamenti della mindfulness</h2>
           <p className="hint">
             Scorri uno alla volta. Sono orientamenti alla pratica, non regole da memorizzare.
           </p>

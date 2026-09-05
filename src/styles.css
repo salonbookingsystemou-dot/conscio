@@ -3693,6 +3693,16 @@ body:has(.splash) {
 /* Onboarding primo accesso */
 .onboarding { max-width: 40rem; }
 .onboarding .progress { margin-bottom: 16px; }
+.onboarding-domande .lead { margin-bottom: 12px; }
+.onboarding-domande .field label {
+  font-family: 'Fraunces', serif;
+  font-size: calc(var(--fs-title) * 0.66);
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: 0;
+  margin-bottom: 12px;
+  line-height: 1.35;
+}
 .atteggiamento-card {
   margin: 12px 0 8px;
   padding: 20px 18px;
