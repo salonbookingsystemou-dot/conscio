@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient'
 import { punteggioFfmq, punteggioPss10 } from '../lib/scoring'
 import GraficiTono from '../components/GraficiTono.jsx'
 import EditorSplash from '../components/EditorSplash.jsx'
+import DialogConferma from '../components/DialogConferma.jsx'
 import { EMAIL_CONTATTO, STRUMENTI } from '../lib/contatti.js'
 import { addDays, formatISODate, oggiLocaleISO, parseISODate } from '../lib/date.js'
 
@@ -120,6 +121,7 @@ export default function Dashboard() {
   const [aperto, setAperto] = useState(null)
   const [mostraForm, setMostraForm] = useState(false)
   const [errore, setErrore] = useState(null)
+  const [dialogo, setDialogo] = useState(null)
   const [form, setForm] = useState({
     nome_ciclo: '',
     data_inizio: '',
@@ -219,28 +221,31 @@ export default function Dashboard() {
     await carica()
   }
 
-  async function eliminaCiclo(ciclo) {
+  function eliminaCiclo(ciclo) {
     const nome = ciclo?.nome_ciclo || 'questo ciclo'
     const iscrittiCiclo = iscritti.filter(i => i.ciclo_id === ciclo.id).length
     const avvisoIscritti = iscrittiCiclo > 0
       ? ` Ci sono ${iscrittiCiclo} iscrizioni collegate: verranno eliminate insieme al ciclo.`
       : ''
-    if (!confirm(
-      `Eliminare «${nome}»?`
-      + ' Si cancellano anche settimane, pratiche, comunicazioni e iscrizioni di questa edizione.'
-      + avvisoIscritti
-      + ' I questionari e i log restano legati al codice partecipante.'
-    )) return
-
-    setErrore(null)
-    const { error } = await supabase.from('cicli').delete().eq('id', ciclo.id)
-    if (error) {
-      setErrore('Non è stato possibile eliminare il ciclo.')
-      return
-    }
-    setAperto(prev => (prev === ciclo.id ? null : prev))
-    setCicli(lista => lista.filter(c => c.id !== ciclo.id))
-    await carica()
+    setDialogo({
+      titolo: `Eliminare «${nome}»?`,
+      testo: 'Si cancellano anche settimane, pratiche, comunicazioni e iscrizioni di questa edizione.'
+        + avvisoIscritti
+        + ' I questionari e i log restano legati al codice partecipante.',
+      etichetta: 'Elimina ciclo',
+      onOk: async () => {
+        setErrore(null)
+        const { error } = await supabase.from('cicli').delete().eq('id', ciclo.id)
+        setDialogo(null)
+        if (error) {
+          setErrore('Non è stato possibile eliminare il ciclo.')
+          return
+        }
+        setAperto(prev => (prev === ciclo.id ? null : prev))
+        setCicli(lista => lista.filter(c => c.id !== ciclo.id))
+        await carica()
+      }
+    })
   }
 
   function contaIdoneiPresenza(cicloId) {
@@ -318,21 +323,25 @@ export default function Dashboard() {
     await aggiornaCiclo(cicloAperto.id, { link_incontro: valido })
   }
 
-  async function eliminaIscritto(iscrizione) {
+  function eliminaIscritto(iscrizione) {
     const codice = iscrizione.utenti?.codice_partecipante
     if (!codice) return
-    const ok = window.confirm(
-      `Cancellare ${iscrizione.utenti?.email || codice} (diritto all’oblio / uscita dal percorso)? ` +
-      `Si cancellano anche risposte e log. Se era idonea, il posto si libera.`
-    )
-    if (!ok) return
-    setErrore(null)
-    const { error } = await supabase.rpc('elimina_partecipante', { p_codice: codice })
-    if (error) {
-      setErrore('Non è stato possibile rimuovere questa persona.')
-      return
-    }
-    carica()
+    setDialogo({
+      titolo: 'Cancellare questa persona?',
+      testo: `Cancellare ${iscrizione.utenti?.email || codice} (diritto all’oblio / uscita dal percorso)? `
+        + 'Si cancellano anche risposte e log. Se era idonea, il posto si libera.',
+      etichetta: 'Rimuovi dal percorso',
+      onOk: async () => {
+        setErrore(null)
+        const { error } = await supabase.rpc('elimina_partecipante', { p_codice: codice })
+        setDialogo(null)
+        if (error) {
+          setErrore('Non è stato possibile rimuovere questa persona.')
+          return
+        }
+        carica()
+      }
+    })
   }
 
   const cicloAperto = cicli.find(c => c.id === aperto)
@@ -702,7 +711,7 @@ export default function Dashboard() {
                       {sintesiCiclo.avanzamento.testo}
                     </p>
                   </div>
-                  <Link className="btn" to="/lezioni">Apri Lezioni</Link>
+                  <Link className="btn btn-avanti" to="/lezioni">Apri Lezioni</Link>
                 </header>
 
                 <div className="dash-ciclo-stats" aria-label="Sintesi del ciclo">
@@ -999,6 +1008,16 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+      <DialogConferma
+        aperto={!!dialogo}
+        titolo={dialogo?.titolo || ''}
+        confermaEtichetta={dialogo?.etichetta || 'Conferma'}
+        pericolo
+        onConferma={() => dialogo?.onOk?.()}
+        onAnnulla={() => setDialogo(null)}
+      >
+        {dialogo?.testo}
+      </DialogConferma>
     </div>
   )
 }

@@ -10,6 +10,7 @@ import {
   supabaseConfigurato
 } from '../lib/supabaseClient'
 import Disclaimer from '../components/Disclaimer.jsx'
+import StatoAttesa from '../components/StatoAttesa.jsx'
 import BoxCodicePrivacy from '../components/BoxCodicePrivacy.jsx'
 import { EMAIL_CONTATTO } from '../lib/contatti.js'
 
@@ -44,7 +45,7 @@ export default function Entra() {
     if (location.hash === '#recupera') setMostraRecupero(true)
   }, [location.hash])
 
-  if (authLoad || caricamento) return <p>Caricamento…</p>
+  if (authLoad || caricamento) return <StatoAttesa />
   if (facilitatore) return <Navigate to="/dashboard" replace />
   if (registrato) return <Navigate to={destinazione} replace />
 
@@ -112,12 +113,12 @@ export default function Entra() {
       <div>
         <h2>Entra nel percorso</h2>
         <Disclaimer />
-        <div className="card">
-          <p>
+        <div className="card entra-box">
+          <p className="entra-box-nota">
             Le sezioni del percorso si aprono solo con il codice ricevuto all’iscrizione,
             e solo dopo l’esito idoneo dello screening. Non serve un account.
           </p>
-          <form onSubmit={handleSubmit}>
+          <form className="entra-box-form" onSubmit={handleSubmit}>
             <div className="field">
               <label htmlFor="codice">Codice partecipante</label>
               <input
@@ -150,15 +151,15 @@ export default function Entra() {
                 </p>
               )}
             </div>
-            <button className="btn" type="submit" disabled={!codice.trim() || invio}>
+            <button className="btn btn-avanti" type="submit" disabled={!codice.trim() || invio}>
               {invio ? 'Verifica in corso…' : 'Entra'}
             </button>
-            {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+            {errore && <p className="entra-box-errore">{errore}</p>}
           </form>
 
           <div className="entra-recupero">
             {!mostraRecupero ? (
-              <p className="hint">
+              <div className="entra-box-secondari">
                 <button
                   type="button"
                   className="link-testuale"
@@ -166,74 +167,79 @@ export default function Entra() {
                 >
                   Hai dimenticato il codice?
                 </button>
-              </p>
-            ) : (
-              <form className="entra-recupero-form" onSubmit={handleRecupero}>
-                <h3 className="entra-recupero-titolo">Recupera il codice</h3>
-                <p className="hint">
-                  Inserisci l’email usata all’iscrizione. Se è ancora in anagrafe,
-                  ti inviamo il codice lì — non lo mostriamo a schermo.
-                  Se l’email è già stata separata a fine percorso, scrivi a{' '}
-                  <a href={`mailto:${EMAIL_CONTATTO}`}>{EMAIL_CONTATTO}</a>.
+                <p className="hint entra-iscrizione">
+                  Non hai ancora il codice?{' '}
+                  <Link to="/iscrizione">Vai all’iscrizione</Link>
                 </p>
-                <div className="field">
-                  <label htmlFor="email-recupero">Email di iscrizione</label>
-                  <input
-                    id="email-recupero"
-                    type="email"
-                    name="email"
-                    autoComplete="email"
-                    value={emailRecupero}
-                    onChange={e => setEmailRecupero(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="campo-trappola" aria-hidden="true">
-                  <label htmlFor="sito-web-recupero">Sito web</label>
-                  <input
-                    id="sito-web-recupero"
-                    name="sito_web"
-                    type="text"
-                    tabIndex={-1}
-                    autoComplete="off"
-                    value={sitoWebRecupero}
-                    onChange={e => setSitoWebRecupero(e.target.value)}
-                  />
-                </div>
-                <div className="entra-recupero-azioni">
-                  <button
-                    className="btn"
-                    type="submit"
-                    disabled={!emailRecupero.trim() || invioRecupero}
-                  >
-                    {invioRecupero ? 'Invio…' : 'Invia il codice'}
-                  </button>
-                  <button
-                    type="button"
-                    className="link-testuale"
-                    onClick={() => {
-                      setMostraRecupero(false)
-                      setMsgRecupero(null)
-                      setErrRecupero(null)
-                    }}
-                  >
-                    Annulla
-                  </button>
-                </div>
-                {msgRecupero && <p className="hint hint-ok" role="status">{msgRecupero}</p>}
-                {errRecupero && <p style={{ color: 'var(--danger)' }}>{errRecupero}</p>}
-              </form>
+              </div>
+            ) : (
+              <>
+                <form className="entra-recupero-form" onSubmit={handleRecupero}>
+                  <h3 className="entra-recupero-titolo">Recupera il codice</h3>
+                  <p className="hint">
+                    Inserisci l’email usata all’iscrizione. Se è ancora in anagrafe,
+                    ti inviamo il codice lì — non lo mostriamo a schermo.
+                    Se l’email è già stata separata a fine percorso, scrivi a{' '}
+                    <a href={`mailto:${EMAIL_CONTATTO}`}>{EMAIL_CONTATTO}</a>.
+                  </p>
+                  <div className="field">
+                    <label htmlFor="email-recupero">Email di iscrizione</label>
+                    <input
+                      id="email-recupero"
+                      type="email"
+                      name="email"
+                      autoComplete="email"
+                      value={emailRecupero}
+                      onChange={e => setEmailRecupero(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="campo-trappola" aria-hidden="true">
+                    <label htmlFor="sito-web-recupero">Sito web</label>
+                    <input
+                      id="sito-web-recupero"
+                      name="sito_web"
+                      type="text"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      value={sitoWebRecupero}
+                      onChange={e => setSitoWebRecupero(e.target.value)}
+                    />
+                  </div>
+                  <div className="entra-recupero-azioni">
+                    <button
+                      className="btn"
+                      type="submit"
+                      disabled={!emailRecupero.trim() || invioRecupero}
+                    >
+                      {invioRecupero ? 'Invio…' : 'Invia il codice'}
+                    </button>
+                    <button
+                      type="button"
+                      className="link-testuale"
+                      onClick={() => {
+                        setMostraRecupero(false)
+                        setMsgRecupero(null)
+                        setErrRecupero(null)
+                      }}
+                    >
+                      Annulla
+                    </button>
+                  </div>
+                  {msgRecupero && <p className="hint hint-ok" role="status">{msgRecupero}</p>}
+                  {errRecupero && <p className="entra-box-errore">{errRecupero}</p>}
+                </form>
+                <p className="hint entra-iscrizione">
+                  Non hai ancora il codice?{' '}
+                  <Link to="/iscrizione">Vai all’iscrizione</Link>
+                </p>
+              </>
             )}
           </div>
         </div>
       </div>
       <aside>
         <BoxCodicePrivacy />
-        <div className="card card-lato">
-          <h3>Non hai ancora il codice?</h3>
-          <p>Prima iscriviti: riceverai un codice personale da conservare (a schermo e via email).</p>
-          <p><Link to="/iscrizione">Vai all’iscrizione</Link></p>
-        </div>
       </aside>
     </div>
   )

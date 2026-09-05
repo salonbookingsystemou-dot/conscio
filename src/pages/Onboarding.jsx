@@ -5,6 +5,7 @@ import { ATTEGGIAMENTI, DOMANDE_ONBOARDING } from '../lib/atteggiamenti.js'
 import { usePartecipante } from '../lib/partecipante.jsx'
 import CampoNota from '../components/CampoNota.jsx'
 import AvvisoDatiPseudonimi from '../components/AvvisoDatiPseudonimi.jsx'
+import StatoAttesa from '../components/StatoAttesa.jsx'
 
 const PASSI = ['intro', 'q1', 'q2', 'atteggiamenti']
 
@@ -31,7 +32,7 @@ export default function Onboarding() {
     }
   }, [caricamento, registrato, onboardingCompleto, t0Completo, navigate])
 
-  if (caricamento) return <p>Caricamento…</p>
+  if (caricamento) return <StatoAttesa />
   if (!registrato) return <Navigate to="/entra" replace state={{ da: '/onboarding' }} />
   if (onboardingCompleto) return null
 
@@ -103,7 +104,7 @@ export default function Onboarding() {
           <AvvisoDatiPseudonimi />
           <p className="hint">Questo passaggio non si può saltare: serve una sola volta.</p>
           <div className="azioni">
-            <button className="btn" type="button" onClick={() => setPasso(1)}>
+            <button className="btn btn-avanti" type="button" onClick={() => setPasso(1)}>
               Inizia
             </button>
           </div>
@@ -121,7 +122,7 @@ export default function Onboarding() {
             placeholder={idPasso === 'q1' ? DOMANDE_ONBOARDING[0].placeholder : DOMANDE_ONBOARDING[1].placeholder}
             rows={4}
           />
-          {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+          {errore && <p className="campo-errore" role="alert">{errore}</p>}
           <div className="azioni">
             <button
               className="btn btn-ghost"
@@ -130,7 +131,7 @@ export default function Onboarding() {
             >
               Indietro
             </button>
-            <button className="btn" type="button" onClick={avantiDomanda}>
+            <button className="btn btn-avanti" type="button" onClick={avantiDomanda}>
               Continua
             </button>
           </div>
@@ -151,7 +152,7 @@ export default function Onboarding() {
             <h3>{att.titolo}</h3>
             <p>{att.testo}</p>
           </article>
-          {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+          {errore && <p className="campo-errore" role="alert">{errore}</p>}
           <div className="azioni">
             <button
               className="btn btn-ghost"
@@ -166,12 +167,12 @@ export default function Onboarding() {
               Indietro
             </button>
             {ultimaAtt ? (
-              <button className="btn" type="button" disabled={invio} onClick={completaWizard}>
+              <button className="btn btn-avanti" type="button" disabled={invio} onClick={completaWizard}>
                 {invio ? 'Salvataggio…' : 'Vai ai questionari T0'}
               </button>
             ) : (
               <button
-                className="btn"
+                className="btn btn-avanti"
                 type="button"
                 disabled={invio}
                 onClick={() => setIndiceAtt(i => i + 1)}

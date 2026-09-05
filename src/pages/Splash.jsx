@@ -47,7 +47,7 @@ export default function Splash() {
       <span className="splash-linea" aria-hidden="true" />
       <h1 className="splash-frase">{testo.frase}</h1>
       <div className="splash-cta">
-        <Link className="btn" to={destinazione}>{testo.cta}</Link>
+        <Link className="btn btn-avanti" to={destinazione}>{testo.cta}</Link>
         {!facilitatore && !registrato && (
           <p className="splash-secondario">
             <Link to="/entra">Ho già un codice</Link>

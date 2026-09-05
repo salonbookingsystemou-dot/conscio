@@ -3,6 +3,8 @@ import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
 import { useAuth } from '../lib/auth.jsx'
 import { usePartecipante } from '../lib/partecipante.jsx'
 import ChiediCodice from '../components/ChiediCodice.jsx'
+import StatoAttesa from '../components/StatoAttesa.jsx'
+import StatoVuoto from '../components/StatoVuoto.jsx'
 
 const TIPI = [
   { id: 'reminder_t3', label: 'Promemoria T3 (follow-up)' },
@@ -69,10 +71,12 @@ function AvvisiPartecipante() {
       {!registrato && (
         <ChiediCodice titolo="Per vedere gli avvisi di un partecipante, inserisci il codice." />
       )}
-      {invio && <p>Caricamento…</p>}
-      {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+      {invio && <StatoAttesa etichetta="Caricamento degli avvisi…" />}
+      {errore && <p className="campo-errore" role="alert">{errore}</p>}
       {registrato && !invio && lista.length === 0 && !errore && (
-        <p>Nessun avviso per il tuo ciclo, per ora.</p>
+        <StatoVuoto titolo="Nessun avviso">
+          Non ci sono messaggi per il tuo ciclo, per ora.
+        </StatoVuoto>
       )}
       {lista.map(c => (
         <div className="card" key={c.id || `${c.oggetto}-${c.data_invio}`}>
@@ -206,7 +210,7 @@ export default function Comunicazioni() {
     setInvio(false)
   }
 
-  if (caricamento) return <p>Caricamento…</p>
+  if (caricamento) return <StatoAttesa />
   if (!facilitatore) return <AvvisiPartecipante />
 
   return (
@@ -265,7 +269,7 @@ export default function Comunicazioni() {
             </button>
           </div>
           {messaggio && <p>{messaggio}</p>}
-          {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+          {errore && <p className="campo-errore" role="alert">{errore}</p>}
         </form>
       </div>
 

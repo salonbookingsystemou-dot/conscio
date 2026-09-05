@@ -7,6 +7,8 @@ import ChiediCodice from '../components/ChiediCodice.jsx'
 import CampoNota from '../components/CampoNota.jsx'
 import CalendarioPratica from '../components/CalendarioPratica.jsx'
 import TracciaGuidata from '../components/TracciaGuidata.jsx'
+import GuidaMeditazione from '../components/GuidaMeditazione.jsx'
+import StatoAttesa from '../components/StatoAttesa.jsx'
 import TonoEsperienza from '../components/TonoEsperienza.jsx'
 import VoceLog from '../components/VoceLog.jsx'
 import { precaricaCampanaTibetana } from '../lib/campanaTibetana.js'
@@ -40,7 +42,7 @@ function InvitoIncontroRemoto({ link }) {
         settimane, tracce e questionari.
       </p>
       {sicuro ? (
-        <a className="btn" href={sicuro} target="_blank" rel="noopener noreferrer">
+        <a className="btn btn-avanti" href={sicuro} target="_blank" rel="noopener noreferrer">
           Entra all’incontro
         </a>
       ) : (
@@ -107,7 +109,7 @@ function VuotoProgramma({ ciclo, facilitatore }) {
       </p>
       {facilitatore ? (
         <div className="settimana-vuoto-azioni">
-          <Link className="btn" to="/lezioni">Apri Lezioni</Link>
+          <Link className="btn btn-avanti" to="/lezioni">Apri Lezioni</Link>
           <p className="hint">
             Da Lezioni crei le settimane, le pratiche formali con audio e le informali.
           </p>
@@ -227,7 +229,7 @@ function AnnotazioniGiorno({
           {invio ? 'Salvataggio…' : 'Registra la pratica di oggi'}
         </button>
         {!notaPronta && <p className="hint">La nota è necessaria per chiudere la sessione.</p>}
-        {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+        {errore && <p className="campo-errore" role="alert">{errore}</p>}
       </form>
     </div>
   )
@@ -446,8 +448,8 @@ export default function Programma() {
           <ChiediCodice titolo="Per vedere la settimana di un partecipante, inserisci il codice." />
         </>
       )}
-      {registrato && invio && !aperto && <p>Caricamento del programma…</p>}
-      {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+      {registrato && invio && !aperto && <StatoAttesa etichetta="Caricamento del programma…" />}
+      {errore && <p className="campo-errore" role="alert">{errore}</p>}
 
       {aperto && ciclo?.modalita_fruizione === 'remoto' && ciclo?.data_inizio && (
         <InvitoIncontroRemoto link={ciclo.link_incontro} />
@@ -492,7 +494,10 @@ export default function Programma() {
 
           {corrente && (
             <div className="card settimana-vista">
-              {badgeSettimana && <p className="badge badge-settimana">{badgeSettimana}</p>}
+              <div className="settimana-vista-capo">
+                {badgeSettimana && <p className="badge badge-settimana">{badgeSettimana}</p>}
+                <GuidaMeditazione />
+              </div>
               <h2 className="settimana-titolo">{corrente.tema || `Settimana ${corrente.numero_settimana}`}</h2>
               {corrente.sottotitolo && <p className="lead settimana-sottotitolo">{corrente.sottotitolo}</p>}
 

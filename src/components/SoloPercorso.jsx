@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth.jsx'
 import { destinazionePartecipante, usePartecipante } from '../lib/partecipante.jsx'
+import StatoAttesa from './StatoAttesa.jsx'
 
 /** Blocca Settimana / Storico / Avvisi finché onboarding + T0 non sono completi. */
 export default function SoloPercorso({ children }) {
@@ -14,7 +15,7 @@ export default function SoloPercorso({ children }) {
   } = usePartecipante()
   const location = useLocation()
 
-  if (authLoad || caricamento) return <p>Caricamento…</p>
+  if (authLoad || caricamento) return <StatoAttesa />
   if (facilitatore) return children
   if (!registrato) {
     return <Navigate to="/entra" replace state={{ da: location.pathname }} />

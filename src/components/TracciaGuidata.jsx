@@ -44,7 +44,8 @@ export default function TracciaGuidata({
   onCompleto,
   onDurata,
   onAscolto,
-  onPersistenza
+  onPersistenza,
+  anteprima = false
 }) {
   const audioRef = useRef(null)
   const playedRef = useRef(0)
@@ -110,7 +111,7 @@ export default function TracciaGuidata({
   function registraDurata(secondi) {
     if (!Number.isFinite(secondi) || secondi <= 0) return
     setDurata(secondi)
-    if (recuperaAscoltoSeManca(persistenzaKey, secondi)) {
+    if (!anteprima && recuperaAscoltoSeManca(persistenzaKey, secondi)) {
       onAscoltoRef.current?.()
     }
     if (Math.abs(durataNotaRef.current - secondi) < 0.5) return
@@ -125,9 +126,11 @@ export default function TracciaGuidata({
     const ascoltato = playedRef.current
     if (ascoltato < d * 0.9) return
     contatoGiro.current = true
-    registraAscoltoCompleto(persistenzaKey, d)
-    onPersistenzaRef.current?.(d)
-    onAscoltoRef.current?.()
+    if (!anteprima) {
+      registraAscoltoCompleto(persistenzaKey, d)
+      onPersistenzaRef.current?.(d)
+      onAscoltoRef.current?.()
+    }
     setCompleto(true)
     setPercento(100)
     onCompletoRef.current?.(true)
@@ -282,13 +285,17 @@ export default function TracciaGuidata({
 
   return (
     <div className="traccia-settimana">
-      <p><strong>Traccia guidata</strong></p>
+      <p><strong>{anteprima ? 'Anteprima traccia' : 'Traccia guidata'}</strong></p>
       <p className="hint">
-        {inCampana
-          ? 'Campana di apertura… poi inizia la traccia.'
-          : completo
-            ? 'Traccia ascoltata per intero. Puoi registrare la sessione.'
-            : 'Ascolta la traccia fino alla fine: è il materiale della sessione. Poi si apre il log.'}
+        {anteprima
+          ? (inCampana
+            ? 'Campana di apertura… poi inizia la traccia.'
+            : 'Stesso player della settimana, senza registrare l’ascolto.')
+          : inCampana
+            ? 'Campana di apertura… poi inizia la traccia.'
+            : completo
+              ? 'Traccia ascoltata per intero. Puoi registrare la sessione.'
+              : 'Ascolta la traccia fino alla fine: è il materiale della sessione. Poi si apre il log.'}
       </p>
       <audio
         ref={audioRef}
@@ -358,7 +365,7 @@ export default function TracciaGuidata({
       </div>
       <p className="hint">{completo ? 'Completata' : `Ascolto ${percento}%`}</p>
       {errore && (
-        <p className="hint" style={{ color: 'var(--danger)' }}>
+        <p className="campo-errore" role="alert">
           Non è stato possibile riprodurre la traccia. Riprova.
         </p>
       )}

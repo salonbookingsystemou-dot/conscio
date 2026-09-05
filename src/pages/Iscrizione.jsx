@@ -363,7 +363,7 @@ export default function Iscrizione() {
             <button className="btn" type="submit" disabled={stato === 'invio' || !form.letto_informativa || !form.consenso_modulo_a || (!form.solo_remoto && !form.ciclo_id)}>
               {stato === 'invio' ? 'Invio in corso…' : 'Invia richiesta'}
             </button>
-            {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+            {errore && <p className="campo-errore" role="alert">{errore}</p>}
           </div>
         </form>
       </section>

@@ -119,7 +119,7 @@ export default function InvitoHome() {
         Puoi aggiungere questa app alla schermata Home del telefono.
         Così la apri come le altre, senza passare dal browser.
       </p>
-      <button type="button" className="btn" onClick={installa}>
+      <button type="button" className="btn btn-avanti" onClick={installa}>
         Installa app
       </button>
       {ios ? (

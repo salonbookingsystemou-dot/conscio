@@ -37,9 +37,9 @@ export default function ChiediCodice({
   }
 
   return (
-    <div className="card">
-      <p>{titolo}</p>
-      <form onSubmit={handleSubmit}>
+    <div className="card entra-box">
+      <p className="entra-box-nota">{titolo}</p>
+      <form className="entra-box-form" onSubmit={handleSubmit}>
         <div className="field">
           <label htmlFor="codice-sezione">Codice partecipante</label>
           <input
@@ -55,12 +55,12 @@ export default function ChiediCodice({
             required
           />
         </div>
-        <button className="btn" type="submit" disabled={!codice.trim() || invio}>
+        <button className="btn btn-avanti" type="submit" disabled={!codice.trim() || invio}>
           {invio ? 'Verifica in corso…' : 'Continua'}
         </button>
-        {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+        {errore && <p className="campo-errore" role="alert">{errore}</p>}
       </form>
-      <p className="hint">
+      <p className="hint entra-iscrizione">
         <Link to="/entra#recupera">Hai dimenticato il codice?</Link>
       </p>
     </div>

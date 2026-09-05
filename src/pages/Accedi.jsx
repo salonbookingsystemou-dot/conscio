@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth.jsx'
 import { supabaseConfigurato } from '../lib/supabaseClient'
+import StatoAttesa from '../components/StatoAttesa.jsx'
 
 export default function Accedi() {
   const { facilitatore, caricamento, accedi } = useAuth()
@@ -10,7 +11,7 @@ export default function Accedi() {
   const [errore, setErrore] = useState(null)
   const [invio, setInvio] = useState(false)
 
-  if (caricamento) return <p>Caricamento…</p>
+  if (caricamento) return <StatoAttesa />
   if (facilitatore) return <Navigate to="/dashboard" replace />
 
   async function handleSubmit(e) {
@@ -35,13 +36,13 @@ export default function Accedi() {
   }
 
   return (
-    <div className="card">
+    <div className="card entra-box">
       <h2>Accesso facilitatore</h2>
-      <p className="disclaimer">
+      <p className="entra-box-nota">
         Area riservata a chi conduce il percorso. I partecipanti entrano con il
         codice ricevuto all’iscrizione — senza account.
       </p>
-      <form onSubmit={handleSubmit}>
+      <form className="entra-box-form" onSubmit={handleSubmit}>
         <div className="field">
           <label htmlFor="email">Email</label>
           <input
@@ -67,7 +68,7 @@ export default function Accedi() {
         <button className="btn" type="submit" disabled={invio}>
           {invio ? 'Accesso in corso…' : 'Entra'}
         </button>
-        {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+        {errore && <p className="campo-errore" role="alert">{errore}</p>}
       </form>
     </div>
   )

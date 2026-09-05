@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import LibreriaTracce, { SelettoreTraccia } from '../components/LibreriaTracce.jsx'
+import TracciaGuidata from '../components/TracciaGuidata.jsx'
+import DialogConferma from '../components/DialogConferma.jsx'
 import {
   creaTraccia,
   elencaTracce,
@@ -56,6 +58,7 @@ export default function Lezioni() {
   const [invioMeta, setInvioMeta] = useState(false)
   const [errore, setErrore] = useState(null)
   const [okMsg, setOkMsg] = useState(null)
+  const [confermaEliminaSettimana, setConfermaEliminaSettimana] = useState(false)
   const pillsRef = useRef(null)
 
   async function caricaLibreria() {
@@ -216,9 +219,14 @@ export default function Lezioni() {
 
   async function eliminaLezione() {
     if (!corrente) return
-    if (!confirm('Eliminare questa settimana e tutte le pratiche collegate?')) return
+    setConfermaEliminaSettimana(true)
+  }
+
+  async function confermaEliminaLezione() {
+    if (!corrente) return
     await supabase.from('lezioni').delete().eq('id', corrente.id)
     setOkMsg(null)
+    setConfermaEliminaSettimana(false)
     await Promise.all([caricaLezioni(cicloId), caricaLibreria()])
   }
 
@@ -426,9 +434,7 @@ export default function Lezioni() {
               {fileAudioSettimana && <p className="hint">Nuovo file: {fileAudioSettimana.name} — va in libreria al salvataggio.</p>}
               {!fileAudioSettimana && urlSettimana && (
                 <div className="lezioni-audio-riga">
-                  <audio className="player-audio" controls src={urlSettimana} preload="metadata">
-                    Il browser non riproduce questa traccia.
-                  </audio>
+                  <TracciaGuidata src={urlSettimana} anteprima />
                   <button
                     className="btn btn-ghost"
                     type="button"
@@ -455,7 +461,7 @@ export default function Lezioni() {
               )}
             </div>
             {okMsg && <p className="hint">{okMsg}</p>}
-            {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+            {errore && <p className="campo-errore" role="alert">{errore}</p>}
           </form>
 
           {!corrente && (
@@ -538,9 +544,7 @@ export default function Lezioni() {
                           <>
                             {urlEx ? (
                               <div className="lezioni-audio-riga">
-                                <audio className="player-audio" controls src={urlEx} preload="metadata">
-                                  Il browser non riproduce questa traccia.
-                                </audio>
+                                <TracciaGuidata src={urlEx} anteprima />
                                 <button className="btn btn-ghost" type="button" onClick={() => rimuoviTracciaEsercizio(ex.id)}>
                                   Scollega
                                 </button>
@@ -708,6 +712,16 @@ export default function Lezioni() {
       {cicloId && lezioni.length === 0 && (
         <p className="hint">Nessuna settimana ancora configurata: scegline una sopra e crea il tema.</p>
       )}
+      <DialogConferma
+        aperto={confermaEliminaSettimana}
+        titolo="Eliminare questa settimana?"
+        confermaEtichetta="Elimina settimana"
+        pericolo
+        onConferma={confermaEliminaLezione}
+        onAnnulla={() => setConfermaEliminaSettimana(false)}
+      >
+        Si cancellano anche tutte le pratiche collegate. Non si può tornare indietro.
+      </DialogConferma>
     </div>
   )
 }

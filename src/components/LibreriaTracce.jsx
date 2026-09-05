@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import DialogConferma from './DialogConferma.jsx'
+import TracciaGuidata from './TracciaGuidata.jsx'
 import {
   creaTraccia,
   eliminaTraccia,
@@ -18,6 +20,7 @@ export default function LibreriaTracce({
   const [titoloNuovo, setTitoloNuovo] = useState('')
   const [modificaId, setModificaId] = useState(null)
   const [titoloModifica, setTitoloModifica] = useState('')
+  const [daEliminare, setDaEliminare] = useState(null)
 
   async function suCarica(file) {
     if (!file) return
@@ -65,17 +68,26 @@ export default function LibreriaTracce({
       onErrore(new Error('TRACCIA_IN_USO'))
       return
     }
-    if (!confirm(`Eliminare «${traccia.titolo}» dalla libreria?`)) return
+    setDaEliminare(traccia)
+  }
+
+  async function confermaElimina() {
+    const traccia = daEliminare
+    if (!traccia) return
+    const n = usi[traccia.id] || 0
     onErrore(null)
     try {
       await eliminaTraccia(traccia, n)
+      setDaEliminare(null)
       await onAggiorna()
     } catch (err) {
+      setDaEliminare(null)
       onErrore(err)
     }
   }
 
   return (
+    <>
     <details className="lezioni-libreria" open={tracce.length === 0}>
       <summary>
         Libreria tracce
@@ -152,9 +164,7 @@ export default function LibreriaTracce({
                         ].filter(Boolean).join(' · ')}
                       </p>
                     </div>
-                    <audio className="player-audio" controls src={t.url} preload="metadata">
-                      Il browser non riproduce questa traccia.
-                    </audio>
+                    <TracciaGuidata src={t.url} anteprima />
                     <div className="lezioni-ex-azioni">
                       <button
                         className="btn btn-ghost"
@@ -197,6 +207,17 @@ export default function LibreriaTracce({
         </ul>
       )}
     </details>
+    <DialogConferma
+      aperto={!!daEliminare}
+      titolo="Eliminare dalla libreria?"
+      confermaEtichetta="Elimina traccia"
+      pericolo
+      onConferma={confermaElimina}
+      onAnnulla={() => setDaEliminare(null)}
+    >
+      {daEliminare ? `Eliminare «${daEliminare.titolo}» dalla libreria?` : ''}
+    </DialogConferma>
+    </>
   )
 }
 

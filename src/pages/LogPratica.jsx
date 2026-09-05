@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
 import { usePartecipante } from '../lib/partecipante.jsx'
 import ChiediCodice from '../components/ChiediCodice.jsx'
+import StatoAttesa from '../components/StatoAttesa.jsx'
+import StatoVuoto from '../components/StatoVuoto.jsx'
 import CalendarioPratica from '../components/CalendarioPratica.jsx'
 import GraficoAndamentoPratica from '../components/GraficoAndamentoPratica.jsx'
 
@@ -56,8 +58,9 @@ export default function LogPratica() {
       {!registrato && (
         <ChiediCodice titolo="Per vedere lo storico di un partecipante, inserisci il codice." />
       )}
-      {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+      {errore && <p className="campo-errore" role="alert">{errore}</p>}
 
+      {registrato && !caricato && !errore && <StatoAttesa etichetta="Caricamento dello storico…" />}
       {caricato && (
         <>
           <div className="card">
@@ -85,7 +88,11 @@ export default function LogPratica() {
               </p>
             )}
             {visibili.length === 0 ? (
-              <p>{giornoAttivo ? 'Nessuna sessione in questo giorno.' : 'Nessuna sessione ancora registrata.'}</p>
+              <StatoVuoto titolo={giornoAttivo ? 'Nessuna sessione' : 'Diario ancora vuoto'}>
+                {giornoAttivo
+                  ? 'In questo giorno non risulta nessuna pratica registrata.'
+                  : 'Quando completi una pratica in Settimana, comparirà qui.'}
+              </StatoVuoto>
             ) : (
               <GraficoAndamentoPratica sessioni={visibili} />
             )}

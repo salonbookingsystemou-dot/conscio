@@ -7,6 +7,7 @@ import ScalaLikert from '../components/ScalaLikert.jsx'
 import Disclaimer from '../components/Disclaimer.jsx'
 import ChiediCodice from '../components/ChiediCodice.jsx'
 import IndicatoreOrientamento from '../components/IndicatoreOrientamento.jsx'
+import StatoAttesa from '../components/StatoAttesa.jsx'
 
 const ETICHETTE = {
   T0: { titolo: 'T0 — Inizio', sottotitolo: 'Prima di partire e durante la settimana 1' },
@@ -308,7 +309,7 @@ export default function Questionari() {
 
         {timepoint === 'T0' ? (
           <div className="azioni esito-azioni">
-            <Link className="btn" to="/programma">
+            <Link className="btn btn-avanti" to="/programma">
               Apri la settimana di pratica
             </Link>
             <button className="btn btn-ghost" type="button" onClick={() => caricaPiano()}>
@@ -349,7 +350,7 @@ export default function Questionari() {
             onChange={rispondi}
             disabilitato={invio}
           />
-          {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+          {errore && <p className="campo-errore" role="alert">{errore}</p>}
           <div className="azioni">
             <button
               className="btn btn-ghost"
@@ -371,7 +372,7 @@ export default function Questionari() {
               </button>
             ) : (
               <button
-                className="btn"
+                className="btn btn-avanti"
                 type="button"
                 disabled={!haRisposta || invio}
                 onClick={() => { setErrore(null); setIndice(i => i + 1) }}
@@ -465,7 +466,7 @@ export default function Questionari() {
                     <div className="tp-card-azione">
                       {puoIniziare && (
                         <button
-                          className="btn"
+                          className="btn btn-avanti"
                           type="button"
                           disabled={invio}
                           onClick={() => avviaTimepoint(tp)}
@@ -489,7 +490,7 @@ export default function Questionari() {
               )
             })}
           </ul>
-          {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+          {errore && <p className="campo-errore" role="alert">{errore}</p>}
         </section>
       </div>
     )
@@ -499,11 +500,11 @@ export default function Questionari() {
     <div>
       <h2>Questionari</h2>
       {registrato ? (
-        <p>Caricamento dei momenti…</p>
+        <StatoAttesa etichetta="Caricamento dei momenti…" />
       ) : (
         <ChiediCodice titolo="Per vedere i questionari di un partecipante, inserisci il codice." />
       )}
-      {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+      {errore && <p className="campo-errore" role="alert">{errore}</p>}
     </div>
   )
 }

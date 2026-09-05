@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
 import { usePartecipante } from '../lib/partecipante.jsx'
 import { pulisciAscoltoLocale } from '../lib/ascolto.js'
 import { EMAIL_CONTATTO } from '../lib/contatti.js'
 import ChiediCodice from '../components/ChiediCodice.jsx'
+import DialogConferma from '../components/DialogConferma.jsx'
 function scaricaJson(nome, dati) {
   const blob = new Blob([JSON.stringify(dati, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
@@ -17,29 +18,12 @@ function scaricaJson(nome, dati) {
 
 export default function IMieiDati() {
   const { codice, registrato, aggiornaPercorso, aggiornaAscolto } = usePartecipante()
-  const conferma = useRef(null)
   const [invio, setInvio] = useState(false)
   const [resetInvio, setResetInvio] = useState(false)
   const [errore, setErrore] = useState(null)
   const [pacchetto, setPacchetto] = useState(null)
   const [confermaAperta, setConfermaAperta] = useState(false)
   const [resetOk, setResetOk] = useState(false)
-
-  useEffect(() => {
-    const el = conferma.current
-    if (!el) return
-    if (confermaAperta && !el.open) el.showModal()
-    if (!confermaAperta && el.open) el.close()
-  }, [confermaAperta])
-
-  useEffect(() => {
-    if (!confermaAperta) return undefined
-    const precedente = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = precedente
-    }
-  }, [confermaAperta])
 
   async function esporta() {
     if (!codice) return
@@ -158,7 +142,7 @@ export default function IMieiDati() {
         </>
       )}
 
-      {errore && <p style={{ color: 'var(--danger)' }}>{errore}</p>}
+      {errore && <p className="campo-errore" role="alert">{errore}</p>}
 
       <p className="hint">
         Per correzione, limitazione o cancellazione completa del record scrivi a {EMAIL_CONTATTO}
@@ -166,42 +150,18 @@ export default function IMieiDati() {
         partecipazione; il Modulo A significa uscire dal percorso.
       </p>
 
-      <dialog
-        ref={conferma}
-        className="dialog-conferma"
-        onClose={() => setConfermaAperta(false)}
-        onCancel={e => {
-          e.preventDefault()
-          if (!resetInvio) setConfermaAperta(false)
-        }}
-        onClick={e => {
-          if (e.target === conferma.current && !resetInvio) setConfermaAperta(false)
-        }}
+      <DialogConferma
+        aperto={confermaAperta}
+        titolo="Resetta tutti i miei dati?"
+        confermaEtichetta="Sì, resetta i dati"
+        pericolo
+        occupato={resetInvio}
+        onConferma={resettaDati}
+        onAnnulla={() => setConfermaAperta(false)}
       >
-        <h3>Resetta tutti i miei dati?</h3>
-        <p>
-          Stai per cancellare questionari, diario di pratica e risposte di onboarding.
-          Codice, email e posto nel ciclo restano. Non si può tornare indietro.
-        </p>
-        <div className="azioni">
-          <button
-            className="btn btn-ghost btn-ciclo-elimina"
-            type="button"
-            disabled={resetInvio}
-            onClick={resettaDati}
-          >
-            {resetInvio ? 'Reset in corso…' : 'Sì, resetta i dati'}
-          </button>
-          <button
-            className="btn btn-ghost"
-            type="button"
-            disabled={resetInvio}
-            onClick={() => setConfermaAperta(false)}
-          >
-            Annulla
-          </button>
-        </div>
-      </dialog>
+        Stai per cancellare questionari, diario di pratica e risposte di onboarding.
+        Codice, email e posto nel ciclo restano. Non si può tornare indietro.
+      </DialogConferma>
     </div>
   )
 }

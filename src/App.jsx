@@ -17,6 +17,7 @@ import Onboarding from './pages/Onboarding.jsx'
 import Documento from './pages/Documento.jsx'
 import IMieiDati from './pages/IMieiDati.jsx'
 import InvitoHome from './components/InvitoHome.jsx'
+import BarraBassa from './components/BarraBassa.jsx'
 import Footer from './components/Footer.jsx'
 
 export default function App() {
@@ -26,7 +27,12 @@ export default function App() {
   return (
     <>
       <InvitoHome />
-      {!splash && <Nav />}
+      {!splash && (
+        <>
+          <Nav />
+          <BarraBassa />
+        </>
+      )}
       <div className={splash ? undefined : 'shell'}>
         <Routes>
           <Route path="/" element={<Splash />} />

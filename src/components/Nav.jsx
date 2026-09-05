@@ -46,19 +46,16 @@ export default function Nav() {
     setAperto(false)
   }
 
-  const vociPartecipante = facilitatore ? null : (
+  const barraBassa = facilitatore || (registrato && percorsoPronto)
+
+  const vociPrimarie = (facilitatore || (registrato && onboardingCompleto)) && (
     <>
-      {!onboardingCompleto && (
-        <NavLink to="/onboarding" onClick={chiudi}>Primo accesso</NavLink>
-      )}
-      {onboardingCompleto && (
-        <NavLink to="/questionari" onClick={chiudi}>Questionari</NavLink>
-      )}
-      {percorsoPronto && (
+      <NavLink className="nav-primaria" to="/questionari" onClick={chiudi}>Questionari</NavLink>
+      {barraBassa && (
         <>
-          <NavLink to="/programma" onClick={chiudi}>Settimana</NavLink>
-          <NavLink to="/pratica" onClick={chiudi}>Storico</NavLink>
-          <NavLink to="/comunicazioni" onClick={chiudi}>Avvisi</NavLink>
+          <NavLink className="nav-primaria" to="/programma" onClick={chiudi}>Settimana</NavLink>
+          <NavLink className="nav-primaria" to="/pratica" onClick={chiudi}>Storico</NavLink>
+          <NavLink className="nav-primaria" to="/comunicazioni" onClick={chiudi}>Avvisi</NavLink>
         </>
       )}
     </>
@@ -68,19 +65,19 @@ export default function Nav() {
     <>
       {facilitatore ? (
         <>
-          <NavLink to="/questionari" onClick={chiudi}>Questionari</NavLink>
-          <NavLink to="/programma" onClick={chiudi}>Settimana</NavLink>
-          <NavLink to="/pratica" onClick={chiudi}>Storico</NavLink>
-          <NavLink to="/comunicazioni" onClick={chiudi}>Avvisi</NavLink>
-          <span className="nav-sep" aria-hidden="true" />
+          {vociPrimarie}
+          <span className="nav-sep nav-sep-dopo-primarie" aria-hidden="true" />
           <NavLink to="/dashboard" onClick={chiudi}>Cicli</NavLink>
           <NavLink to="/lezioni" onClick={chiudi}>Lezioni</NavLink>
           <button type="button" onClick={() => { chiudi(); esci() }}>Esci</button>
         </>
       ) : (
         <>
-          {vociPartecipante}
-          <span className="nav-sep" aria-hidden="true" />
+          {!onboardingCompleto && (
+            <NavLink to="/onboarding" onClick={chiudi}>Primo accesso</NavLink>
+          )}
+          {vociPrimarie}
+          <span className="nav-sep nav-sep-dopo-primarie" aria-hidden="true" />
           {!appGiaInHome() && (
             <button
               type="button"
@@ -117,6 +114,9 @@ export default function Nav() {
         </Link>
         <div className="topbar-azioni">
           {registrato && <OreAscolto minuti={minutiAscolto} />}
+          <div className="nav-tonalita-desktop">
+            <RuotaTonalita variante="compatta" />
+          </div>
           <button
             type="button"
             className="nav-toggle"
