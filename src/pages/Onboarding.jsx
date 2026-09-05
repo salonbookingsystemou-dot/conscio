@@ -149,8 +149,10 @@ export default function Onboarding() {
           </p>
           <article className="atteggiamento-card">
             <p className="atteggiamento-num" aria-hidden="true">{String(indiceAtt + 1).padStart(2, '0')}</p>
-            <h3>{att.titolo}</h3>
-            <p>{att.testo}</p>
+            <div className="atteggiamento-corpo">
+              <h3>{att.titolo}</h3>
+              <p>{att.testo}</p>
+            </div>
           </article>
           {errore && <p className="campo-errore" role="alert">{errore}</p>}
           <div className="azioni">

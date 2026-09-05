@@ -3709,30 +3709,51 @@ body:has(.splash) {
   line-height: 1.35;
 }
 .atteggiamento-card {
-  margin: 12px 0 8px;
-  padding: 20px 18px;
-  border: 1px solid var(--border);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin: 16px 0 10px;
+  padding: 22px 22px 26px;
+  border: 1px solid color-mix(in srgb, var(--moss) 16%, var(--border));
   border-radius: 16px;
-  background: color-mix(in srgb, var(--tint) 40%, #fff);
+  background:
+    linear-gradient(
+      158deg,
+      color-mix(in srgb, var(--tint) 62%, #fff) 0%,
+      color-mix(in srgb, var(--surface) 88%, var(--tint)) 100%
+    );
 }
-.atteggiamento-num {
-  margin: 0 0 8px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  color: var(--moss);
+.atteggiamento-card .atteggiamento-num {
+  position: absolute;
+  top: 0.02em;
+  right: 0.08em;
+  z-index: 0;
+  margin: 0;
+  font-family: 'Fraunces', serif;
+  font-optical-sizing: auto;
+  font-size: clamp(5.4rem, 30vw, 7rem);
+  font-weight: 500;
+  line-height: 0.78;
+  letter-spacing: -0.06em;
+  color: color-mix(in srgb, color-mix(in srgb, var(--moss) 72%, var(--ochre)) 32%, transparent);
+  pointer-events: none;
+}
+.atteggiamento-corpo {
+  position: relative;
+  z-index: 1;
+  max-width: 18.5em;
 }
 .atteggiamento-card h3 {
-  margin: 0 0 8px;
+  margin: 0 0 10px;
   font-family: 'Fraunces', serif;
-  font-size: 1.45rem;
-  line-height: 1.25;
+  font-size: 1.5rem;
+  line-height: 1.2;
   color: var(--moss-dark);
 }
-.atteggiamento-card p {
+.atteggiamento-corpo p {
   margin: 0;
   color: var(--ink);
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 /* Esito questionari — gerarchia */
