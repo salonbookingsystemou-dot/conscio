@@ -42,3 +42,14 @@ export function vaMostratoInvito() {
 export function apriInvitoHome() {
   window.dispatchEvent(new Event('conscio-apri-invito-home'))
 }
+
+/** Evita che iOS rimpicciolisca la pagina all’apertura di un dialog. */
+export function ripristinaScalaViewport() {
+  const meta = document.querySelector('meta[name="viewport"]')
+  if (!meta) return
+  const base = 'width=device-width, initial-scale=1, viewport-fit=cover'
+  meta.setAttribute('content', `${base}, maximum-scale=1`)
+  window.requestAnimationFrame(() => {
+    meta.setAttribute('content', base)
+  })
+}

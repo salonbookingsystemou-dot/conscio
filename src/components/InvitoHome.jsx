@@ -2,10 +2,32 @@ import { useEffect, useRef, useState } from 'react'
 import iconaConscio from '../assets/icona-conscio.png'
 import { usePartecipante } from '../lib/partecipante.jsx'
 import {
-  eIos,
   memorizzaInvitoChiuso,
+  ripristinaScalaViewport,
   vaMostratoInvito
 } from '../lib/invitoHome.js'
+
+function IconaCondividi() {
+  return (
+    <svg className="invito-home-icona-passo" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M12 4v11M8.2 7.8 12 4l3.8 3.8"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M6 13.5V18a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-4.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
 
 export default function InvitoHome() {
   const dialog = useRef(null)
@@ -13,21 +35,13 @@ export default function InvitoHome() {
   const eraRegistrato = useRef(false)
   const { registrato, caricamento } = usePartecipante()
   const [aperto, setAperto] = useState(false)
-  const [eventoInstall, setEventoInstall] = useState(null)
-  const ios = eIos()
 
   useEffect(() => {
-    function suPrompt(e) {
-      e.preventDefault()
-      setEventoInstall(e)
-    }
     function suApri() {
       setAperto(true)
     }
-    window.addEventListener('beforeinstallprompt', suPrompt)
     window.addEventListener('conscio-apri-invito-home', suApri)
     return () => {
-      window.removeEventListener('beforeinstallprompt', suPrompt)
       window.removeEventListener('conscio-apri-invito-home', suApri)
     }
   }, [])
@@ -51,35 +65,17 @@ export default function InvitoHome() {
   useEffect(() => {
     const el = dialog.current
     if (!el) return
-    if (aperto && !el.open) el.showModal()
-    if (!aperto && el.open) el.close()
-  }, [aperto])
-
-  useEffect(() => {
-    if (!aperto) return undefined
-    const precedente = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = precedente
+    if (aperto && !el.open) {
+      el.showModal()
+      ripristinaScalaViewport()
     }
+    if (!aperto && el.open) el.close()
   }, [aperto])
 
   function chiudi() {
     memorizzaInvitoChiuso()
     setAperto(false)
-  }
-
-  async function installa() {
-    if (eventoInstall) {
-      eventoInstall.prompt()
-      await eventoInstall.userChoice.catch(() => {})
-      setEventoInstall(null)
-      chiudi()
-      return
-    }
-    dialog.current?.querySelector('.invito-home-passi, .invito-home-guida')?.scrollIntoView({
-      block: 'nearest'
-    })
+    ripristinaScalaViewport()
   }
 
   if (!aperto) return null
@@ -119,19 +115,15 @@ export default function InvitoHome() {
         Puoi aggiungere questa app alla schermata Home del telefono.
         Così la apri come le altre, senza passare dal browser.
       </p>
-      <button type="button" className="btn btn-avanti" onClick={installa}>
-        Installa app
-      </button>
-      {ios ? (
-        <ol className="invito-home-passi">
-          <li>Tocca il pulsante Condividi</li>
-          <li>Scegli «Aggiungi a Home»</li>
-        </ol>
-      ) : !eventoInstall ? (
-        <p className="hint invito-home-guida">
-          Nel menu del browser scegli «Aggiungi a Home» oppure «Installa app».
-        </p>
-      ) : null}
+      <ol className="invito-home-passi">
+        <li>
+          <IconaCondividi />
+          <span>Fai Tap sull’icona <strong>Condividi</strong> nel browser</span>
+        </li>
+        <li>
+          <span>Tap su <strong>Aggiungi alla schermata Home</strong></span>
+        </li>
+      </ol>
     </dialog>
   )
 }
