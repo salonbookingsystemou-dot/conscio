@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
 import { ATTEGGIAMENTI, DOMANDE_ONBOARDING } from '../lib/atteggiamenti.js'
+import { avanzamentoPrimoAccesso, numeroPassoPrimoAccesso, PASSI_PRIMO_ACCESSO } from '../lib/primoAccesso.js'
 import { usePartecipante } from '../lib/partecipante.jsx'
 import CampoNota from '../components/CampoNota.jsx'
 import AvvisoDatiPseudonimi from '../components/AvvisoDatiPseudonimi.jsx'
@@ -37,8 +38,9 @@ export default function Onboarding() {
   if (onboardingCompleto) return null
 
   const idPasso = PASSI[passo]
-  const totale = PASSI.length
-  const avanzamento = Math.round(((passo + 1) / totale) * 100)
+  const passoVisibile = numeroPassoPrimoAccesso(idPasso)
+  const avanzamento = avanzamentoPrimoAccesso(passoVisibile)
+  const totale = PASSI_PRIMO_ACCESSO
   const att = ATTEGGIAMENTI[indiceAtt]
   const ultimaAtt = indiceAtt >= ATTEGGIAMENTI.length - 1
 
@@ -87,7 +89,7 @@ export default function Onboarding() {
     <div className="onboarding">
       <p className="meta-riga">
         <span className="badge">Primo accesso</span>
-        <span>Passo {passo + 1} di {totale}</span>
+        <span>Passo {passoVisibile} di {totale}</span>
       </p>
       <div className="progress" aria-hidden="true">
         <span style={{ width: `${avanzamento}%` }} />

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
 import { usePartecipante } from '../lib/partecipante.jsx'
+import { avanzamentoPrimoAccesso, numeroPassoPrimoAccesso, PASSI_PRIMO_ACCESSO } from '../lib/primoAccesso.js'
 import { calcolaPunteggi } from '../lib/scoring'
 import ScalaLikert from '../components/ScalaLikert.jsx'
 import Disclaimer from '../components/Disclaimer.jsx'
@@ -344,20 +345,30 @@ export default function Questionari() {
   if (passo === 'domanda' && corrente) {
     const ultima = indice === item.length - 1
     const haRisposta = risposte[corrente.id] != null
+    const primoAccessoT0 = forzatoT0 && timepoint === 'T0'
+    const avanzamentoBarra = primoAccessoT0
+      ? avanzamentoPrimoAccesso(
+        numeroPassoPrimoAccesso('t0'),
+        item.length ? (indice + (haRisposta ? 1 : 0)) / item.length : 0
+      )
+      : Math.max(avanzamento, (indice / item.length) * 100)
     return (
       <div>
-        {forzatoT0 && timepoint === 'T0' && (
+        {primoAccessoT0 && (
           <p className="hint hint-ultimo-step">
             Ancora un ultimo step prima di iniziare la pratica. Dedica cinque minuti per rispondere al questionario.
           </p>
         )}
         <p className="meta-riga">
-          <span className="badge">{nomeStrumento}</span>
-          <span>{codice.toUpperCase()} · {timepoint}</span>
+          <span className="badge">{primoAccessoT0 ? 'Primo accesso' : nomeStrumento}</span>
+          {primoAccessoT0 && (
+            <span>Passo {numeroPassoPrimoAccesso('t0')} di {PASSI_PRIMO_ACCESSO}</span>
+          )}
+          <span>{codice.toUpperCase()} · {timepoint}{primoAccessoT0 ? ` · ${nomeStrumento}` : ''}</span>
           <span>Domanda {indice + 1} di {item.length}</span>
         </p>
         <div className="progress" aria-hidden="true">
-          <span style={{ width: `${Math.max(avanzamento, ((indice) / item.length) * 100)}%` }} />
+          <span style={{ width: `${avanzamentoBarra}%` }} />
         </div>
         <div className="card card-domanda">
           <ScalaLikert
