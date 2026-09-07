@@ -137,7 +137,7 @@ export default function Dashboard() {
         supabase.rpc('separa_email_cicli_conclusi'),
         supabase
           .from('cicli')
-          .select('id, nome_ciclo, data_inizio, data_fine, stato, posti_totali, link_incontro, iscrizioni(count)')
+          .select('id, nome_ciclo, data_inizio, data_fine, stato, posti_totali, link_incontro')
           .order('data_inizio', { ascending: false }),
         supabase
           .from('iscrizioni')
