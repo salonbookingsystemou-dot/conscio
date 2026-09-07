@@ -34,9 +34,7 @@ function metaVuota(numero = 1) {
     sottotitolo: '',
     materiali: '',
     pratiche_formali: '',
-    pratiche_informali: '',
-    traccia_audio: '',
-    traccia_id: ''
+    pratiche_informali: ''
   }
 }
 
@@ -48,11 +46,9 @@ export default function Lezioni() {
   const [usi, setUsi] = useState({})
   const [settimana, setSettimana] = useState(1)
   const [meta, setMeta] = useState(metaVuota(1))
-  const [fileAudioSettimana, setFileAudioSettimana] = useState(null)
   const [nuovaFormale, setNuovaFormale] = useState({ descrizione: '', durata_minuti: '' })
   const [nuovaInformale, setNuovaInformale] = useState('')
   const [modificaEx, setModificaEx] = useState(null)
-  const [caricamentoAudio, setCaricamentoAudio] = useState(false)
   const [caricamentoEsercizioId, setCaricamentoEsercizioId] = useState(null)
   const [caricamentoLibreriaId, setCaricamentoLibreriaId] = useState(null)
   const [invioMeta, setInvioMeta] = useState(false)
@@ -92,7 +88,7 @@ export default function Lezioni() {
       setLezioni([])
       return
     }
-    const colonne = 'id, numero_settimana, tema, sottotitolo, pratiche_formali, pratiche_informali, materiali, traccia_audio, traccia_id, esercizi(id, tipo, descrizione, traccia_audio, traccia_id, ordine, durata_minuti)'
+    const colonne = 'id, numero_settimana, tema, sottotitolo, pratiche_formali, pratiche_informali, materiali, esercizi(id, tipo, descrizione, traccia_audio, traccia_id, ordine, durata_minuti)'
     let { data, error } = await supabase
       .from('lezioni')
       .select(colonne)
@@ -101,7 +97,7 @@ export default function Lezioni() {
     if (error) {
       ({ data } = await supabase
         .from('lezioni')
-        .select('id, numero_settimana, tema, sottotitolo, pratiche_formali, pratiche_informali, materiali, traccia_audio, esercizi(id, tipo, descrizione, traccia_audio, ordine, durata_minuti)')
+        .select('id, numero_settimana, tema, sottotitolo, pratiche_formali, pratiche_informali, materiali, esercizi(id, tipo, descrizione, traccia_audio, ordine, durata_minuti)')
         .eq('ciclo_id', id)
         .order('numero_settimana', { ascending: true }))
     }
@@ -128,14 +124,11 @@ export default function Lezioni() {
         sottotitolo: corrente.sottotitolo || '',
         materiali: corrente.materiali || '',
         pratiche_formali: corrente.pratiche_formali || '',
-        pratiche_informali: corrente.pratiche_informali || '',
-        traccia_audio: corrente.traccia_audio || '',
-        traccia_id: corrente.traccia_id || ''
+        pratiche_informali: corrente.pratiche_informali || ''
       })
     } else {
       setMeta(metaVuota(settimana))
     }
-    setFileAudioSettimana(null)
     setNuovaFormale({ descrizione: '', durata_minuti: '' })
     setNuovaInformale('')
     setModificaEx(null)
@@ -150,7 +143,6 @@ export default function Lezioni() {
   const esercizi = corrente?.esercizi || []
   const formali = esercizi.filter(eFormale)
   const informali = esercizi.filter(eInformale)
-  const urlSettimana = urlTracciaDi(meta, libreria)
 
   function segnalaErrore(err) {
     setErrore(messaggioErroreTraccia(err))
@@ -166,29 +158,6 @@ export default function Lezioni() {
     setOkMsg(null)
     if (!cicloId) return
     setInvioMeta(true)
-    setCaricamentoAudio(Boolean(fileAudioSettimana))
-    let tracciaId = meta.traccia_id || null
-    let tracciaUrl = meta.traccia_audio || null
-    try {
-      if (fileAudioSettimana) {
-        const creata = await assicuraTracciaDaFile(
-          fileAudioSettimana,
-          meta.tema.trim() || `Settimana ${meta.numero_settimana}`
-        )
-        tracciaId = creata.id
-        tracciaUrl = creata.url
-      } else if (tracciaId) {
-        const scelta = libreria.find(t => t.id === tracciaId)
-        if (scelta) tracciaUrl = scelta.url
-      } else {
-        tracciaUrl = null
-      }
-    } catch (err) {
-      setCaricamentoAudio(false)
-      setInvioMeta(false)
-      segnalaErrore(err)
-      return
-    }
 
     const payload = {
       ciclo_id: cicloId,
@@ -197,22 +166,18 @@ export default function Lezioni() {
       sottotitolo: meta.sottotitolo.trim() || null,
       materiali: meta.materiali.trim() || null,
       pratiche_formali: meta.pratiche_formali || '',
-      pratiche_informali: meta.pratiche_informali || '',
-      traccia_audio: tracciaUrl,
-      traccia_id: tracciaId
+      pratiche_informali: meta.pratiche_informali || ''
     }
 
     const { error } = corrente
       ? await supabase.from('lezioni').update(payload).eq('id', corrente.id)
       : await supabase.from('lezioni').insert(payload)
 
-    setCaricamentoAudio(false)
     setInvioMeta(false)
     if (error) {
       setErrore('Non è stato possibile salvare la settimana. Controlla che il numero non sia già usato.')
       return
     }
-    setFileAudioSettimana(null)
     setOkMsg(corrente ? 'Settimana aggiornata.' : 'Settimana creata.')
     await Promise.all([caricaLezioni(cicloId), caricaLibreria()])
   }
@@ -406,53 +371,9 @@ export default function Lezioni() {
               />
             </div>
 
-            <details className="lezioni-avanzate">
-              <summary>Traccia audio di settimana (facoltativa)</summary>
-              <p className="hint">
-                Nella pratica giornaliera l’audio principale è sulle pratiche formali qui sotto.
-                Questa traccia resta disponibile come materiale di settimana.
-              </p>
-              <SelettoreTraccia
-                valore={meta.traccia_id}
-                tracce={libreria}
-                etichettaVuoto={meta.traccia_id || meta.traccia_audio ? 'Scollega traccia' : 'Collega dalla libreria…'}
-                onCambia={id => {
-                  const scelta = libreria.find(t => t.id === id)
-                  setMeta({
-                    ...meta,
-                    traccia_id: id || '',
-                    traccia_audio: scelta?.url || ''
-                  })
-                  setFileAudioSettimana(null)
-                }}
-              />
-              <input
-                type="file"
-                accept="audio/*"
-                onChange={e => setFileAudioSettimana(e.target.files?.[0] || null)}
-              />
-              {fileAudioSettimana && <p className="hint">Nuovo file: {fileAudioSettimana.name} — va in libreria al salvataggio.</p>}
-              {!fileAudioSettimana && urlSettimana && (
-                <div className="lezioni-audio-riga">
-                  <TracciaGuidata src={urlSettimana} anteprima />
-                  <button
-                    className="btn btn-ghost"
-                    type="button"
-                    onClick={() => setMeta({ ...meta, traccia_audio: '', traccia_id: '' })}
-                  >
-                    Rimuovi
-                  </button>
-                </div>
-              )}
-            </details>
-
             <div className="azioni">
-              <button className="btn" type="submit" disabled={invioMeta || caricamentoAudio}>
-                {caricamentoAudio
-                  ? 'Caricamento audio…'
-                  : corrente
-                    ? 'Salva tema e materiali'
-                    : 'Crea questa settimana'}
+              <button className="btn" type="submit" disabled={invioMeta}>
+                {corrente ? 'Salva tema e materiali' : 'Crea questa settimana'}
               </button>
               {corrente && (
                 <button className="btn btn-ghost" type="button" onClick={eliminaLezione}>
