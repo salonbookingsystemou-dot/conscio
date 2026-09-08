@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { guidaGiaVista, memorizzaGuidaVista } from '../lib/guidaMeditazione.js'
+import { ripristinaScalaViewport } from '../lib/invitoHome.js'
 import iconaInfo from '../assets/icona-info.png'
 import imgLuogo from '../assets/guida/luogo.png'
 import imgTelefono from '../assets/guida/telefono.png'
@@ -54,26 +56,29 @@ const PASSI = [
 ]
 
 
-export default function GuidaMeditazione() {
+export default function GuidaMeditazione({ codice }) {
   const dialog = useRef(null)
   const tocco = useRef(null)
   const [aperto, setAperto] = useState(false)
   const [indice, setIndice] = useState(0)
 
   useEffect(() => {
-    const el = dialog.current
-    if (!el) return
-    if (aperto && !el.open) el.showModal()
-    if (!aperto && el.open) el.close()
-  }, [aperto])
+    if (!codice || guidaGiaVista(codice)) return undefined
+    const t = window.setTimeout(() => {
+      setIndice(0)
+      setAperto(true)
+    }, 450)
+    return () => window.clearTimeout(t)
+  }, [codice])
 
   useEffect(() => {
-    if (!aperto) return undefined
-    const precedente = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = precedente
+    const el = dialog.current
+    if (!el) return
+    if (aperto && !el.open) {
+      el.showModal()
+      ripristinaScalaViewport()
     }
+    if (!aperto && el.open) el.close()
   }, [aperto])
 
   function apri() {
@@ -82,7 +87,9 @@ export default function GuidaMeditazione() {
   }
 
   function chiudi() {
+    memorizzaGuidaVista(codice)
     setAperto(false)
+    ripristinaScalaViewport()
   }
 
   function vai(delta) {

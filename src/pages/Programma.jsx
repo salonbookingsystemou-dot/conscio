@@ -500,7 +500,7 @@ export default function Programma() {
             <div className="card settimana-vista">
               <div className="settimana-vista-capo">
                 {badgeSettimana && <p className="badge badge-settimana">{badgeSettimana}</p>}
-                <GuidaMeditazione />
+                <GuidaMeditazione codice={codice.trim()} />
               </div>
               <h2 className="settimana-titolo">{corrente.tema || `Settimana ${corrente.numero_settimana}`}</h2>
               {corrente.sottotitolo && <p className="lead settimana-sottotitolo">{corrente.sottotitolo}</p>}

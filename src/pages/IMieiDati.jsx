@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
 import { usePartecipante } from '../lib/partecipante.jsx'
 import { pulisciAscoltoLocale } from '../lib/ascolto.js'
+import { pulisciGuidaVista } from '../lib/guidaMeditazione.js'
 import { EMAIL_CONTATTO } from '../lib/contatti.js'
 import ChiediCodice from '../components/ChiediCodice.jsx'
 import DialogConferma from '../components/DialogConferma.jsx'
@@ -74,6 +75,7 @@ export default function IMieiDati() {
       return
     }
     pulisciAscoltoLocale(codice)
+    pulisciGuidaVista(codice)
     setPacchetto(null)
     setResetOk(true)
     await Promise.all([aggiornaPercorso(codice), aggiornaAscolto(codice)])
