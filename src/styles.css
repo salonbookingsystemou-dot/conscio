@@ -2507,6 +2507,9 @@ a { color: var(--moss-dark); }
   height: 22px;
   display: block;
 }
+.player-icona-play {
+  transform: translateX(1px);
+}
 .player-tempo {
   margin: 0 0 6px;
   font-size: 13px;

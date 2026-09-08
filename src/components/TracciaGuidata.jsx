@@ -15,8 +15,11 @@ function formattaTempo(secondi) {
 
 function IconaPlay() {
   return (
-    <svg className="player-icona" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M8.2 5.6v12.8L18.4 12 8.2 5.6z" fill="currentColor" />
+    <svg className="player-icona player-icona-play" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M9.05 6.15v11.7c0 .7.76 1.14 1.36.78l9.05-5.85a.9.9 0 0 0 0-1.56l-9.05-5.85a.9.9 0 0 0-1.36.78z"
+        fill="currentColor"
+      />
     </svg>
   )
 }
@@ -24,8 +27,8 @@ function IconaPlay() {
 function IconaPausa() {
   return (
     <svg className="player-icona" viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="6.5" y="5.5" width="3.8" height="13" rx="1" fill="currentColor" />
-      <rect x="13.7" y="5.5" width="3.8" height="13" rx="1" fill="currentColor" />
+      <rect x="7.1" y="6" width="3.2" height="12" rx="1.5" fill="currentColor" />
+      <rect x="13.7" y="6" width="3.2" height="12" rx="1.5" fill="currentColor" />
     </svg>
   )
 }
@@ -33,7 +36,7 @@ function IconaPausa() {
 function IconaStop() {
   return (
     <svg className="player-icona" viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="6.5" y="6.5" width="11" height="11" rx="1.5" fill="currentColor" />
+      <rect x="7.2" y="7.2" width="9.6" height="9.6" rx="2.2" fill="currentColor" />
     </svg>
   )
 }
