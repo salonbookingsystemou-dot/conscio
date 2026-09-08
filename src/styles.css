@@ -165,7 +165,7 @@ a { color: var(--moss-dark); }
 }
 .topbar-azioni {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   gap: 8px;
   flex: 0 0 auto;
 }
