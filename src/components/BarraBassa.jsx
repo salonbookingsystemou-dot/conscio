@@ -4,8 +4,8 @@ import { useAuth } from '../lib/auth.jsx'
 import { usePartecipante } from '../lib/partecipante.jsx'
 
 const VOCI = [
-  { to: '/questionari', label: 'Questionari' },
   { to: '/programma', label: 'Settimana' },
+  { to: '/questionari', label: 'Questionari' },
   { to: '/pratica', label: 'Storico' },
   { to: '/comunicazioni', label: 'Avvisi' }
 ]
