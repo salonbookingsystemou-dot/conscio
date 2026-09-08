@@ -165,22 +165,28 @@ a { color: var(--moss-dark); }
 }
 .topbar-azioni {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 8px;
   flex: 0 0 auto;
 }
-.ore-ascolto {
+.ore-ascolto,
+.identita-codice {
   margin: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   justify-content: center;
-  min-width: 3.4em;
+  box-sizing: border-box;
+  min-height: 40px;
   padding: 4px 8px;
   border-radius: 8px;
+  border: 1px solid transparent;
+  line-height: 1.15;
+}
+.ore-ascolto {
+  min-width: 3.4em;
   background: var(--tint);
   color: var(--moss-dark);
-  line-height: 1.15;
 }
 .ore-ascolto-valore {
   font-family: 'Fraunces', serif;
@@ -188,11 +194,28 @@ a { color: var(--moss-dark); }
   font-weight: 500;
   white-space: nowrap;
 }
-.ore-ascolto-label {
+.ore-ascolto-label,
+.identita-codice-label {
   font-size: 9px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--moss);
+}
+.identita-codice {
+  max-width: 10.5em;
+  background: #fff;
+  border-color: var(--border);
+  color: var(--ink);
+}
+.identita-codice-valore {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .topbar .brand {
@@ -295,6 +318,7 @@ a { color: var(--moss-dark); }
 .nav-tonalita-desktop { display: none; }
 .nav-links .nav-sep { display: none; }
 .nav-links .nav-secondaria { color: var(--ink-soft); }
+.nav-identita { display: none; }
 
 @media (min-width: 1100px) {
   .topbar {
@@ -2698,6 +2722,26 @@ button.cal-giorno { cursor: pointer; }
     margin: 0 -16px;
     padding: 8px 16px 18px;
     border-top: 1px solid var(--border);
+  }
+  .nav-identita {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0 0 8px;
+    padding: 12px 12px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink-soft);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .nav-identita strong {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
   }
   .nav-links > a,
   .nav-links > button {

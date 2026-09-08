@@ -7,6 +7,7 @@ import { pulisciGuidaVista } from '../lib/guidaMeditazione.js'
 import { EMAIL_CONTATTO } from '../lib/contatti.js'
 import ChiediCodice from '../components/ChiediCodice.jsx'
 import DialogConferma from '../components/DialogConferma.jsx'
+import IdentitaCodice from '../components/IdentitaCodice.jsx'
 function scaricaJson(nome, dati) {
   const blob = new Blob([JSON.stringify(dati, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
@@ -95,6 +96,7 @@ export default function IMieiDati() {
 
       {registrato && (
         <>
+          <IdentitaCodice codice={codice} variante="riga" />
           <div className="card">
             <h3>Export</h3>
             <p>
