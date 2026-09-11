@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import {
   chiamaPorta,
   supabase,
@@ -69,6 +68,148 @@ function IconaPercorso({ id }) {
         </>
       )}
     </svg>
+  )
+}
+
+function IconaCopia() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect
+        x="8.2"
+        y="8.2"
+        width="10.4"
+        height="12"
+        rx="2"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+      <path
+        d="M15.6 8.2V6.4A2.2 2.2 0 0 0 13.4 4.2H5.8A2.2 2.2 0 0 0 3.6 6.4v11.2A2.2 2.2 0 0 0 5.8 19.8h1.8"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function IconaPosta() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect
+        x="3.4"
+        y="5.8"
+        width="17.2"
+        height="12.4"
+        rx="2.2"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+      <path
+        d="M4.2 7.4 12 13.2l7.8-5.8"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function IconaCopiato() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M5.4 12.4 10 17l8.6-9.2"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function ConfermaIscrizione({ codice, email, soloRemoto }) {
+  const [copiato, setCopiato] = useState(false)
+
+  async function copiaCodice() {
+    const testo = String(codice || '').trim()
+    if (!testo) return
+    try {
+      await navigator.clipboard.writeText(testo)
+    } catch {
+      const campo = document.createElement('textarea')
+      campo.value = testo
+      campo.setAttribute('readonly', '')
+      campo.style.position = 'fixed'
+      campo.style.opacity = '0'
+      document.body.appendChild(campo)
+      campo.select()
+      document.execCommand('copy')
+      document.body.removeChild(campo)
+    }
+    setCopiato(true)
+    window.setTimeout(() => setCopiato(false), 2200)
+  }
+
+  return (
+    <div className="card card-conferma">
+      <h2>Iscrizione ricevuta</h2>
+      <p className="lead">Attendi l’approvazione della tua candidatura</p>
+
+      <div className="conferma-codice-blocco">
+        <div className="conferma-codice">
+          <p className="codice-enfasi">{codice}</p>
+          <button
+            type="button"
+            className="conferma-copia"
+            onClick={copiaCodice}
+            aria-label={copiato ? 'Codice copiato' : 'Copia il codice negli appunti'}
+          >
+            {copiato ? <IconaCopiato /> : <IconaCopia />}
+          </button>
+        </div>
+        <p className="conferma-codice-nota" aria-live="polite">
+          {copiato ? 'Codice copiato.' : 'Copia e conservalo'}
+        </p>
+      </div>
+
+      <ol className="conferma-flusso">
+        <li className="is-fatto">
+          <strong>Hai il codice</strong>
+          <p>
+            È la tua chiave per entrare. Te lo abbiamo inviato anche all’email
+            di iscrizione; non useremo il tuo nome.
+          </p>
+        </li>
+        <li className="is-ora">
+          <strong>Ora attendiamo l’approvazione</strong>
+          <p>
+            Ti scriviamo con l’esito{email ? ` a ${email}` : ''}.
+            Controlla anche lo spam. Fino ad allora le sezioni restano chiuse.
+          </p>
+        </li>
+        <li>
+          <strong>Poi inizi</strong>
+          <p>
+            {soloRemoto
+              ? 'Con l’idoneità entri col codice: onboarding, T0 e le settimane al tuo ritmo. Non occupi un posto in aula.'
+              : 'Con l’idoneità entri col codice: onboarding, T0 e poi le settimane del percorso.'}
+          </p>
+        </li>
+      </ol>
+
+      <p className="conferma-invito">
+        <IconaPosta />
+        <span>Controlla la tua casella di posta</span>
+      </p>
+    </div>
   )
 }
 
@@ -174,18 +315,11 @@ export default function Iscrizione() {
 
   if (stato === 'ok') {
     return (
-      <div className="card card-conferma">
-        <h2>Iscrizione ricevuta</h2>
-        <p>Conserva questo codice. Lo userai per entrare dopo l’esito dello screening, se l’esito è idoneo. Non useremo il tuo nome. Ti abbiamo inviato lo stesso codice anche all’email di iscrizione (controlla lo spam).</p>
-        <p className="codice-enfasi">{codiceGenerato}</p>
-        <p>Riceverai una comunicazione con l’esito e i prossimi passi. Le altre sezioni si aprono solo a chi è idoneo.</p>
-        {form.solo_remoto && (
-          <p>Hai chiesto di iscriverti solo da remoto: non occupi un posto in aula. Dopo l’idoneità, onboarding e T0, le settimane seguono il tuo ritmo di pratica.</p>
-        )}
-        <div className="azioni">
-          <Link className="btn" to="/">Torna all’inizio</Link>
-        </div>
-      </div>
+      <ConfermaIscrizione
+        codice={codiceGenerato}
+        email={form.email.trim()}
+        soloRemoto={form.solo_remoto}
+      />
     )
   }
 

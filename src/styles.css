@@ -1339,7 +1339,133 @@ a { color: var(--moss-dark); }
 }
 .codice-esempio { font-size: 16px; }
 
-.card-conferma { text-align: center; padding: 40px 28px; }
+.card-conferma {
+  text-align: center;
+  padding: 40px 28px 32px;
+  max-width: 34rem;
+  margin-inline: auto;
+}
+.card-conferma h2 { margin-bottom: 0.2em; }
+.card-conferma .lead {
+  margin: 0 auto 22px;
+  color: var(--moss-dark);
+  font-weight: 600;
+}
+.conferma-codice-blocco { margin-bottom: 28px; }
+.conferma-codice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.conferma-codice .codice-enfasi {
+  margin: 0;
+}
+.conferma-copia {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--moss);
+  cursor: pointer;
+}
+.conferma-copia svg {
+  width: 22px;
+  height: 22px;
+}
+.conferma-copia:hover,
+.conferma-copia:focus-visible {
+  background: color-mix(in srgb, var(--moss) 12%, transparent);
+  color: var(--moss-dark);
+}
+.conferma-copia:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--moss) 45%, transparent);
+  outline-offset: 2px;
+}
+.conferma-codice-nota {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+  text-align: center;
+}
+.conferma-flusso {
+  list-style: none;
+  position: relative;
+  margin: 0;
+  padding: 0 0 0 22px;
+  text-align: left;
+}
+.conferma-flusso::before {
+  content: '';
+  position: absolute;
+  top: 7px;
+  bottom: 10px;
+  left: 5px;
+  width: 1.5px;
+  background: color-mix(in srgb, var(--moss) 28%, var(--border));
+}
+.conferma-flusso li {
+  position: relative;
+  padding: 0 0 22px 18px;
+}
+.conferma-flusso li:last-child { padding-bottom: 0; }
+.conferma-flusso li::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: -22px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  box-sizing: border-box;
+  background: var(--surface);
+  border: 1.5px solid color-mix(in srgb, var(--moss) 40%, var(--border));
+}
+.conferma-flusso li.is-fatto::before,
+.conferma-flusso li.is-ora::before {
+  background: var(--moss);
+  border-color: var(--moss);
+}
+.conferma-flusso li.is-ora::before {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--moss) 16%, transparent);
+}
+.conferma-flusso strong {
+  display: block;
+  font-weight: 600;
+  color: var(--moss-dark);
+}
+.conferma-flusso p {
+  margin: 4px 0 0;
+  color: var(--ink-soft);
+  font-size: 15px;
+  line-height: 1.45;
+}
+.conferma-invito {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin: 28px 0 0;
+  padding: 16px 0 0;
+  border-top: 1px solid var(--border);
+  color: var(--moss-dark);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.35;
+  cursor: default;
+}
+.conferma-invito svg {
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  color: var(--moss);
+}
 .card-domanda { padding: 32px 28px; }
 
 .progress {

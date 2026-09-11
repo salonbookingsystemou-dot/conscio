@@ -262,6 +262,7 @@ export default function Dashboard() {
 
   async function aggiornaEsito(iscrizione, esito) {
     setErrore(null)
+    const appenaIdoneo = esito === 'idoneo' && !eIdoneo(iscrizione)
     const { error } = await supabase.rpc('imposta_esito_screening', {
       p_iscrizione_id: iscrizione.id,
       p_esito: esito
@@ -273,6 +274,15 @@ export default function Dashboard() {
     if (error) {
       setErrore('Non è stato possibile aggiornare l’esito.')
       return
+    }
+    if (appenaIdoneo) {
+      try {
+        await supabase.functions.invoke('porta', {
+          body: { azione: 'notifica_idoneita', iscrizione_id: iscrizione.id }
+        })
+      } catch {
+        /* L’esito è già salvato: l’email è un invio best effort. */
+      }
     }
     carica()
   }

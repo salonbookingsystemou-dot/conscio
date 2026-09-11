@@ -145,6 +145,27 @@ function testoIscrizione(codice: string): string {
   ].join('\n')
 }
 
+const LINK_ENTRA = 'https://conscio.mnesti.it/#/entra'
+
+function testoIdoneita(codice: string): string {
+  return [
+    'Ciao,',
+    '',
+    'La tua candidatura al Percorso MBSR è stata approvata.',
+    '',
+    `Il tuo codice partecipante è: ${codice}`,
+    '',
+    'Puoi entrare nell’app da Entra, inserire il codice e iniziare:',
+    'primo accesso, questionario iniziale e poi le settimane.',
+    '',
+    LINK_ENTRA,
+    '',
+    `Per assistenza: ${REPLY_TO}`,
+    '',
+    '— Percorso MBSR'
+  ].join('\n')
+}
+
 function testoAvvisoIscrizione(opts: {
   email: string
   codice: string
@@ -357,6 +378,54 @@ Deno.serve(async (req) => {
         user: data.session.user
       }
     })
+  }
+
+  if (azione === 'notifica_idoneita') {
+    const authHeader = req.headers.get('Authorization') || ''
+    const jwt = authHeader.replace(/^Bearer\s+/i, '')
+    if (!jwt) return json({ error: 'NON_AUTORIZZATO' }, 403)
+    const conSessione = createClient(url, anonKey, {
+      global: { headers: { Authorization: `Bearer ${jwt}` } }
+    })
+    const { data: eFacilitatore } = await conSessione.rpc('is_facilitatore')
+    if (!eFacilitatore) return json({ error: 'NON_AUTORIZZATO' }, 403)
+
+    const blocco = await limita('notifica_idoneita', chiaveIp, 30, 3600)
+    if (blocco) return blocco
+
+    const iscrizioneId = typeof corpo.iscrizione_id === 'string' ? corpo.iscrizione_id.trim() : ''
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(iscrizioneId)) {
+      return json({ error: 'ISCRIZIONE_NON_VALIDA' }, 400)
+    }
+
+    const { data: riga } = await admin
+      .from('iscrizioni')
+      .select('esito_screening, utenti(email, codice_partecipante, ruolo)')
+      .eq('id', iscrizioneId)
+      .maybeSingle()
+
+    const utente = riga?.utenti as {
+      email?: string | null
+      codice_partecipante?: string | null
+      ruolo?: string | null
+    } | null
+    const email = (utente?.email || '').trim().toLowerCase()
+    const codice = (utente?.codice_partecipante || '').trim()
+    if (
+      riga?.esito_screening !== 'idoneo' ||
+      utente?.ruolo !== 'partecipante' ||
+      !emailValida(email) ||
+      !codice
+    ) {
+      return json({ ok: true, inviata: false })
+    }
+
+    const inviata = await inviaEmail({
+      to: email,
+      oggetto: 'Candidatura approvata — Percorso MBSR',
+      testo: testoIdoneita(codice)
+    })
+    return json({ ok: true, inviata })
   }
 
   if (azione === 'prova_firma') {
