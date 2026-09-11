@@ -13,7 +13,7 @@ import imgCuffie from '../assets/guida/cuffie.png'
 const PASSI = [
   {
     id: 'luogo',
-    titolo: 'Un luogo dove non ti disturbano',
+    titolo: 'Dove farlo',
     testo: 'Scegli una stanza o un angolo in cui non verrai interrotto. Chiudi la porta e, se serve, avvisa chi è con te. Bastano pochi minuti di quiete.',
     immagine: imgLuogo
   },
@@ -117,8 +117,8 @@ export default function GuidaMeditazione({ codice }) {
         type="button"
         className="guida-meditazione-apri"
         onClick={apri}
-        aria-label="Informazioni: come predisporsi alla meditazione"
-        title="Come predisporsi"
+        aria-label="Informazioni: meditare a casa"
+        title="Meditare a casa"
       >
         <img className="guida-meditazione-icona" src={iconaInfo} alt="" />
       </button>
@@ -158,7 +158,7 @@ export default function GuidaMeditazione({ codice }) {
           </button>
 
           <p className="badge guida-meditazione-badge">Predisposizione</p>
-          <h2 id="guida-meditazione-titolo">Come predisporsi</h2>
+          <h2 id="guida-meditazione-titolo">Meditare a casa</h2>
 
           <div
             className="guida-carosello"

@@ -297,8 +297,8 @@ export default function TracciaGuidata({
           : inCampana
             ? 'Campana di apertura… poi inizia la traccia.'
             : completo
-              ? 'Traccia ascoltata per intero. Puoi registrare la sessione.'
-              : 'Ascolta la traccia fino alla fine: è il materiale della sessione. Poi si apre il log.'}
+              ? 'Traccia ascoltata per intero. Con almeno una traccia puoi registrare la sessione.'
+              : 'Ascolta la traccia fino alla fine. Ne basta una per aprire le annotazioni del giorno.'}
       </p>
       <audio
         ref={audioRef}

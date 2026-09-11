@@ -125,14 +125,26 @@ export function esercizioAscoltatoNelGiorno(esercizio, codice, data) {
   return ascoltoCompletato(chiaveAscoltoEsercizio(codice, esercizio.id, data))
 }
 
-export function formaliAscoltatiNelGiorno(esercizi, codice, data) {
-  const formali = (esercizi || []).filter(e => {
+function formaliConTraccia(esercizi) {
+  return (esercizi || []).filter(e => {
     const tipo = (e.tipo || '').toLowerCase()
-    return tipo === 'formale' || tipo === 'a_casa'
+    return (tipo === 'formale' || tipo === 'a_casa') && Boolean(e.traccia_audio)
   })
-  const conTraccia = formali.filter(e => Boolean(e.traccia_audio))
+}
+
+/** La sessione del giorno è apribile dopo almeno una traccia formale ascoltata. */
+export function almenoUnFormaleAscoltatoNelGiorno(esercizi, codice, data) {
+  const conTraccia = formaliConTraccia(esercizi)
   if (conTraccia.length === 0) return true
-  return conTraccia.every(e => esercizioAscoltatoNelGiorno(e, codice, data))
+  return conTraccia.some(e => esercizioAscoltatoNelGiorno(e, codice, data))
+}
+
+export function minutiFormaliAscoltatiNelGiorno(esercizi, codice, data) {
+  return formaliConTraccia(esercizi).reduce((tot, ex) => {
+    if (!esercizioAscoltatoNelGiorno(ex, codice, data)) return tot
+    if (Number.isFinite(ex.durata_minuti) && ex.durata_minuti > 0) return tot + ex.durata_minuti
+    return tot
+  }, 0)
 }
 
 /** Rimuove cache di ascolto di un codice (uscita dal dispositivo). */

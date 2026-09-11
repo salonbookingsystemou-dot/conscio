@@ -17,8 +17,9 @@ import {
   ascoltoCompletato,
   ascoltoNeiLog,
   chiaveAscoltoEsercizio,
-  formaliAscoltatiNelGiorno,
+  almenoUnFormaleAscoltatoNelGiorno,
   memorizzaAscoltiDaProgramma,
+  minutiFormaliAscoltatiNelGiorno,
   salvaAscoltoFormale,
   sincronizzaAscoltiLocaliVersoServer
 } from '../lib/ascolto.js'
@@ -193,7 +194,7 @@ function AnnotazioniGiorno({
       <div className="annotazioni-giorno is-bloccato">
         <h3>Annotazioni del giorno</h3>
         <p className="hint">
-          Ascolta prima le tracce delle pratiche formali di oggi. Poi si apre questo spazio.
+          Ascolta prima almeno una traccia formale di oggi. Poi si apre questo spazio.
         </p>
       </div>
     )
@@ -402,16 +403,15 @@ export default function Programma() {
 
   const ascoltoOk = useMemo(() => {
     if (!codice || !corrente) return false
-    return formaliAscoltatiNelGiorno(formali, codice.trim(), dataScelta)
+    return almenoUnFormaleAscoltatoNelGiorno(formali, codice.trim(), dataScelta)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [codice, corrente, dataScelta, formali, tickAscolto])
 
   const durataGiorno = useMemo(() => {
-    return formali.reduce((tot, ex) => {
-      if (Number.isFinite(ex.durata_minuti) && ex.durata_minuti > 0) return tot + ex.durata_minuti
-      return tot
-    }, 0)
-  }, [formali])
+    if (!codice) return 0
+    return minutiFormaliAscoltatiNelGiorno(formali, codice.trim(), dataScelta)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [codice, dataScelta, formali, tickAscolto])
 
   async function toggleInformale(esercizio, fatto) {
     setErrore(null)
@@ -440,8 +440,8 @@ export default function Programma() {
         <>
           <h2>Questa settimana</h2>
           <p className="lead">
-            Tema e pratiche della settimana in corso. Ogni giorno ascolti le tracce formali,
-            spunti le informali e poi apri le annotazioni.
+            Tema e pratiche della settimana in corso. Ogni giorno ascolti almeno una traccia
+            formale, spunti le informali e poi apri le annotazioni.
           </p>
           <ChiediCodice titolo="Per vedere la settimana di un partecipante, inserisci il codice." />
         </>
