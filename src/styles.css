@@ -1984,6 +1984,30 @@ a { color: var(--moss-dark); }
   background: var(--tint-ochre);
   color: color-mix(in srgb, var(--ochre) 72%, #000);
 }
+.dash-onboarding {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px 3px 6px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+.dash-onboarding svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+}
+.dash-onboarding.is-fatto {
+  background: var(--tint);
+  color: var(--moss-dark);
+}
+.dash-onboarding.is-attesa {
+  background: color-mix(in srgb, var(--ink) 8%, var(--surface));
+  color: var(--ink-soft);
+}
 .dash-iscrizione-persona {
   display: flex;
   flex-wrap: wrap;

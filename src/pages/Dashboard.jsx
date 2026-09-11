@@ -61,6 +61,47 @@ function eRemoto(iscrizione) {
   return (iscrizione.modalita_fruizione || 'presenza') === 'remoto'
 }
 
+function StatoOnboarding({ iscrizione }) {
+  if (!eIdoneo(iscrizione)) return null
+  const fatto = Boolean(iscrizione.utenti?.onboarding_completato)
+  const etichetta = fatto
+    ? 'Primo accesso completato'
+    : 'Primo accesso non ancora completato'
+  return (
+    <span
+      className={`dash-onboarding${fatto ? ' is-fatto' : ' is-attesa'}`}
+      title={etichetta}
+    >
+      {fatto ? (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.7" />
+          <path
+            d="m8 12.3 2.6 2.6L16 9.4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.7" />
+          <path
+            d="M12 7.6V12l2.8 1.8"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      )}
+      <span className="dash-onboarding-testo">Primo accesso</span>
+    </span>
+  )
+}
+
 function linkIncontroValido(valore) {
   const pulito = String(valore || '').trim()
   if (!pulito) return null
@@ -141,7 +182,7 @@ export default function Dashboard() {
           .order('data_inizio', { ascending: false }),
         supabase
           .from('iscrizioni')
-          .select('id, esito_screening, modalita_fruizione, ciclo_id, utenti(codice_partecipante, email, stato_screening)'),
+          .select('id, esito_screening, modalita_fruizione, ciclo_id, utenti(codice_partecipante, email, stato_screening, onboarding_completato)'),
         supabase.rpc('risposte_pseudonime'),
         supabase.rpc('log_pratica_pseudonimi')
       ])
@@ -651,6 +692,7 @@ export default function Dashboard() {
                         <div className="dash-iscrizione-persona">
                           <span className="badge">{i.utenti?.codice_partecipante || '—'}</span>
                           <span className="badge badge-modalita is-remoto">remoto</span>
+                          <StatoOnboarding iscrizione={i} />
                           <span className="dash-iscrizione-email">
                             {i.utenti?.email || 'Nessuna email'}
                           </span>
@@ -860,6 +902,7 @@ export default function Dashboard() {
                             {eRemoto(i) && (
                               <span className="badge badge-modalita is-remoto">remoto</span>
                             )}
+                            <StatoOnboarding iscrizione={i} />
                             <span className="dash-iscrizione-email">
                               {i.utenti?.email || 'Nessuna email'}
                             </span>
