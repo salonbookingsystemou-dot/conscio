@@ -1387,6 +1387,13 @@ begin
   set email = null
   where u.ruolo = 'partecipante'
     and u.email is not null
+    -- Gli iscritti "solo da remoto" tengono l'email per le comunicazioni generali.
+    and not exists (
+      select 1
+      from iscrizioni i
+      where i.utente_id = u.id
+        and i.modalita_fruizione = 'remoto'
+    )
     and not exists (
       select 1
       from iscrizioni i

@@ -152,6 +152,23 @@ function etichettaStato(stato) {
   return stato
 }
 
+// Timepoint del questionario attualmente aperto per un ciclo.
+// Stesse finestre dello schema (timepoint_in_finestra):
+// T0 fino alla settimana 1, T1 settimane 4-5, T2 settimane 8-9, T3 dopo la fine.
+// Nelle settimane intermedie (2-3, 6-7) non c'è nessun questionario aperto.
+function timepointAperto(ciclo) {
+  if (!ciclo) return 'T0' // idoneo remoto non ancora collegato a un ciclo: parte dal T0
+  const oggi = parseISODate(oggiLocaleISO())
+  const fine = parseISODate(ciclo.data_fine)
+  if (ciclo.stato === 'concluso') return 'T3'
+  if (fine && oggi && oggi > fine) return 'T3'
+  const sett = settimanaCiclo(ciclo.data_inizio)
+  if (sett <= 1) return 'T0'
+  if (sett >= 4 && sett <= 5) return 'T1'
+  if (sett >= 8) return 'T2'
+  return null
+}
+
 export default function Dashboard() {
   const tabsId = useId()
   const [tab, setTab] = useState('cicli')
@@ -431,21 +448,47 @@ export default function Dashboard() {
   const kpi = useMemo(() => {
     const attivi = iscritti.filter(i => eIdoneo(i)).length
     const inAttesa = iscritti.filter(i => !eIdoneo(i)).length
-    const idoneiCodici = new Set(
-      iscritti.filter(eIdoneo).map(i => i.utenti?.codice_partecipante).filter(Boolean)
-    )
-    const conT2 = new Set(
-      punteggi.filter(p => p.timepoint === 'T2').map(p => p.codice)
-    )
-    const t2Fatti = [...idoneiCodici].filter(c => conT2.has(c)).length
-    const t2Attesi = idoneiCodici.size
+
+    // Quale timepoint è aperto ora e quanti idonei l'hanno compilato.
+    const cicloById = new Map(cicli.map(c => [c.id, c]))
+    const compilato = { T0: new Set(), T1: new Set(), T2: new Set(), T3: new Set() }
+    for (const p of punteggi) {
+      if (compilato[p.timepoint]) compilato[p.timepoint].add(p.codice)
+    }
+    const conteggi = {
+      T0: { att: 0, fatti: 0 }, T1: { att: 0, fatti: 0 },
+      T2: { att: 0, fatti: 0 }, T3: { att: 0, fatti: 0 }
+    }
+    for (const i of iscritti) {
+      if (!eIdoneo(i)) continue
+      const codice = i.utenti?.codice_partecipante
+      if (!codice) continue
+      const tp = timepointAperto(i.ciclo_id ? cicloById.get(i.ciclo_id) : null)
+      if (!tp || !conteggi[tp]) continue
+      conteggi[tp].att += 1
+      if (compilato[tp].has(codice)) conteggi[tp].fatti += 1
+    }
+    // Focus: il timepoint aperto che riguarda più idonei (a parità, il più precoce).
+    let tpFocus = null
+    for (const tp of ['T0', 'T1', 'T2', 'T3']) {
+      if (conteggi[tp].att === 0) continue
+      if (!tpFocus || conteggi[tp].att > conteggi[tpFocus].att) tpFocus = tp
+    }
+
     const soglia = addDays(parseISODate(oggiLocaleISO()), -7)
     const log7 = log.filter(l => {
       const d = parseISODate(l.data)
       return d && soglia && d >= soglia
     }).length
-    return { attivi, inAttesa, t2Fatti, t2Attesi, log7 }
-  }, [iscritti, punteggi, log])
+    return {
+      attivi,
+      inAttesa,
+      tpFocus,
+      qFatti: tpFocus ? conteggi[tpFocus].fatti : 0,
+      qAttesi: tpFocus ? conteggi[tpFocus].att : 0,
+      log7
+    }
+  }, [iscritti, cicli, punteggi, log])
 
   const logVista = useMemo(() => {
     if (!aperto) return log
@@ -557,9 +600,11 @@ export default function Dashboard() {
                   <p className="dash-kpi-valore is-attenzione">{kpi.inAttesa}</p>
                 </article>
                 <article className="dash-kpi-card">
-                  <p className="dash-kpi-label">Questionari T2</p>
+                  <p className="dash-kpi-label">
+                    {kpi.tpFocus ? `Questionari ${kpi.tpFocus}` : 'Questionari'}
+                  </p>
                   <p className="dash-kpi-valore">
-                    {kpi.t2Attesi === 0 ? '—' : `${kpi.t2Fatti} su ${kpi.t2Attesi}`}
+                    {kpi.tpFocus ? `${kpi.qFatti} su ${kpi.qAttesi}` : '—'}
                   </p>
                 </article>
                 <article className="dash-kpi-card">
