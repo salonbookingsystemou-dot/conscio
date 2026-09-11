@@ -1984,29 +1984,53 @@ a { color: var(--moss-dark); }
   background: var(--tint-ochre);
   color: color-mix(in srgb, var(--ochre) 72%, #000);
 }
-.dash-onboarding {
+.dash-stato {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 9px 3px 6px;
+  gap: 6px;
+  padding: 3px 10px;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1;
   white-space: nowrap;
 }
-.dash-onboarding svg {
-  width: 15px;
-  height: 15px;
+.dash-stato-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
   flex: 0 0 auto;
 }
-.dash-onboarding.is-fatto {
-  background: var(--tint);
-  color: var(--moss-dark);
-}
-.dash-onboarding.is-attesa {
+/* Da avviare: fermo, da sollecitare */
+.dash-stato.is-attesa {
   background: color-mix(in srgb, var(--ink) 8%, var(--surface));
   color: var(--ink-soft);
+}
+/* Primo accesso fatto, T0 mancante */
+.dash-stato.is-ambra {
+  background: var(--tint-ochre);
+  color: color-mix(in srgb, var(--ochre) 72%, #000);
+}
+/* In percorso (T0 fatto) */
+.dash-stato.is-attivo {
+  background: var(--tint);
+  color: color-mix(in srgb, var(--moss) 70%, #000);
+}
+/* Rilevazioni intermedie/finali (T1, T2) */
+.dash-stato.is-avanti {
+  background: color-mix(in srgb, var(--moss) 22%, var(--surface));
+  color: var(--moss-dark);
+}
+/* Follow-up (T3) */
+.dash-stato.is-avanzato {
+  background: var(--moss-dark);
+  color: #fff;
+}
+/* Ciclo concluso */
+.dash-stato.is-chiuso {
+  background: color-mix(in srgb, var(--moss-dark) 12%, var(--surface));
+  color: color-mix(in srgb, var(--moss-dark) 80%, var(--ink));
 }
 .dash-iscrizione-persona {
   display: flex;

@@ -61,43 +61,39 @@ function eRemoto(iscrizione) {
   return (iscrizione.modalita_fruizione || 'presenza') === 'remoto'
 }
 
-function StatoOnboarding({ iscrizione }) {
+// Fase più avanzata raggiunta da un idoneo lungo il percorso.
+// Ordine reale: Idoneo → Primo accesso → T0 → (settimane) → T1 → T2 → T3 → Concluso.
+function faseIdoneo(iscrizione, timepoints, ciclo) {
+  const tp = timepoints || new Set()
+  const onboarding = Boolean(iscrizione.utenti?.onboarding_completato)
+  if (ciclo?.stato === 'concluso') {
+    return { etichetta: 'Concluso', tono: 'chiuso', dettaglio: 'Ciclo concluso.' }
+  }
+  if (tp.has('T3')) {
+    return { etichetta: 'Follow-up (T3)', tono: 'avanzato', dettaglio: 'Questionario di follow-up (T3) compilato.' }
+  }
+  if (tp.has('T2')) {
+    return { etichetta: 'A fine percorso (T2)', tono: 'avanti', dettaglio: 'Questionario di fine percorso (T2) compilato.' }
+  }
+  if (tp.has('T1')) {
+    return { etichetta: 'A metà (T1)', tono: 'avanti', dettaglio: 'Questionario di metà percorso (T1) compilato.' }
+  }
+  if (tp.has('T0')) {
+    return { etichetta: 'In percorso', tono: 'attivo', dettaglio: 'Questionario iniziale (T0) compilato: sta seguendo le settimane.' }
+  }
+  if (onboarding) {
+    return { etichetta: 'Primo accesso', tono: 'ambra', dettaglio: 'Primo accesso completato · questionario T0 ancora da compilare.' }
+  }
+  return { etichetta: 'Da avviare', tono: 'attesa', dettaglio: 'Idoneo · primo accesso non ancora fatto.' }
+}
+
+function StatoPercorso({ iscrizione, timepoints, ciclo }) {
   if (!eIdoneo(iscrizione)) return null
-  const fatto = Boolean(iscrizione.utenti?.onboarding_completato)
-  const etichetta = fatto
-    ? 'Primo accesso completato'
-    : 'Primo accesso non ancora completato'
+  const fase = faseIdoneo(iscrizione, timepoints, ciclo)
   return (
-    <span
-      className={`dash-onboarding${fatto ? ' is-fatto' : ' is-attesa'}`}
-      title={etichetta}
-    >
-      {fatto ? (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.7" />
-          <path
-            d="m8 12.3 2.6 2.6L16 9.4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      ) : (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.7" />
-          <path
-            d="M12 7.6V12l2.8 1.8"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.7"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      )}
-      <span className="dash-onboarding-testo">Primo accesso</span>
+    <span className={`dash-stato is-${fase.tono}`} title={fase.dettaglio}>
+      <span className="dash-stato-dot" aria-hidden="true" />
+      {fase.etichetta}
     </span>
   )
 }
@@ -445,6 +441,18 @@ export default function Dashboard() {
     }
   }, [cicloAperto, iscrittiCiclo])
 
+  const timepointsPerCodice = useMemo(() => {
+    const mappa = new Map()
+    for (const p of punteggi) {
+      if (!p.codice || !p.timepoint) continue
+      if (!mappa.has(p.codice)) mappa.set(p.codice, new Set())
+      mappa.get(p.codice).add(p.timepoint)
+    }
+    return mappa
+  }, [punteggi])
+
+  const cicloPerId = useMemo(() => new Map(cicli.map(c => [c.id, c])), [cicli])
+
   const kpi = useMemo(() => {
     const attivi = iscritti.filter(i => eIdoneo(i)).length
     const inAttesa = iscritti.filter(i => !eIdoneo(i)).length
@@ -735,12 +743,15 @@ export default function Dashboard() {
                     {iscrittiRemotiLiberi.map(i => (
                       <li key={i.id} className="dash-iscrizione is-libera">
                         <div className="dash-iscrizione-persona">
-                          <span className="badge">{i.utenti?.codice_partecipante || '—'}</span>
-                          <span className="badge badge-modalita is-remoto">remoto</span>
-                          <StatoOnboarding iscrizione={i} />
-                          <span className="dash-iscrizione-email">
-                            {i.utenti?.email || 'Nessuna email'}
+                          <span className="badge" title={i.utenti?.email || 'Nessuna email registrata'}>
+                            {i.utenti?.codice_partecipante || '—'}
                           </span>
+                          <span className="badge badge-modalita is-remoto">remoto</span>
+                          <StatoPercorso
+                            iscrizione={i}
+                            timepoints={timepointsPerCodice.get(i.utenti?.codice_partecipante)}
+                            ciclo={i.ciclo_id ? cicloPerId.get(i.ciclo_id) : null}
+                          />
                         </div>
                         <label className="dash-iscrizione-esito">
                           <select
@@ -943,14 +954,17 @@ export default function Dashboard() {
                       {iscrittiCiclo.map(i => (
                         <li key={i.id} className="dash-iscrizione">
                           <div className="dash-iscrizione-persona">
-                            <span className="badge">{i.utenti?.codice_partecipante || '—'}</span>
+                            <span className="badge" title={i.utenti?.email || 'Nessuna email registrata'}>
+                              {i.utenti?.codice_partecipante || '—'}
+                            </span>
                             {eRemoto(i) && (
                               <span className="badge badge-modalita is-remoto">remoto</span>
                             )}
-                            <StatoOnboarding iscrizione={i} />
-                            <span className="dash-iscrizione-email">
-                              {i.utenti?.email || 'Nessuna email'}
-                            </span>
+                            <StatoPercorso
+                              iscrizione={i}
+                              timepoints={timepointsPerCodice.get(i.utenti?.codice_partecipante)}
+                              ciclo={i.ciclo_id ? cicloPerId.get(i.ciclo_id) : null}
+                            />
                           </div>
                           <label className="dash-iscrizione-esito">
                             <select
