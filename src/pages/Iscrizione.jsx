@@ -189,7 +189,7 @@ function ConfermaIscrizione({ codice, email, soloRemoto }) {
           </p>
         </li>
         <li className="is-ora">
-          <strong>Ora attendiamo l’approvazione</strong>
+          <strong>Ora attendi l’approvazione</strong>
           <p>
             Ti scriviamo con l’esito{email ? ` a ${email}` : ''}.
             Controlla anche lo spam. Fino ad allora le sezioni restano chiuse.
