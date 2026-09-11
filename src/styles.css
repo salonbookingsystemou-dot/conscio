@@ -2032,6 +2032,184 @@ a { color: var(--moss-dark); }
   background: color-mix(in srgb, var(--moss-dark) 12%, var(--surface));
   color: color-mix(in srgb, var(--moss-dark) 80%, var(--ink));
 }
+
+/* Questionari: schede per partecipante con barre sul range */
+.dash-q-lista {
+  display: grid;
+  gap: 14px;
+}
+.dash-q-gruppo {
+  margin-bottom: 14px;
+}
+.dash-q-gruppo .dash-q-strumento-testa {
+  margin-bottom: 14px;
+}
+/* Accordion partecipante */
+.dash-q-card {
+  padding: 0;
+  overflow: hidden;
+}
+.dash-q-card > .dash-q-testa {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 16px 20px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.dash-q-card > .dash-q-testa::-webkit-details-marker {
+  display: none;
+}
+.dash-q-card > .dash-q-testa:hover {
+  background: color-mix(in srgb, var(--moss) 5%, transparent);
+}
+.dash-q-sintesi {
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.dash-q-chevron {
+  margin-left: auto;
+  display: inline-flex;
+  color: var(--ink-soft);
+  transition: transform 0.15s ease;
+}
+.dash-q-card[open] > .dash-q-testa .dash-q-chevron {
+  transform: rotate(90deg);
+}
+.dash-q-corpo {
+  padding: 0 20px 16px;
+}
+.dash-q-strumento {
+  padding: 16px 0;
+  border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+}
+.dash-q-strumento:first-of-type {
+  border-top: none;
+  padding-top: 6px;
+}
+.dash-q-strumento-testa {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.dash-q-nome {
+  font-weight: 700;
+  color: var(--moss-dark);
+}
+.dash-q-sub {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.q-scala {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.q-scala-cap {
+  font-size: 12px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  min-width: 1.8rem;
+  text-align: center;
+}
+.q-track {
+  position: relative;
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 8%, var(--surface));
+}
+.q-track::before,
+.q-track::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 1px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+}
+.q-track::before { left: 33.33%; }
+.q-track::after { left: 66.66%; }
+.q-track-sm {
+  height: 6px;
+}
+.q-marker {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--moss);
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--moss);
+}
+.q-marker-tp {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--moss-dark);
+}
+.dash-q-valori {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 16px;
+}
+.dash-q-valore {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.dash-q-valore strong {
+  color: var(--moss-dark);
+  margin-right: 4px;
+}
+.dash-q-frazione {
+  color: var(--ink-soft);
+}
+.dash-q-verso {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 6px;
+}
+.dash-q-sottoscale {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed color-mix(in srgb, var(--border) 90%, transparent);
+}
+.dash-q-sottoscale-tit {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.dash-q-sottoscala {
+  display: grid;
+  grid-template-columns: minmax(6.5rem, auto) 1fr 2rem;
+  gap: 10px;
+  align-items: center;
+  font-size: 12px;
+}
+.dash-q-sottoscala-nome {
+  color: var(--ink);
+}
+.dash-q-sottoscala-val {
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
 .dash-iscrizione-persona {
   display: flex;
   flex-wrap: wrap;

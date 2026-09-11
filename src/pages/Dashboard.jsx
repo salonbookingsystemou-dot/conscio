@@ -1,5 +1,15 @@
 import { useEffect, useId, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis
+} from 'recharts'
 import { supabase } from '../lib/supabaseClient'
 import { punteggioFfmq, punteggioPss10 } from '../lib/scoring'
 import GraficiTono from '../components/GraficiTono.jsx'
@@ -28,6 +38,63 @@ const TAB = [
 ]
 
 const MESI_CORTI = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic']
+
+// Metadata per la lettura intuitiva dei questionari (nessuna interpretazione clinica).
+const INFO_STRUMENTO = {
+  'PSS-10': { sottotitolo: 'stress percepito', verso: 'Più a destra = più stress percepito', colore: '#A8763E' },
+  'FFMQ-I': { sottotitolo: 'consapevolezza', verso: 'Più a destra = più consapevolezza', colore: '#4B6B57' }
+}
+
+const FFMQ_SOTTOSCALE_INFO = [
+  { chiave: 'osservare', label: 'Osservare' },
+  { chiave: 'descrivere', label: 'Descrivere' },
+  { chiave: 'agire_con_consapevolezza', label: 'Agire con consapevolezza' },
+  { chiave: 'non_giudicare', label: 'Non giudicare' },
+  { chiave: 'non_reagire', label: 'Non reagire' }
+]
+
+const ORDINE_TP = { T0: 0, T1: 1, T2: 2, T3: 3 }
+
+function percentoNelRange(valore, min, max) {
+  if (![valore, min, max].every(Number.isFinite) || max <= min) return 0
+  return Math.max(0, Math.min(100, Math.round(((valore - min) / (max - min)) * 100)))
+}
+
+function TooltipGruppo({ active, payload, label }) {
+  if (!active || !payload?.length) return null
+  return (
+    <div className="grafico-tip">
+      <p>{label}</p>
+      {payload.map(p => (
+        <p key={p.dataKey}>
+          {p.name}: {p.value}% (n {p.payload?.[`${p.dataKey}_n`] ?? '—'})
+        </p>
+      ))}
+    </div>
+  )
+}
+
+// Barra orizzontale min→max con un pallino per ogni timepoint compilato.
+function BarraRange({ min, max, marker }) {
+  return (
+    <div className="q-scala">
+      <span className="q-scala-cap">{min}</span>
+      <div className="q-track">
+        {marker.map(m => (
+          <span
+            key={m.etichetta}
+            className="q-marker"
+            style={{ left: `${m.percento}%` }}
+            title={`${m.etichetta}: ${m.valore} su ${max}`}
+          >
+            <span className="q-marker-tp">{m.etichetta}</span>
+          </span>
+        ))}
+      </div>
+      <span className="q-scala-cap">{max}</span>
+    </div>
+  )
+}
 
 function aggregaPunteggi(righe) {
   const gruppi = {}
@@ -520,6 +587,52 @@ export default function Dashboard() {
     if (codici.size === 0) return punteggi
     return punteggi.filter(p => codici.has(p.codice))
   }, [punteggi, aperto, iscritti])
+
+  // Raggruppa per codice → strumento → timepoint (ordinati), per la vista a schede.
+  const questionariRaggruppati = useMemo(() => {
+    const perCodice = new Map()
+    for (const p of punteggiVista) {
+      if (!perCodice.has(p.codice)) perCodice.set(p.codice, new Map())
+      const strumenti = perCodice.get(p.codice)
+      if (!strumenti.has(p.questionario)) strumenti.set(p.questionario, [])
+      strumenti.get(p.questionario).push(p)
+    }
+    return [...perCodice.entries()].map(([codice, strumenti]) => ({
+      codice,
+      strumenti: [...strumenti.entries()].map(([nome, righe]) => ({
+        nome,
+        righe: righe
+          .slice()
+          .sort((a, b) => (ORDINE_TP[a.timepoint] ?? 9) - (ORDINE_TP[b.timepoint] ?? 9))
+      }))
+    }))
+  }, [punteggiVista])
+
+  // Andamento medio del gruppo per timepoint, normalizzato a % del range dello strumento.
+  const andamentoGruppo = useMemo(() => {
+    const perTp = new Map()
+    for (const p of punteggiVista) {
+      const pct = p.punteggio?.orientamento?.percento
+      if (!Number.isFinite(pct)) continue
+      if (!perTp.has(p.timepoint)) perTp.set(p.timepoint, {})
+      const perStrumento = perTp.get(p.timepoint)
+      if (!perStrumento[p.questionario]) perStrumento[p.questionario] = { somma: 0, n: 0 }
+      perStrumento[p.questionario].somma += pct
+      perStrumento[p.questionario].n += 1
+    }
+    return [...perTp.entries()]
+      .sort((a, b) => (ORDINE_TP[a[0]] ?? 9) - (ORDINE_TP[b[0]] ?? 9))
+      .map(([timepoint, perStrumento]) => {
+        const riga = { timepoint }
+        for (const nome of ['PSS-10', 'FFMQ-I']) {
+          if (perStrumento[nome]) {
+            riga[nome] = Math.round(perStrumento[nome].somma / perStrumento[nome].n)
+            riga[`${nome}_n`] = perStrumento[nome].n
+          }
+        }
+        return riga
+      })
+  }, [punteggiVista])
 
   function esportaAggregati() {
     const payload = {
@@ -1043,15 +1156,152 @@ export default function Dashboard() {
               </button>
             </div>
           </header>
-          <div className="card">
-            {punteggiVista.length === 0 && <p>Nessuna compilazione ancora registrata.</p>}
-            {punteggiVista.map(p => (
-              <p key={`${p.codice}-${p.timepoint}-${p.questionario}`}>
-                <span className="badge">{p.codice}</span>{' '}
-                {p.timepoint} · {p.questionario}
-                {p.punteggio?.totale != null && <> · totale {p.punteggio.totale}</>}
+          {questionariRaggruppati.length === 0 && (
+            <div className="card"><p>Nessuna compilazione ancora registrata.</p></div>
+          )}
+
+          {andamentoGruppo.length > 0 && (
+            <div className="card dash-q-gruppo">
+              <div className="dash-q-strumento-testa">
+                <span className="dash-q-nome">Andamento del gruppo</span>
+                <span className="dash-q-sub">· media, % del range dello strumento</span>
+              </div>
+              <div className="grafico-box">
+                <ResponsiveContainer width="100%" height={240}>
+                  <LineChart data={andamentoGruppo} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+                    <CartesianGrid stroke="#DAD9CE" strokeDasharray="3 3" />
+                    <XAxis dataKey="timepoint" tick={{ fill: '#5B665F', fontSize: 12 }} />
+                    <YAxis
+                      domain={[0, 100]}
+                      ticks={[0, 25, 50, 75, 100]}
+                      tickFormatter={v => `${v}%`}
+                      tick={{ fill: '#5B665F', fontSize: 11 }}
+                      width={42}
+                    />
+                    <Tooltip content={<TooltipGruppo />} />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                    <Line
+                      type="monotone"
+                      dataKey="PSS-10"
+                      name="PSS-10 (stress)"
+                      stroke={INFO_STRUMENTO['PSS-10'].colore}
+                      strokeWidth={2.2}
+                      dot={{ r: 4, fill: INFO_STRUMENTO['PSS-10'].colore }}
+                      connectNulls
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="FFMQ-I"
+                      name="FFMQ-I (consapevolezza)"
+                      stroke={INFO_STRUMENTO['FFMQ-I'].colore}
+                      strokeWidth={2.2}
+                      dot={{ r: 4, fill: INFO_STRUMENTO['FFMQ-I'].colore }}
+                      connectNulls
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              <p className="dash-q-verso">
+                Valori come % del range dello strumento (0 = minimo, 100 = massimo).
+                Con più timepoint le linee mostrano la traiettoria media del gruppo.
               </p>
-            ))}
+            </div>
+          )}
+
+          <div className="dash-q-lista">
+            {questionariRaggruppati.map(part => {
+              const sintesi = part.strumenti
+                .map(str => {
+                  const valide = str.righe.filter(r => r.punteggio?.totale != null)
+                  const ultimo = valide[valide.length - 1]
+                  if (!ultimo) return null
+                  const nome = str.nome === 'FFMQ-I' ? 'FFMQ' : str.nome
+                  return `${nome} ${ultimo.punteggio.totale}/${ultimo.punteggio.max ?? '—'}`
+                })
+                .filter(Boolean)
+              return (
+              <details key={part.codice} className="card dash-q-card">
+                <summary className="dash-q-testa">
+                  <span className="badge">{part.codice}</span>
+                  {sintesi.length > 0 && (
+                    <span className="dash-q-sintesi">{sintesi.join(' · ')}</span>
+                  )}
+                  <span className="dash-q-chevron" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                      <path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                </summary>
+                <div className="dash-q-corpo">
+                {part.strumenti.map(str => {
+                  const info = INFO_STRUMENTO[str.nome] || {}
+                  const righeValide = str.righe.filter(r => r.punteggio?.totale != null)
+                  const base = righeValide[0]?.punteggio
+                  const min = base?.min ?? 0
+                  const max = base?.max ?? 100
+                  const marker = righeValide.map(r => ({
+                    etichetta: r.timepoint,
+                    valore: r.punteggio.totale,
+                    percento: r.punteggio.orientamento?.percento
+                      ?? percentoNelRange(r.punteggio.totale, min, max)
+                  }))
+                  const ffmqUltimo = str.nome === 'FFMQ-I'
+                    ? [...righeValide].reverse().find(r => r.punteggio?.orientamentiSottoscale)
+                    : null
+                  return (
+                    <div key={str.nome} className="dash-q-strumento">
+                      <div className="dash-q-strumento-testa">
+                        <span className="dash-q-nome">{str.nome}</span>
+                        {info.sottotitolo && <span className="dash-q-sub">· {info.sottotitolo}</span>}
+                      </div>
+                      {marker.length > 0 ? (
+                        <>
+                          <BarraRange min={min} max={max} marker={marker} />
+                          <div className="dash-q-valori">
+                            {marker.map(m => (
+                              <span key={m.etichetta} className="dash-q-valore">
+                                <strong>{m.etichetta}</strong> {m.valore}
+                                <span className="dash-q-frazione">/{max}</span>
+                              </span>
+                            ))}
+                          </div>
+                          {info.verso && <p className="dash-q-verso">{info.verso}</p>}
+                          {ffmqUltimo && (
+                            <div className="dash-q-sottoscale">
+                              <p className="dash-q-sottoscale-tit">
+                                Sottoscale ({ffmqUltimo.timepoint})
+                              </p>
+                              {FFMQ_SOTTOSCALE_INFO.map(s => {
+                                const valore = ffmqUltimo.punteggio[s.chiave]
+                                const or = ffmqUltimo.punteggio.orientamentiSottoscale?.[s.chiave]
+                                if (valore == null) return null
+                                return (
+                                  <div key={s.chiave} className="dash-q-sottoscala">
+                                    <span className="dash-q-sottoscala-nome">{s.label}</span>
+                                    <div className="q-track q-track-sm">
+                                      <span
+                                        className="q-marker"
+                                        style={{ left: `${or?.percento ?? 0}%` }}
+                                        title={`${s.label}: ${valore}`}
+                                      />
+                                    </div>
+                                    <span className="dash-q-sottoscala-val">{valore}</span>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <p className="hint">Compilazione incompleta.</p>
+                      )}
+                    </div>
+                  )
+                })}
+                </div>
+              </details>
+              )
+            })}
           </div>
           <p className="dash-nota-privacy">
             Le risposte ai questionari sono consultabili solo in forma aggregata e per codice
