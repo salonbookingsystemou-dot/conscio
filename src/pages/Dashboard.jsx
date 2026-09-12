@@ -128,6 +128,10 @@ function eRemoto(iscrizione) {
   return (iscrizione.modalita_fruizione || 'presenza') === 'remoto'
 }
 
+function eRitirato(iscrizione) {
+  return iscrizione.esito_screening === 'ritirato' || iscrizione.utenti?.stato_screening === 'ritirato'
+}
+
 // Fase più avanzata raggiunta da un idoneo lungo il percorso.
 // Ordine reale: Idoneo → Primo accesso → T0 → (settimane) → T1 → T2 → T3 → Concluso.
 function faseIdoneo(iscrizione, timepoints, ciclo) {
@@ -458,16 +462,17 @@ export default function Dashboard() {
     const codice = iscrizione.utenti?.codice_partecipante
     if (!codice) return
     setDialogo({
-      titolo: 'Cancellare questa persona?',
-      testo: `Cancellare ${iscrizione.utenti?.email || codice} (diritto all’oblio / uscita dal percorso)? `
-        + 'Si cancellano anche risposte e log. Se era idonea, il posto si libera.',
-      etichetta: 'Rimuovi dal percorso',
+      titolo: 'Ritirare questa persona dal percorso?',
+      testo: `${iscrizione.utenti?.email || codice} verrà ritirato: azzeriamo i dati personali `
+        + '(email e risposte libere di onboarding) e il posto si libera. '
+        + 'Restano, in forma anonima e a fini statistici, i questionari e il tono per sessione legati al codice.',
+      etichetta: 'Ritira dal percorso',
       onOk: async () => {
         setErrore(null)
-        const { error } = await supabase.rpc('elimina_partecipante', { p_codice: codice })
+        const { error } = await supabase.rpc('ritira_partecipante', { p_codice: codice })
         setDialogo(null)
         if (error) {
-          setErrore('Non è stato possibile rimuovere questa persona.')
+          setErrore('Non è stato possibile ritirare questa persona.')
           return
         }
         carica()
@@ -522,7 +527,7 @@ export default function Dashboard() {
 
   const kpi = useMemo(() => {
     const attivi = iscritti.filter(i => eIdoneo(i)).length
-    const inAttesa = iscritti.filter(i => !eIdoneo(i)).length
+    const inAttesa = iscritti.filter(i => !eIdoneo(i) && !eRitirato(i)).length
 
     // Quale timepoint è aperto ora e quanti idonei l'hanno compilato.
     const cicloById = new Map(cicli.map(c => [c.id, c]))
@@ -854,48 +859,60 @@ export default function Dashboard() {
                 ) : (
                   <ul className="dash-iscrizioni">
                     {iscrittiRemotiLiberi.map(i => (
-                      <li key={i.id} className="dash-iscrizione is-libera">
+                      <li key={i.id} className={`dash-iscrizione is-libera${eRitirato(i) ? ' is-ritirato' : ''}`}>
                         <div className="dash-iscrizione-persona">
                           <span className="badge" title={i.utenti?.email || 'Nessuna email registrata'}>
                             {i.utenti?.codice_partecipante || '—'}
                           </span>
                           <span className="badge badge-modalita is-remoto">remoto</span>
-                          <StatoPercorso
-                            iscrizione={i}
-                            timepoints={timepointsPerCodice.get(i.utenti?.codice_partecipante)}
-                            ciclo={i.ciclo_id ? cicloPerId.get(i.ciclo_id) : null}
-                          />
+                          {eRitirato(i)
+                            ? <span className="badge badge-ritirato">ritirato</span>
+                            : (
+                              <StatoPercorso
+                                iscrizione={i}
+                                timepoints={timepointsPerCodice.get(i.utenti?.codice_partecipante)}
+                                ciclo={i.ciclo_id ? cicloPerId.get(i.ciclo_id) : null}
+                              />
+                            )}
                         </div>
-                        <label className="dash-iscrizione-esito">
-                          <select
-                            value={i.esito_screening || 'in_attesa'}
-                            onChange={e => aggiornaEsito(i, e.target.value)}
-                            aria-label={`Screening ${i.utenti?.codice_partecipante || ''}`}
-                          >
-                            {ESITI.map(e => (
-                              <option key={e.id} value={e.id}>{e.label}</option>
-                            ))}
-                          </select>
-                        </label>
-                        <label className="dash-iscrizione-esito">
-                          <select
-                            defaultValue=""
-                            onChange={e => assegnaACiclo(i, e.target.value)}
-                            aria-label={`Collega ${i.utenti?.codice_partecipante || ''} a un ciclo`}
-                          >
-                            <option value="">Collega a un ciclo…</option>
-                            {cicli.map(c => (
-                              <option key={c.id} value={c.id}>{c.nome_ciclo}</option>
-                            ))}
-                          </select>
-                        </label>
-                        <button
-                          type="button"
-                          className="btn-elimina"
-                          onClick={() => eliminaIscritto(i)}
-                        >
-                          Rimuovi
-                        </button>
+                        {eRitirato(i) ? (
+                          <p className="dash-iscrizione-ritirato">
+                            Ritirato · dati anonimi conservati a fini statistici
+                          </p>
+                        ) : (
+                          <>
+                            <label className="dash-iscrizione-esito">
+                              <select
+                                value={i.esito_screening || 'in_attesa'}
+                                onChange={e => aggiornaEsito(i, e.target.value)}
+                                aria-label={`Screening ${i.utenti?.codice_partecipante || ''}`}
+                              >
+                                {ESITI.map(e => (
+                                  <option key={e.id} value={e.id}>{e.label}</option>
+                                ))}
+                              </select>
+                            </label>
+                            <label className="dash-iscrizione-esito">
+                              <select
+                                defaultValue=""
+                                onChange={e => assegnaACiclo(i, e.target.value)}
+                                aria-label={`Collega ${i.utenti?.codice_partecipante || ''} a un ciclo`}
+                              >
+                                <option value="">Collega a un ciclo…</option>
+                                {cicli.map(c => (
+                                  <option key={c.id} value={c.id}>{c.nome_ciclo}</option>
+                                ))}
+                              </select>
+                            </label>
+                            <button
+                              type="button"
+                              className="btn-elimina"
+                              onClick={() => eliminaIscritto(i)}
+                            >
+                              Ritira
+                            </button>
+                          </>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -1065,7 +1082,7 @@ export default function Dashboard() {
                   ) : (
                     <ul className="dash-iscrizioni">
                       {iscrittiCiclo.map(i => (
-                        <li key={i.id} className="dash-iscrizione">
+                        <li key={i.id} className={`dash-iscrizione${eRitirato(i) ? ' is-ritirato' : ''}`}>
                           <div className="dash-iscrizione-persona">
                             <span className="badge" title={i.utenti?.email || 'Nessuna email registrata'}>
                               {i.utenti?.codice_partecipante || '—'}
@@ -1073,41 +1090,53 @@ export default function Dashboard() {
                             {eRemoto(i) && (
                               <span className="badge badge-modalita is-remoto">remoto</span>
                             )}
-                            <StatoPercorso
-                              iscrizione={i}
-                              timepoints={timepointsPerCodice.get(i.utenti?.codice_partecipante)}
-                              ciclo={i.ciclo_id ? cicloPerId.get(i.ciclo_id) : null}
-                            />
+                            {eRitirato(i)
+                              ? <span className="badge badge-ritirato">ritirato</span>
+                              : (
+                                <StatoPercorso
+                                  iscrizione={i}
+                                  timepoints={timepointsPerCodice.get(i.utenti?.codice_partecipante)}
+                                  ciclo={i.ciclo_id ? cicloPerId.get(i.ciclo_id) : null}
+                                />
+                              )}
                           </div>
-                          <label className="dash-iscrizione-esito">
-                            <select
-                              value={i.esito_screening || 'in_attesa'}
-                              onChange={e => aggiornaEsito(i, e.target.value)}
-                              aria-label={`Screening ${i.utenti?.codice_partecipante || ''}`}
-                            >
-                              {ESITI.map(e => (
-                                <option key={e.id} value={e.id}>{e.label}</option>
-                              ))}
-                            </select>
-                          </label>
-                          <label className="dash-iscrizione-esito">
-                            <select
-                              value={i.modalita_fruizione || 'presenza'}
-                              onChange={e => aggiornaModalita(i, e.target.value)}
-                              aria-label={`Modalità ${i.utenti?.codice_partecipante || ''}`}
-                            >
-                              {MODALITA.map(m => (
-                                <option key={m.id} value={m.id}>{m.label}</option>
-                              ))}
-                            </select>
-                          </label>
-                          <button
-                            type="button"
-                            className="btn-elimina"
-                            onClick={() => eliminaIscritto(i)}
-                          >
-                            Rimuovi
-                          </button>
+                          {eRitirato(i) ? (
+                            <p className="dash-iscrizione-ritirato">
+                              Ritirato · dati anonimi conservati a fini statistici
+                            </p>
+                          ) : (
+                            <>
+                              <label className="dash-iscrizione-esito">
+                                <select
+                                  value={i.esito_screening || 'in_attesa'}
+                                  onChange={e => aggiornaEsito(i, e.target.value)}
+                                  aria-label={`Screening ${i.utenti?.codice_partecipante || ''}`}
+                                >
+                                  {ESITI.map(e => (
+                                    <option key={e.id} value={e.id}>{e.label}</option>
+                                  ))}
+                                </select>
+                              </label>
+                              <label className="dash-iscrizione-esito">
+                                <select
+                                  value={i.modalita_fruizione || 'presenza'}
+                                  onChange={e => aggiornaModalita(i, e.target.value)}
+                                  aria-label={`Modalità ${i.utenti?.codice_partecipante || ''}`}
+                                >
+                                  {MODALITA.map(m => (
+                                    <option key={m.id} value={m.id}>{m.label}</option>
+                                  ))}
+                                </select>
+                              </label>
+                              <button
+                                type="button"
+                                className="btn-elimina"
+                                onClick={() => eliminaIscritto(i)}
+                              >
+                                Ritira
+                              </button>
+                            </>
+                          )}
                         </li>
                       ))}
                     </ul>

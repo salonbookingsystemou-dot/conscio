@@ -1984,6 +1984,25 @@ a { color: var(--moss-dark); }
   background: var(--tint-ochre);
   color: color-mix(in srgb, var(--ochre) 72%, #000);
 }
+.badge-ritirato {
+  background: color-mix(in srgb, var(--ink) 10%, var(--surface));
+  color: var(--ink-soft);
+}
+.dash-iscrizione.is-ritirato {
+  opacity: 0.72;
+}
+.dash-iscrizione-ritirato {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-style: italic;
+}
+@media (min-width: 720px) {
+  .dash-iscrizione-ritirato {
+    grid-column: 2 / -1;
+    text-align: right;
+  }
+}
 .dash-stato {
   display: inline-flex;
   align-items: center;
