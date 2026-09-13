@@ -2063,6 +2063,16 @@ a { color: var(--moss-dark); }
 .dash-q-gruppo .dash-q-strumento-testa {
   margin-bottom: 14px;
 }
+.dash-q-strumento-grafico {
+  padding-top: 16px;
+  margin-top: 16px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+}
+.dash-q-strumento-grafico:first-of-type {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
 /* Accordion partecipante */
 .dash-q-card {
   padding: 0;

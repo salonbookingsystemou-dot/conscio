@@ -60,16 +60,77 @@ function percentoNelRange(valore, min, max) {
   return Math.max(0, Math.min(100, Math.round(((valore - min) / (max - min)) * 100)))
 }
 
-function TooltipGruppo({ active, payload, label }) {
+const COLORE_SINGOLO = '#BFC8C0'
+
+function TooltipStrumento({ active, payload, label }) {
   if (!active || !payload?.length) return null
+  const media = payload.find(p => p.dataKey === '__media')
+  const singoli = payload.filter(p => p.dataKey !== '__media' && p.value != null)
   return (
     <div className="grafico-tip">
       <p>{label}</p>
-      {payload.map(p => (
-        <p key={p.dataKey}>
-          {p.name}: {p.value}% (n {p.payload?.[`${p.dataKey}_n`] ?? '—'})
-        </p>
+      {media && media.value != null && (
+        <p><strong>Media: {media.value}</strong> (n {media.payload?.__n ?? '—'})</p>
+      )}
+      {singoli.map(p => (
+        <p key={p.dataKey}>{p.dataKey}: {p.value}</p>
       ))}
+    </div>
+  )
+}
+
+// Traiettorie individuali (linee sottili) + media in evidenza, per un singolo strumento.
+function GraficoStrumento({ strumento }) {
+  const { nome, min, max, codici, dati, colore } = strumento
+  const info = INFO_STRUMENTO[nome] || {}
+  const ticks = [min, Math.round((min + max) / 2), max]
+  return (
+    <div className="dash-q-strumento-grafico">
+      <div className="dash-q-strumento-testa">
+        <span className="dash-q-nome">{nome}</span>
+        {info.sottotitolo && <span className="dash-q-sub">· {info.sottotitolo}</span>}
+      </div>
+      <div className="grafico-box">
+        <ResponsiveContainer width="100%" height={240}>
+          <LineChart data={dati} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+            <CartesianGrid stroke="#DAD9CE" strokeDasharray="3 3" />
+            <XAxis dataKey="timepoint" tick={{ fill: '#5B665F', fontSize: 12 }} />
+            <YAxis
+              domain={[min, max]}
+              ticks={ticks}
+              tick={{ fill: '#5B665F', fontSize: 11 }}
+              width={38}
+            />
+            <Tooltip content={<TooltipStrumento />} />
+            <Legend wrapperStyle={{ fontSize: 12 }} />
+            {codici.map(c => (
+              <Line
+                key={c}
+                type="monotone"
+                dataKey={c}
+                name={c}
+                stroke={COLORE_SINGOLO}
+                strokeWidth={1.5}
+                dot={{ r: 3, fill: COLORE_SINGOLO }}
+                legendType="none"
+                connectNulls
+              />
+            ))}
+            <Line
+              type="monotone"
+              dataKey="__media"
+              name="Media"
+              stroke={colore}
+              strokeWidth={2.8}
+              dot={{ r: 4, fill: colore }}
+              connectNulls
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      <p className="dash-q-verso">
+        Linee sottili = singoli partecipanti; linea in evidenza = media. {info.verso}
+      </p>
     </div>
   )
 }
@@ -613,29 +674,48 @@ export default function Dashboard() {
     }))
   }, [punteggiVista])
 
-  // Andamento medio del gruppo per timepoint, normalizzato a % del range dello strumento.
-  const andamentoGruppo = useMemo(() => {
-    const perTp = new Map()
+  // Traiettorie individuali per strumento (punteggi grezzi sul range dello strumento).
+  const andamentoPerStrumento = useMemo(() => {
+    const perStrumento = new Map()
     for (const p of punteggiVista) {
-      const pct = p.punteggio?.orientamento?.percento
-      if (!Number.isFinite(pct)) continue
-      if (!perTp.has(p.timepoint)) perTp.set(p.timepoint, {})
-      const perStrumento = perTp.get(p.timepoint)
-      if (!perStrumento[p.questionario]) perStrumento[p.questionario] = { somma: 0, n: 0 }
-      perStrumento[p.questionario].somma += pct
-      perStrumento[p.questionario].n += 1
+      const tot = p.punteggio?.totale
+      if (!Number.isFinite(tot)) continue
+      if (!perStrumento.has(p.questionario)) {
+        perStrumento.set(p.questionario, {
+          nome: p.questionario,
+          min: p.punteggio?.min ?? 0,
+          max: p.punteggio?.max ?? 100,
+          codici: new Set(),
+          perTp: new Map()
+        })
+      }
+      const s = perStrumento.get(p.questionario)
+      s.codici.add(p.codice)
+      if (!s.perTp.has(p.timepoint)) s.perTp.set(p.timepoint, new Map())
+      s.perTp.get(p.timepoint).set(p.codice, tot)
     }
-    return [...perTp.entries()]
-      .sort((a, b) => (ORDINE_TP[a[0]] ?? 9) - (ORDINE_TP[b[0]] ?? 9))
-      .map(([timepoint, perStrumento]) => {
-        const riga = { timepoint }
-        for (const nome of ['PSS-10', 'FFMQ-I']) {
-          if (perStrumento[nome]) {
-            riga[nome] = Math.round(perStrumento[nome].somma / perStrumento[nome].n)
-            riga[`${nome}_n`] = perStrumento[nome].n
-          }
-        }
-        return riga
+    return [...perStrumento.values()]
+      .sort((a, b) => a.nome.localeCompare(b.nome))
+      .map(s => {
+        const codici = [...s.codici].sort()
+        const dati = [...s.perTp.entries()]
+          .sort((a, b) => (ORDINE_TP[a[0]] ?? 9) - (ORDINE_TP[b[0]] ?? 9))
+          .map(([timepoint, perCodice]) => {
+            const riga = { timepoint }
+            let somma = 0
+            let n = 0
+            for (const c of codici) {
+              if (perCodice.has(c)) {
+                riga[c] = perCodice.get(c)
+                somma += perCodice.get(c)
+                n += 1
+              }
+            }
+            riga.__media = n ? Math.round((somma / n) * 10) / 10 : null
+            riga.__n = n
+            return riga
+          })
+        return { ...s, codici, dati, colore: INFO_STRUMENTO[s.nome]?.colore || '#4B6B57' }
       })
   }, [punteggiVista])
 
@@ -1189,51 +1269,15 @@ export default function Dashboard() {
             <div className="card"><p>Nessuna compilazione ancora registrata.</p></div>
           )}
 
-          {andamentoGruppo.length > 0 && (
+          {andamentoPerStrumento.length > 0 && (
             <div className="card dash-q-gruppo">
               <div className="dash-q-strumento-testa">
                 <span className="dash-q-nome">Andamento del gruppo</span>
-                <span className="dash-q-sub">· media, % del range dello strumento</span>
+                <span className="dash-q-sub">· traiettorie individuali e media, per strumento</span>
               </div>
-              <div className="grafico-box">
-                <ResponsiveContainer width="100%" height={240}>
-                  <LineChart data={andamentoGruppo} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
-                    <CartesianGrid stroke="#DAD9CE" strokeDasharray="3 3" />
-                    <XAxis dataKey="timepoint" tick={{ fill: '#5B665F', fontSize: 12 }} />
-                    <YAxis
-                      domain={[0, 100]}
-                      ticks={[0, 25, 50, 75, 100]}
-                      tickFormatter={v => `${v}%`}
-                      tick={{ fill: '#5B665F', fontSize: 11 }}
-                      width={42}
-                    />
-                    <Tooltip content={<TooltipGruppo />} />
-                    <Legend wrapperStyle={{ fontSize: 12 }} />
-                    <Line
-                      type="monotone"
-                      dataKey="PSS-10"
-                      name="PSS-10 (stress)"
-                      stroke={INFO_STRUMENTO['PSS-10'].colore}
-                      strokeWidth={2.2}
-                      dot={{ r: 4, fill: INFO_STRUMENTO['PSS-10'].colore }}
-                      connectNulls
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="FFMQ-I"
-                      name="FFMQ-I (consapevolezza)"
-                      stroke={INFO_STRUMENTO['FFMQ-I'].colore}
-                      strokeWidth={2.2}
-                      dot={{ r: 4, fill: INFO_STRUMENTO['FFMQ-I'].colore }}
-                      connectNulls
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-              <p className="dash-q-verso">
-                Valori come % del range dello strumento (0 = minimo, 100 = massimo).
-                Con più timepoint le linee mostrano la traiettoria media del gruppo.
-              </p>
+              {andamentoPerStrumento.map(s => (
+                <GraficoStrumento key={s.nome} strumento={s} />
+              ))}
             </div>
           )}
 
