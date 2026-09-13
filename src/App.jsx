@@ -19,6 +19,7 @@ import IMieiDati from './pages/IMieiDati.jsx'
 import InvitoHome from './components/InvitoHome.jsx'
 import BarraBassa from './components/BarraBassa.jsx'
 import Footer from './components/Footer.jsx'
+import PullToRefresh from './components/PullToRefresh.jsx'
 
 export default function App() {
   const { pathname } = useLocation()
@@ -26,6 +27,7 @@ export default function App() {
 
   return (
     <>
+      <PullToRefresh />
       <InvitoHome />
       {!splash && (
         <>

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ascoltoCompletato, recuperaAscoltoSeManca, registraAscoltoCompleto } from '../lib/ascolto.js'
+import { assicuraTracciaOffline } from '../lib/cacheTracce.js'
 import {
   GAP_DOPO_CAMPANA_MS,
   precaricaCampanaTibetana,
@@ -79,6 +80,12 @@ export default function TracciaGuidata({
   useEffect(() => {
     precaricaCampanaTibetana()
   }, [])
+
+  // Scarica in background la traccia reale così è disponibile anche offline.
+  useEffect(() => {
+    if (anteprima || !src) return
+    assicuraTracciaOffline(src)
+  }, [src, anteprima])
 
   useEffect(() => {
     const gia = ascoltoCompletato(persistenzaKey)
@@ -197,6 +204,7 @@ export default function TracciaGuidata({
     if (!el) return
     const dallInizio = el.currentTime < 0.15
     annullaAvvioRef.current = false
+    if (!anteprima) assicuraTracciaOffline(src)
     try {
       setErrore(false)
       if (dallInizio) {

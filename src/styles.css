@@ -137,6 +137,48 @@ a { color: var(--moss-dark); }
   .stato-attesa-anello { animation: none; }
 }
 
+/* Pull-to-refresh */
+.ptr {
+  position: fixed;
+  top: max(0px, env(safe-area-inset-top, 0px));
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 120;
+  will-change: transform, opacity;
+}
+.ptr-cerchio {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 18px rgba(36, 49, 44, 0.16);
+  display: grid;
+  place-items: center;
+  color: var(--moss);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.ptr-cerchio.is-superata {
+  color: var(--moss-dark);
+  background: var(--tint);
+  border-color: color-mix(in srgb, var(--moss) 30%, var(--border));
+}
+.ptr-freccia { transition: transform 0.15s ease; }
+.ptr-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid color-mix(in srgb, var(--moss) 22%, var(--outline));
+  border-top-color: var(--moss);
+  border-radius: 50%;
+  animation: stato-attesa-giro 0.7s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ptr-spinner { animation: none; }
+}
+
 .barra-bassa {
   display: none;
 }
