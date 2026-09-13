@@ -29,15 +29,23 @@ export default function Nav() {
   useEffect(() => {
     if (!aperto) return undefined
 
+    // Porta in cima la pagina così il menu aperto è interamente visibile (soprattutto su mobile).
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+
     function suTasto(e) {
       if (e.key === 'Escape') setAperto(false)
     }
 
     document.addEventListener('keydown', suTasto)
+    // Blocca lo scroll di sfondo solo dopo che l'animazione verso l'alto è partita,
+    // così non interrompe lo scroll automatico.
     const precedente = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    const bloccaScroll = setTimeout(() => {
+      document.body.style.overflow = 'hidden'
+    }, 320)
 
     return () => {
+      clearTimeout(bloccaScroll)
       document.removeEventListener('keydown', suTasto)
       document.body.style.overflow = precedente
     }
