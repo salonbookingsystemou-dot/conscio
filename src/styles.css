@@ -1468,6 +1468,15 @@ a { color: var(--moss-dark); }
 }
 .card-domanda { padding: 32px 28px; }
 
+.questionario-intro { max-width: 40rem; }
+.card-intro-questionario { padding: 28px 26px; }
+.card-intro-questionario h2 { margin: 0 0 12px; }
+.card-intro-questionario p {
+  margin: 0 0 12px;
+  color: var(--ink-soft);
+}
+.card-intro-questionario p:last-of-type { margin-bottom: 20px; }
+
 .progress {
   height: 4px;
   background: var(--border);

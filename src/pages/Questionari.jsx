@@ -90,6 +90,7 @@ export default function Questionari() {
 
   const [passo, setPasso] = useState('scelta')
   const [piano, setPiano] = useState(null)
+  const [tpDaAvviare, setTpDaAvviare] = useState(null)
   const [timepoint, setTimepoint] = useState(null)
   const [item, setItem] = useState([])
   const [indice, setIndice] = useState(0)
@@ -126,6 +127,18 @@ export default function Questionari() {
     setPasso('scelta')
     setInvio(false)
     return data
+  }
+
+  // Alla prima compilazione (T0 del primo accesso) mostra prima l'avviso; poi avvia.
+  function iniziaTimepoint(tp) {
+    setErrore(null)
+    if (tp.stato !== 'aperto') return
+    if (tp.id === 'T0' && forzatoT0) {
+      setTpDaAvviare(tp)
+      setPasso('avviso')
+      return
+    }
+    avviaTimepoint(tp)
   }
 
   async function avviaTimepoint(tp) {
@@ -212,7 +225,7 @@ export default function Questionari() {
     }
     if (t0.stato === 'aperto') {
       autoAvvioRef.current = true
-      avviaTimepoint(t0)
+      iniziaTimepoint(t0)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [piano, forzatoT0, passo])
@@ -338,6 +351,42 @@ export default function Questionari() {
             </button>
           </div>
         )}
+      </div>
+    )
+  }
+
+  if (passo === 'avviso') {
+    return (
+      <div className="questionario-intro">
+        <p className="meta-riga">
+          <span className="badge">Primo accesso</span>
+          <span>Passo {numeroPassoPrimoAccesso('t0')} di {PASSI_PRIMO_ACCESSO}</span>
+          <span>{codice.toUpperCase()} · T0</span>
+        </p>
+        <div className="card card-intro-questionario">
+          <h2>Prima di iniziare, un momento di calma</h2>
+          <p>
+            Trova un posto tranquillo e prenditi il tempo che ti serve: non c’è fretta.
+            Rispondi con consapevolezza e onestà, guardando a come ti senti davvero
+            in questo periodo. Non ci sono risposte giuste o sbagliate.
+          </p>
+          <p>
+            La sincerità delle tue risposte è ciò che rende affidabile la misura di quanto
+            il percorso MBSR avrà inciso sul tuo benessere generale: le confronteremo con
+            quelle che darai nei momenti successivi del percorso.
+          </p>
+          {errore && <p className="campo-errore" role="alert">{errore}</p>}
+          <div className="azioni">
+            <button
+              className="btn btn-avanti"
+              type="button"
+              disabled={invio || !tpDaAvviare}
+              onClick={() => tpDaAvviare && avviaTimepoint(tpDaAvviare)}
+            >
+              {invio ? 'Caricamento…' : 'Inizia il questionario'}
+            </button>
+          </div>
+        </div>
       </div>
     )
   }
@@ -496,7 +545,7 @@ export default function Questionari() {
                           className="btn btn-avanti"
                           type="button"
                           disabled={invio}
-                          onClick={() => avviaTimepoint(tp)}
+                          onClick={() => iniziaTimepoint(tp)}
                         >
                           {invio ? 'Caricamento…' : `Inizia ${tp.id}`}
                         </button>
