@@ -8,8 +8,23 @@
 
 const inCorso = new Set()
 
+// Nome allineato alla route del service worker (vite.config.js).
+const CACHE_TRACCE = 'tracce-audio-v2'
+// Vecchia cache che poteva contenere risposte opaque non affettabili: va rimossa.
+const CACHE_LEGACY = 'tracce-audio'
+
 export function tracciaRemota(url) {
   return typeof url === 'string' && url.includes('/storage/v1/object/public/tracce-audio/')
+}
+
+// Rimuove la cache legacy "avvelenata" da risposte opaque (una tantum).
+export async function pulisciCacheTracceLegacy() {
+  if (typeof caches === 'undefined') return
+  try {
+    await caches.delete(CACHE_LEGACY)
+  } catch {
+    // ignora
+  }
 }
 
 export async function tracciaInCache(url) {
@@ -31,8 +46,9 @@ export async function assicuraTracciaOffline(url) {
   inCorso.add(url)
   try {
     if (await tracciaInCache(url)) return
-    // La richiesta passa dal service worker: la copia completa viene messa in cache.
-    // Leggiamo il body per completare il download (necessario per popolare la cache).
+    // Richiesta CORS "piena" (senza Range → 200): passa dal service worker, che
+    // salva la copia completa in cache. È da questa copia che il RangeRequestsPlugin
+    // serve i frammenti richiesti dal tag <audio>, anche offline.
     const risposta = await fetch(url, { mode: 'cors', credentials: 'omit' })
     if (risposta && risposta.body) {
       const reader = risposta.body.getReader()

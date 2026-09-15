@@ -20,11 +20,15 @@ export default defineConfig({
             urlPattern: /^https:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/tracce-audio\//i,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'tracce-audio',
+              cacheName: 'tracce-audio-v2',
               // Necessario per le richieste Range (206) dei tag <audio>:
               // serve i frammenti dalla copia completa in cache.
               rangeRequests: true,
-              cacheableResponse: { statuses: [0, 200] },
+              // SOLO 200: le richieste no-cors dell'<audio> danno risposte opaque
+              // (status 0) che il RangeRequestsPlugin non può affettare e che
+              // romperebbero la riproduzione. La copia completa arriva dal priming
+              // CORS (fetch → 200) in cacheTracce.js.
+              cacheableResponse: { statuses: [200] },
               expiration: {
                 maxEntries: 60,
                 maxAgeSeconds: 60 * 60 * 24 * 120 // 120 giorni

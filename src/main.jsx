@@ -6,9 +6,12 @@ import { AuthProvider } from './lib/auth.jsx'
 import { PartecipanteProvider } from './lib/partecipante.jsx'
 import { TonalitaProvider } from './lib/tonalita.jsx'
 import { avviaTonalita } from './lib/tonalita.js'
+import { pulisciCacheTracceLegacy } from './lib/cacheTracce.js'
 import './styles.css'
 
 avviaTonalita()
+// Rimuove la vecchia cache tracce che poteva contenere risposte opaque rotte.
+pulisciCacheTracceLegacy()
 
 // Usiamo HashRouter (non BrowserRouter) perché GitHub Pages serve file statici:
 // con le route "pulite" un refresh su /lezioni darebbe 404. HashRouter usa /#/lezioni
