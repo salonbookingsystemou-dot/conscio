@@ -481,7 +481,7 @@ export default function Comunicazioni() {
 
       {inviate.length > 0 && (
         <div className="card">
-          <h3>Invii</h3>
+          <h3>Comunicazioni inviate</h3>
           <ul className="com-log">
             {inviate.map(c => (
               <li key={c.id}>
