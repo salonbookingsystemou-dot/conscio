@@ -223,11 +223,18 @@ export default function Comunicazioni() {
   async function inviaProva() {
     setErrore(null)
     setMessaggio(null)
+    const oggetto = form.oggetto.trim()
+    const testo = form.testo.trim()
+    if (!oggetto || !testo) {
+      setErrore('Per la prova servono oggetto e testo della comunicazione.')
+      return
+    }
     setInvio(true)
     const { data: esito, error: errFn } = await supabase.functions.invoke('invia-comunicazione', {
-      body: { prova: true }
+      body: { prova: true, oggetto, testo }
     })
     if (errFn) setErrore('La prova non è partita. Riprova tra un momento.')
+    else if (esito?.motivo === 'TESTO_MANCANTE') setErrore('Per la prova servono oggetto e testo della comunicazione.')
     else if (esito?.ok) setMessaggio('Prova inviata alla tua email di accesso. Controlla anche lo spam.')
     else setErrore(esito?.errore || 'La prova non è andata a buon fine.')
     setInvio(false)

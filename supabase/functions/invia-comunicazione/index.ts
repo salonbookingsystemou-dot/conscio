@@ -64,11 +64,16 @@ Deno.serve(async (req) => {
     const { data: sessione } = await supabase.auth.getUser()
     const mia = sessione?.user?.email
     if (!mia) return json({ ok: false, motivo: 'NESSUN_DESTINATARIO' }, 400)
+    const oggettoProva = typeof corpo?.oggetto === 'string' ? corpo.oggetto.trim() : ''
+    const testoProva = typeof corpo?.testo === 'string' ? corpo.testo.trim() : ''
+    if (!oggettoProva || !testoProva) {
+      return json({ ok: false, motivo: 'TESTO_MANCANTE' }, 400)
+    }
     emails = [mia]
     com = {
-      oggetto: 'Prova invio — Percorso MBSR',
+      oggetto: oggettoProva,
       tipo: 'prova',
-      testo: 'Questa è una prova di invio da Resend. Se la leggi, le email operative sono collegate.'
+      testo: testoProva
     }
   } else {
     const { data: trovata, error: errCom } = await supabase
