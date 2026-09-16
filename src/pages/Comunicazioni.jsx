@@ -5,6 +5,7 @@ import { usePartecipante } from '../lib/partecipante.jsx'
 import ChiediCodice from '../components/ChiediCodice.jsx'
 import StatoAttesa from '../components/StatoAttesa.jsx'
 import StatoVuoto from '../components/StatoVuoto.jsx'
+import DialogConferma from '../components/DialogConferma.jsx'
 
 const TIPI = [
   { id: 'reminder_t3', label: 'Promemoria T3 (follow-up)' },
@@ -21,6 +22,10 @@ const DESTINATARI = [
 const ETICHETTE_INATTIVITA = {
   non_avviato: 'Percorso non avviato',
   onboarding_senza_ascolto: 'Onboarding senza ascolto'
+}
+
+function eModificabile(c) {
+  return c.stato === 'programmata' || c.stato === 'errore'
 }
 
 async function invocaInvio(body) {
@@ -129,6 +134,8 @@ export default function Comunicazioni() {
     testo: MODELLI.reminder_t3.testo,
     invia_ora: true
   })
+  const [modificaId, setModificaId] = useState(null)
+  const [dialogo, setDialogo] = useState(null)
   const [invio, setInvio] = useState(false)
   const [messaggio, setMessaggio] = useState(null)
   const [errore, setErrore] = useState(null)
@@ -149,7 +156,9 @@ export default function Comunicazioni() {
     setLista(comRes.data || [])
     setInattivita(notRes.error ? [] : (notRes.data || []))
     setCandidati(candRes.error ? [] : (candRes.data || []))
-    if (cicliRes.data?.[0] && !form.ciclo_id) setForm(f => ({ ...f, ciclo_id: cicliRes.data[0].id }))
+    if (cicliRes.data?.[0] && !form.ciclo_id && !modificaId) {
+      setForm(f => (f.ciclo_id ? f : { ...f, ciclo_id: cicliRes.data[0].id }))
+    }
   }
 
   useEffect(() => {
@@ -168,13 +177,69 @@ export default function Comunicazioni() {
     }))
   }
 
+  function iniziaModifica(c) {
+    if (!eModificabile(c)) return
+    setErrore(null)
+    setMessaggio(null)
+    setModificaId(c.id)
+    setForm({
+      ciclo_id: c.ciclo_id || '',
+      destinatari: c.destinatari === 'remoto' ? 'remoto' : 'tutti',
+      tipo: c.tipo || 'annuncio',
+      oggetto: c.oggetto || '',
+      testo: c.testo || '',
+      invia_ora: false
+    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function annullaModifica() {
+    setModificaId(null)
+    setForm(f => ({
+      ...f,
+      destinatari: 'tutti',
+      tipo: 'annuncio',
+      oggetto: '',
+      testo: '',
+      invia_ora: false
+    }))
+    setMessaggio(null)
+    setErrore(null)
+  }
+
+  function chiediElimina(c) {
+    if (!eModificabile(c)) return
+    setDialogo({
+      titolo: 'Cancellare questa comunicazione?',
+      testo: `«${c.oggetto || c.tipo}» verrà tolta dagli invii programmati. Non è ancora partita nessuna email.`,
+      etichetta: 'Cancella',
+      onOk: async () => {
+        setDialogo(null)
+        setErrore(null)
+        setMessaggio(null)
+        const { error } = await supabase
+          .from('comunicazioni')
+          .delete()
+          .eq('id', c.id)
+          .in('stato', ['programmata', 'errore'])
+        if (error) {
+          setErrore('Non è stato possibile cancellare la comunicazione.')
+          return
+        }
+        if (modificaId === c.id) annullaModifica()
+        setMessaggio('Comunicazione cancellata.')
+        carica()
+      }
+    })
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
     setErrore(null)
     setMessaggio(null)
     setInvio(true)
 
-    const { data, error } = await supabase.from('comunicazioni').insert({
+    const campi = {
       ciclo_id: form.ciclo_id,
       tipo: form.tipo,
       destinatari: form.destinatari,
@@ -182,16 +247,42 @@ export default function Comunicazioni() {
       testo: form.testo,
       stato: 'programmata',
       data_invio: new Date().toISOString()
-    }).select('id').single()
+    }
 
-    if (error || !data) {
-      setErrore('Non è stato possibile salvare la comunicazione.')
-      setInvio(false)
-      return
+    let data = null
+    if (modificaId) {
+      const { data: aggiornata, error } = await supabase
+        .from('comunicazioni')
+        .update(campi)
+        .eq('id', modificaId)
+        .in('stato', ['programmata', 'errore'])
+        .select('id')
+        .single()
+      if (error || !aggiornata) {
+        setErrore('Non è stato possibile aggiornare la comunicazione.')
+        setInvio(false)
+        return
+      }
+      data = aggiornata
+    } else {
+      const { data: creata, error } = await supabase
+        .from('comunicazioni')
+        .insert(campi)
+        .select('id')
+        .single()
+      if (error || !creata) {
+        setErrore('Non è stato possibile salvare la comunicazione.')
+        setInvio(false)
+        return
+      }
+      data = creata
     }
 
     if (!form.invia_ora) {
-      setMessaggio('Comunicazione salvata. Non è stata inviata nessuna email.')
+      setMessaggio(modificaId
+        ? 'Modifiche salvate. L’email non è stata inviata.'
+        : 'Comunicazione salvata. Non è stata inviata nessuna email.')
+      setModificaId(null)
       setInvio(false)
       carica()
       return
@@ -200,7 +291,7 @@ export default function Comunicazioni() {
     const { esito, errFn } = await invocaInvio({ comunicazione_id: data.id })
 
     if (errFn) {
-      setErrore('Salvata, ma l’invio email non è partito. Usa «Riprova invio» sulla comunicazione qui sotto.')
+      setErrore('Salvata, ma l’invio email non è partito. Usa «Invia ora» sulla comunicazione qui sotto.')
     } else if (esito?.motivo === 'RESEND_NON_CONFIGURATO') {
       setMessaggio(`Salvata come programmata. Destinatari trovati: ${esito.n_destinatari ?? 0}. Manca il secret RESEND_API_KEY.`)
     } else if (esito?.motivo === 'DESTINATARI_NON_LEGGIBILI') {
@@ -217,6 +308,7 @@ export default function Comunicazioni() {
         : 'Salvata, ma l’invio non è andato a buon fine.')
     }
 
+    setModificaId(null)
     setInvio(false)
     carica()
   }
@@ -289,7 +381,7 @@ export default function Comunicazioni() {
       </p>
 
       <div className="card">
-        <h3>Nuova comunicazione</h3>
+        <h3>{modificaId ? 'Modifica comunicazione' : 'Nuova comunicazione'}</h3>
         <form onSubmit={handleSubmit}>
           <div className="field">
             <label>Ciclo</label>
@@ -339,11 +431,22 @@ export default function Comunicazioni() {
           </div>
           <div className="azioni">
             <button className="btn" type="submit" disabled={invio || !form.ciclo_id}>
-              {invio ? 'Invio in corso…' : form.invia_ora ? 'Salva e invia' : 'Salva come programmata'}
+              {invio
+                ? 'Invio in corso…'
+                : form.invia_ora
+                  ? 'Salva e invia'
+                  : modificaId
+                    ? 'Salva modifiche'
+                    : 'Salva come programmata'}
             </button>
             <button className="btn btn-ghost" type="button" disabled={invio} onClick={inviaProva}>
               Invia una prova a me
             </button>
+            {modificaId && (
+              <button className="btn btn-ghost" type="button" disabled={invio} onClick={annullaModifica}>
+                Annulla modifica
+              </button>
+            )}
           </div>
           {messaggio && <p>{messaggio}</p>}
           {errore && <p className="campo-errore" role="alert">{errore}</p>}
@@ -359,10 +462,18 @@ export default function Comunicazioni() {
             {c.tipo === 'reminder_t3' && <span className="badge">T3</span>}
           </h3>
           <p>{c.cicli?.nome_ciclo} — {new Date(c.data_invio).toLocaleDateString('it-IT')}</p>
-          {(c.stato === 'errore' || c.stato === 'programmata') && (
-            <button className="btn btn-ghost" type="button" disabled={invio} onClick={() => inviaDiNuovo(c.id)}>
-              Riprova invio
-            </button>
+          {eModificabile(c) && (
+            <div className="azioni">
+              <button className="btn btn-ghost" type="button" disabled={invio} onClick={() => inviaDiNuovo(c.id)}>
+                Invia ora
+              </button>
+              <button className="btn btn-ghost" type="button" disabled={invio} onClick={() => iniziaModifica(c)}>
+                Modifica
+              </button>
+              <button className="btn-elimina" type="button" disabled={invio} onClick={() => chiediElimina(c)}>
+                Cancella
+              </button>
+            </div>
           )}
         </div>
       ))}
@@ -402,6 +513,17 @@ export default function Comunicazioni() {
           </ul>
         )}
       </div>
+
+      <DialogConferma
+        aperto={!!dialogo}
+        titolo={dialogo?.titolo || ''}
+        confermaEtichetta={dialogo?.etichetta || 'Conferma'}
+        pericolo
+        onConferma={() => dialogo?.onOk?.()}
+        onAnnulla={() => setDialogo(null)}
+      >
+        {dialogo?.testo}
+      </DialogConferma>
     </div>
   )
 }
