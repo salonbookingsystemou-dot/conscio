@@ -23,6 +23,21 @@ const ETICHETTE_INATTIVITA = {
   onboarding_senza_ascolto: 'Onboarding senza ascolto'
 }
 
+async function invocaInvio(body) {
+  const { data, error } = await supabase.functions.invoke('invia-comunicazione', { body })
+  if (data && typeof data === 'object') return { esito: data, errFn: null }
+  const risposta = error?.context
+  if (risposta && typeof risposta.json === 'function') {
+    try {
+      const parsed = await risposta.json()
+      if (parsed && typeof parsed === 'object') return { esito: parsed, errFn: null }
+    } catch {
+      /* corpo non json */
+    }
+  }
+  return { esito: null, errFn: error }
+}
+
 const DISCLAIMER_EMAIL = `Questo percorso è una pratica di consapevolezza (mindfulness) a scopo di ricerca e non sostituisce un percorso terapeutico o una presa in carico psicologica.`
 
 const MODELLI = {
@@ -176,20 +191,20 @@ export default function Comunicazioni() {
     }
 
     if (!form.invia_ora) {
-      setMessaggio('Comunicazione salvata come programmata.')
+      setMessaggio('Comunicazione salvata. Non è stata inviata nessuna email.')
       setInvio(false)
       carica()
       return
     }
 
-    const { data: esito, error: errFn } = await supabase.functions.invoke('invia-comunicazione', {
-      body: { comunicazione_id: data.id }
-    })
+    const { esito, errFn } = await invocaInvio({ comunicazione_id: data.id })
 
     if (errFn) {
-      setErrore('Salvata, ma la funzione di invio non ha risposto. Riprova tra un momento.')
+      setErrore('Salvata, ma l’invio email non è partito. Usa «Riprova invio» sulla comunicazione qui sotto.')
     } else if (esito?.motivo === 'RESEND_NON_CONFIGURATO') {
       setMessaggio(`Salvata come programmata. Destinatari trovati: ${esito.n_destinatari ?? 0}. Manca il secret RESEND_API_KEY.`)
+    } else if (esito?.motivo === 'DESTINATARI_NON_LEGGIBILI') {
+      setErrore('Salvata, ma non è stato possibile leggere i destinatari. Riprova tra un momento.')
     } else if (esito?.motivo === 'NESSUN_DESTINATARIO') {
       setErrore(form.destinatari === 'remoto'
         ? 'Salvata, ma in questo ciclo non c’è nessuna email di partecipante in remoto.'
@@ -210,9 +225,7 @@ export default function Comunicazioni() {
     setErrore(null)
     setMessaggio(null)
     setInvio(true)
-    const { data: esito, error: errFn } = await supabase.functions.invoke('invia-comunicazione', {
-      body: { comunicazione_id: id }
-    })
+    const { esito, errFn } = await invocaInvio({ comunicazione_id: id })
     if (errFn) setErrore('L’invio non è ripartito. Riprova tra un momento.')
     else if (esito?.ok) setMessaggio(`Inviata a ${esito.n_destinatari} indirizzi.`)
     else setErrore(esito?.errore || 'L’invio non è andato a buon fine.')
@@ -230,9 +243,7 @@ export default function Comunicazioni() {
       return
     }
     setInvio(true)
-    const { data: esito, error: errFn } = await supabase.functions.invoke('invia-comunicazione', {
-      body: { prova: true, oggetto, testo }
-    })
+    const { esito, errFn } = await invocaInvio({ prova: true, oggetto, testo })
     if (errFn) setErrore('La prova non è partita. Riprova tra un momento.')
     else if (esito?.motivo === 'TESTO_MANCANTE') setErrore('Per la prova servono oggetto e testo della comunicazione.')
     else if (esito?.ok) setMessaggio('Prova inviata alla tua email di accesso. Controlla anche lo spam.')
@@ -339,6 +350,24 @@ export default function Comunicazioni() {
         </form>
       </div>
 
+      {lista.map(c => (
+        <div className="card" key={c.id}>
+          <h3>
+            {c.oggetto || c.tipo}{' '}
+            <span className="badge">{c.stato}</span>
+            {c.destinatari === 'remoto' && <span className="badge">remoto</span>}
+            {c.tipo === 'reminder_t3' && <span className="badge">T3</span>}
+          </h3>
+          <p>{c.cicli?.nome_ciclo} — {new Date(c.data_invio).toLocaleDateString('it-IT')}</p>
+          {(c.stato === 'errore' || c.stato === 'programmata') && (
+            <button className="btn btn-ghost" type="button" disabled={invio} onClick={() => inviaDiNuovo(c.id)}>
+              Riprova invio
+            </button>
+          )}
+        </div>
+      ))}
+      {lista.length === 0 && <p>Nessuna comunicazione ancora registrata.</p>}
+
       <div className="card">
         <h3>Promemoria automatici · solo da remoto</h3>
         <p className="disclaimer">
@@ -373,24 +402,6 @@ export default function Comunicazioni() {
           </ul>
         )}
       </div>
-
-      {lista.map(c => (
-        <div className="card" key={c.id}>
-          <h3>
-            {c.oggetto || c.tipo}{' '}
-            <span className="badge">{c.stato}</span>
-            {c.destinatari === 'remoto' && <span className="badge">remoto</span>}
-            {c.tipo === 'reminder_t3' && <span className="badge">T3</span>}
-          </h3>
-          <p>{c.cicli?.nome_ciclo} — {new Date(c.data_invio).toLocaleDateString('it-IT')}</p>
-          {(c.stato === 'errore' || c.stato === 'programmata') && (
-            <button className="btn btn-ghost" type="button" disabled={invio} onClick={() => inviaDiNuovo(c.id)}>
-              Riprova invio
-            </button>
-          )}
-        </div>
-      ))}
-      {lista.length === 0 && <p>Nessuna comunicazione ancora registrata.</p>}
     </div>
   )
 }

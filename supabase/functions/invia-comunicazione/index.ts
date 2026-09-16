@@ -52,10 +52,15 @@ Deno.serve(async (req) => {
   const { data: isFac } = await supabase.rpc('is_facilitatore')
   if (!isFac) return json({ error: 'NON_AUTORIZZATO' }, 401)
 
-  const corpo = await req.json()
+  let corpo: Record<string, unknown>
+  try {
+    corpo = await req.json()
+  } catch {
+    return json({ ok: false, error: 'CORPO_NON_VALIDO' })
+  }
   const comunicazione_id = corpo?.comunicazione_id
   const prova = Boolean(corpo?.prova)
-  if (!comunicazione_id && !prova) return json({ error: 'ID_MANCANTE' }, 400)
+  if (!comunicazione_id && !prova) return json({ ok: false, error: 'ID_MANCANTE' })
 
   let emails: string[] = []
   let com: { id?: string, oggetto?: string, tipo?: string, testo?: string, ciclo_id?: string, destinatari?: string } | null = null
@@ -63,11 +68,11 @@ Deno.serve(async (req) => {
   if (prova) {
     const { data: sessione } = await supabase.auth.getUser()
     const mia = sessione?.user?.email
-    if (!mia) return json({ ok: false, motivo: 'NESSUN_DESTINATARIO' }, 400)
+    if (!mia) return json({ ok: false, motivo: 'NESSUN_DESTINATARIO' })
     const oggettoProva = typeof corpo?.oggetto === 'string' ? corpo.oggetto.trim() : ''
     const testoProva = typeof corpo?.testo === 'string' ? corpo.testo.trim() : ''
     if (!oggettoProva || !testoProva) {
-      return json({ ok: false, motivo: 'TESTO_MANCANTE' }, 400)
+      return json({ ok: false, motivo: 'TESTO_MANCANTE' })
     }
     emails = [mia]
     com = {
@@ -82,18 +87,31 @@ Deno.serve(async (req) => {
       .eq('id', comunicazione_id)
       .single()
 
-    if (errCom || !trovata) return json({ error: 'COMUNICAZIONE_NON_TROVATA' }, 404)
+    if (errCom || !trovata) {
+      return json({
+        ok: false,
+        error: 'COMUNICAZIONE_NON_TROVATA',
+        errore: errCom?.message
+      })
+    }
     com = trovata
 
-    const { data: destinatari } = await supabase.rpc('email_destinatari_ciclo', {
+    const { data: destinatari, error: errDest } = await supabase.rpc('email_destinatari_ciclo', {
       p_ciclo_id: com.ciclo_id,
       p_includi_in_valutazione: com.tipo === 'screening',
       p_solo_remoto: com.destinatari === 'remoto'
     })
+    if (errDest) {
+      return json({
+        ok: false,
+        motivo: 'DESTINATARI_NON_LEGGIBILI',
+        errore: errDest.message
+      })
+    }
     emails = (destinatari || []).map((r: { email: string }) => r.email).filter(Boolean)
   }
 
-  if (!com) return json({ error: 'COMUNICAZIONE_NON_TROVATA' }, 404)
+  if (!com) return json({ error: 'COMUNICAZIONE_NON_TROVATA', ok: false }, 200)
 
   const apiKey = Deno.env.get('RESEND_API_KEY')
   if (!apiKey) {
@@ -104,7 +122,7 @@ Deno.serve(async (req) => {
     if (com.id) {
       await supabase.from('comunicazioni').update({ stato: 'errore' }).eq('id', com.id)
     }
-    return json({ ok: false, motivo: 'NESSUN_DESTINATARIO' }, 400)
+    return json({ ok: false, motivo: 'NESSUN_DESTINATARIO' })
   }
 
   const from = Deno.env.get('RESEND_FROM') || 'Percorso MBSR <noreply@mnesti.it>'
@@ -113,24 +131,29 @@ Deno.serve(async (req) => {
   const errori: string[] = []
 
   for (const to of emails) {
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from,
-        to: [to],
-        reply_to: 'contact@wordpresschef.it',
-        subject: oggetto,
-        text: testoConFirma(com.testo || ''),
-        html: htmlConFirma(com.testo || '')
+    try {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from,
+          to: [to],
+          reply_to: 'contact@wordpresschef.it',
+          subject: oggetto,
+          text: testoConFirma(com.testo || ''),
+          html: htmlConFirma(com.testo || '')
+        })
       })
-    })
-    const corpo = await res.json().catch(() => null)
-    if (res.ok) inviate += 1
-    else errori.push(italianoResend(messaggioResend(corpo, res.status)))
+      const corpoResend = await res.json().catch(() => null)
+      if (res.ok) inviate += 1
+      else errori.push(italianoResend(messaggioResend(corpoResend, res.status)))
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'invio interrotto'
+      errori.push(msg)
+    }
   }
 
   if (com.id) {
