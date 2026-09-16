@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
 import { useAuth } from '../lib/auth.jsx'
 import { usePartecipante } from '../lib/partecipante.jsx'
@@ -368,6 +368,9 @@ export default function Comunicazioni() {
     carica()
   }
 
+  const daGestire = useMemo(() => lista.filter(eModificabile), [lista])
+  const inviate = useMemo(() => lista.filter(c => !eModificabile(c)), [lista])
+
   if (caricamento) return <StatoAttesa />
   if (!facilitatore) return <AvvisiPartecipante />
 
@@ -453,7 +456,7 @@ export default function Comunicazioni() {
         </form>
       </div>
 
-      {lista.map(c => (
+      {daGestire.map(c => (
         <div className="card" key={c.id}>
           <h3>
             {c.oggetto || c.tipo}{' '}
@@ -462,21 +465,39 @@ export default function Comunicazioni() {
             {c.tipo === 'reminder_t3' && <span className="badge">T3</span>}
           </h3>
           <p>{c.cicli?.nome_ciclo} — {new Date(c.data_invio).toLocaleDateString('it-IT')}</p>
-          {eModificabile(c) && (
-            <div className="azioni">
-              <button className="btn btn-ghost" type="button" disabled={invio} onClick={() => inviaDiNuovo(c.id)}>
-                Invia ora
-              </button>
-              <button className="btn btn-ghost" type="button" disabled={invio} onClick={() => iniziaModifica(c)}>
-                Modifica
-              </button>
-              <button className="btn-elimina" type="button" disabled={invio} onClick={() => chiediElimina(c)}>
-                Cancella
-              </button>
-            </div>
-          )}
+          <div className="azioni">
+            <button className="btn btn-ghost" type="button" disabled={invio} onClick={() => inviaDiNuovo(c.id)}>
+              Invia ora
+            </button>
+            <button className="btn btn-ghost" type="button" disabled={invio} onClick={() => iniziaModifica(c)}>
+              Modifica
+            </button>
+            <button className="btn-elimina" type="button" disabled={invio} onClick={() => chiediElimina(c)}>
+              Cancella
+            </button>
+          </div>
         </div>
       ))}
+
+      {inviate.length > 0 && (
+        <div className="card">
+          <h3>Invii</h3>
+          <ul className="com-log">
+            {inviate.map(c => (
+              <li key={c.id}>
+                <span className="com-log-oggetto">{c.oggetto || c.tipo}</span>
+                <span className="com-log-meta">
+                  {c.cicli?.nome_ciclo || '—'}
+                  {' · '}
+                  {c.data_invio ? new Date(c.data_invio).toLocaleDateString('it-IT') : ''}
+                  {c.destinatari === 'remoto' ? ' · remoto' : ''}
+                  {c.tipo === 'reminder_t3' ? ' · T3' : ''}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {lista.length === 0 && <p>Nessuna comunicazione ancora registrata.</p>}
 
       <div className="card">
