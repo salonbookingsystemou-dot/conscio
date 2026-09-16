@@ -1,0 +1,24 @@
+name: Promemoria inattività
+
+on:
+  schedule:
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+
+jobs:
+  notifica:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chiama notifica-inattivita
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_FUNCTIONS_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "Secret SUPABASE_FUNCTIONS_URL o CRON_SECRET mancanti: salta l'invio."
+            exit 0
+          fi
+          curl -fsS -X POST "${SUPABASE_URL%/}/functions/v1/notifica-inattivita" \
+            -H "x-cron-secret: $CRON_SECRET" \
+            -H "Content-Type: application/json" \
+            -d '{}'

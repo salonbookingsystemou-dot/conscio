@@ -39,7 +39,8 @@ create table iscrizioni (
   esito_screening text default 'in_attesa',
   modalita_fruizione text not null default 'presenza' check (modalita_fruizione in ('presenza', 'remoto')),
   ciclo_contenuto_id uuid references cicli(id) on delete set null,
-  data_inizio_pratica date
+  data_inizio_pratica date,
+  idoneo_il timestamptz
 );
 
 create table tracce (
@@ -124,8 +125,19 @@ create table comunicazioni (
   tipo text,
   oggetto text,
   testo text,
+  destinatari text not null default 'tutti' check (destinatari in ('tutti', 'remoto')),
   data_invio timestamptz default now(),
   stato text default 'programmata'
+);
+
+-- Promemoria automatici per iscritti solo da remoto che non partono.
+create table notifiche_inattivita (
+  id uuid primary key default gen_random_uuid(),
+  utente_id uuid not null references utenti(id) on delete cascade,
+  iscrizione_id uuid references iscrizioni(id) on delete set null,
+  tipo text not null check (tipo in ('non_avviato', 'onboarding_senza_ascolto')),
+  inviata_il timestamptz not null default now(),
+  unique (utente_id, tipo)
 );
 
 -- Row Level Security: attivata su tutte le tabelle.
@@ -144,6 +156,7 @@ alter table questionari enable row level security;
 alter table item enable row level security;
 alter table risposte enable row level security;
 alter table comunicazioni enable row level security;
+alter table notifiche_inattivita enable row level security;
 
 -- Esempio: chiunque (anon) può leggere i cicli in reclutamento e iscriversi
 create policy "lettura pubblica cicli in reclutamento" on cicli
@@ -1186,6 +1199,7 @@ as $$
 declare
   v_utente_id uuid;
   v_ciclo_id uuid;
+  v_modalita text;
 begin
   select u.id into v_utente_id
   from utenti u
@@ -1196,7 +1210,8 @@ begin
     raise exception 'CODICE_NON_TROVATO';
   end if;
 
-  select i.ciclo_id into v_ciclo_id
+  select i.ciclo_id, coalesce(i.modalita_fruizione, 'presenza')
+    into v_ciclo_id, v_modalita
   from iscrizioni i
   where i.utente_id = v_utente_id
   order by i.data_iscrizione desc
@@ -1206,6 +1221,10 @@ begin
   select c.id, c.tipo, c.oggetto, c.testo, c.data_invio
   from comunicazioni c
   where c.ciclo_id = v_ciclo_id
+    and (
+      coalesce(c.destinatari, 'tutti') = 'tutti'
+      or (c.destinatari = 'remoto' and v_modalita = 'remoto')
+    )
   order by (c.tipo = 'reminder_t3') desc, c.data_invio desc;
 end;
 $$;
@@ -1341,9 +1360,11 @@ $$;
 -- Solo email operative, senza join a risposte o log.
 -- Default: idonei con consenso A. Screening può includere chi è ancora in valutazione.
 drop function if exists email_destinatari_ciclo(uuid);
+drop function if exists email_destinatari_ciclo(uuid, boolean);
 create or replace function email_destinatari_ciclo(
   p_ciclo_id uuid,
-  p_includi_in_valutazione boolean default false
+  p_includi_in_valutazione boolean default false,
+  p_solo_remoto boolean default false
 )
 returns table (email text)
 language sql
@@ -1366,7 +1387,85 @@ as $$
           in ('in_attesa', 'in_valutazione')
       )
     )
+    and (
+      not coalesce(p_solo_remoto, false)
+      or coalesce(i.modalita_fruizione, 'presenza') = 'remoto'
+    )
     and is_facilitatore();
+$$;
+
+-- Iscritti solo da remoto inattivi, da sollecitare una volta per tipo.
+create or replace function candidati_inattivita_remoto()
+returns table (
+  utente_id uuid,
+  iscrizione_id uuid,
+  email text,
+  codice text,
+  tipo text,
+  da_quando timestamptz
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not (is_facilitatore() or auth.role() = 'service_role') then
+    raise exception 'NON_AUTORIZZATO';
+  end if;
+
+  return query
+  select
+    u.id,
+    i.id,
+    u.email,
+    u.codice_partecipante,
+    'non_avviato'::text,
+    coalesce(i.idoneo_il, i.data_iscrizione)
+  from utenti u
+  join iscrizioni i on i.utente_id = u.id
+  where i.ciclo_id is null
+    and i.modalita_fruizione = 'remoto'
+    and u.ruolo = 'partecipante'
+    and u.email is not null
+    and u.consenso_modulo_a = true
+    and (u.stato_screening = 'idoneo' or i.esito_screening = 'idoneo')
+    and i.esito_screening is distinct from 'ritirato'
+    and u.stato_screening is distinct from 'ritirato'
+    and coalesce(u.onboarding_completato, false) is not true
+    and coalesce(i.idoneo_il, i.data_iscrizione) <= now() - interval '7 days'
+    and not exists (
+      select 1 from notifiche_inattivita n
+      where n.utente_id = u.id and n.tipo = 'non_avviato'
+    )
+  union all
+  select
+    u.id,
+    i.id,
+    u.email,
+    u.codice_partecipante,
+    'onboarding_senza_ascolto'::text,
+    u.onboarding_completato_il
+  from utenti u
+  join iscrizioni i on i.utente_id = u.id
+  where i.ciclo_id is null
+    and i.modalita_fruizione = 'remoto'
+    and u.ruolo = 'partecipante'
+    and u.email is not null
+    and u.consenso_modulo_a = true
+    and (u.stato_screening = 'idoneo' or i.esito_screening = 'idoneo')
+    and i.esito_screening is distinct from 'ritirato'
+    and u.stato_screening is distinct from 'ritirato'
+    and u.onboarding_completato is true
+    and u.onboarding_completato_il <= now() - interval '7 days'
+    and not exists (
+      select 1 from log_pratica lp
+      where lp.utente_id = u.id and lp.tipo = 'ascolto'
+    )
+    and not exists (
+      select 1 from notifiche_inattivita n
+      where n.utente_id = u.id and n.tipo = 'onboarding_senza_ascolto'
+    );
+end;
 $$;
 
 -- Separa l’email dal record dopo la chiusura del ciclo (dati di percorso restano sul codice).
@@ -1490,7 +1589,8 @@ revoke all on function salva_log_pratica(text, date, int, text, text, uuid, text
 revoke all on function risposte_pseudonime() from public;
 revoke all on function log_pratica_pseudonimi() from public;
 revoke all on function log_pratica_del_partecipante(text) from public;
-revoke all on function email_destinatari_ciclo(uuid, boolean) from public;
+revoke all on function email_destinatari_ciclo(uuid, boolean, boolean) from public;
+revoke all on function candidati_inattivita_remoto() from public;
 revoke all on function separa_email_cicli_conclusi(int) from public;
 revoke all on function programma_del_partecipante(text) from public;
 revoke all on function comunicazioni_del_partecipante(text) from public;
@@ -1502,7 +1602,8 @@ grant execute on function salva_log_pratica(text, date, int, text, text, uuid, t
 grant execute on function risposte_pseudonime() to authenticated;
 grant execute on function log_pratica_pseudonimi() to authenticated;
 grant execute on function log_pratica_del_partecipante(text) to anon, authenticated;
-grant execute on function email_destinatari_ciclo(uuid, boolean) to authenticated;
+grant execute on function email_destinatari_ciclo(uuid, boolean, boolean) to authenticated;
+grant execute on function candidati_inattivita_remoto() to authenticated, service_role;
 grant execute on function separa_email_cicli_conclusi(int) to authenticated;
 grant execute on function programma_del_partecipante(text) to anon, authenticated;
 grant execute on function comunicazioni_del_partecipante(text) to anon, authenticated;
@@ -1544,6 +1645,9 @@ create policy "facilitatore gestisce esercizi" on esercizi
 
 create policy "facilitatore gestisce comunicazioni" on comunicazioni
   for all using (is_facilitatore()) with check (is_facilitatore());
+
+create policy "facilitatore legge notifiche inattivita" on notifiche_inattivita
+  for select using (is_facilitatore());
 
 create table if not exists splash_sito (
   id smallint primary key default 1 check (id = 1),

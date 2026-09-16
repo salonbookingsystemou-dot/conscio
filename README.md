@@ -12,8 +12,10 @@ PWA per gestire iscrizioni, cicli, lezioni, questionari e comunicazioni del perc
 1. **Crea un progetto Supabase** (https://supabase.com), region EU.
 2. Nell'SQL editor esegui `supabase/schema.sql`, poi `supabase/seed_questionari.sql`.
    Se lo schema era già stato applicato: le `migrazione_*.sql` in ordine, inclusa
-   `migrazione_modalita_fruizione.sql` (posti in presenza + fruizione remota) e
-   `migrazione_libreria_tracce.sql` (catalogo audio riusabile tra settimane e cicli).
+   `migrazione_modalita_fruizione.sql` (posti in presenza + fruizione remota),
+   `migrazione_libreria_tracce.sql` (catalogo audio riusabile tra settimane e cicli),
+   `migrazione_comunicazioni_remoto.sql` (avvisi solo agli utenti in remoto)
+   e `migrazione_inattivita_remoto.sql` (promemoria se il percorso da remoto non parte).
 3. In Authentication → Users crea l’account del facilitatore. Poi in SQL:
 
    ```
@@ -42,8 +44,26 @@ Le comunicazioni si salvano sempre nel database. Per l’invio reale:
 1. Crea un account [Resend](https://resend.com) e un dominio (o usa `onboarding@resend.dev` in test).
 2. Distribuisci la funzione: `supabase functions deploy invia-comunicazione`.
 3. Imposta i secret: `RESEND_API_KEY` e, se vuoi, `RESEND_FROM`.
+4. Per l’opzione «Utenti in remoto»: esegui `supabase/migrazione_comunicazioni_remoto.sql` e ridistribuisci `invia-comunicazione`.
 
 Senza la chiave la comunicazione resta `programmata`. L’email dei partecipanti serve solo al contatto operativo: non viene unita alle risposte o ai log.
+
+## Promemoria inattività (solo da remoto)
+
+Per chi è iscritto senza ciclo, un controllo giornaliero invia un’email di supporto:
+
+- **Percorso non avviato**: idoneo da 7 giorni, primo accesso non fatto
+- **Onboarding senza ascolto**: onboarding completato da 7 giorni, nessuna traccia ascoltata
+
+Ogni tipo si invia **una sola volta**. Una copia riassuntiva (solo codici) arriva a `contact@wordpresschef.it`.
+
+1. Nell’SQL editor esegui `supabase/migrazione_inattivita_remoto.sql`.
+2. Imposta il secret `CRON_SECRET` sulla funzione.
+3. Distribuisci: `supabase functions deploy notifica-inattivita --no-verify-jwt`.
+4. Programma l’invio (07:00 UTC):
+   - Dashboard Supabase → Edge Functions → Schedules, oppure
+   - workflow `.github/workflows/notifica-inattivita.yml` (secret `SUPABASE_FUNCTIONS_URL` e `CRON_SECRET`)
+5. Dalla pagina Avvisi il facilitatore può anche premere «Controlla e invia ora».
 
 ## Protezione accessi (porta)
 
@@ -71,6 +91,7 @@ Vedi `supabase/schema.sql` per lo schema completo. Le tabelle principali:
 - `lezioni` / `esercizi` — struttura settimanale a 8 settimane con pratiche formali/informali
 - `questionari` / `item` / `risposte` — PSS-10 e FFMQ-I, con timepoint T0/T1/T2/T3
 - `comunicazioni` — promemoria e annunci per ciclo
+- `notifiche_inattivita` — traccia dei promemoria automatici agli iscritti solo da remoto
 
 ## Superfici dell’app
 

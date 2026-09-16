@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
   if (!comunicazione_id && !prova) return json({ error: 'ID_MANCANTE' }, 400)
 
   let emails: string[] = []
-  let com: { id?: string, oggetto?: string, tipo?: string, testo?: string } | null = null
+  let com: { id?: string, oggetto?: string, tipo?: string, testo?: string, ciclo_id?: string, destinatari?: string } | null = null
 
   if (prova) {
     const { data: sessione } = await supabase.auth.getUser()
@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
   } else {
     const { data: trovata, error: errCom } = await supabase
       .from('comunicazioni')
-      .select('id, ciclo_id, oggetto, tipo, testo')
+      .select('id, ciclo_id, oggetto, tipo, testo, destinatari')
       .eq('id', comunicazione_id)
       .single()
 
@@ -82,7 +82,8 @@ Deno.serve(async (req) => {
 
     const { data: destinatari } = await supabase.rpc('email_destinatari_ciclo', {
       p_ciclo_id: com.ciclo_id,
-      p_includi_in_valutazione: com.tipo === 'screening'
+      p_includi_in_valutazione: com.tipo === 'screening',
+      p_solo_remoto: com.destinatari === 'remoto'
     })
     emails = (destinatari || []).map((r: { email: string }) => r.email).filter(Boolean)
   }

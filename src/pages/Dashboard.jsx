@@ -304,6 +304,7 @@ export default function Dashboard() {
   const [iscritti, setIscritti] = useState([])
   const [punteggi, setPunteggi] = useState([])
   const [log, setLog] = useState([])
+  const [notificheInattivita, setNotificheInattivita] = useState([])
   const [aperto, setAperto] = useState(null)
   const [mostraForm, setMostraForm] = useState(false)
   const [errore, setErrore] = useState(null)
@@ -329,7 +330,8 @@ export default function Dashboard() {
           .from('iscrizioni')
           .select('id, esito_screening, modalita_fruizione, ciclo_id, utenti(codice_partecipante, email, stato_screening, onboarding_completato)'),
         supabase.rpc('risposte_pseudonime'),
-        supabase.rpc('log_pratica_pseudonimi')
+        supabase.rpc('log_pratica_pseudonimi'),
+        supabase.from('notifiche_inattivita').select('tipo, inviata_il, utenti(codice_partecipante)')
       ])
 
       const cicliRes = risultati[1]
@@ -361,6 +363,11 @@ export default function Dashboard() {
       const logRes = risultati[4]
       if (logRes.status === 'fulfilled' && !logRes.value.error) {
         setLog(logRes.value.data || [])
+      }
+
+      const notRes = risultati[5]
+      if (notRes.status === 'fulfilled' && !notRes.value.error) {
+        setNotificheInattivita(notRes.value.data || [])
       }
     } catch {
       setErrore('Non è stato possibile aggiornare la dashboard.')
@@ -555,6 +562,17 @@ export default function Dashboard() {
     () => iscritti.filter(i => !i.ciclo_id),
     [iscritti]
   )
+  const notifichePerCodice = useMemo(() => {
+    const m = new Map()
+    for (const n of notificheInattivita) {
+      const codice = n.utenti?.codice_partecipante
+      if (!codice) continue
+      const lista = m.get(codice) || []
+      lista.push(n)
+      m.set(codice, lista)
+    }
+    return m
+  }, [notificheInattivita])
   const sintesiCiclo = useMemo(() => {
     if (!cicloAperto) return null
     const idoneiPresenza = iscrittiCiclo.filter(i => eIdoneo(i) && !eRemoto(i)).length
@@ -928,7 +946,8 @@ export default function Dashboard() {
                     <p className="hint">
                       Usano le stesse settimane del ciclo in presenza, con un orologio personale:
                       dopo il T0 si apre la settimana 1, le successive partono dal primo ascolto.
-                      Non occupano posti in aula.
+                      Non occupano posti in aula. Se non partono entro una settimana, parte un
+                      promemoria via email (Avvisi).
                     </p>
                   </div>
                 </header>
@@ -954,6 +973,15 @@ export default function Dashboard() {
                                 ciclo={i.ciclo_id ? cicloPerId.get(i.ciclo_id) : null}
                               />
                             )}
+                          {(notifichePerCodice.get(i.utenti?.codice_partecipante) || []).map(n => (
+                            <span
+                              key={`${n.tipo}-${n.inviata_il}`}
+                              className="badge"
+                              title={n.inviata_il ? new Date(n.inviata_il).toLocaleDateString('it-IT') : ''}
+                            >
+                              {n.tipo === 'onboarding_senza_ascolto' ? 'promemoria ascolto' : 'promemoria avvio'}
+                            </span>
+                          ))}
                         </div>
                         {eRitirato(i) ? (
                           <p className="dash-iscrizione-ritirato">
