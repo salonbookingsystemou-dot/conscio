@@ -63,7 +63,7 @@ export default function Lezioni() {
       setLibreria(lista)
       setUsi(conteggi)
     } catch {
-      setErrore('Non è stato possibile leggere la libreria tracce. Esegui la migrazione SQL se non l’hai ancora applicata.')
+      setErrore('Non è stato possibile leggere la libreria tracce.')
     }
   }
 

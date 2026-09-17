@@ -4167,17 +4167,18 @@ body:has(.splash) {
 }
 .lezioni-libreria-carica {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 10px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
   margin: 12px 0;
 }
 .lezioni-libreria-carica .field {
-  flex: 1 1 220px;
+  flex: none;
+  width: 100%;
   margin: 0;
 }
-.lezioni-libreria-testo {
-  flex: 1 1 100%;
+.lezioni-libreria-carica .lezioni-file-btn {
+  align-self: flex-start;
 }
 .lezioni-libreria-testo textarea,
 .lezioni-edit-ex textarea {

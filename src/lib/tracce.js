@@ -40,13 +40,27 @@ export async function durataFileAudio(file) {
   })
 }
 
+const COLONNE_TRACCIA = 'id, titolo, descrizione, url, storage_path, durata_minuti, creato_il'
+const COLONNE_TRACCIA_BASE = 'id, titolo, url, storage_path, durata_minuti, creato_il'
+
+function colonnaDescrizioneMancante(error) {
+  const msg = `${error?.code || ''} ${error?.message || ''} ${error?.details || ''} ${error?.hint || ''}`
+  return /descrizione|42703|PGRST204/i.test(msg)
+}
+
 export async function elencaTracce() {
+  const prima = await supabase
+    .from('tracce')
+    .select(COLONNE_TRACCIA)
+    .order('titolo', { ascending: true })
+  if (!prima.error) return prima.data || []
+  if (!colonnaDescrizioneMancante(prima.error)) throw prima.error
   const { data, error } = await supabase
     .from('tracce')
-    .select('id, titolo, descrizione, url, storage_path, durata_minuti, creato_il')
+    .select(COLONNE_TRACCIA_BASE)
     .order('titolo', { ascending: true })
   if (error) throw error
-  return data || []
+  return (data || []).map(t => ({ ...t, descrizione: null }))
 }
 
 export async function usiTracce() {
@@ -75,14 +89,21 @@ export async function creaTraccia(file, { titolo, descrizione, durataMinuti } = 
   const { data: pub } = supabase.storage.from('tracce-audio').getPublicUrl(path)
   const minuti = durataMinuti
     || await durataFileAudio(file).catch(() => null)
-  const { data, error } = await supabase.from('tracce').insert({
+  const riga = {
     id,
     titolo: (titolo || titoloDaNomeFile(file.name)).trim() || 'Traccia',
     descrizione: String(descrizione || '').trim() || null,
     url: pub.publicUrl,
     storage_path: path,
     durata_minuti: minuti || null
-  }).select('id, titolo, descrizione, url, storage_path, durata_minuti, creato_il').single()
+  }
+  let { data, error } = await supabase.from('tracce').insert(riga).select(COLONNE_TRACCIA).single()
+  if (error && colonnaDescrizioneMancante(error)) {
+    const { descrizione: _ignora, ...base } = riga
+    const replica = await supabase.from('tracce').insert(base).select(COLONNE_TRACCIA_BASE).single()
+    data = replica.data ? { ...replica.data, descrizione: null } : replica.data
+    error = replica.error
+  }
   if (error) throw error
   return data
 }
@@ -90,10 +111,15 @@ export async function creaTraccia(file, { titolo, descrizione, durataMinuti } = 
 export async function rinominaTraccia(id, titolo, descrizione) {
   const pulito = String(titolo || '').trim()
   if (!pulito) throw new Error('TITOLO_VUOTO')
-  const { error } = await supabase.from('tracce').update({
+  const patch = {
     titolo: pulito,
     descrizione: String(descrizione || '').trim() || null
-  }).eq('id', id)
+  }
+  let { error } = await supabase.from('tracce').update(patch).eq('id', id)
+  if (error && colonnaDescrizioneMancante(error)) {
+    const replica = await supabase.from('tracce').update({ titolo: pulito }).eq('id', id)
+    error = replica.error
+  }
   if (error) throw error
 }
 
