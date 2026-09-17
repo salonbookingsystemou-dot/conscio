@@ -181,9 +181,9 @@ export default function TracciaGuidata({
 
   async function sbloccaAudio(el) {
     ignoraEventiRef.current = true
-    const muto = el.muted
+    el.muted = true
+    el.volume = 0
     try {
-      el.muted = true
       const avvio = el.play().catch(() => {})
       await Promise.race([
         avvio,
@@ -192,11 +192,19 @@ export default function TracciaGuidata({
       el.pause()
       el.currentTime = 0
       lastRef.current = 0
+      /* Se play() si conclude dopo la pausa, la traccia corta in cache
+         ripartirebbe a volume: la teniamo muta e ferma fino alla campana. */
+      avvio.then(() => {
+        if (campanaRef.current || ignoraEventiRef.current) {
+          el.pause()
+          try { el.currentTime = 0 } catch { /* ignore */ }
+        }
+      }).catch(() => {})
     } catch {
       /* lo sblocco serve a Safari; se fallisce, play() dopo la campana riprova */
     }
-    el.muted = muto
-    ignoraEventiRef.current = false
+    el.volume = 0
+    el.muted = true
   }
 
   async function ascolta() {
@@ -238,6 +246,8 @@ export default function TracciaGuidata({
         await sblocco
         el.pause()
         el.currentTime = 0
+        el.muted = false
+        el.volume = 1
         playedRef.current = 0
         lastRef.current = 0
         ignoraEventiRef.current = false
@@ -317,8 +327,11 @@ export default function TracciaGuidata({
         onSeeking={onSeeking}
         onEnded={onEnded}
         onLoadedMetadata={onLoadedMetadata}
-        onPlay={() => {
-          if (ignoraEventiRef.current) return
+        onPlay={e => {
+          if (ignoraEventiRef.current || campanaRef.current) {
+            e.currentTarget.pause()
+            return
+          }
           setInRiproduzione(true)
         }}
         onPause={() => {
