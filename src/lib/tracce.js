@@ -43,7 +43,7 @@ export async function durataFileAudio(file) {
 export async function elencaTracce() {
   const { data, error } = await supabase
     .from('tracce')
-    .select('id, titolo, url, storage_path, durata_minuti, creato_il')
+    .select('id, titolo, descrizione, url, storage_path, durata_minuti, creato_il')
     .order('titolo', { ascending: true })
   if (error) throw error
   return data || []
@@ -62,7 +62,7 @@ export async function usiTracce() {
   return conteggi
 }
 
-export async function creaTraccia(file, { titolo, durataMinuti } = {}) {
+export async function creaTraccia(file, { titolo, descrizione, durataMinuti } = {}) {
   if (!file) throw new Error('FILE_MANCANTE')
   if (file.size > AUDIO_MAX) throw new Error('AUDIO_TROPPO_GRANDE')
   const id = crypto.randomUUID()
@@ -78,18 +78,22 @@ export async function creaTraccia(file, { titolo, durataMinuti } = {}) {
   const { data, error } = await supabase.from('tracce').insert({
     id,
     titolo: (titolo || titoloDaNomeFile(file.name)).trim() || 'Traccia',
+    descrizione: String(descrizione || '').trim() || null,
     url: pub.publicUrl,
     storage_path: path,
     durata_minuti: minuti || null
-  }).select('id, titolo, url, storage_path, durata_minuti, creato_il').single()
+  }).select('id, titolo, descrizione, url, storage_path, durata_minuti, creato_il').single()
   if (error) throw error
   return data
 }
 
-export async function rinominaTraccia(id, titolo) {
+export async function rinominaTraccia(id, titolo, descrizione) {
   const pulito = String(titolo || '').trim()
   if (!pulito) throw new Error('TITOLO_VUOTO')
-  const { error } = await supabase.from('tracce').update({ titolo: pulito }).eq('id', id)
+  const { error } = await supabase.from('tracce').update({
+    titolo: pulito,
+    descrizione: String(descrizione || '').trim() || null
+  }).eq('id', id)
   if (error) throw error
 }
 

@@ -46,6 +46,7 @@ create table iscrizioni (
 create table tracce (
   id uuid primary key default gen_random_uuid(),
   titolo text not null,
+  descrizione text,
   url text not null unique,
   storage_path text,
   durata_minuti int,
@@ -874,6 +875,11 @@ begin
             'id', e.id,
             'tipo', e.tipo,
             'descrizione', e.descrizione,
+            'traccia_descrizione', (
+              select nullif(trim(td.descrizione), '')
+              from tracce td
+              where td.id = e.traccia_id
+            ),
             'traccia_audio', coalesce(
               (select t.url from tracce t where t.id = e.traccia_id),
               nullif(e.traccia_audio, ''),

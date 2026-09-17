@@ -6,7 +6,7 @@ import { usePartecipante } from '../lib/partecipante.jsx'
 import ChiediCodice from '../components/ChiediCodice.jsx'
 import CampoNota from '../components/CampoNota.jsx'
 import CalendarioPratica from '../components/CalendarioPratica.jsx'
-import TracciaGuidata from '../components/TracciaGuidata.jsx'
+import CardTracciaAudio from '../components/CardTracciaAudio.jsx'
 import GuidaMeditazione from '../components/GuidaMeditazione.jsx'
 import StatoAttesa from '../components/StatoAttesa.jsx'
 import TonoEsperienza from '../components/TonoEsperienza.jsx'
@@ -262,22 +262,14 @@ function TaskFormale({
   const durataLabel = etichettaDurataMinuti(esercizio.durata_minuti, durataSec)
 
   return (
-    <article className={`task-pratica${ascoltata ? ' is-fatta' : ''}`}>
-      <div className="task-pratica-testa">
-        <span className={`task-punto${ascoltata ? ' is-fatto' : ''}`} aria-hidden="true" />
-        <div className="task-pratica-testi">
-          <h4>{esercizio.descrizione}</h4>
-          <p className="hint">
-            {[durataLabel, haTraccia ? 'traccia audio' : null, ascoltata ? 'ascoltata oggi' : null]
-              .filter(Boolean)
-              .join(' · ')}
-          </p>
-        </div>
-      </div>
+    <article className={haTraccia ? 'task-pratica-player' : `task-pratica${ascoltata ? ' is-fatta' : ''}`}>
       {haTraccia ? (
-        <TracciaGuidata
+        <CardTracciaAudio
           key={chiave}
           src={esercizio.traccia_audio}
+          titolo={esercizio.descrizione}
+          descrizione={esercizio.traccia_descrizione}
+          etichettaDurata={durataLabel || undefined}
           persistenzaKey={chiave}
           onCompleto={suCompleto}
           onDurata={setDurataSec}
@@ -297,7 +289,18 @@ function TaskFormale({
           }}
         />
       ) : (
-        <p className="hint">Nessuna traccia ancora collegata a questa pratica.</p>
+        <>
+          <div className="task-pratica-testa">
+            <span className={`task-punto${ascoltata ? ' is-fatto' : ''}`} aria-hidden="true" />
+            <div className="task-pratica-testi">
+              <h4>{esercizio.descrizione}</h4>
+              <p className="hint">
+                {[durataLabel, ascoltata ? 'ascoltata oggi' : null].filter(Boolean).join(' · ')}
+              </p>
+            </div>
+          </div>
+          <p className="hint">Nessuna traccia ancora collegata a questa pratica.</p>
+        </>
       )}
     </article>
   )

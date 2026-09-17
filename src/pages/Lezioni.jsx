@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import LibreriaTracce, { SelettoreTraccia } from '../components/LibreriaTracce.jsx'
-import TracciaGuidata from '../components/TracciaGuidata.jsx'
+import CardTracciaAudio from '../components/CardTracciaAudio.jsx'
 import DialogConferma from '../components/DialogConferma.jsx'
 import {
   creaTraccia,
@@ -404,7 +404,8 @@ export default function Lezioni() {
                   )}
                   {formali.map(ex => {
                     const urlEx = urlTracciaDi(ex, libreria)
-                    const titoloEx = libreria.find(t => t.id === ex.traccia_id)?.titolo
+                    const tracciaEx = libreria.find(t => t.id === ex.traccia_id)
+                    const titoloEx = tracciaEx?.titolo
                     return (
                       <article className="task-pratica" key={ex.id}>
                         <div className="task-pratica-testa">
@@ -465,7 +466,17 @@ export default function Lezioni() {
                           <>
                             {urlEx ? (
                               <div className="lezioni-audio-riga">
-                                <TracciaGuidata src={urlEx} anteprima />
+                                <CardTracciaAudio
+                                  src={urlEx}
+                                  titolo={titoloEx || ex.descrizione}
+                                  descrizione={tracciaEx?.descrizione}
+                                  etichettaDurata={
+                                    Number.isFinite(ex.durata_minuti) && ex.durata_minuti > 0
+                                      ? (ex.durata_minuti === 1 ? '1 minuto' : `${ex.durata_minuti} minuti`)
+                                      : undefined
+                                  }
+                                  anteprima
+                                />
                                 <button className="btn btn-ghost" type="button" onClick={() => rimuoviTracciaEsercizio(ex.id)}>
                                   Scollega
                                 </button>

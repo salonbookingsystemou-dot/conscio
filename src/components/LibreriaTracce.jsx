@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import DialogConferma from './DialogConferma.jsx'
-import TracciaGuidata from './TracciaGuidata.jsx'
+import CardTracciaAudio from './CardTracciaAudio.jsx'
 import {
   creaTraccia,
   eliminaTraccia,
@@ -18,8 +18,10 @@ export default function LibreriaTracce({
   setCaricamentoId
 }) {
   const [titoloNuovo, setTitoloNuovo] = useState('')
+  const [descrizioneNuova, setDescrizioneNuova] = useState('')
   const [modificaId, setModificaId] = useState(null)
   const [titoloModifica, setTitoloModifica] = useState('')
+  const [descrizioneModifica, setDescrizioneModifica] = useState('')
   const [daEliminare, setDaEliminare] = useState(null)
 
   async function suCarica(file) {
@@ -27,8 +29,12 @@ export default function LibreriaTracce({
     onErrore(null)
     setCaricamentoId('nuova')
     try {
-      await creaTraccia(file, { titolo: titoloNuovo || titoloDaNomeFile(file.name) })
+      await creaTraccia(file, {
+        titolo: titoloNuovo || titoloDaNomeFile(file.name),
+        descrizione: descrizioneNuova
+      })
       setTitoloNuovo('')
+      setDescrizioneNuova('')
       await onAggiorna()
     } catch (err) {
       onErrore(err)
@@ -40,7 +46,7 @@ export default function LibreriaTracce({
   async function suRinomina(traccia) {
     onErrore(null)
     try {
-      await rinominaTraccia(traccia.id, titoloModifica)
+      await rinominaTraccia(traccia.id, titoloModifica, descrizioneModifica)
       setModificaId(null)
       await onAggiorna()
     } catch (err) {
@@ -111,6 +117,16 @@ export default function LibreriaTracce({
             placeholder="es. Body scan 45'"
           />
         </div>
+        <div className="field lezioni-libreria-testo">
+          <label htmlFor="descrizione-traccia-nuova">Testo in card (facoltativo)</label>
+          <textarea
+            id="descrizione-traccia-nuova"
+            value={descrizioneNuova}
+            onChange={e => setDescrizioneNuova(e.target.value)}
+            rows={3}
+            placeholder="Compare sotto il titolo nella card del player."
+          />
+        </div>
         <label className="btn lezioni-file-btn">
           {caricamentoId === 'nuova' ? 'Caricamento…' : 'Carica in libreria'}
           <input
@@ -142,6 +158,13 @@ export default function LibreriaTracce({
                       onChange={e => setTitoloModifica(e.target.value)}
                       aria-label="Titolo traccia"
                     />
+                    <textarea
+                      value={descrizioneModifica}
+                      onChange={e => setDescrizioneModifica(e.target.value)}
+                      rows={3}
+                      aria-label="Testo in card"
+                      placeholder="Testo in card (facoltativo)"
+                    />
                     <div className="azioni">
                       <button className="btn" type="button" onClick={() => suRinomina(t)}>
                         Salva
@@ -164,7 +187,17 @@ export default function LibreriaTracce({
                         ].filter(Boolean).join(' · ')}
                       </p>
                     </div>
-                    <TracciaGuidata src={t.url} anteprima />
+                    <CardTracciaAudio
+                      src={t.url}
+                      titolo={t.titolo}
+                      descrizione={t.descrizione}
+                      etichettaDurata={
+                        Number.isFinite(t.durata_minuti) && t.durata_minuti > 0
+                          ? (t.durata_minuti === 1 ? '1 minuto' : `${t.durata_minuti} minuti`)
+                          : undefined
+                      }
+                      anteprima
+                    />
                     <div className="lezioni-ex-azioni">
                       <button
                         className="btn btn-ghost"
@@ -172,9 +205,10 @@ export default function LibreriaTracce({
                         onClick={() => {
                           setModificaId(t.id)
                           setTitoloModifica(t.titolo)
+                          setDescrizioneModifica(t.descrizione || '')
                         }}
                       >
-                        Titolo
+                        Testo
                       </button>
                       <label className="btn btn-ghost lezioni-file-btn">
                         {caricamentoId === t.id ? 'Caricamento…' : 'Sostituisci file'}
