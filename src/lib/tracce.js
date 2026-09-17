@@ -13,49 +13,64 @@ export function titoloDaNomeFile(nome) {
   return pulito || 'Traccia'
 }
 
-export function urlTestoCardDaAudio(urlAudio) {
-  const raw = String(urlAudio || '')
-  const m = raw.match(/^(.*\/tracce-audio\/libreria\/)([0-9a-f-]{8,})(\.[^/?#]*)?(\?.*)?$/i)
-  if (!m) return null
-  return `${m[1]}${m[2]}.card.txt${m[4] || ''}`
+function idTracciaDaUrl(urlAudio) {
+  const m = String(urlAudio || '').match(/\/libreria\/([0-9a-f-]{8,})\./i)
+  return m?.[1] || null
+}
+
+function urlPubblicoStorage(path) {
+  const { data } = supabase.storage.from('tracce-audio').getPublicUrl(path)
+  return data?.publicUrl || null
+}
+
+export function urlTestoCardDaAudio(urlAudio, tracciaId) {
+  const id = tracciaId || idTracciaDaUrl(urlAudio)
+  if (!id) return null
+  return urlPubblicoStorage(`libreria/${id}.card.mp3`)
+}
+
+function urlTestoCardAlternativi(urlAudio, tracciaId) {
+  const id = tracciaId || idTracciaDaUrl(urlAudio)
+  const daAudio = urlTestoCardDaAudio(urlAudio, id)
+  const vecchioTxt = id ? urlPubblicoStorage(`libreria/${id}.card.txt`) : null
+  return [...new Set([daAudio, vecchioTxt].filter(Boolean))]
 }
 
 export async function pubblicaTestoCard(tracciaId, testo) {
   if (!tracciaId) return false
-  const path = `libreria/${tracciaId}.card.txt`
+  const path = `libreria/${tracciaId}.card.mp3`
   const pulito = String(testo || '').trim()
   if (!pulito) {
-    await supabase.storage.from('tracce-audio').remove([path])
+    await supabase.storage.from('tracce-audio').remove([
+      path,
+      `libreria/${tracciaId}.card.txt`
+    ])
     return true
   }
-  const blob = new Blob([pulito], { type: 'text/plain;charset=utf-8' })
-  const tentativi = [
-    { contentType: 'text/plain;charset=utf-8' },
-    { contentType: 'audio/mpeg' }
-  ]
-  for (const opzioni of tentativi) {
-    const { error } = await supabase.storage.from('tracce-audio').upload(path, blob, {
-      upsert: true,
-      cacheControl: '0',
-      ...opzioni
-    })
-    if (!error) return true
-  }
-  return false
+  const blob = new Blob([pulito], { type: 'audio/mpeg' })
+  const { error } = await supabase.storage.from('tracce-audio').upload(path, blob, {
+    upsert: true,
+    contentType: 'audio/mpeg',
+    cacheControl: '60'
+  })
+  return !error
 }
 
 export async function leggiTestoCard(traccia) {
   const daDb = String(traccia?.descrizione || '').trim()
   if (daDb) return daDb
-  const url = urlTestoCardDaAudio(traccia?.url)
-  if (!url) return ''
-  try {
-    const res = await fetch(url, { cache: 'no-store' })
-    if (!res.ok) return ''
-    return String(await res.text()).trim()
-  } catch {
-    return ''
+  const urls = urlTestoCardAlternativi(traccia?.url, traccia?.id)
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { cache: 'no-store' })
+      if (!res.ok) continue
+      const testo = String(await res.text()).trim()
+      if (testo) return testo
+    } catch {
+      /* prova il successivo */
+    }
   }
+  return ''
 }
 
 export function urlTracciaDi(riga, libreria = []) {
@@ -98,14 +113,24 @@ export async function elencaTracce() {
     .from('tracce')
     .select(COLONNE_TRACCIA)
     .order('titolo', { ascending: true })
-  if (!prima.error) return prima.data || []
-  if (!colonnaDescrizioneMancante(prima.error)) throw prima.error
-  const { data, error } = await supabase
-    .from('tracce')
-    .select(COLONNE_TRACCIA_BASE)
-    .order('titolo', { ascending: true })
-  if (error) throw error
-  return (data || []).map(t => ({ ...t, descrizione: null }))
+  let lista
+  if (!prima.error) {
+    lista = prima.data || []
+  } else if (colonnaDescrizioneMancante(prima.error)) {
+    const { data, error } = await supabase
+      .from('tracce')
+      .select(COLONNE_TRACCIA_BASE)
+      .order('titolo', { ascending: true })
+    if (error) throw error
+    lista = (data || []).map(t => ({ ...t, descrizione: null }))
+  } else {
+    throw prima.error
+  }
+  return Promise.all(lista.map(async t => {
+    if (String(t.descrizione || '').trim()) return t
+    const testo = await leggiTestoCard({ ...t, descrizione: '' })
+    return testo ? { ...t, descrizione: testo } : t
+  }))
 }
 
 export async function usiTracce() {
@@ -150,7 +175,12 @@ export async function creaTraccia(file, { titolo, descrizione, durataMinuti } = 
     error = replica.error
   }
   if (error) throw error
-  await pubblicaTestoCard(data.id, descrizione).catch(() => {})
+  const testo = String(descrizione || '').trim()
+  if (testo) {
+    const ok = await pubblicaTestoCard(data.id, testo)
+    if (!ok) throw new Error('TESTO_NON_SALVATO')
+    data = { ...data, descrizione: testo }
+  }
   return data
 }
 
@@ -167,7 +197,9 @@ export async function rinominaTraccia(id, titolo, descrizione) {
     error = replica.error
   }
   if (error) throw error
-  await pubblicaTestoCard(id, descrizione)
+  const testo = String(descrizione || '').trim()
+  const ok = await pubblicaTestoCard(id, testo)
+  if (testo && !ok) throw new Error('TESTO_NON_SALVATO')
 }
 
 export async function sostituisciFileTraccia(traccia, file) {
@@ -212,5 +244,8 @@ export function messaggioErroreTraccia(err) {
   if (codice === 'AUDIO_TROPPO_GRANDE') return 'La traccia deve pesare al massimo 50 MB.'
   if (codice === 'TRACCIA_IN_USO') return 'Scollega la traccia dalle pratiche prima di eliminarla.'
   if (codice === 'TITOLO_VUOTO') return 'Il titolo della traccia non può essere vuoto.'
+  if (codice === 'TESTO_NON_SALVATO') {
+    return 'Il titolo è stato salvato, ma il testo della card no. Riprova tra un attimo.'
+  }
   return 'Non è stato possibile aggiornare la libreria tracce.'
 }

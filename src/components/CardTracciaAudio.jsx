@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ascoltoCompletato, recuperaAscoltoSeManca, registraAscoltoCompleto } from '../lib/ascolto.js'
-import { urlTestoCardDaAudio } from '../lib/tracce.js'
+import { leggiTestoCard } from '../lib/tracce.js'
 import { assicuraTracciaOffline } from '../lib/cacheTracce.js'
 import {
   GAP_DOPO_CAMPANA_MS,
@@ -115,20 +115,14 @@ export default function CardTracciaAudio({
       setTestoRemoto('')
       return
     }
-    const url = urlTestoCardDaAudio(src)
-    if (!url) {
+    if (!src) {
       setTestoRemoto('')
       return
     }
     let vivo = true
-    fetch(url, { cache: 'no-store' })
-      .then(res => (res.ok ? res.text() : ''))
-      .then(testo => {
-        if (vivo) setTestoRemoto(String(testo || '').trim())
-      })
-      .catch(() => {
-        if (vivo) setTestoRemoto('')
-      })
+    leggiTestoCard({ url: src, descrizione: '' }).then(testo => {
+      if (vivo) setTestoRemoto(testo)
+    })
     return () => { vivo = false }
   }, [src, descrizione])
 
