@@ -4,6 +4,7 @@ import CardTracciaAudio from './CardTracciaAudio.jsx'
 import {
   creaTraccia,
   eliminaTraccia,
+  leggiTestoCard,
   rinominaTraccia,
   sostituisciFileTraccia,
   titoloDaNomeFile
@@ -206,6 +207,9 @@ export default function LibreriaTracce({
                           setModificaId(t.id)
                           setTitoloModifica(t.titolo)
                           setDescrizioneModifica(t.descrizione || '')
+                          leggiTestoCard(t).then(testo => {
+                            setDescrizioneModifica(testo || t.descrizione || '')
+                          })
                         }}
                       >
                         Testo
@@ -256,6 +260,7 @@ export default function LibreriaTracce({
 }
 
 export function SelettoreTraccia({
+  id,
   valore,
   tracce,
   onCambia,
@@ -263,6 +268,7 @@ export function SelettoreTraccia({
 }) {
   return (
     <select
+      id={id}
       className="lezioni-selettore-traccia"
       value={valore || ''}
       onChange={e => onCambia(e.target.value || null)}

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ascoltoCompletato, recuperaAscoltoSeManca, registraAscoltoCompleto } from '../lib/ascolto.js'
+import { urlTestoCardDaAudio } from '../lib/tracce.js'
 import { assicuraTracciaOffline } from '../lib/cacheTracce.js'
 import {
   GAP_DOPO_CAMPANA_MS,
@@ -93,6 +94,7 @@ export default function CardTracciaAudio({
   onPersistenzaRef.current = onPersistenza
 
   const [completo, setCompleto] = useState(() => ascoltoCompletato(persistenzaKey))
+  const [testoRemoto, setTestoRemoto] = useState('')
   const [inRiproduzione, setInRiproduzione] = useState(false)
   const [posizione, setPosizione] = useState(0)
   const [durata, setDurata] = useState(0)
@@ -106,6 +108,29 @@ export default function CardTracciaAudio({
   useEffect(() => {
     precaricaCampanaTibetana()
   }, [])
+
+  useEffect(() => {
+    const gia = String(descrizione || '').trim()
+    if (gia) {
+      setTestoRemoto('')
+      return
+    }
+    const url = urlTestoCardDaAudio(src)
+    if (!url) {
+      setTestoRemoto('')
+      return
+    }
+    let vivo = true
+    fetch(url, { cache: 'no-store' })
+      .then(res => (res.ok ? res.text() : ''))
+      .then(testo => {
+        if (vivo) setTestoRemoto(String(testo || '').trim())
+      })
+      .catch(() => {
+        if (vivo) setTestoRemoto('')
+      })
+    return () => { vivo = false }
+  }, [src, descrizione])
 
   useEffect(() => {
     if (anteprima || !src) return
@@ -329,7 +354,7 @@ export default function CardTracciaAudio({
 
   const testoDescrizione = inCampana
     ? 'Campana di apertura… poi inizia la traccia.'
-    : String(descrizione || '').trim()
+    : (String(descrizione || '').trim() || testoRemoto)
 
   const inPlay = inRiproduzione || inCampana
 

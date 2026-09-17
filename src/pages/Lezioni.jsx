@@ -6,7 +6,10 @@ import DialogConferma from '../components/DialogConferma.jsx'
 import {
   creaTraccia,
   elencaTracce,
+  leggiTestoCard,
   messaggioErroreTraccia,
+  pubblicaTestoCard,
+  rinominaTraccia,
   titoloDaNomeFile,
   urlTracciaDi,
   usiTracce
@@ -55,6 +58,7 @@ export default function Lezioni() {
   const [errore, setErrore] = useState(null)
   const [okMsg, setOkMsg] = useState(null)
   const [confermaEliminaSettimana, setConfermaEliminaSettimana] = useState(false)
+  const [daEliminareEx, setDaEliminareEx] = useState(null)
   const pillsRef = useRef(null)
 
   async function caricaLibreria() {
@@ -62,6 +66,9 @@ export default function Lezioni() {
       const [lista, conteggi] = await Promise.all([elencaTracce(), usiTracce()])
       setLibreria(lista)
       setUsi(conteggi)
+      lista
+        .filter(t => String(t.descrizione || '').trim())
+        .forEach(t => { pubblicaTestoCard(t.id, t.descrizione).catch(() => {}) })
     } catch {
       setErrore('Non è stato possibile leggere la libreria tracce.')
     }
@@ -231,6 +238,14 @@ export default function Lezioni() {
     await Promise.all([caricaLezioni(cicloId), caricaLibreria()])
   }
 
+  async function confermaEliminaEsercizio() {
+    const id = daEliminareEx?.id
+    if (!id) return
+    setDaEliminareEx(null)
+    if (modificaEx?.id === id) setModificaEx(null)
+    await eliminaEsercizio(id)
+  }
+
   async function collegaTracciaEsercizio(esercizioId, tracciaId) {
     const scelta = libreria.find(t => t.id === tracciaId)
     if (!scelta) return
@@ -284,8 +299,8 @@ export default function Lezioni() {
     <div className="lezioni-gestione">
       <h2>Lezioni e pratiche</h2>
       <p className="lead">
-        Stessa struttura che vedono i partecipanti in «Settimana»: tema, pratiche formali con audio,
-        pratiche informali da spuntare. Le tracce stanno in libreria: un file, tanti collegamenti.
+        Prepara quello che i partecipanti vedono in «Settimana»: prima il tema, poi le pratiche.
+        L’audio si carica in libreria e si collega a ogni pratica.
       </p>
 
       <LibreriaTracce
@@ -337,193 +352,259 @@ export default function Lezioni() {
 
       {cicloId && (
         <div className="card settimana-vista">
-          <p className="badge badge-settimana">{badgeSettimana}</p>
-
-          <form onSubmit={salvaMeta} className="lezioni-meta">
-            <div className="field">
-              <label htmlFor="tema-sett">Tema</label>
-              <input
-                id="tema-sett"
-                className="lezioni-tema-input"
-                required
-                value={meta.tema}
-                onChange={e => setMeta({ ...meta, tema: e.target.value })}
-                placeholder={Number(settimana) === 9 ? 'Giornata intensiva' : `Tema settimana ${settimana}`}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="sotto-sett">Sottotitolo (facoltativo)</label>
-              <input
-                id="sotto-sett"
-                value={meta.sottotitolo}
-                onChange={e => setMeta({ ...meta, sottotitolo: e.target.value })}
-                placeholder="Breve riga sotto il tema"
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="mat-sett">Materiali (facoltativo)</label>
-              <textarea
-                id="mat-sett"
-                rows="2"
-                value={meta.materiali}
-                onChange={e => setMeta({ ...meta, materiali: e.target.value })}
-                placeholder="Link o note per il gruppo"
-              />
-            </div>
-
-            <div className="azioni">
-              <button className="btn" type="submit" disabled={invioMeta}>
-                {corrente ? 'Salva tema e materiali' : 'Crea questa settimana'}
-              </button>
-              {corrente && (
-                <button className="btn btn-ghost" type="button" onClick={eliminaLezione}>
-                  Elimina settimana
-                </button>
-              )}
-            </div>
-            {okMsg && <p className="hint">{okMsg}</p>}
-            {errore && <p className="campo-errore" role="alert">{errore}</p>}
-          </form>
-
-          {!corrente && (
-            <p className="hint lezioni-hint-crea">
-              Salva prima tema e materiali: poi potrai aggiungere le pratiche formali e informali
-              come nella vista partecipante.
+          <header className="lezioni-sett-capo">
+            <p className="badge badge-settimana">{badgeSettimana}</p>
+            <p className="hint lezioni-sett-guida">
+              {corrente
+                ? 'I partecipanti vedono tema, audio e pratiche informali così come li salvi qui.'
+                : 'Crea il tema: dopo puoi aggiungere le pratiche formali (con audio) e quelle informali.'}
             </p>
-          )}
+          </header>
+
+          <section className="lezioni-sezione" aria-labelledby="tema-sett-titolo">
+            <h3 id="tema-sett-titolo">Tema della settimana</h3>
+            <form onSubmit={salvaMeta} className="lezioni-meta">
+              <div className="field">
+                <label htmlFor="tema-sett">Titolo</label>
+                <input
+                  id="tema-sett"
+                  className="lezioni-tema-input"
+                  required
+                  value={meta.tema}
+                  onChange={e => setMeta({ ...meta, tema: e.target.value })}
+                  placeholder={Number(settimana) === 9 ? 'Giornata intensiva' : `Tema settimana ${settimana}`}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="sotto-sett">Sottotitolo (facoltativo)</label>
+                <input
+                  id="sotto-sett"
+                  value={meta.sottotitolo}
+                  onChange={e => setMeta({ ...meta, sottotitolo: e.target.value })}
+                  placeholder="Una riga sotto il titolo, in Settimana"
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="mat-sett">Materiali per il gruppo (facoltativo)</label>
+                <textarea
+                  id="mat-sett"
+                  rows="2"
+                  value={meta.materiali}
+                  onChange={e => setMeta({ ...meta, materiali: e.target.value })}
+                  placeholder="Link, dispense o note"
+                />
+              </div>
+
+              <div className="azioni">
+                <button className="btn" type="submit" disabled={invioMeta}>
+                  {corrente ? 'Salva tema' : 'Crea questa settimana'}
+                </button>
+                {corrente && (
+                  <button className="btn btn-ghost" type="button" onClick={eliminaLezione}>
+                    Elimina settimana
+                  </button>
+                )}
+              </div>
+              {okMsg && <p className="hint">{okMsg}</p>}
+              {errore && <p className="campo-errore" role="alert">{errore}</p>}
+            </form>
+          </section>
 
           {corrente && (
             <>
-              <section className="blocco-giorno" aria-labelledby="formali-admin-titolo">
-                <h3 id="formali-admin-titolo">Da fare ogni giorno</h3>
-                <p className="hint">Pratiche formali con traccia audio — come le vedono i partecipanti.</p>
+              <section className="lezioni-sezione" aria-labelledby="formali-admin-titolo">
+                <div className="lezioni-sezione-capo">
+                  <h3 id="formali-admin-titolo">Pratiche formali</h3>
+                  <p className="hint">
+                    Compare in «Da fare ogni giorno». Ogni pratica ha un nome, una durata e una traccia.
+                  </p>
+                </div>
 
                 <div className="lista-task">
                   {formali.length === 0 && (
-                    <p className="hint">Nessuna pratica formale ancora. Aggiungine una sotto.</p>
+                    <p className="hint">Nessuna pratica formale. Aggiungila sotto, poi collega l’audio.</p>
                   )}
                   {formali.map(ex => {
                     const urlEx = urlTracciaDi(ex, libreria)
                     const tracciaEx = libreria.find(t => t.id === ex.traccia_id)
                     const titoloEx = tracciaEx?.titolo
+                    const inModifica = modificaEx?.id === ex.id
+                    const durataTesto = Number.isFinite(ex.durata_minuti) && ex.durata_minuti > 0
+                      ? (ex.durata_minuti === 1 ? '1 minuto' : `${ex.durata_minuti} minuti`)
+                      : 'Durata non indicata'
                     return (
-                      <article className="task-pratica" key={ex.id}>
-                        <div className="task-pratica-testa">
-                          <span className="task-punto" aria-hidden="true" />
-                          <div className="task-pratica-testi">
-                            {modificaEx?.id === ex.id ? (
-                              <div className="lezioni-edit-ex">
+                      <article
+                        className={`lezioni-pratica${inModifica ? ' is-modifica' : ''}${urlEx ? ' has-traccia' : ''}`}
+                        key={ex.id}
+                      >
+                        {inModifica ? (
+                          <>
+                            <p className="lezioni-pratica-kicker">Stai modificando questa pratica</p>
+                            <div className="lezioni-edit-ex">
+                              <div className="field">
+                                <label htmlFor={`nome-pratica-${ex.id}`}>Nome</label>
                                 <input
+                                  id={`nome-pratica-${ex.id}`}
                                   value={modificaEx.descrizione}
                                   onChange={e => setModificaEx({ ...modificaEx, descrizione: e.target.value })}
-                                  aria-label="Descrizione pratica"
                                 />
+                              </div>
+                              <div className="field">
+                                <label htmlFor={`durata-pratica-${ex.id}`}>Durata in minuti</label>
                                 <input
+                                  id={`durata-pratica-${ex.id}`}
                                   type="number"
                                   min="1"
                                   max="180"
-                                  placeholder="min"
+                                  placeholder="es. 15"
                                   value={modificaEx.durata_minuti}
                                   onChange={e => setModificaEx({ ...modificaEx, durata_minuti: e.target.value })}
-                                  aria-label="Durata in minuti"
                                 />
-                                <div className="azioni">
-                                  <button
-                                    className="btn"
-                                    type="button"
-                                    onClick={() => aggiornaEsercizio(ex.id, {
+                              </div>
+                              <div className="field">
+                                <label htmlFor={`testo-card-${ex.id}`}>Testo in card</label>
+                                <textarea
+                                  id={`testo-card-${ex.id}`}
+                                  rows={3}
+                                  value={modificaEx.testoCard || ''}
+                                  onChange={e => setModificaEx({ ...modificaEx, testoCard: e.target.value })}
+                                  placeholder="Compare sotto il titolo nella card del player."
+                                  disabled={!urlEx}
+                                />
+                                {!urlEx && (
+                                  <p className="hint">Collega prima una traccia, poi puoi scrivere il testo.</p>
+                                )}
+                              </div>
+                              <div className="field">
+                                <label htmlFor={`traccia-pratica-${ex.id}`}>Traccia audio</label>
+                                <SelettoreTraccia
+                                  id={`traccia-pratica-${ex.id}`}
+                                  valore={ex.traccia_id}
+                                  tracce={libreria}
+                                  etichettaVuoto={urlEx ? 'Scollega la traccia' : 'Scegli dalla libreria…'}
+                                  onCambia={id => {
+                                    if (!id) rimuoviTracciaEsercizio(ex.id)
+                                    else collegaTracciaEsercizio(ex.id, id)
+                                  }}
+                                />
+                                <p className="hint">
+                                  {urlEx
+                                    ? `Ora collegata: ${titoloEx || 'traccia audio'}.`
+                                    : 'Senza traccia i partecipanti non possono ascoltare.'}
+                                </p>
+                                <div className="lezioni-ex-azioni">
+                                  <label className="btn btn-ghost lezioni-file-btn">
+                                    {caricamentoEsercizioId === ex.id ? 'Caricamento…' : 'Carica un file nuovo'}
+                                    <input
+                                      type="file"
+                                      accept="audio/*"
+                                      hidden
+                                      disabled={caricamentoEsercizioId === ex.id}
+                                      onChange={e => {
+                                        const file = e.target.files?.[0]
+                                        e.target.value = ''
+                                        caricaTracciaEsercizio(ex, file)
+                                      }}
+                                    />
+                                  </label>
+                                  {urlEx && (
+                                    <button
+                                      className="btn btn-ghost"
+                                      type="button"
+                                      onClick={() => rimuoviTracciaEsercizio(ex.id)}
+                                    >
+                                      Scollega traccia
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="azioni">
+                                <button
+                                  className="btn"
+                                  type="button"
+                                  onClick={async () => {
+                                    await aggiornaEsercizio(ex.id, {
                                       descrizione: modificaEx.descrizione.trim(),
                                       durata_minuti: Number(modificaEx.durata_minuti) > 0
                                         ? Number(modificaEx.durata_minuti)
                                         : null
-                                    })}
-                                  >
-                                    Salva
-                                  </button>
-                                  <button className="btn btn-ghost" type="button" onClick={() => setModificaEx(null)}>
-                                    Annulla
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              <>
-                                <h4>{ex.descrizione}</h4>
-                                <p className="hint">
-                                  {[
-                                    Number.isFinite(ex.durata_minuti) && ex.durata_minuti > 0
-                                      ? `${ex.durata_minuti} min`
-                                      : null,
-                                    titoloEx || (urlEx ? 'traccia audio' : 'senza traccia'),
-                                    ex.tipo === 'a_casa' ? 'tipo: a casa' : 'tipo: formale'
-                                  ].filter(Boolean).join(' · ')}
-                                </p>
-                              </>
-                            )}
-                          </div>
-                        </div>
-
-                        {modificaEx?.id !== ex.id && (
-                          <>
-                            {urlEx ? (
-                              <div className="lezioni-audio-riga">
-                                <CardTracciaAudio
-                                  src={urlEx}
-                                  titolo={titoloEx || ex.descrizione}
-                                  descrizione={tracciaEx?.descrizione}
-                                  etichettaDurata={
-                                    Number.isFinite(ex.durata_minuti) && ex.durata_minuti > 0
-                                      ? (ex.durata_minuti === 1 ? '1 minuto' : `${ex.durata_minuti} minuti`)
-                                      : undefined
-                                  }
-                                  anteprima
-                                />
-                                <button className="btn btn-ghost" type="button" onClick={() => rimuoviTracciaEsercizio(ex.id)}>
-                                  Scollega
+                                    })
+                                    if (tracciaEx?.id) {
+                                      try {
+                                        await rinominaTraccia(
+                                          tracciaEx.id,
+                                          tracciaEx.titolo,
+                                          modificaEx.testoCard
+                                        )
+                                        await caricaLibreria()
+                                      } catch (err) {
+                                        segnalaErrore(err)
+                                      }
+                                    }
+                                  }}
+                                >
+                                  Salva pratica
+                                </button>
+                                <button className="btn btn-ghost" type="button" onClick={() => setModificaEx(null)}>
+                                  Annulla
                                 </button>
                               </div>
-                            ) : (
-                              <p className="hint">Nessuna traccia ancora collegata a questa pratica.</p>
-                            )}
-                            <div className="lezioni-ex-azioni">
-                              <SelettoreTraccia
-                                valore={ex.traccia_id}
-                                tracce={libreria}
-                                etichettaVuoto={ex.traccia_id || urlEx ? 'Scollega traccia' : 'Collega dalla libreria…'}
-                                onCambia={id => {
-                                  if (!id) rimuoviTracciaEsercizio(ex.id)
-                                  else collegaTracciaEsercizio(ex.id, id)
-                                }}
-                              />
-                              <label className="btn btn-ghost lezioni-file-btn">
-                                {caricamentoEsercizioId === ex.id ? 'Caricamento…' : 'Carica nuova'}
-                                <input
-                                  type="file"
-                                  accept="audio/*"
-                                  hidden
-                                  disabled={caricamentoEsercizioId === ex.id}
-                                  onChange={e => {
-                                    const file = e.target.files?.[0]
-                                    e.target.value = ''
-                                    caricaTracciaEsercizio(ex, file)
-                                  }}
-                                />
-                              </label>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="lezioni-pratica-capo">
+                            <div className="lezioni-pratica-testi">
+                              <h4>{ex.descrizione}</h4>
+                              <p className="lezioni-pratica-meta">
+                                <span>{durataTesto}</span>
+                                <span className={urlEx ? 'is-ok' : 'is-manca'}>
+                                  {urlEx ? `Traccia: ${titoloEx || 'collegata'}` : 'Senza traccia audio'}
+                                </span>
+                              </p>
+                            </div>
+                            <div className="lezioni-pratica-azioni">
                               <button
-                                className="btn btn-ghost"
+                                className="btn"
                                 type="button"
-                                onClick={() => setModificaEx({
-                                  id: ex.id,
-                                  descrizione: ex.descrizione || '',
-                                  durata_minuti: ex.durata_minuti || ''
-                                })}
+                                onClick={async () => {
+                                  const testoCard = tracciaEx
+                                    ? await leggiTestoCard(tracciaEx)
+                                    : ''
+                                  setModificaEx({
+                                    id: ex.id,
+                                    descrizione: ex.descrizione || '',
+                                    durata_minuti: ex.durata_minuti || '',
+                                    testoCard
+                                  })
+                                }}
                               >
                                 Modifica
                               </button>
-                              <button className="btn btn-ghost" type="button" onClick={() => eliminaEsercizio(ex.id)}>
+                              <button
+                                className="btn btn-ghost"
+                                type="button"
+                                onClick={() => setDaEliminareEx(ex)}
+                              >
                                 Rimuovi
                               </button>
                             </div>
-                          </>
+                          </div>
+                        )}
+                        {urlEx && (
+                          <details className="lezioni-anteprima">
+                            <summary>Ascolta l’anteprima</summary>
+                            <CardTracciaAudio
+                              src={urlEx}
+                              titolo={titoloEx || ex.descrizione}
+                              descrizione={tracciaEx?.descrizione}
+                              etichettaDurata={
+                                Number.isFinite(ex.durata_minuti) && ex.durata_minuti > 0
+                                  ? durataTesto
+                                  : undefined
+                              }
+                              anteprima
+                            />
+                          </details>
                         )}
                       </article>
                     )
@@ -531,26 +612,27 @@ export default function Lezioni() {
                 </div>
 
                 <form
-                  className="lezioni-aggiungi"
+                  className="lezioni-aggiungi lezioni-aggiungi-card"
                   onSubmit={async e => {
                     e.preventDefault()
                     await aggiungiEsercizio('formale', nuovaFormale.descrizione, nuovaFormale.durata_minuti)
                     setNuovaFormale({ descrizione: '', durata_minuti: '' })
                   }}
                 >
+                  <p className="lezioni-pratica-kicker">Aggiungi una pratica formale</p>
                   <div className="riga-due">
                     <div className="field">
-                      <label htmlFor="nuova-formale">Nuova pratica formale</label>
+                      <label htmlFor="nuova-formale">Nome</label>
                       <input
                         id="nuova-formale"
                         required
                         value={nuovaFormale.descrizione}
                         onChange={e => setNuovaFormale({ ...nuovaFormale, descrizione: e.target.value })}
-                        placeholder="es. Body scan guidato"
+                        placeholder="es. Body Scan"
                       />
                     </div>
                     <div className="field">
-                      <label htmlFor="durata-formale">Minuti</label>
+                      <label htmlFor="durata-formale">Durata in minuti</label>
                       <input
                         id="durata-formale"
                         type="number"
@@ -558,82 +640,108 @@ export default function Lezioni() {
                         max="180"
                         value={nuovaFormale.durata_minuti}
                         onChange={e => setNuovaFormale({ ...nuovaFormale, durata_minuti: e.target.value })}
-                        placeholder="45"
+                        placeholder="15"
                       />
                     </div>
                   </div>
-                  <button className="btn" type="submit">Aggiungi pratica formale</button>
+                  <button className="btn" type="submit">Aggiungi pratica</button>
                 </form>
               </section>
 
-              <section className="blocco-informali" aria-labelledby="informali-admin-titolo">
-                <h3 id="informali-admin-titolo">Pratiche informali</h3>
-                <p className="hint">Compare come chip da spuntare nella giornata.</p>
-
-                <div className="chip-riga chip-informali">
-                  {informali.length === 0 && (
-                    <p className="hint">Nessuna pratica informale ancora.</p>
-                  )}
-                  {informali.map(ex => (
-                    <div key={ex.id} className="chip chip-spunta is-on lezioni-chip-admin">
-                      <span className="chip-check is-fatto" aria-hidden="true">✓</span>
-                      {modificaEx?.id === ex.id ? (
-                        <span className="lezioni-edit-ex lezioni-edit-chip">
-                          <input
-                            value={modificaEx.descrizione}
-                            onChange={e => setModificaEx({ ...modificaEx, descrizione: e.target.value })}
-                          />
-                          <button
-                            className="btn"
-                            type="button"
-                            onClick={() => aggiornaEsercizio(ex.id, {
-                              descrizione: modificaEx.descrizione.trim()
-                            })}
-                          >
-                            Salva
-                          </button>
-                          <button className="btn btn-ghost" type="button" onClick={() => setModificaEx(null)}>
-                            Annulla
-                          </button>
-                        </span>
-                      ) : (
-                        <>
-                          <span className="chip-testo">{ex.descrizione}</span>
-                          <button
-                            className="link-testuale"
-                            type="button"
-                            onClick={() => setModificaEx({ id: ex.id, descrizione: ex.descrizione || '', durata_minuti: '' })}
-                          >
-                            Modifica
-                          </button>
-                          <button className="link-testuale" type="button" onClick={() => eliminaEsercizio(ex.id)}>
-                            Rimuovi
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  ))}
+              <section className="lezioni-sezione" aria-labelledby="informali-admin-titolo">
+                <div className="lezioni-sezione-capo">
+                  <h3 id="informali-admin-titolo">Pratiche informali</h3>
+                  <p className="hint">
+                    Compare come elenco da spuntare. Non hanno audio: solo un nome.
+                  </p>
                 </div>
 
+                <ul className="lezioni-lista-informali">
+                  {informali.length === 0 && (
+                    <li className="hint">Nessuna pratica informale. Aggiungila sotto.</li>
+                  )}
+                  {informali.map(ex => {
+                    const inModifica = modificaEx?.id === ex.id
+                    return (
+                      <li
+                        key={ex.id}
+                        className={`lezioni-informale${inModifica ? ' is-modifica' : ''}`}
+                      >
+                        {inModifica ? (
+                          <div className="lezioni-edit-ex">
+                            <div className="field">
+                              <label htmlFor={`nome-informale-${ex.id}`}>Nome</label>
+                              <input
+                                id={`nome-informale-${ex.id}`}
+                                value={modificaEx.descrizione}
+                                onChange={e => setModificaEx({ ...modificaEx, descrizione: e.target.value })}
+                              />
+                            </div>
+                            <div className="azioni">
+                              <button
+                                className="btn"
+                                type="button"
+                                onClick={() => aggiornaEsercizio(ex.id, {
+                                  descrizione: modificaEx.descrizione.trim()
+                                })}
+                              >
+                                Salva
+                              </button>
+                              <button className="btn btn-ghost" type="button" onClick={() => setModificaEx(null)}>
+                                Annulla
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="lezioni-pratica-capo">
+                            <p className="lezioni-informale-nome">{ex.descrizione}</p>
+                            <div className="lezioni-pratica-azioni">
+                              <button
+                                className="btn"
+                                type="button"
+                                onClick={() => setModificaEx({
+                                  id: ex.id,
+                                  descrizione: ex.descrizione || '',
+                                  durata_minuti: ''
+                                })}
+                              >
+                                Modifica
+                              </button>
+                              <button
+                                className="btn btn-ghost"
+                                type="button"
+                                onClick={() => setDaEliminareEx(ex)}
+                              >
+                                Rimuovi
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </li>
+                    )
+                  })}
+                </ul>
+
                 <form
-                  className="lezioni-aggiungi"
+                  className="lezioni-aggiungi lezioni-aggiungi-card"
                   onSubmit={async e => {
                     e.preventDefault()
                     await aggiungiEsercizio('informale', nuovaInformale)
                     setNuovaInformale('')
                   }}
                 >
+                  <p className="lezioni-pratica-kicker">Aggiungi una pratica informale</p>
                   <div className="field">
-                    <label htmlFor="nuova-informale">Nuova pratica informale</label>
+                    <label htmlFor="nuova-informale">Nome</label>
                     <input
                       id="nuova-informale"
                       required
                       value={nuovaInformale}
                       onChange={e => setNuovaInformale(e.target.value)}
-                      placeholder="es. Portare attenzione a un’attività quotidiana"
+                      placeholder="es. Bere il caffè consapevolmente"
                     />
                   </div>
-                  <button className="btn" type="submit">Aggiungi pratica informale</button>
+                  <button className="btn" type="submit">Aggiungi pratica</button>
                 </form>
               </section>
             </>
@@ -653,6 +761,18 @@ export default function Lezioni() {
         onAnnulla={() => setConfermaEliminaSettimana(false)}
       >
         Si cancellano anche tutte le pratiche collegate. Non si può tornare indietro.
+      </DialogConferma>
+      <DialogConferma
+        aperto={!!daEliminareEx}
+        titolo="Rimuovere questa pratica?"
+        confermaEtichetta="Rimuovi pratica"
+        pericolo
+        onConferma={confermaEliminaEsercizio}
+        onAnnulla={() => setDaEliminareEx(null)}
+      >
+        {daEliminareEx
+          ? `«${daEliminareEx.descrizione}» sparisce dalla settimana. La traccia resta in libreria.`
+          : ''}
       </DialogConferma>
     </div>
   )

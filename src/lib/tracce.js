@@ -13,6 +13,43 @@ export function titoloDaNomeFile(nome) {
   return pulito || 'Traccia'
 }
 
+export function urlTestoCardDaAudio(urlAudio) {
+  const raw = String(urlAudio || '')
+  const m = raw.match(/^(.*\/tracce-audio\/libreria\/)([0-9a-f-]{8,})(\.[^/?#]*)?(\?.*)?$/i)
+  if (!m) return null
+  return `${m[1]}${m[2]}.card.txt${m[4] || ''}`
+}
+
+export async function pubblicaTestoCard(tracciaId, testo) {
+  if (!tracciaId) return
+  const path = `libreria/${tracciaId}.card.txt`
+  const pulito = String(testo || '').trim()
+  if (!pulito) {
+    await supabase.storage.from('tracce-audio').remove([path])
+    return
+  }
+  const { error } = await supabase.storage.from('tracce-audio').upload(
+    path,
+    new Blob([pulito], { type: 'text/plain;charset=utf-8' }),
+    { upsert: true, contentType: 'text/plain;charset=utf-8', cacheControl: '0' }
+  )
+  if (error) throw error
+}
+
+export async function leggiTestoCard(traccia) {
+  const daDb = String(traccia?.descrizione || '').trim()
+  if (daDb) return daDb
+  const url = urlTestoCardDaAudio(traccia?.url)
+  if (!url) return ''
+  try {
+    const res = await fetch(url, { cache: 'no-store' })
+    if (!res.ok) return ''
+    return String(await res.text()).trim()
+  } catch {
+    return ''
+  }
+}
+
 export function urlTracciaDi(riga, libreria = []) {
   if (riga?.traccia_id) {
     const inLibreria = libreria.find(t => t.id === riga.traccia_id)
@@ -105,6 +142,7 @@ export async function creaTraccia(file, { titolo, descrizione, durataMinuti } = 
     error = replica.error
   }
   if (error) throw error
+  await pubblicaTestoCard(data.id, descrizione).catch(() => {})
   return data
 }
 
@@ -121,6 +159,7 @@ export async function rinominaTraccia(id, titolo, descrizione) {
     error = replica.error
   }
   if (error) throw error
+  await pubblicaTestoCard(id, descrizione)
 }
 
 export async function sostituisciFileTraccia(traccia, file) {
