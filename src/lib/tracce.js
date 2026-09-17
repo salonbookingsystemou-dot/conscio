@@ -21,19 +21,27 @@ export function urlTestoCardDaAudio(urlAudio) {
 }
 
 export async function pubblicaTestoCard(tracciaId, testo) {
-  if (!tracciaId) return
+  if (!tracciaId) return false
   const path = `libreria/${tracciaId}.card.txt`
   const pulito = String(testo || '').trim()
   if (!pulito) {
     await supabase.storage.from('tracce-audio').remove([path])
-    return
+    return true
   }
-  const { error } = await supabase.storage.from('tracce-audio').upload(
-    path,
-    new Blob([pulito], { type: 'text/plain;charset=utf-8' }),
-    { upsert: true, contentType: 'text/plain;charset=utf-8', cacheControl: '0' }
-  )
-  if (error) throw error
+  const blob = new Blob([pulito], { type: 'text/plain;charset=utf-8' })
+  const tentativi = [
+    { contentType: 'text/plain;charset=utf-8' },
+    { contentType: 'audio/mpeg' }
+  ]
+  for (const opzioni of tentativi) {
+    const { error } = await supabase.storage.from('tracce-audio').upload(path, blob, {
+      upsert: true,
+      cacheControl: '0',
+      ...opzioni
+    })
+    if (!error) return true
+  }
+  return false
 }
 
 export async function leggiTestoCard(traccia) {

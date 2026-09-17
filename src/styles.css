@@ -4293,33 +4293,44 @@ body:has(.splash) {
   font-size: 12px;
   font-weight: 600;
 }
-.lezioni-libreria-carica {
+.lezioni-libreria-carica,
+.lezioni-libreria-form {
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 12px;
-  margin: 12px 0;
+  margin: 12px 0 0;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
 }
-.lezioni-libreria-carica .field {
+.lezioni-libreria-carica .field,
+.lezioni-libreria-form .field,
+.lezioni-edit-ex .field {
   flex: none;
   width: 100%;
   margin: 0;
 }
-.lezioni-libreria-carica .lezioni-file-btn {
+.lezioni-libreria-carica .lezioni-file-btn,
+.lezioni-libreria-form .lezioni-file-btn {
   align-self: flex-start;
 }
-.lezioni-libreria-testo textarea,
+.lezioni-libreria-form textarea,
 .lezioni-edit-ex textarea {
-  width: 100%;
-  min-height: 4.5em;
+  min-height: 4em;
   resize: vertical;
-  box-sizing: border-box;
-  padding: 10px 12px;
-  border: 1px solid var(--outline);
-  border-radius: 8px;
-  font-family: inherit;
-  font-size: 16px;
-  background: #fff;
+}
+.lezioni-libreria-riga .lezioni-libreria-form {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.lezioni-libreria-anteprima-testo {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink-soft);
 }
 .lezioni-libreria-lista {
   list-style: none;
@@ -4330,9 +4341,12 @@ body:has(.splash) {
   gap: 12px;
 }
 .lezioni-libreria-riga {
-  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 14px;
   background: #fff;
 }
 .lezioni-libreria-testi strong {

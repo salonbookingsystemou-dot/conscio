@@ -24,6 +24,7 @@ export default function LibreriaTracce({
   const [titoloModifica, setTitoloModifica] = useState('')
   const [descrizioneModifica, setDescrizioneModifica] = useState('')
   const [daEliminare, setDaEliminare] = useState(null)
+  const [salvataggio, setSalvataggio] = useState(false)
 
   async function suCarica(file) {
     if (!file) return
@@ -46,12 +47,15 @@ export default function LibreriaTracce({
 
   async function suRinomina(traccia) {
     onErrore(null)
+    setSalvataggio(true)
     try {
       await rinominaTraccia(traccia.id, titoloModifica, descrizioneModifica)
       setModificaId(null)
       await onAggiorna()
     } catch (err) {
       onErrore(err)
+    } finally {
+      setSalvataggio(false)
     }
   }
 
@@ -106,30 +110,30 @@ export default function LibreriaTracce({
       </p>
 
       <form
-        className="lezioni-libreria-carica"
+        className="lezioni-libreria-form"
         onSubmit={e => e.preventDefault()}
       >
         <div className="field">
-          <label htmlFor="titolo-traccia-nuova">Titolo (facoltativo)</label>
+          <label htmlFor="titolo-traccia-nuova">Titolo</label>
           <input
             id="titolo-traccia-nuova"
             value={titoloNuovo}
             onChange={e => setTitoloNuovo(e.target.value)}
-            placeholder="es. Body scan 45'"
+            placeholder="es. Body Scan"
           />
         </div>
-        <div className="field lezioni-libreria-testo">
-          <label htmlFor="descrizione-traccia-nuova">Testo in card (facoltativo)</label>
+        <div className="field">
+          <label htmlFor="descrizione-traccia-nuova">Testo sotto il titolo nella card</label>
           <textarea
             id="descrizione-traccia-nuova"
             value={descrizioneNuova}
             onChange={e => setDescrizioneNuova(e.target.value)}
-            rows={3}
-            placeholder="Compare sotto il titolo nella card del player."
+            rows={2}
+            placeholder="Facoltativo"
           />
         </div>
         <label className="btn lezioni-file-btn">
-          {caricamentoId === 'nuova' ? 'Caricamento…' : 'Carica in libreria'}
+          {caricamentoId === 'nuova' ? 'Caricamento…' : 'Scegli il file audio'}
           <input
             type="file"
             accept="audio/*"
@@ -153,28 +157,46 @@ export default function LibreriaTracce({
             return (
               <li key={t.id} className="lezioni-libreria-riga">
                 {modificaId === t.id ? (
-                  <div className="lezioni-edit-ex">
-                    <input
-                      value={titoloModifica}
-                      onChange={e => setTitoloModifica(e.target.value)}
-                      aria-label="Titolo traccia"
-                    />
-                    <textarea
-                      value={descrizioneModifica}
-                      onChange={e => setDescrizioneModifica(e.target.value)}
-                      rows={3}
-                      aria-label="Testo in card"
-                      placeholder="Testo in card (facoltativo)"
-                    />
+                  <form
+                    className="lezioni-libreria-form"
+                    onSubmit={e => {
+                      e.preventDefault()
+                      suRinomina(t)
+                    }}
+                  >
+                    <div className="field">
+                      <label htmlFor={`titolo-traccia-${t.id}`}>Titolo</label>
+                      <input
+                        id={`titolo-traccia-${t.id}`}
+                        value={titoloModifica}
+                        onChange={e => setTitoloModifica(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="field">
+                      <label htmlFor={`testo-traccia-${t.id}`}>Testo sotto il titolo nella card</label>
+                      <textarea
+                        id={`testo-traccia-${t.id}`}
+                        value={descrizioneModifica}
+                        onChange={e => setDescrizioneModifica(e.target.value)}
+                        rows={2}
+                        placeholder="Facoltativo"
+                      />
+                    </div>
                     <div className="azioni">
-                      <button className="btn" type="button" onClick={() => suRinomina(t)}>
-                        Salva
+                      <button className="btn" type="submit" disabled={salvataggio}>
+                        {salvataggio ? 'Salvataggio…' : 'Salva'}
                       </button>
-                      <button className="btn btn-ghost" type="button" onClick={() => setModificaId(null)}>
+                      <button
+                        className="btn btn-ghost"
+                        type="button"
+                        disabled={salvataggio}
+                        onClick={() => setModificaId(null)}
+                      >
                         Annulla
                       </button>
                     </div>
-                  </div>
+                  </form>
                 ) : (
                   <>
                     <div className="lezioni-libreria-testi">
@@ -187,21 +209,13 @@ export default function LibreriaTracce({
                           n === 0 ? 'non collegata' : n === 1 ? '1 collegamento' : `${n} collegamenti`
                         ].filter(Boolean).join(' · ')}
                       </p>
+                      {t.descrizione ? (
+                        <p className="lezioni-libreria-anteprima-testo">{t.descrizione}</p>
+                      ) : null}
                     </div>
-                    <CardTracciaAudio
-                      src={t.url}
-                      titolo={t.titolo}
-                      descrizione={t.descrizione}
-                      etichettaDurata={
-                        Number.isFinite(t.durata_minuti) && t.durata_minuti > 0
-                          ? (t.durata_minuti === 1 ? '1 minuto' : `${t.durata_minuti} minuti`)
-                          : undefined
-                      }
-                      anteprima
-                    />
-                    <div className="lezioni-ex-azioni">
+                    <div className="lezioni-pratica-azioni">
                       <button
-                        className="btn btn-ghost"
+                        className="btn"
                         type="button"
                         onClick={() => {
                           setModificaId(t.id)
@@ -212,7 +226,7 @@ export default function LibreriaTracce({
                           })
                         }}
                       >
-                        Testo
+                        Modifica
                       </button>
                       <label className="btn btn-ghost lezioni-file-btn">
                         {caricamentoId === t.id ? 'Caricamento…' : 'Sostituisci file'}
@@ -237,6 +251,20 @@ export default function LibreriaTracce({
                         Elimina
                       </button>
                     </div>
+                    <details className="lezioni-anteprima">
+                      <summary>Ascolta l’anteprima</summary>
+                      <CardTracciaAudio
+                        src={t.url}
+                        titolo={t.titolo}
+                        descrizione={t.descrizione}
+                        etichettaDurata={
+                          Number.isFinite(t.durata_minuti) && t.durata_minuti > 0
+                            ? (t.durata_minuti === 1 ? '1 minuto' : `${t.durata_minuti} minuti`)
+                            : undefined
+                        }
+                        anteprima
+                      />
+                    </details>
                   </>
                 )}
               </li>
