@@ -7,7 +7,9 @@ import { PartecipanteProvider } from './lib/partecipante.jsx'
 import { TonalitaProvider } from './lib/tonalita.jsx'
 import { avviaTonalita } from './lib/tonalita.js'
 import { pulisciCacheTracceLegacy } from './lib/cacheTracce.js'
+import './styles/tokens.css'
 import './styles.css'
+import './styles/admin.css'
 
 avviaTonalita()
 // Rimuove la vecchia cache tracce che poteva contenere risposte opaque rotte.

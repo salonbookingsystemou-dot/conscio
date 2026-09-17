@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import DialogConferma from './DialogConferma.jsx'
 import CardTracciaAudio from './CardTracciaAudio.jsx'
 import {
   creaTraccia,
+  elencaTracce,
   eliminaTraccia,
+  etichettaCollegamentoTraccia,
   leggiTestoCard,
   messaggioErroreTraccia,
   rinominaTraccia,
@@ -14,6 +16,7 @@ import {
 export default function LibreriaTracce({
   tracce,
   usi,
+  collegamenti = {},
   onAggiorna,
   onErrore,
   caricamentoId,
@@ -25,6 +28,7 @@ export default function LibreriaTracce({
   const [titoloModifica, setTitoloModifica] = useState('')
   const [descrizioneModifica, setDescrizioneModifica] = useState('')
   const [daEliminare, setDaEliminare] = useState(null)
+  const [erroreElimina, setErroreElimina] = useState(null)
   const [salvataggio, setSalvataggio] = useState(false)
   const [erroreForm, setErroreForm] = useState(null)
 
@@ -78,25 +82,32 @@ export default function LibreriaTracce({
   }
 
   async function suElimina(traccia) {
-    const n = usi[traccia.id] || 0
-    if (n > 0) {
-      onErrore(new Error('TRACCIA_IN_USO'))
+    const lista = collegamenti[traccia.id] || []
+    if (lista.length > 0) {
+      setErroreElimina({ titolo: traccia.titolo, collegamenti: lista })
       return
     }
+    setErroreElimina(null)
     setDaEliminare(traccia)
   }
 
   async function confermaElimina() {
     const traccia = daEliminare
     if (!traccia) return
-    const n = usi[traccia.id] || 0
     onErrore(null)
+    setErroreElimina(null)
     try {
-      await eliminaTraccia(traccia, n)
+      await eliminaTraccia(traccia)
       setDaEliminare(null)
       await onAggiorna()
     } catch (err) {
       setDaEliminare(null)
+      if (err?.message === 'TRACCIA_IN_USO') {
+        setErroreElimina({
+          titolo: traccia.titolo,
+          collegamenti: err.collegamenti || []
+        })
+      }
       onErrore(err)
     }
   }
@@ -112,6 +123,24 @@ export default function LibreriaTracce({
         Carica ogni file una volta. Poi collegalo alle pratiche di qualsiasi settimana o ciclo.
         Sostituire il file aggiorna tutti i collegamenti.
       </p>
+      {erroreElimina && (
+        <div className="mbsr-theme lezioni-errore-collegamenti" role="alert">
+          <p>
+            Non puoi eliminare «{erroreElimina.titolo}»: è ancora collegata a
+            {erroreElimina.collegamenti.length === 1 ? ' questa pratica:' : ' queste pratiche:'}
+          </p>
+          <ul>
+            {(erroreElimina.collegamenti.length > 0
+              ? erroreElimina.collegamenti
+              : [{ descrizione: 'una o più pratiche', numeroSettimana: null }]
+            ).map((voce, i) => (
+              <li key={voce.esercizioId || voce.lezioneId || i}>
+                {etichettaCollegamentoTraccia(voce)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <form
         className="lezioni-libreria-form"
@@ -216,6 +245,18 @@ export default function LibreriaTracce({
                           n === 0 ? 'non collegata' : n === 1 ? '1 collegamento' : `${n} collegamenti`
                         ].filter(Boolean).join(' · ')}
                       </p>
+                      {n > 0 && (
+                        <div className="mbsr-theme lezioni-libreria-collegamenti">
+                          <span className="lezioni-libreria-collegamenti-kicker">Collegata a</span>
+                          <ul>
+                            {(collegamenti[t.id] || []).map((voce, i) => (
+                              <li key={voce.esercizioId || voce.lezioneId || i}>
+                                {etichettaCollegamentoTraccia(voce)}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                       {t.descrizione ? (
                         <p className="lezioni-libreria-anteprima-testo">{t.descrizione}</p>
                       ) : null}
@@ -252,7 +293,6 @@ export default function LibreriaTracce({
                       <button
                         className="btn btn-ghost"
                         type="button"
-                        disabled={n > 0}
                         onClick={() => suElimina(t)}
                       >
                         Elimina
@@ -301,16 +341,32 @@ export function SelettoreTraccia({
   onCambia,
   etichettaVuoto
 }) {
+  const [live, setLive] = useState(tracce || [])
+
+  useEffect(() => {
+    setLive(tracce || [])
+  }, [tracce])
+
+  useEffect(() => {
+    let vivo = true
+    elencaTracce()
+      .then(lista => {
+        if (vivo) setLive(lista)
+      })
+      .catch(() => {})
+    return () => { vivo = false }
+  }, [])
+
   return (
     <select
       id={id}
       className="lezioni-selettore-traccia"
       value={valore || ''}
       onChange={e => onCambia(e.target.value || null)}
-      aria-label="Traccia dalla libreria"
+      aria-label="Traccia collegata"
     >
       <option value="">{etichettaVuoto}</option>
-      {tracce.map(t => (
+      {live.map(t => (
         <option key={t.id} value={t.id}>
           {t.titolo}
           {Number.isFinite(t.durata_minuti) && t.durata_minuti > 0 ? ` (${t.durata_minuti} min)` : ''}

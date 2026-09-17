@@ -73,7 +73,7 @@ create table esercizi (
   tipo text,
   descrizione text,
   traccia_audio text,
-  traccia_id uuid references tracce(id) on delete set null,
+  traccia_id uuid references tracce(id) on delete restrict,
   ordine int,
   durata_minuti int
 );

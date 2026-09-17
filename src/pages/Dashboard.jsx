@@ -1066,7 +1066,7 @@ export default function Dashboard() {
                       {sintesiCiclo.avanzamento.testo}
                     </p>
                   </div>
-                  <Link className="btn btn-avanti" to="/lezioni">Apri Lezioni</Link>
+                  <Link className="btn btn-avanti" to="/percorso">Apri Percorso</Link>
                 </header>
 
                 <div className="dash-ciclo-stats" aria-label="Sintesi del ciclo">

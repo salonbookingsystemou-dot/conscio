@@ -174,15 +174,69 @@ export async function elencaTracce() {
   })
 }
 
-export async function usiTracce() {
-  const [{ data: esercizi }, { data: lezioni }] = await Promise.all([
-    supabase.from('esercizi').select('traccia_id').not('traccia_id', 'is', null),
-    supabase.from('lezioni').select('traccia_id').not('traccia_id', 'is', null)
+function primo(valore) {
+  return Array.isArray(valore) ? valore[0] : valore
+}
+
+export function etichettaCollegamentoTraccia(voce) {
+  const n = Number(voce?.numeroSettimana)
+  const sett = n === 9 ? 'Intensiva' : `Settimana ${n || '?'}`
+  const pratica = voce?.descrizione || 'pratica'
+  return voce?.cicloNome
+    ? `${sett} (${voce.cicloNome}) → ${pratica}`
+    : `${sett} → ${pratica}`
+}
+
+export async function collegamentiTracce() {
+  const [{ data: esercizi, error: errE }, { data: lezioni, error: errL }] = await Promise.all([
+    supabase
+      .from('esercizi')
+      .select('id, descrizione, tipo, traccia_id, lezioni(numero_settimana, cicli(nome_ciclo))')
+      .not('traccia_id', 'is', null),
+    supabase
+      .from('lezioni')
+      .select('id, numero_settimana, tema, traccia_id, cicli(nome_ciclo)')
+      .not('traccia_id', 'is', null)
   ])
+  if (errE) throw errE
+  if (errL) throw errL
+
+  const mappa = {}
+  const aggiungi = (tracciaId, voce) => {
+    if (!tracciaId) return
+    if (!mappa[tracciaId]) mappa[tracciaId] = []
+    mappa[tracciaId].push(voce)
+  }
+
+  for (const e of esercizi || []) {
+    const lezione = primo(e.lezioni)
+    const ciclo = primo(lezione?.cicli)
+    aggiungi(e.traccia_id, {
+      tipo: 'pratica',
+      esercizioId: e.id,
+      descrizione: e.descrizione,
+      numeroSettimana: lezione?.numero_settimana,
+      cicloNome: ciclo?.nome_ciclo || ''
+    })
+  }
+  for (const l of lezioni || []) {
+    const ciclo = primo(l.cicli)
+    aggiungi(l.traccia_id, {
+      tipo: 'settimana',
+      lezioneId: l.id,
+      descrizione: l.tema || 'audio della settimana',
+      numeroSettimana: l.numero_settimana,
+      cicloNome: ciclo?.nome_ciclo || ''
+    })
+  }
+  return mappa
+}
+
+export async function usiTracce() {
+  const mappa = await collegamentiTracce()
   const conteggi = {}
-  for (const riga of [...(esercizi || []), ...(lezioni || [])]) {
-    if (!riga.traccia_id) continue
-    conteggi[riga.traccia_id] = (conteggi[riga.traccia_id] || 0) + 1
+  for (const [id, lista] of Object.entries(mappa)) {
+    conteggi[id] = lista.length
   }
   return conteggi
 }
@@ -264,19 +318,34 @@ export async function sostituisciFileTraccia(traccia, file) {
   await scriviUrlConTesto(traccia.id, pub.publicUrl, testo)
 }
 
-export async function eliminaTraccia(traccia, usi = 0) {
-  if (usi > 0) throw new Error('TRACCIA_IN_USO')
+function erroreTracciaInUso(collegamenti) {
+  const err = new Error('TRACCIA_IN_USO')
+  err.collegamenti = collegamenti || []
+  return err
+}
+
+export async function eliminaTraccia(traccia) {
+  const mappa = await collegamentiTracce()
+  const usi = mappa[traccia.id] || []
+  if (usi.length > 0) throw erroreTracciaInUso(usi)
   if (traccia.storage_path) {
     await supabase.storage.from('tracce-audio').remove([traccia.storage_path])
   }
   const { error } = await supabase.from('tracce').delete().eq('id', traccia.id)
+  if (error?.code === '23503') throw erroreTracciaInUso(usi)
   if (error) throw error
 }
 
 export function messaggioErroreTraccia(err) {
   const codice = err?.message
   if (codice === 'AUDIO_TROPPO_GRANDE') return 'La traccia deve pesare al massimo 50 MB.'
-  if (codice === 'TRACCIA_IN_USO') return 'Scollega la traccia dalle pratiche prima di eliminarla.'
+  if (codice === 'TRACCIA_IN_USO') {
+    const elenco = (err.collegamenti || []).map(etichettaCollegamentoTraccia)
+    if (elenco.length === 0) {
+      return 'Scollega la traccia dalle pratiche prima di eliminarla.'
+    }
+    return `Non puoi eliminare questa traccia: è ancora collegata a ${elenco.join('; ')}.`
+  }
   if (codice === 'TITOLO_VUOTO') return 'Il titolo della traccia non può essere vuoto.'
   if (codice === 'TESTO_NON_SALVATO') {
     return 'Il titolo è stato salvato, ma il testo della card no. Riprova tra un attimo.'

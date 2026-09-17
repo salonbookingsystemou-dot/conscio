@@ -12,9 +12,8 @@ import {
   titoloDaNomeFile,
   testoDaUrlAudio,
   trovaTracciaDi,
-  urlConTestoCard,
   urlTracciaDi,
-  usiTracce
+  collegamentiTracce
 } from '../lib/tracce'
 
 const NUMERI_SETTIMANA = [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -49,6 +48,7 @@ export default function Lezioni() {
   const [lezioni, setLezioni] = useState([])
   const [libreria, setLibreria] = useState([])
   const [usi, setUsi] = useState({})
+  const [collegamenti, setCollegamenti] = useState({})
   const [settimana, setSettimana] = useState(1)
   const [meta, setMeta] = useState(metaVuota(1))
   const [nuovaFormale, setNuovaFormale] = useState({ descrizione: '', durata_minuti: '' })
@@ -65,9 +65,12 @@ export default function Lezioni() {
 
   async function caricaLibreria() {
     try {
-      const [lista, conteggi] = await Promise.all([elencaTracce(), usiTracce()])
+      const [lista, mappa] = await Promise.all([elencaTracce(), collegamentiTracce()])
+      const conteggi = {}
+      for (const [id, voci] of Object.entries(mappa)) conteggi[id] = voci.length
       setLibreria(lista)
       setUsi(conteggi)
+      setCollegamenti(mappa)
     } catch {
       setErrore('Non è stato possibile leggere la libreria tracce.')
     }
@@ -237,15 +240,28 @@ export default function Lezioni() {
     if (!modificaEx) return
     setErrore(null)
     setOkMsg(null)
-    const traccia = trovaTracciaDi(ex, libreria)
+    const tracciaId = modificaEx.tracciaId || null
+    let lista = libreria
     try {
-      if (traccia?.id) {
-        await rinominaTraccia(traccia.id, traccia.titolo, modificaEx.testoCard)
-      } else if (ex.traccia_audio) {
-        const { error } = await supabase.from('esercizi').update({
-          traccia_audio: urlConTestoCard(ex.traccia_audio, modificaEx.testoCard)
+      lista = await elencaTracce()
+      setLibreria(lista)
+    } catch {
+      /* usa la libreria già in memoria */
+    }
+    const scelta = tracciaId ? lista.find(t => t.id === tracciaId) : null
+    try {
+      const { error } = await supabase.from('esercizi').update({
+        traccia_id: scelta?.id || null,
+        traccia_audio: scelta?.url || null
+      }).eq('id', ex.id)
+      if (error) throw error
+      if (scelta?.id) {
+        await rinominaTraccia(scelta.id, scelta.titolo, modificaEx.testoCard)
+      } else if (!tracciaId && ex.traccia_audio) {
+        const { error: errLegacy } = await supabase.from('esercizi').update({
+          traccia_audio: null
         }).eq('id', ex.id)
-        if (error) throw error
+        if (errLegacy) throw errLegacy
       }
     } catch (err) {
       segnalaErrore(err)
@@ -273,21 +289,6 @@ export default function Lezioni() {
     setDaEliminareEx(null)
     if (modificaEx?.id === id) setModificaEx(null)
     await eliminaEsercizio(id)
-  }
-
-  async function collegaTracciaEsercizio(esercizioId, tracciaId) {
-    const scelta = libreria.find(t => t.id === tracciaId)
-    if (!scelta) return
-    setErrore(null)
-    const { error } = await supabase.from('esercizi').update({
-      traccia_id: scelta.id,
-      traccia_audio: scelta.url
-    }).eq('id', esercizioId)
-    if (error) {
-      setErrore('Non è stato possibile collegare la traccia.')
-      return
-    }
-    await Promise.all([caricaLezioni(cicloId), caricaLibreria()])
   }
 
   async function caricaTracciaEsercizio(esercizio, file) {
@@ -335,6 +336,7 @@ export default function Lezioni() {
       <LibreriaTracce
         tracce={libreria}
         usi={usi}
+        collegamenti={collegamenti}
         onAggiorna={caricaLibreria}
         onErrore={segnalaErrore}
         caricamentoId={caricamentoLibreriaId}
@@ -505,16 +507,13 @@ export default function Lezioni() {
                                 )}
                               </div>
                               <div className="field">
-                                <label htmlFor={`traccia-pratica-${ex.id}`}>Traccia audio</label>
+                                <label htmlFor={`traccia-pratica-${ex.id}`}>Traccia collegata</label>
                                 <SelettoreTraccia
                                   id={`traccia-pratica-${ex.id}`}
-                                  valore={ex.traccia_id}
+                                  valore={modificaEx.tracciaId}
                                   tracce={libreria}
-                                  etichettaVuoto={urlEx ? 'Scollega la traccia' : 'Scegli dalla libreria…'}
-                                  onCambia={id => {
-                                    if (!id) rimuoviTracciaEsercizio(ex.id)
-                                    else collegaTracciaEsercizio(ex.id, id)
-                                  }}
+                                  etichettaVuoto="Nessuna traccia"
+                                  onCambia={id => setModificaEx({ ...modificaEx, tracciaId: id })}
                                 />
                                 <p className="hint">
                                   {urlEx
@@ -584,7 +583,8 @@ export default function Lezioni() {
                                     id: ex.id,
                                     descrizione: ex.descrizione || '',
                                     durata_minuti: ex.durata_minuti || '',
-                                    testoCard
+                                    testoCard,
+                                    tracciaId: ex.traccia_id || tracciaEx?.id || ''
                                   })
                                 }}
                               >

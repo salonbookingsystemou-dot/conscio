@@ -1,6 +1,8 @@
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Navigate, Routes, Route, useLocation } from 'react-router-dom'
 import Nav from './components/Nav.jsx'
+import AdminChrome from './components/AdminChrome.jsx'
 import SoloFacilitatore from './components/SoloFacilitatore.jsx'
+import { useAuth } from './lib/auth.jsx'
 import SoloRegistrato from './components/SoloRegistrato.jsx'
 import SoloPercorso from './components/SoloPercorso.jsx'
 import Splash from './pages/Splash.jsx'
@@ -8,7 +10,9 @@ import Iscrizione from './pages/Iscrizione.jsx'
 import Entra from './pages/Entra.jsx'
 import Accedi from './pages/Accedi.jsx'
 import Dashboard from './pages/Dashboard.jsx'
-import Lezioni from './pages/Lezioni.jsx'
+import Libreria from './pages/Libreria.jsx'
+import Percorso from './pages/Percorso.jsx'
+import EditorSettimana from './pages/EditorSettimana.jsx'
 import Questionari from './pages/Questionari.jsx'
 import LogPratica from './pages/LogPratica.jsx'
 import Comunicazioni from './pages/Comunicazioni.jsx'
@@ -21,21 +25,22 @@ import BarraBassa from './components/BarraBassa.jsx'
 import Footer from './components/Footer.jsx'
 import PullToRefresh from './components/PullToRefresh.jsx'
 
+function pagineAdminAmpie(pathname) {
+  return pathname === '/dashboard'
+    || pathname.includes('/settimana/')
+    || pathname === '/questionari'
+    || pathname === '/programma'
+    || pathname === '/pratica'
+    || pathname === '/comunicazioni'
+}
+
 export default function App() {
+  const { facilitatore } = useAuth()
   const { pathname } = useLocation()
   const splash = pathname === '/'
+  const areaFacilitatore = Boolean(facilitatore) && !splash && pathname !== '/accedi'
 
-  return (
-    <>
-      <PullToRefresh />
-      <InvitoHome />
-      {!splash && (
-        <>
-          <Nav />
-          <BarraBassa />
-        </>
-      )}
-      <div className={splash ? undefined : 'shell'}>
+  const routes = (
         <Routes>
           <Route path="/" element={<Splash />} />
           <Route path="/iscrizione" element={<Iscrizione />} />
@@ -49,10 +54,29 @@ export default function App() {
           <Route path="/comunicazioni" element={<SoloPercorso><Comunicazioni /></SoloPercorso>} />
           <Route path="/accedi" element={<Accedi />} />
           <Route path="/dashboard" element={<SoloFacilitatore><Dashboard /></SoloFacilitatore>} />
-          <Route path="/lezioni" element={<SoloFacilitatore><Lezioni /></SoloFacilitatore>} />
+          <Route path="/lezioni" element={<Navigate to="/percorso" replace />} />
+          <Route path="/libreria" element={<SoloFacilitatore><Libreria /></SoloFacilitatore>} />
+          <Route path="/percorso" element={<SoloFacilitatore><Percorso /></SoloFacilitatore>} />
+          <Route path="/percorso/:cicloId/settimana/:numero" element={<SoloFacilitatore><EditorSettimana /></SoloFacilitatore>} />
         </Routes>
-      </div>
-      <Footer />
+  )
+
+  return (
+    <>
+      <PullToRefresh />
+      <InvitoHome />
+      {!splash && !areaFacilitatore && (
+        <>
+          <Nav />
+          <BarraBassa />
+        </>
+      )}
+      {areaFacilitatore ? (
+        <AdminChrome ampio={pagineAdminAmpie(pathname)}>{routes}</AdminChrome>
+      ) : (
+        <div className={splash ? undefined : 'shell'}>{routes}</div>
+      )}
+      {!areaFacilitatore && !splash && <Footer />}
     </>
   )
 }

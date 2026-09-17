@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Instrument+Serif:ital@0;1&family=Inter:wght@200;400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@200;400;500;600;700&display=swap');
 
 :root {
   --bg: #EFF1EA;
@@ -4332,6 +4332,46 @@ body:has(.splash) {
   line-height: 1.45;
   color: var(--ink-soft);
 }
+.lezioni-libreria-collegamenti {
+  margin: var(--space-8) 0 0;
+  font-family: var(--font-body);
+  color: var(--muted);
+}
+.lezioni-libreria-collegamenti-kicker {
+  display: block;
+  margin-bottom: var(--space-4);
+  font-size: var(--fs-eyebrow);
+  font-weight: 600;
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.lezioni-libreria-collegamenti ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-meta);
+  line-height: 1.45;
+}
+.lezioni-libreria-collegamenti li + li {
+  margin-top: var(--space-4);
+}
+.lezioni-errore-collegamenti {
+  margin: var(--space-12) 0 0;
+  padding: var(--space-12) var(--space-16);
+  background: var(--danger-soft);
+  color: var(--danger);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+}
+.lezioni-errore-collegamenti p {
+  margin: 0;
+}
+.lezioni-errore-collegamenti ul {
+  margin: var(--space-8) 0 0;
+  padding-left: var(--space-20);
+}
 .lezioni-libreria-lista {
   list-style: none;
   margin: 0;
@@ -4360,12 +4400,13 @@ body:has(.splash) {
 .lezioni-selettore-traccia {
   min-width: min(100%, 220px);
   max-width: 100%;
-  padding: 8px 10px;
+  padding: var(--space-8) var(--space-10);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  font-family: inherit;
-  font-size: 14px;
-  background: #fff;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  background: var(--surface);
+  color: var(--ink);
 }
 .annotazioni-giorno.is-bloccato {
   opacity: 1;

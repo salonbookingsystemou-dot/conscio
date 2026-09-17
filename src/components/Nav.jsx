@@ -74,10 +74,10 @@ export default function Nav() {
     <>
       {facilitatore ? (
         <>
-          {vociPrimarie}
-          <span className="nav-sep nav-sep-dopo-primarie" aria-hidden="true" />
           <NavLink to="/dashboard" onClick={chiudi}>Cicli</NavLink>
-          <NavLink to="/lezioni" onClick={chiudi}>Lezioni</NavLink>
+          <NavLink to="/percorso" onClick={chiudi}>Percorso</NavLink>
+          <NavLink to="/libreria" onClick={chiudi}>Libreria</NavLink>
+          <NavLink to="/comunicazioni" onClick={chiudi}>Avvisi</NavLink>
           <button type="button" onClick={() => { chiudi(); esci() }}>Esci</button>
         </>
       ) : (

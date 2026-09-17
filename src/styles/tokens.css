@@ -1,0 +1,61 @@
+/* Font redesign auto-ospitati: bundle Vite + precache PWA (woff2).
+   Inter e Fraunces restano sul CDN in styles.css: servono solo alle
+   schermate già esistenti, che questo file non modifica. */
+@import '@fontsource/instrument-serif/latin-400.css';
+@import '@fontsource/instrument-serif/latin-400-italic.css';
+@import '@fontsource/public-sans/latin-400.css';
+@import '@fontsource/public-sans/latin-500.css';
+@import '@fontsource/public-sans/latin-600.css';
+
+/* Estende :root di src/styles.css. I token già usati in tutta l'app
+   (--ink, --bg, --surface, --border, --danger, --fs-title, --fs-body,
+   --fs-label, --radius-sm/md/lg) restano quelli: non li riscriviamo. */
+:root {
+  --muted: #8A836F;
+  --accent: #3F5443;
+  --accent-soft: #E8ECE3;
+  --border-soft: #F0ECDF;
+  --border-dashed: #E3DDC9;
+  --danger-soft: #F3E6E0;
+
+  --font-display: 'Instrument Serif', 'Fraunces', serif;
+  --font-body: 'Public Sans', 'Inter', sans-serif;
+
+  --fs-page: 30px;
+  --fs-card: 32px;
+  --fs-meta: 13px;
+  --fs-eyebrow: 11px;
+  --ls-eyebrow: 0.12em;
+
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-14: 14px;
+  --space-16: 16px;
+  --space-18: 18px;
+  --space-20: 20px;
+  --space-22: 22px;
+  --space-24: 24px;
+  --space-28: 28px;
+  --space-32: 32px;
+  --space-36: 36px;
+
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+
+  --shadow-elevated: 0 24px 48px -20px rgba(38, 36, 26, 0.22);
+  --shadow-hover: 0 8px 18px -12px rgba(38, 36, 26, 0.25);
+}
+
+/* Stessi nomi dei token esistenti, valori della palette redesign.
+   Usalo sul wrapper delle schermate nuove: così var(--ink) / var(--bg)
+   restano invariati fuori da questo albero. */
+.mbsr-theme {
+  --ink: #262419;
+  --bg: #F5F1E7;
+  --surface: #FFFFFF;
+  --border: #E9E3D3;
+  --danger: #A6503C;
+}
