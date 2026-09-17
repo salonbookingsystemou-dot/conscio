@@ -253,16 +253,24 @@ function settimanaCiclo(inizioIso) {
   return Math.max(1, Math.min(9, Math.floor((oggi - inizio) / (7 * 24 * 60 * 60 * 1000)) + 1))
 }
 
+function etichettaAttesaInizio(inizioIso) {
+  const inizio = parseISODate(inizioIso)
+  const oggi = parseISODate(oggiLocaleISO())
+  if (!inizio || !oggi) return 'In partenza'
+  const giorni = Math.round((inizio - oggi) / (24 * 60 * 60 * 1000))
+  if (giorni <= 0) return 'Inizia oggi'
+  if (giorni === 1) return 'Inizio domani'
+  if (giorni < 14) return `Inizio tra ${giorni} giorni`
+  const settimane = Math.round(giorni / 7)
+  return `Inizio tra ${settimane} settiman${settimane === 1 ? 'a' : 'e'}`
+}
+
 function etichettaAvanzamento(ciclo) {
   const sett = settimanaCiclo(ciclo.data_inizio)
   if (ciclo.stato === 'concluso') return { testo: 'Completato', pct: 100, tono: 'chiuso' }
   if (sett === 0) {
-    const inizio = parseISODate(ciclo.data_inizio)
-    const oggi = parseISODate(oggiLocaleISO())
-    const giorni = inizio && oggi ? Math.ceil((inizio - oggi) / (24 * 60 * 60 * 1000)) : null
-    const settimane = giorni != null ? Math.max(1, Math.ceil(giorni / 7)) : null
     return {
-      testo: settimane != null ? `Inizio tra ${settimane} settiman${settimane === 1 ? 'a' : 'e'}` : 'In partenza',
+      testo: etichettaAttesaInizio(ciclo.data_inizio),
       pct: 4,
       tono: 'attesa'
     }
