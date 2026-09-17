@@ -6,6 +6,8 @@
 // passando dal service worker, la copia integrale finisce nella cache
 // "tracce-audio" e da lì il RangeRequestsPlugin serve i frammenti anche offline.
 
+import { urlAudioSenzaTesto } from './tracce.js'
+
 const inCorso = new Set()
 
 // Nome allineato alla route del service worker (vite.config.js).
@@ -14,7 +16,8 @@ const CACHE_TRACCE = 'tracce-audio-v2'
 const CACHE_LEGACY = 'tracce-audio'
 
 export function tracciaRemota(url) {
-  return typeof url === 'string' && url.includes('/storage/v1/object/public/tracce-audio/')
+  const pulito = typeof url === 'string' ? urlAudioSenzaTesto(url) : ''
+  return pulito.includes('/storage/v1/object/public/tracce-audio/')
 }
 
 // Rimuove la cache legacy "avvelenata" da risposte opaque (una tantum).
@@ -38,18 +41,19 @@ export async function tracciaInCache(url) {
 }
 
 export async function assicuraTracciaOffline(url) {
-  if (!tracciaRemota(url)) return
+  const pulito = typeof url === 'string' ? urlAudioSenzaTesto(url) : url
+  if (!tracciaRemota(pulito)) return
   if (typeof caches === 'undefined' || typeof fetch === 'undefined') return
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return
-  if (inCorso.has(url)) return
+  if (inCorso.has(pulito)) return
 
-  inCorso.add(url)
+  inCorso.add(pulito)
   try {
-    if (await tracciaInCache(url)) return
+    if (await tracciaInCache(pulito)) return
     // Richiesta CORS "piena" (senza Range → 200): passa dal service worker, che
     // salva la copia completa in cache. È da questa copia che il RangeRequestsPlugin
     // serve i frammenti richiesti dal tag <audio>, anche offline.
-    const risposta = await fetch(url, { mode: 'cors', credentials: 'omit' })
+    const risposta = await fetch(pulito, { mode: 'cors', credentials: 'omit' })
     if (risposta && risposta.body) {
       const reader = risposta.body.getReader()
       // Scorriamo lo stream fino alla fine senza accumulare in memoria.
@@ -62,6 +66,6 @@ export async function assicuraTracciaOffline(url) {
   } catch {
     // Offline o errore di rete: si riproverà alla prossima apertura/ascolto.
   } finally {
-    inCorso.delete(url)
+    inCorso.delete(pulito)
   }
 }

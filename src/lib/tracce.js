@@ -13,71 +13,113 @@ export function titoloDaNomeFile(nome) {
   return pulito || 'Traccia'
 }
 
-function idTracciaDaUrl(urlAudio) {
-  const m = String(urlAudio || '').match(/\/libreria\/([0-9a-f-]{8,})\./i)
-  return m?.[1] || null
-}
-
-function urlPubblicoStorage(path) {
-  const { data } = supabase.storage.from('tracce-audio').getPublicUrl(path)
-  return data?.publicUrl || null
-}
-
-export function urlTestoCardDaAudio(urlAudio, tracciaId) {
-  const id = tracciaId || idTracciaDaUrl(urlAudio)
-  if (!id) return null
-  return urlPubblicoStorage(`libreria/${id}.card.mp3`)
-}
-
-function urlTestoCardAlternativi(urlAudio, tracciaId) {
-  const id = tracciaId || idTracciaDaUrl(urlAudio)
-  const daAudio = urlTestoCardDaAudio(urlAudio, id)
-  const vecchioTxt = id ? urlPubblicoStorage(`libreria/${id}.card.txt`) : null
-  return [...new Set([daAudio, vecchioTxt].filter(Boolean))]
-}
-
-export async function pubblicaTestoCard(tracciaId, testo) {
-  if (!tracciaId) return false
-  const path = `libreria/${tracciaId}.card.mp3`
-  const pulito = String(testo || '').trim()
-  if (!pulito) {
-    await supabase.storage.from('tracce-audio').remove([
-      path,
-      `libreria/${tracciaId}.card.txt`
-    ])
-    return true
+function decodificaCard(valore) {
+  const raw = String(valore || '')
+  if (!raw) return ''
+  try {
+    return decodeURIComponent(raw)
+  } catch {
+    return raw
   }
-  const blob = new Blob([pulito], { type: 'audio/mpeg' })
-  const { error } = await supabase.storage.from('tracce-audio').upload(path, blob, {
-    upsert: true,
-    contentType: 'audio/mpeg',
-    cacheControl: '60'
-  })
-  return !error
+}
+
+export function urlAudioSenzaTesto(url) {
+  const raw = String(url || '')
+  try {
+    const u = new URL(raw)
+    u.hash = ''
+    u.searchParams.delete('card')
+    return u.href
+  } catch {
+    return raw.split('#')[0].replace(/([?&])card=[^&]*/g, '').replace(/[?&]$/, '')
+  }
+}
+
+export function testoDaUrlAudio(url) {
+  const raw = String(url || '')
+  const hash = raw.match(/#card=([^#]*)/)
+  if (hash) return decodificaCard(hash[1])
+  try {
+    const q = new URL(raw).searchParams.get('card')
+    if (q) return q
+  } catch {
+    const query = raw.match(/[?&]card=([^&#]*)/)
+    if (query) return decodificaCard(query[1])
+  }
+  return ''
+}
+
+export function urlConTestoCard(url, testo) {
+  const pulito = String(testo || '').trim()
+  const base = urlAudioSenzaTesto(url)
+  if (!base) return ''
+  if (!pulito) return base
+  const sep = base.includes('?') ? '&' : '?'
+  return `${base}${sep}card=${encodeURIComponent(pulito)}`
 }
 
 export async function leggiTestoCard(traccia) {
   const daDb = String(traccia?.descrizione || '').trim()
   if (daDb) return daDb
-  const urls = urlTestoCardAlternativi(traccia?.url, traccia?.id)
-  for (const url of urls) {
-    try {
-      const res = await fetch(url, { cache: 'no-store' })
-      if (!res.ok) continue
-      const testo = String(await res.text()).trim()
-      if (testo) return testo
-    } catch {
-      /* prova il successivo */
-    }
+  return testoDaUrlAudio(traccia?.url)
+}
+
+async function sincronizzaUrlCollegamenti(tracciaId, urlVecchio, urlNuovo) {
+  if (!tracciaId || !urlNuovo) return
+  const precedenti = [...new Set(
+    [urlVecchio, urlAudioSenzaTesto(urlVecchio)].filter(Boolean)
+  )]
+  await Promise.all([
+    supabase.from('esercizi').update({ traccia_audio: urlNuovo }).eq('traccia_id', tracciaId),
+    supabase.from('lezioni').update({ traccia_audio: urlNuovo }).eq('traccia_id', tracciaId),
+    ...precedenti.flatMap(url => [
+      supabase.from('esercizi').update({ traccia_audio: urlNuovo }).eq('traccia_audio', url),
+      supabase.from('lezioni').update({ traccia_audio: urlNuovo }).eq('traccia_audio', url)
+    ])
+  ])
+}
+
+async function scriviUrlConTesto(tracciaId, urlCorrente, testo) {
+  const urlNuovo = urlConTestoCard(urlCorrente, testo)
+  const patch = {
+    url: urlNuovo,
+    descrizione: String(testo || '').trim() || null
   }
-  return ''
+  let { error } = await supabase.from('tracce').update(patch).eq('id', tracciaId)
+  if (error && colonnaDescrizioneMancante(error)) {
+    const replica = await supabase.from('tracce').update({ url: urlNuovo }).eq('id', tracciaId)
+    error = replica.error
+  }
+  if (error) throw error
+  await sincronizzaUrlCollegamenti(tracciaId, urlCorrente, urlNuovo)
+  return urlNuovo
+}
+
+export async function pubblicaTestoCard(tracciaId, testo) {
+  if (!tracciaId) return false
+  const { data, error } = await supabase.from('tracce').select('url').eq('id', tracciaId).single()
+  if (error || !data?.url) return false
+  try {
+    await scriviUrlConTesto(tracciaId, data.url, testo)
+    return true
+  } catch {
+    return false
+  }
+}
+
+export function trovaTracciaDi(riga, libreria = []) {
+  if (riga?.traccia_id) {
+    const trovata = libreria.find(t => t.id === riga.traccia_id)
+    if (trovata) return trovata
+  }
+  const url = urlAudioSenzaTesto(riga?.traccia_audio)
+  if (!url) return null
+  return libreria.find(t => urlAudioSenzaTesto(t.url) === url) || null
 }
 
 export function urlTracciaDi(riga, libreria = []) {
-  if (riga?.traccia_id) {
-    const inLibreria = libreria.find(t => t.id === riga.traccia_id)
-    if (inLibreria?.url) return inLibreria.url
-  }
+  const inLibreria = trovaTracciaDi(riga, libreria)
+  if (inLibreria?.url) return inLibreria.url
   return riga?.traccia_audio || ''
 }
 
@@ -126,11 +168,10 @@ export async function elencaTracce() {
   } else {
     throw prima.error
   }
-  return Promise.all(lista.map(async t => {
-    if (String(t.descrizione || '').trim()) return t
-    const testo = await leggiTestoCard({ ...t, descrizione: '' })
+  return lista.map(t => {
+    const testo = String(t.descrizione || '').trim() || testoDaUrlAudio(t.url)
     return testo ? { ...t, descrizione: testo } : t
-  }))
+  })
 }
 
 export async function usiTracce() {
@@ -177,9 +218,8 @@ export async function creaTraccia(file, { titolo, descrizione, durataMinuti } = 
   if (error) throw error
   const testo = String(descrizione || '').trim()
   if (testo) {
-    const ok = await pubblicaTestoCard(data.id, testo)
-    if (!ok) throw new Error('TESTO_NON_SALVATO')
-    data = { ...data, descrizione: testo }
+    const urlNuovo = await scriviUrlConTesto(data.id, data.url, testo)
+    data = { ...data, url: urlNuovo, descrizione: testo }
   }
   return data
 }
@@ -187,19 +227,18 @@ export async function creaTraccia(file, { titolo, descrizione, durataMinuti } = 
 export async function rinominaTraccia(id, titolo, descrizione) {
   const pulito = String(titolo || '').trim()
   if (!pulito) throw new Error('TITOLO_VUOTO')
-  const patch = {
-    titolo: pulito,
-    descrizione: String(descrizione || '').trim() || null
-  }
-  let { error } = await supabase.from('tracce').update(patch).eq('id', id)
-  if (error && colonnaDescrizioneMancante(error)) {
-    const replica = await supabase.from('tracce').update({ titolo: pulito }).eq('id', id)
-    error = replica.error
-  }
-  if (error) throw error
   const testo = String(descrizione || '').trim()
-  const ok = await pubblicaTestoCard(id, testo)
-  if (testo && !ok) throw new Error('TESTO_NON_SALVATO')
+  const { data: riga, error: erroreLettura } = await supabase
+    .from('tracce')
+    .select('url')
+    .eq('id', id)
+    .single()
+  if (erroreLettura) throw erroreLettura
+  const patchTitolo = { titolo: pulito }
+  let { error } = await supabase.from('tracce').update(patchTitolo).eq('id', id)
+  if (error) throw error
+  const urlNuovo = await scriviUrlConTesto(id, riga?.url, testo)
+  return { url: urlNuovo, descrizione: testo }
 }
 
 export async function sostituisciFileTraccia(traccia, file) {
@@ -216,18 +255,13 @@ export async function sostituisciFileTraccia(traccia, file) {
   if (erroreUpload) throw erroreUpload
   const { data: pub } = supabase.storage.from('tracce-audio').getPublicUrl(path)
   const minuti = await durataFileAudio(file).catch(() => null)
+  const testo = String(traccia.descrizione || '').trim() || testoDaUrlAudio(traccia.url)
   const { error } = await supabase.from('tracce').update({
-    url: pub.publicUrl,
     storage_path: path,
     durata_minuti: minuti || traccia.durata_minuti || null
   }).eq('id', traccia.id)
   if (error) throw error
-  if (pub.publicUrl !== traccia.url) {
-    await Promise.all([
-      supabase.from('esercizi').update({ traccia_audio: pub.publicUrl }).eq('traccia_id', traccia.id),
-      supabase.from('lezioni').update({ traccia_audio: pub.publicUrl }).eq('traccia_id', traccia.id)
-    ])
-  }
+  await scriviUrlConTesto(traccia.id, pub.publicUrl, testo)
 }
 
 export async function eliminaTraccia(traccia, usi = 0) {

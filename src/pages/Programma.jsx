@@ -7,6 +7,7 @@ import ChiediCodice from '../components/ChiediCodice.jsx'
 import CampoNota from '../components/CampoNota.jsx'
 import CalendarioPratica from '../components/CalendarioPratica.jsx'
 import CardTracciaAudio from '../components/CardTracciaAudio.jsx'
+import { testoDaUrlAudio } from '../lib/tracce.js'
 import GuidaMeditazione from '../components/GuidaMeditazione.jsx'
 import StatoAttesa from '../components/StatoAttesa.jsx'
 import TonoEsperienza from '../components/TonoEsperienza.jsx'
@@ -268,7 +269,7 @@ function TaskFormale({
           key={chiave}
           src={esercizio.traccia_audio}
           titolo={esercizio.descrizione}
-          descrizione={esercizio.traccia_descrizione}
+          descrizione={esercizio.traccia_descrizione || testoDaUrlAudio(esercizio.traccia_audio)}
           etichettaDurata={durataLabel || undefined}
           persistenzaKey={chiave}
           onCompleto={suCompleto}

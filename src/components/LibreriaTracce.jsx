@@ -5,6 +5,7 @@ import {
   creaTraccia,
   eliminaTraccia,
   leggiTestoCard,
+  messaggioErroreTraccia,
   rinominaTraccia,
   sostituisciFileTraccia,
   titoloDaNomeFile
@@ -25,6 +26,7 @@ export default function LibreriaTracce({
   const [descrizioneModifica, setDescrizioneModifica] = useState('')
   const [daEliminare, setDaEliminare] = useState(null)
   const [salvataggio, setSalvataggio] = useState(false)
+  const [erroreForm, setErroreForm] = useState(null)
 
   async function suCarica(file) {
     if (!file) return
@@ -47,12 +49,14 @@ export default function LibreriaTracce({
 
   async function suRinomina(traccia) {
     onErrore(null)
+    setErroreForm(null)
     setSalvataggio(true)
     try {
       await rinominaTraccia(traccia.id, titoloModifica, descrizioneModifica)
       setModificaId(null)
       await onAggiorna()
     } catch (err) {
+      setErroreForm(messaggioErroreTraccia(err))
       onErrore(err)
     } finally {
       setSalvataggio(false)
@@ -183,6 +187,9 @@ export default function LibreriaTracce({
                         placeholder="Facoltativo"
                       />
                     </div>
+                    {erroreForm && (
+                      <p className="campo-errore" role="alert">{erroreForm}</p>
+                    )}
                     <div className="azioni">
                       <button className="btn" type="submit" disabled={salvataggio}>
                         {salvataggio ? 'Salvataggio…' : 'Salva'}

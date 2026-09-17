@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ascoltoCompletato, recuperaAscoltoSeManca, registraAscoltoCompleto } from '../lib/ascolto.js'
-import { leggiTestoCard } from '../lib/tracce.js'
+import { testoDaUrlAudio, urlAudioSenzaTesto } from '../lib/tracce.js'
 import { assicuraTracciaOffline } from '../lib/cacheTracce.js'
 import {
   GAP_DOPO_CAMPANA_MS,
@@ -94,7 +94,6 @@ export default function CardTracciaAudio({
   onPersistenzaRef.current = onPersistenza
 
   const [completo, setCompleto] = useState(() => ascoltoCompletato(persistenzaKey))
-  const [testoRemoto, setTestoRemoto] = useState('')
   const [inRiproduzione, setInRiproduzione] = useState(false)
   const [posizione, setPosizione] = useState(0)
   const [durata, setDurata] = useState(0)
@@ -110,25 +109,8 @@ export default function CardTracciaAudio({
   }, [])
 
   useEffect(() => {
-    const gia = String(descrizione || '').trim()
-    if (gia) {
-      setTestoRemoto('')
-      return
-    }
-    if (!src) {
-      setTestoRemoto('')
-      return
-    }
-    let vivo = true
-    leggiTestoCard({ url: src, descrizione: '' }).then(testo => {
-      if (vivo) setTestoRemoto(testo)
-    })
-    return () => { vivo = false }
-  }, [src, descrizione])
-
-  useEffect(() => {
     if (anteprima || !src) return
-    assicuraTracciaOffline(src)
+    assicuraTracciaOffline(urlAudioSenzaTesto(src))
   }, [src, anteprima])
 
   useEffect(() => {
@@ -348,7 +330,8 @@ export default function CardTracciaAudio({
 
   const testoDescrizione = inCampana
     ? 'Campana di apertura… poi inizia la traccia.'
-    : (String(descrizione || '').trim() || testoRemoto)
+    : (String(descrizione || '').trim() || testoDaUrlAudio(src))
+  const srcAudio = urlAudioSenzaTesto(src)
 
   const inPlay = inRiproduzione || inCampana
 
@@ -377,7 +360,7 @@ export default function CardTracciaAudio({
       <audio
         ref={audioRef}
         className="player-audio-nativo"
-        src={src}
+        src={srcAudio}
         preload="metadata"
         onTimeUpdate={onTimeUpdate}
         onSeeking={onSeeking}

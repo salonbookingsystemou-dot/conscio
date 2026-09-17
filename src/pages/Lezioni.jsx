@@ -8,9 +8,11 @@ import {
   elencaTracce,
   leggiTestoCard,
   messaggioErroreTraccia,
-  pubblicaTestoCard,
   rinominaTraccia,
   titoloDaNomeFile,
+  testoDaUrlAudio,
+  trovaTracciaDi,
+  urlConTestoCard,
   urlTracciaDi,
   usiTracce
 } from '../lib/tracce'
@@ -66,9 +68,6 @@ export default function Lezioni() {
       const [lista, conteggi] = await Promise.all([elencaTracce(), usiTracce()])
       setLibreria(lista)
       setUsi(conteggi)
-      lista
-        .filter(t => String(t.descrizione || '').trim())
-        .forEach(t => { pubblicaTestoCard(t.id, t.descrizione).catch(() => {}) })
     } catch {
       setErrore('Non è stato possibile leggere la libreria tracce.')
     }
@@ -227,10 +226,40 @@ export default function Lezioni() {
     const { error } = await supabase.from('esercizi').update(patch).eq('id', id)
     if (error) {
       setErrore('Non è stato possibile aggiornare la pratica.')
-      return
+      return false
     }
     setModificaEx(null)
     await caricaLezioni(cicloId)
+    return true
+  }
+
+  async function salvaPraticaFormale(ex) {
+    if (!modificaEx) return
+    setErrore(null)
+    setOkMsg(null)
+    const traccia = trovaTracciaDi(ex, libreria)
+    try {
+      if (traccia?.id) {
+        await rinominaTraccia(traccia.id, traccia.titolo, modificaEx.testoCard)
+      } else if (ex.traccia_audio) {
+        const { error } = await supabase.from('esercizi').update({
+          traccia_audio: urlConTestoCard(ex.traccia_audio, modificaEx.testoCard)
+        }).eq('id', ex.id)
+        if (error) throw error
+      }
+    } catch (err) {
+      segnalaErrore(err)
+      return
+    }
+    const ok = await aggiornaEsercizio(ex.id, {
+      descrizione: modificaEx.descrizione.trim(),
+      durata_minuti: Number(modificaEx.durata_minuti) > 0
+        ? Number(modificaEx.durata_minuti)
+        : null
+    })
+    if (!ok) return
+    await caricaLibreria()
+    setOkMsg('Pratica salvata.')
   }
 
   async function eliminaEsercizio(id) {
@@ -426,7 +455,7 @@ export default function Lezioni() {
                   )}
                   {formali.map(ex => {
                     const urlEx = urlTracciaDi(ex, libreria)
-                    const tracciaEx = libreria.find(t => t.id === ex.traccia_id)
+                    const tracciaEx = trovaTracciaDi(ex, libreria)
                     const titoloEx = tracciaEx?.titolo
                     const inModifica = modificaEx?.id === ex.id
                     const durataTesto = Number.isFinite(ex.durata_minuti) && ex.durata_minuti > 0
@@ -522,26 +551,7 @@ export default function Lezioni() {
                                 <button
                                   className="btn"
                                   type="button"
-                                  onClick={async () => {
-                                    await aggiornaEsercizio(ex.id, {
-                                      descrizione: modificaEx.descrizione.trim(),
-                                      durata_minuti: Number(modificaEx.durata_minuti) > 0
-                                        ? Number(modificaEx.durata_minuti)
-                                        : null
-                                    })
-                                    if (tracciaEx?.id) {
-                                      try {
-                                        await rinominaTraccia(
-                                          tracciaEx.id,
-                                          tracciaEx.titolo,
-                                          modificaEx.testoCard
-                                        )
-                                        await caricaLibreria()
-                                      } catch (err) {
-                                        segnalaErrore(err)
-                                      }
-                                    }
-                                  }}
+                                  onClick={() => salvaPraticaFormale(ex)}
                                 >
                                   Salva pratica
                                 </button>
@@ -596,7 +606,7 @@ export default function Lezioni() {
                             <CardTracciaAudio
                               src={urlEx}
                               titolo={titoloEx || ex.descrizione}
-                              descrizione={tracciaEx?.descrizione}
+                              descrizione={tracciaEx?.descrizione || testoDaUrlAudio(urlEx)}
                               etichettaDurata={
                                 Number.isFinite(ex.durata_minuti) && ex.durata_minuti > 0
                                   ? durataTesto
