@@ -2779,6 +2779,48 @@ a { color: var(--moss-dark); }
 .grafico-andamento-legenda .is-piacevole { background: var(--moss); }
 .grafico-andamento-legenda .is-neutro { background: #8A8F88; }
 .grafico-andamento-legenda .is-spiacevole { background: var(--ochre); }
+.grafico-andamento-legenda .is-sconosciuto { background: #C5C2B6; }
+.grafico-andamento-legenda .is-media {
+  background: #24312C;
+  border-radius: 0;
+  height: 2px;
+  width: 14px;
+  vertical-align: middle;
+}
+.grafico-tip-utente {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.grafico-tip-punto {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.grafico-barra-tono,
+.grafico-legenda-tono,
+.grafico-tip-tono-icona {
+  display: block;
+  overflow: visible;
+}
+.grafico-legenda-tono,
+.grafico-tip-tono-icona {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+.grafico-andamento-legenda li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.grafico-tip-media {
+  margin-top: 6px !important;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+  font-weight: 600;
+}
 .grafico-tip-sessione {
   max-width: 16rem;
   padding: 10px 12px;

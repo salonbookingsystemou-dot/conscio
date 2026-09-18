@@ -1430,9 +1430,9 @@ export default function Dashboard() {
             <div>
               <h2>Pratica</h2>
               <p className="lead">
-                Tono
+                Minuti giorno per giorno
                 {cicloAperto ? ` per «${cicloAperto.nome_ciclo}»` : ' di tutti i cicli'}
-                , solo per codice.
+                {' · '}per codice. Il colore è il tono.
               </p>
             </div>
           </header>

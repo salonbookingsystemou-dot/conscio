@@ -1,4 +1,4 @@
-import { parseISODate } from './date.js'
+import { addDays, formatISODate, parseISODate } from './date.js'
 
 export const TONI = [
   { id: 'spiacevole', label: 'Spiacevole' },
@@ -28,6 +28,79 @@ export function testoTonoRiga(riga) {
 export function valoreTono(tono) {
   if (tono == null) return null
   return Object.prototype.hasOwnProperty.call(VALORE_TONO, tono) ? VALORE_TONO[tono] : null
+}
+
+export const COLORE_TONO = {
+  piacevole: '#4B6B57',
+  neutro: '#8A8F88',
+  spiacevole: '#A8763E',
+  sconosciuto: '#C5C2B6'
+}
+
+export function coloreTono(tono) {
+  return COLORE_TONO[tono] || COLORE_TONO.sconosciuto
+}
+
+function tonoSessione(riga) {
+  return riga?.tono_dopo || riga?.tono_prima || null
+}
+
+/** Minuti per codice e giorno, con tono dell’ultima sessione e media giornaliera. */
+export function serieMinutiGiornalieri(righe) {
+  const perGiorno = new Map()
+  const codiciVisti = new Set()
+  const ordinate = [...(righe || [])].sort((a, b) => {
+    const da = String(a.data || '').slice(0, 10)
+    const db = String(b.data || '').slice(0, 10)
+    if (da !== db) return da.localeCompare(db)
+    return String(a.id || '').localeCompare(String(b.id || ''))
+  })
+
+  for (const riga of ordinate) {
+    const iso = String(riga.data || '').slice(0, 10)
+    const codice = riga.codice_partecipante
+    if (!iso || !codice) continue
+    const minuti = Number(riga.durata_minuti)
+    const aggiunta = Number.isFinite(minuti) && minuti > 0 ? minuti : 0
+    if (aggiunta <= 0 && !tonoSessione(riga)) continue
+    if (!perGiorno.has(iso)) perGiorno.set(iso, new Map())
+    const utenti = perGiorno.get(iso)
+    const prev = utenti.get(codice) || { minuti: 0, tono: null }
+    prev.minuti += aggiunta
+    const tono = tonoSessione(riga)
+    if (tono) prev.tono = tono
+    utenti.set(codice, prev)
+    if (prev.minuti > 0) codiciVisti.add(codice)
+  }
+
+  const isos = [...perGiorno.keys()].sort()
+  if (isos.length === 0) return { giorni: [], codici: [] }
+
+  const inizio = parseISODate(isos[0])
+  const fine = parseISODate(isos[isos.length - 1])
+  const listaCodici = [...codiciVisti].sort((a, b) => a.localeCompare(b))
+  if (!inizio || !fine) return { giorni: [], codici: listaCodici }
+
+  const giorni = []
+  for (let d = inizio; d <= fine; d = addDays(d, 1)) {
+    const iso = formatISODate(d)
+    const utenti = perGiorno.get(iso) || new Map()
+    const riga = { iso, data: etichettaDataCorta(iso), media: null, toni: {} }
+    const valori = []
+    for (const codice of listaCodici) {
+      const voce = utenti.get(codice)
+      if (!voce || !(voce.minuti > 0)) continue
+      riga[codice] = voce.minuti
+      riga.toni[codice] = voce.tono
+      valori.push(voce.minuti)
+    }
+    if (valori.length > 0) {
+      riga.media = Math.round((valori.reduce((acc, n) => acc + n, 0) / valori.length) * 10) / 10
+    }
+    giorni.push(riga)
+  }
+
+  return { giorni, codici: listaCodici }
 }
 
 function etichettaDataCorta(iso) {

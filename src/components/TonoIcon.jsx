@@ -1,6 +1,23 @@
-export default function TonoIcon({ id, className = 'tono-segno' }) {
+export default function TonoIcon({
+  id,
+  className = 'tono-segno',
+  x,
+  y,
+  width,
+  height,
+  color
+}) {
   return (
-    <svg className={className} viewBox="0 0 32 32" aria-hidden="true">
+    <svg
+      className={className}
+      viewBox="0 0 32 32"
+      x={x}
+      y={y}
+      width={width}
+      height={height}
+      color={color}
+      aria-hidden="true"
+    >
       <circle
         cx="16"
         cy="16"
