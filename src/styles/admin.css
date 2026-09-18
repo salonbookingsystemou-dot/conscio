@@ -361,6 +361,15 @@
   cursor: default;
 }
 
+.admin-dialogo.is-ascolto {
+  width: min(32rem, calc(100% - var(--space-32)));
+}
+
+.admin-dialogo.is-ascolto .card-traccia {
+  box-shadow: none;
+  padding: clamp(16px, 4vw, 24px);
+}
+
 .admin-dialogo {
   width: min(26rem, calc(100% - var(--space-32)));
   margin: auto;
@@ -386,7 +395,7 @@
   line-height: 1.2;
 }
 
-.admin-dialogo p {
+.admin-dialogo > p {
   margin: 0 0 var(--space-16);
   color: var(--muted);
   font-size: var(--fs-body);

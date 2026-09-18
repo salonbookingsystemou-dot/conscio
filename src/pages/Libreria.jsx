@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import CardTracciaAudio from '../components/CardTracciaAudio.jsx'
 import {
   collegamentiTracce,
   creaTraccia,
@@ -35,6 +36,20 @@ function IconaPiu() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function IconaAscolto() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M8.4 6.2v11.6c0 .72.78 1.16 1.4.79l9.1-5.8a.92.92 0 0 0 0-1.58l-9.1-5.8a.92.92 0 0 0-1.4.79z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }
@@ -284,6 +299,16 @@ export default function Libreria() {
                     <button
                       type="button"
                       className="admin-icon-btn"
+                      aria-label={`Ascolta traccia ${t.titolo}`}
+                      title="Ascolta traccia"
+                      disabled={!t.url}
+                      onClick={() => setDialogo({ tipo: 'ascolta', traccia: t })}
+                    >
+                      <IconaAscolto />
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-icon-btn"
                       aria-label={`Modifica traccia ${t.titolo}`}
                       title="Modifica traccia"
                       onClick={() => apriModifica(t)}
@@ -342,6 +367,31 @@ export default function Libreria() {
           confermaCarica(file)
         }}
       />
+
+      {dialogo?.tipo === 'ascolta' && (
+        <AdminDialogo
+          titolo="Ascolta"
+          className="is-ascolto"
+          onChiudi={() => setDialogo(null)}
+        >
+          <CardTracciaAudio
+            src={dialogo.traccia.url}
+            titolo={dialogo.traccia.titolo}
+            descrizione={dialogo.traccia.descrizione}
+            etichettaDurata={
+              Number.isFinite(dialogo.traccia.durata_minuti) && dialogo.traccia.durata_minuti > 0
+                ? (dialogo.traccia.durata_minuti === 1 ? '1 minuto' : `${dialogo.traccia.durata_minuti} minuti`)
+                : 'Audio'
+            }
+            anteprima
+          />
+          <div className="admin-dialogo-azioni">
+            <button type="button" className="admin-btn-ghost" onClick={() => setDialogo(null)}>
+              Chiudi
+            </button>
+          </div>
+        </AdminDialogo>
+      )}
 
       {dialogo?.tipo === 'carica' && (
         <AdminDialogo
@@ -469,7 +519,7 @@ export default function Libreria() {
   )
 }
 
-function AdminDialogo({ titolo, children, onChiudi }) {
+function AdminDialogo({ titolo, children, onChiudi, className }) {
   const el = useRef(null)
 
   useEffect(() => {
@@ -481,7 +531,7 @@ function AdminDialogo({ titolo, children, onChiudi }) {
   return (
     <dialog
       ref={el}
-      className="mbsr-theme admin-dialogo"
+      className={['mbsr-theme admin-dialogo', className].filter(Boolean).join(' ')}
       onClose={onChiudi}
       onCancel={e => {
         e.preventDefault()
