@@ -276,9 +276,8 @@ export default function Libreria() {
         ) : (
           <ul className="admin-lista">
             {filtrate.map(t => {
-              const usi = collegamenti[t.id] || []
-              const collegata = usi.length > 0
               const minuti = durataBreve(t.durata_minuti)
+              const descrizione = String(t.descrizione || '').trim()
               return (
                 <li key={t.id} className="admin-riga">
                   <div className="admin-riga-testi">
@@ -286,14 +285,9 @@ export default function Libreria() {
                       <strong>{t.titolo}</strong>
                       {minuti && <span className="admin-riga-durata"> · {minuti}</span>}
                     </p>
-                    <p className={`admin-riga-stato${collegata ? ' is-on' : ''}`}>
-                      <span className="admin-stato-dot" aria-hidden="true" />
-                      {collegata ? (
-                        <span>Collegata a: {usi.map(etichettaCollegamento).join(', ')}</span>
-                      ) : (
-                        <em>Non collegata a nessuna pratica</em>
-                      )}
-                    </p>
+                    {descrizione && (
+                      <p className="admin-riga-descrizione">{descrizione}</p>
+                    )}
                   </div>
                   <div className="admin-riga-azioni">
                     <button
