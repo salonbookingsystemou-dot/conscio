@@ -281,7 +281,7 @@ function TaskFormale({
               data,
               secondi
             })
-            aggiornaAscolto?.()
+            await aggiornaAscolto?.()
             onAscolto?.()
           }}
           onAscolto={() => {
@@ -343,6 +343,7 @@ export default function Programma() {
     const apertaFino = Math.max(1, Math.min(9, payload.settimana_corrente || 1))
     const lezioniCaricate = payload.lezioni || []
     memorizzaAscoltiDaProgramma(codicePulito, lezioniCaricate)
+    aggiornaAscolto(codicePulito)
     setLezioni(lezioniCaricate)
     setCiclo(cicloData || null)
     setTutteSessioni(log || [])

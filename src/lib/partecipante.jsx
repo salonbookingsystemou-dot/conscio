@@ -1,6 +1,6 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { chiamaPorta, dimenticaCodice, leggiCodice, memorizzaCodice, supabase, supabaseConfigurato } from './supabaseClient'
-import { pulisciAscoltoLocale } from './ascolto.js'
+import { pulisciAscoltoLocale, sommaMinutiAscoltati } from './ascolto.js'
 import { sommaMinutiTracce } from './oreAscolto.js'
 
 function chiudiSessioneLocale(codiceAperto) {
@@ -59,6 +59,7 @@ export function PartecipanteProvider({ children }) {
   const [onboardingCompleto, setOnboardingCompleto] = useState(false)
   const [t0Completo, setT0Completo] = useState(false)
   const [percorsoPronto, setPercorsoPronto] = useState(false)
+  const ascoltoSeq = useRef(0)
 
   const applicaPercorso = useCallback(stato => {
     setOnboardingCompleto(Boolean(stato.onboarding))
@@ -67,11 +68,15 @@ export function PartecipanteProvider({ children }) {
   }, [])
 
   const aggiornaAscolto = useCallback(async (valore = codice) => {
-    if (!valore) {
+    const pulito = typeof valore === 'string' ? valore.trim() : String(codice || '').trim()
+    if (!pulito) {
       setMinutiAscolto(0)
       return
     }
-    setMinutiAscolto(await sommaMinutiTracce(valore))
+    const seq = ++ascoltoSeq.current
+    setMinutiAscolto(sommaMinutiAscoltati(pulito))
+    const tot = await sommaMinutiTracce(pulito)
+    if (seq === ascoltoSeq.current) setMinutiAscolto(tot)
   }, [codice])
 
   const aggiornaPercorso = useCallback(async (valore = codice) => {

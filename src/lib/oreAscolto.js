@@ -16,6 +16,7 @@ export function formattaOreAscolto(minuti) {
 export async function sommaMinutiTracce(codice) {
   if (!codice) return 0
   const pulito = codice.trim()
+  const locale = sommaMinutiAscoltati(pulito)
 
   if (supabaseConfigurato) {
     try {
@@ -25,12 +26,16 @@ export async function sommaMinutiTracce(codice) {
       })
       if (!error && data != null) {
         const n = Number(data)
-        if (Number.isFinite(n)) return Math.max(0, Math.round(n))
+        if (Number.isFinite(n)) {
+          // Il server può essere indietro se il salvataggio è ancora in corso
+          // o è fallito: non scendere sotto i minuti già noti in locale.
+          return Math.max(locale, Math.max(0, Math.round(n)))
+        }
       }
     } catch {
       /* fallback locale */
     }
   }
 
-  return sommaMinutiAscoltati(pulito)
+  return locale
 }

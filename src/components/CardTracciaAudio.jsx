@@ -154,16 +154,25 @@ export default function CardTracciaAudio({
     onDurataRef.current?.(secondi)
   }
 
+  function durataPerCredito(secondi) {
+    if (Number.isFinite(secondi) && secondi >= 8) return secondi
+    const d = audioRef.current?.duration
+    if (Number.isFinite(d) && d >= 8) return d
+    const ascoltato = playedRef.current
+    if (Number.isFinite(ascoltato) && ascoltato >= 8) return ascoltato
+    return null
+  }
+
   function marca(secondi) {
     if (contatoGiro.current || !contaAscoltoRef.current) return
-    const d = Number.isFinite(secondi) && secondi > 0 ? secondi : audioRef.current?.duration
-    if (!Number.isFinite(d) || d < 8) return
+    const d = durataPerCredito(secondi)
+    if (d == null) return
     if (playedRef.current < d * soglia) return
     contatoGiro.current = true
     if (!anteprima) {
       registraAscoltoCompleto(persistenzaKey, d)
-      onPersistenzaRef.current?.(d)
-      onAscoltoRef.current?.()
+      if (onPersistenzaRef.current) onPersistenzaRef.current(d)
+      else onAscoltoRef.current?.()
     }
     setCompleto(true)
     onCompletoRef.current?.(true)
@@ -191,8 +200,8 @@ export default function CardTracciaAudio({
   function onEnded(e) {
     if (ignoraEventiRef.current || !contaAscoltoRef.current) return
     setInRiproduzione(false)
-    const d = e.currentTarget.duration
-    if (Number.isFinite(d) && d >= 8 && playedRef.current >= d * 0.9) marca(d)
+    const d = durataPerCredito(e.currentTarget.duration)
+    if (d != null && playedRef.current >= d * 0.9) marca(d)
   }
 
   function onLoadedMetadata(e) {
