@@ -954,8 +954,9 @@ export default function Dashboard() {
                     <p className="hint">
                       Usano le stesse settimane del ciclo in presenza, con un orologio personale:
                       dopo il T0 si apre la settimana 1, le successive partono dal primo ascolto.
-                      Non occupano posti in aula. Se non partono entro una settimana, parte un
-                      promemoria via email (Avvisi).
+                      Non occupano posti in aula. Se dopo 15 giorni non hanno fatto
+                      l’onboarding o non hanno iniziato le pratiche, parte un’email:
+                      se restano inattivi l’account viene chiuso (Avvisi).
                     </p>
                   </div>
                 </header>
@@ -987,7 +988,7 @@ export default function Dashboard() {
                               className="badge"
                               title={n.inviata_il ? new Date(n.inviata_il).toLocaleDateString('it-IT') : ''}
                             >
-                              {n.tipo === 'onboarding_senza_ascolto' ? 'promemoria ascolto' : 'promemoria avvio'}
+                              {n.tipo === 'onboarding_senza_ascolto' ? 'avviso pratiche' : 'avviso onboarding'}
                             </span>
                           ))}
                         </div>
@@ -1432,7 +1433,7 @@ export default function Dashboard() {
               <p className="lead">
                 Minuti giorno per giorno
                 {cicloAperto ? ` per «${cicloAperto.nome_ciclo}»` : ' di tutti i cicli'}
-                {' · '}per codice. Il colore è il tono.
+                {' · '}per codice. Le informali si contano a parte, per volte.
               </p>
             </div>
           </header>

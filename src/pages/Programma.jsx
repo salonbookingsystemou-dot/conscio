@@ -320,6 +320,7 @@ export default function Programma() {
   const [invio, setInvio] = useState(false)
   const [aperto, setAperto] = useState(false)
   const [tickAscolto, setTickAscolto] = useState(0)
+  const [occupatoInformale, setOccupatoInformale] = useState(null)
   const pillsRef = useRef(null)
 
   useEffect(() => {
@@ -418,8 +419,45 @@ export default function Programma() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [codice, dataScelta, formali, tickAscolto])
 
+  function applicaSpuntaLocale(esercizio, fatto) {
+    const giorno = String(dataScelta).slice(0, 10)
+    setLezioni(prev => prev.map(l => ({
+      ...l,
+      esercizi: (l.esercizi || []).map(e => {
+        if (e.id !== esercizio.id) return e
+        const resto = (e.log || []).filter(r => !(
+          r.tipo === 'informale' && String(r.data).slice(0, 10) === giorno
+        ))
+        return {
+          ...e,
+          log: fatto
+            ? [...resto, { data: giorno, tipo: 'informale', durata_minuti: null }]
+            : resto
+        }
+      })
+    })))
+    setTutteSessioni(prev => {
+      const resto = (prev || []).filter(r => !(
+        r.tipo === 'informale'
+        && String(r.data).slice(0, 10) === giorno
+        && r.esercizio === esercizio.descrizione
+      ))
+      return fatto
+        ? [{
+            data: giorno,
+            tipo: 'informale',
+            durata_minuti: null,
+            esercizio: esercizio.descrizione
+          }, ...resto]
+        : resto
+    })
+  }
+
   async function toggleInformale(esercizio, fatto) {
+    if (occupatoInformale) return
     setErrore(null)
+    setOccupatoInformale(esercizio.id)
+    applicaSpuntaLocale(esercizio, fatto)
     const { error } = await supabase.rpc('spunta_informale', {
       p_codice: codice.trim(),
       p_esercizio_id: esercizio.id,
@@ -428,9 +466,12 @@ export default function Programma() {
     })
     if (error) {
       setErrore('Non è stato possibile aggiornare la pratica informale.')
+      applicaSpuntaLocale(esercizio, !fatto)
+      setOccupatoInformale(null)
       return
     }
-    caricaProgramma(codice.trim())
+    await caricaProgramma(codice.trim())
+    setOccupatoInformale(null)
   }
 
   const badgeSettimana = corrente
@@ -550,18 +591,25 @@ export default function Programma() {
                   <div className="chip-riga chip-informali">
                     {informali.map(ex => {
                       const fatta = spuntatoNelGiorno(ex, dataScelta)
+                      const volte = (ex.log || []).filter(r => r.tipo === 'informale').length
                       return (
                         <button
                           key={ex.id}
                           type="button"
                           className={`chip chip-spunta${fatta ? ' is-on' : ''}`}
                           aria-pressed={fatta}
+                          disabled={occupatoInformale === ex.id}
                           onClick={() => toggleInformale(ex, !fatta)}
                         >
                           <span className={`chip-check${fatta ? ' is-fatto' : ''}`} aria-hidden="true">
                             {fatta ? '✓' : ''}
                           </span>
                           <span className="chip-testo">{ex.descrizione}</span>
+                          {volte > 0 && (
+                            <span className="chip-volte">
+                              {volte === 1 ? '1 volta' : `${volte} volte`}
+                            </span>
+                          )}
                         </button>
                       )
                     })}

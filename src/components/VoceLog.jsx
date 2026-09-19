@@ -24,7 +24,11 @@ export default function VoceLog({ riga }) {
     <article className="voce-log">
       <header className="voce-log-testata">
         <time dateTime={String(riga.data).slice(0, 10)}>{data}</time>
-        <span className="voce-log-durata">{riga.durata_minuti} min</span>
+        {String(riga.tipo || '').toLowerCase() === 'informale' ? (
+          <span className="voce-log-durata">1 volta</span>
+        ) : Number.isFinite(Number(riga.durata_minuti)) && Number(riga.durata_minuti) > 0 ? (
+          <span className="voce-log-durata">{riga.durata_minuti} min</span>
+        ) : null}
         <TonoMini riga={riga} />
       </header>
       {riga.numero_settimana ? (

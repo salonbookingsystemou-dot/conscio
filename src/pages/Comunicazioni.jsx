@@ -20,8 +20,8 @@ const DESTINATARI = [
 ]
 
 const ETICHETTE_INATTIVITA = {
-  non_avviato: 'Percorso non avviato',
-  onboarding_senza_ascolto: 'Onboarding senza ascolto'
+  non_avviato: 'Onboarding non fatto',
+  onboarding_senza_ascolto: 'Onboarding senza pratiche'
 }
 
 function eModificabile(c) {
@@ -141,21 +141,24 @@ export default function Comunicazioni() {
   const [errore, setErrore] = useState(null)
   const [inattivita, setInattivita] = useState([])
   const [candidati, setCandidati] = useState([])
+  const [ritiri, setRitiri] = useState([])
   const [invioInattivita, setInvioInattivita] = useState(false)
   const [msgInattivita, setMsgInattivita] = useState(null)
   const [errInattivita, setErrInattivita] = useState(null)
 
   async function carica() {
-    const [cicliRes, comRes, notRes, candRes] = await Promise.all([
+    const [cicliRes, comRes, notRes, candRes, ritRes] = await Promise.all([
       supabase.from('cicli').select('id, nome_ciclo, stato').order('data_inizio', { ascending: false }),
       supabase.from('comunicazioni').select('id, tipo, destinatari, oggetto, testo, data_invio, stato, ciclo_id, cicli(nome_ciclo)').order('data_invio', { ascending: false }),
       supabase.from('notifiche_inattivita').select('id, tipo, inviata_il, utenti(codice_partecipante)').order('inviata_il', { ascending: false }),
-      supabase.rpc('candidati_inattivita_remoto')
+      supabase.rpc('candidati_inattivita_remoto'),
+      supabase.rpc('candidati_ritiro_inattivita')
     ])
     setCicli(cicliRes.data || [])
     setLista(comRes.data || [])
     setInattivita(notRes.error ? [] : (notRes.data || []))
     setCandidati(candRes.error ? [] : (candRes.data || []))
+    setRitiri(ritRes.error ? [] : (ritRes.data || []))
     if (cicliRes.data?.[0] && !form.ciclo_id && !modificaId) {
       setForm(f => (f.ciclo_id ? f : { ...f, ciclo_id: cicliRes.data[0].id }))
     }
@@ -358,9 +361,12 @@ export default function Comunicazioni() {
       setErrInattivita('Non autorizzato a inviare i promemoria automatici.')
     } else if (esito?.ok) {
       const n = esito.n_inviate ?? 0
-      setMsgInattivita(n === 0
-        ? 'Nessun nuovo promemoria da inviare.'
-        : `Inviati ${n} promemoria di inattività.`)
+      const chiuse = esito.n_chiusure ?? 0
+      setMsgInattivita(
+        n === 0 && chiuse === 0
+          ? 'Nessun nuovo avviso né chiusura.'
+          : `Inviati ${n} avvisi di inattività${chiuse > 0 ? `, chiuse ${chiuse} ${chiuse === 1 ? 'iscrizione' : 'iscrizioni'}` : ''}.`
+      )
     } else {
       setErrInattivita(esito?.errore || 'L’invio dei promemoria non è andato a buon fine.')
     }
@@ -501,17 +507,25 @@ export default function Comunicazioni() {
       {lista.length === 0 && <p>Nessuna comunicazione ancora registrata.</p>}
 
       <div className="card">
-        <h3>Promemoria automatici · solo da remoto</h3>
+        <h3>Inattività · solo da remoto</h3>
         <p className="disclaimer">
-          Per chi è iscritto senza ciclo, dopo 7 giorni parte un’email di supporto:
-          se non ha fatto il primo accesso, o se dopo l’onboarding non ha ancora
-          ascoltato una traccia. Ogni tipo si invia una sola volta. Una copia
+          Dopo 15 giorni parte un’email: se non ha fatto l’onboarding, o se dopo
+          l’onboarding non ha ancora iniziato le pratiche. Se l’inattività continua
+          per altri 15 giorni, l’account viene chiuso: potrà iscriversi di nuovo
+          quando sarà pronto. Ogni avviso si invia una sola volta. Una copia
           arriva anche a contact@wordpresschef.it.
         </p>
         <p className="hint">
-          {candidati.length === 0
-            ? 'Nessun iscritto remoto in attesa di promemoria.'
-            : `${candidati.length} ${candidati.length === 1 ? 'persona in attesa' : 'persone in attesa'} di promemoria.`}
+          {candidati.length === 0 && ritiri.length === 0
+            ? 'Nessun iscritto remoto in attesa di avviso o chiusura.'
+            : [
+                candidati.length > 0
+                  ? `${candidati.length} ${candidati.length === 1 ? 'persona in attesa' : 'persone in attesa'} di avviso`
+                  : null,
+                ritiri.length > 0
+                  ? `${ritiri.length} ${ritiri.length === 1 ? 'account in chiusura' : 'account in chiusura'}`
+                  : null
+              ].filter(Boolean).join(' · ')}
         </p>
         <div className="azioni">
           <button className="btn" type="button" disabled={invioInattivita} onClick={eseguiInattivita}>

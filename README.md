@@ -15,7 +15,7 @@ PWA per gestire iscrizioni, cicli, lezioni, questionari e comunicazioni del perc
    `migrazione_modalita_fruizione.sql` (posti in presenza + fruizione remota),
    `migrazione_libreria_tracce.sql` (catalogo audio riusabile tra settimane e cicli),
    `migrazione_comunicazioni_remoto.sql` (avvisi solo agli utenti in remoto)
-   e `migrazione_inattivita_remoto.sql` (promemoria se il percorso da remoto non parte).
+   e `migrazione_inattivita_remoto.sql` + `migrazione_inattivita_15_giorni.sql` (avviso e chiusura se il percorso da remoto non parte).
 3. In Authentication → Users crea l’account del facilitatore. Poi in SQL:
 
    ```
@@ -48,16 +48,18 @@ Le comunicazioni si salvano sempre nel database. Per l’invio reale:
 
 Senza la chiave la comunicazione resta `programmata`. L’email dei partecipanti serve solo al contatto operativo: non viene unita alle risposte o ai log.
 
-## Promemoria inattività (solo da remoto)
+## Inattività (solo da remoto)
 
-Per chi è iscritto senza ciclo, un controllo giornaliero invia un’email di supporto:
+Per chi è iscritto senza ciclo, un controllo giornaliero:
 
-- **Percorso non avviato**: idoneo da 7 giorni, primo accesso non fatto
-- **Onboarding senza ascolto**: onboarding completato da 7 giorni, nessuna traccia ascoltata
+- **Onboarding non fatto**: idoneo da 15 giorni, primo accesso non fatto
+- **Onboarding senza pratiche**: onboarding completato da 15 giorni, nessuna pratica iniziata
 
-Ogni tipo si invia **una sola volta**. Una copia riassuntiva (solo codici) arriva a `contact@wordpresschef.it`.
+L’email avvisa che, se l’inattività continua, l’account verrà chiuso. Dopo altri 15 giorni senza onboarding o senza pratiche, l’iscrizione viene ritirata: i dati personali si azzerano e la persona può iscriversi di nuovo quando è pronta.
 
-1. Nell’SQL editor esegui `supabase/migrazione_inattivita_remoto.sql`.
+Ogni avviso si invia **una sola volta**. Una copia riassuntiva (solo codici) arriva a `contact@wordpresschef.it`.
+
+1. Nell’SQL editor esegui `supabase/migrazione_inattivita_remoto.sql` e `supabase/migrazione_inattivita_15_giorni.sql`.
 2. Imposta il secret `CRON_SECRET` sulla funzione.
 3. Distribuisci: `supabase functions deploy notifica-inattivita --no-verify-jwt`.
 4. Programma l’invio (07:00 UTC):

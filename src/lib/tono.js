@@ -60,6 +60,7 @@ export function serieMinutiGiornalieri(righe) {
     const iso = String(riga.data || '').slice(0, 10)
     const codice = riga.codice_partecipante
     if (!iso || !codice) continue
+    if (String(riga.tipo || '').toLowerCase() === 'informale') continue
     const minuti = Number(riga.durata_minuti)
     const aggiunta = Number.isFinite(minuti) && minuti > 0 ? minuti : 0
     if (aggiunta <= 0 && !tonoSessione(riga)) continue
@@ -101,6 +102,33 @@ export function serieMinutiGiornalieri(righe) {
   }
 
   return { giorni, codici: listaCodici }
+}
+
+export function etichettaVolte(n) {
+  return n === 1 ? '1 volta' : `${n} volte`
+}
+
+/** Quante volte ogni codice ha spuntato ciascuna pratica informale. */
+export function conteggioInformali(righe) {
+  const perCodice = new Map()
+  for (const riga of righe || []) {
+    if (String(riga.tipo || '').toLowerCase() !== 'informale') continue
+    const codice = riga.codice_partecipante
+    if (!codice) continue
+    const nome = String(riga.esercizio || '').trim() || 'pratica informale'
+    if (!perCodice.has(codice)) perCodice.set(codice, new Map())
+    const pratiche = perCodice.get(codice)
+    pratiche.set(nome, (pratiche.get(nome) || 0) + 1)
+  }
+  return [...perCodice.entries()]
+    .map(([codice, pratiche]) => ({
+      codice,
+      pratiche: [...pratiche.entries()]
+        .map(([nome, n]) => ({ nome, n }))
+        .sort((a, b) => b.n - a.n || a.nome.localeCompare(b.nome)),
+      totale: [...pratiche.values()].reduce((acc, n) => acc + n, 0)
+    }))
+    .sort((a, b) => a.codice.localeCompare(b.codice))
 }
 
 function etichettaDataCorta(iso) {

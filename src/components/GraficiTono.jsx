@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis
 } from 'recharts'
-import { coloreTono, etichettaTono, serieMinutiGiornalieri } from '../lib/tono.js'
+import { coloreTono, conteggioInformali, etichettaTono, etichettaVolte, serieMinutiGiornalieri } from '../lib/tono.js'
 import TonoIcon from './TonoIcon.jsx'
 
 function BarraConTono({ x, y, width, height, fill, payload, codice }) {
@@ -83,15 +83,62 @@ function LegendaTono() {
   )
 }
 
+function ConteggioInformali({ sessioni, ambito }) {
+  const gruppi = useMemo(() => conteggioInformali(sessioni), [sessioni])
+  const totale = gruppi.reduce((acc, g) => acc + g.totale, 0)
+
+  return (
+    <div className="card">
+      <h3>Pratiche informali, per volte</h3>
+      <p className="disclaimer">
+        Ogni spunta conta una volta, non minuti. Solo codice, nessuna email.
+        {ambito
+          ? ` Ambito: ${ambito}.`
+          : ' Apri un ciclo dalla scheda Cicli per restringere i conteggi.'}
+      </p>
+      {gruppi.length === 0 ? (
+        <p>Nessuna pratica informale ancora spuntata.</p>
+      ) : (
+        <>
+          <p className="hint">
+            {ambito ? `${ambito} · ` : ''}
+            {gruppi.length} {gruppi.length === 1 ? 'codice' : 'codici'}
+            {' · '}
+            {etichettaVolte(totale)} in tutto
+          </p>
+          <div className="conteggio-informali">
+            {gruppi.map(gruppo => (
+              <section key={gruppo.codice} className="conteggio-informali-gruppo">
+                <h4>
+                  <span className="badge">{gruppo.codice}</span>
+                </h4>
+                <ul>
+                  {gruppo.pratiche.map(p => (
+                    <li key={p.nome}>
+                      <span className="conteggio-informali-nome">«{p.nome}»</span>
+                      <span className="conteggio-informali-n">{etichettaVolte(p.n)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 export default function GraficiTono({ sessioni, ambito }) {
   const { giorni, codici } = useMemo(() => serieMinutiGiornalieri(sessioni), [sessioni])
   const larghezza = Math.max(giorni.length * Math.max(56, codici.length * 16), 280)
-  const nSessioni = (sessioni || []).length
+  const nSessioni = (sessioni || []).filter(s => String(s.tipo || '').toLowerCase() !== 'informale').length
   const minutiTotali = giorni.reduce((acc, g) => (
     acc + codici.reduce((sum, codice) => sum + (Number(g[codice]) || 0), 0)
   ), 0)
 
   return (
+    <>
     <div className="card">
       <h3>Minuti di pratica, giorno per giorno</h3>
       <p className="disclaimer">
@@ -168,5 +215,7 @@ export default function GraficiTono({ sessioni, ambito }) {
         </>
       )}
     </div>
+    <ConteggioInformali sessioni={sessioni} ambito={ambito} />
+    </>
   )
 }

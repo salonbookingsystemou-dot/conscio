@@ -24,6 +24,10 @@ type Candidato = {
   tipo: 'non_avviato' | 'onboarding_senza_ascolto'
 }
 
+type CandidatoRitiro = Candidato & {
+  avvisato_il?: string
+}
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -40,9 +44,11 @@ function testoNonAvviato(codice: string): string {
   return [
     'Ciao,',
     '',
-    'ti scriviamo perché ti sei iscritto al Percorso MBSR da remoto e da una settimana non abbiamo ancora visto un primo accesso.',
+    'sono passati quindici giorni e non hai ancora fatto il primo accesso al Percorso MBSR.',
     '',
-    'Se qualcosa non è chiaro, se questo non è il momento giusto, o se possiamo fare qualcosa per aiutarti a partire, rispondi a questa email: siamo qui.',
+    'Se l’inattività continua, l’account verrà cancellato automaticamente. Non è un giudizio: è solo per lasciare spazio a chi è pronto. Quando ti sentirai pronto ad iniziare il percorso, potrai iscriverti di nuovo.',
+    '',
+    'Se vuoi partire adesso, o se possiamo aiutarti, rispondi a questa email.',
     '',
     `Il tuo codice partecipante è: ${codice}`,
     '',
@@ -61,9 +67,11 @@ function testoOnboardingSenzaAscolto(codice: string): string {
   return [
     'Ciao,',
     '',
-    'hai già fatto il primo accesso al Percorso MBSR. Se non hai ancora ascoltato una traccia, va bene: puoi cominciare dalla settimana 1 quando sei pronto. L’orologio del percorso parte al primo ascolto.',
+    'hai già fatto il primo accesso al Percorso MBSR, ma da quindici giorni non risulta ancora nessuna pratica.',
     '',
-    'Se qualcosa ti frena, o se vuoi una mano a scegliere da dove partire, rispondi a questa email.',
+    'Se l’inattività continua, l’account verrà cancellato automaticamente. Quando ti sentirai pronto ad iniziare il percorso, potrai iscriverti di nuovo.',
+    '',
+    'Se vuoi cominciare ora, o se qualcosa ti frena, rispondi a questa email.',
     '',
     `Il tuo codice partecipante è: ${codice}`,
     '',
@@ -78,23 +86,39 @@ function testoOnboardingSenzaAscolto(codice: string): string {
   ].join('\n')
 }
 
+function testoAccountChiuso(): string {
+  return [
+    'Ciao,',
+    '',
+    'il tuo account sul Percorso MBSR è stato chiuso per inattività. I dati personali sono stati rimossi.',
+    '',
+    'Quando ti sentirai pronto ad iniziare il percorso, puoi iscriverti di nuovo.',
+    '',
+    DISCLAIMER,
+    '',
+    `Per assistenza: ${REPLY_TO}`,
+    '',
+    '— Percorso MBSR'
+  ].join('\n')
+}
+
 function messaggioPer(c: Candidato): { oggetto: string, testo: string } {
   if (c.tipo === 'onboarding_senza_ascolto') {
     return {
-      oggetto: 'Un passo alla volta — Percorso MBSR',
+      oggetto: 'Il tuo account rischia di essere chiuso — Percorso MBSR',
       testo: testoOnboardingSenzaAscolto(c.codice)
     }
   }
   return {
-    oggetto: 'Possiamo aiutarti a partire? — Percorso MBSR',
+    oggetto: 'Il tuo account rischia di essere chiuso — Percorso MBSR',
     testo: testoNonAvviato(c.codice)
   }
 }
 
 function etichettaTipo(tipo: Candidato['tipo']): string {
   return tipo === 'onboarding_senza_ascolto'
-    ? 'onboarding senza ascolto'
-    : 'percorso non avviato'
+    ? 'onboarding senza pratiche'
+    : 'onboarding non fatto'
 }
 
 async function inviaEmail(opts: { to: string, oggetto: string, testo: string }): Promise<boolean> {
@@ -194,13 +218,54 @@ Deno.serve(async (req) => {
     inviati.push({ codice: c.codice, tipo: c.tipo })
   }
 
-  if (inviate > 0) {
-    const righe = inviati.map(r => `- ${r.codice} · ${etichettaTipo(r.tipo)}`)
+  const { data: daChiudere, error: errRitiri } = await admin.rpc('candidati_ritiro_inattivita')
+  if (errRitiri) {
+    return json({
+      ok: false,
+      error: 'RITIRI_NON_LEGGIBILI',
+      dettaglio: errRitiri.message,
+      n_previsti: lista.length,
+      n_inviate: inviate,
+      n_errori: errori,
+      tipi: perTipo
+    }, 500)
+  }
+
+  const ritiriLista = ((daChiudere || []) as CandidatoRitiro[]).filter(c =>
+    c?.utente_id && emailValida((c.email || '').trim()) && c.codice
+  )
+  let chiuse = 0
+  let erroriChiusura = 0
+  const chiusi: { codice: string, tipo: Candidato['tipo'] }[] = []
+
+  for (const c of ritiriLista) {
+    const okMail = await inviaEmail({
+      to: c.email.trim().toLowerCase(),
+      oggetto: 'Account chiuso per inattività — Percorso MBSR',
+      testo: testoAccountChiuso()
+    })
+    const { error: errRitiro } = await admin.rpc('ritira_inattivo', {
+      p_utente_id: c.utente_id
+    })
+    if (errRitiro) {
+      erroriChiusura += 1
+      continue
+    }
+    chiuse += 1
+    chiusi.push({ codice: c.codice, tipo: c.tipo })
+    if (!okMail) erroriChiusura += 1
+  }
+
+  if (inviate > 0 || chiuse > 0) {
+    const righe = [
+      ...inviati.map(r => `- avviso · ${r.codice} · ${etichettaTipo(r.tipo)}`),
+      ...chiusi.map(r => `- chiusura · ${r.codice} · ${etichettaTipo(r.tipo)}`)
+    ]
     await inviaEmail({
       to: REPLY_TO,
-      oggetto: `Promemoria inattività: ${inviate} invii`,
+      oggetto: `Inattività: ${inviate} avvisi, ${chiuse} chiusure`,
       testo: [
-        'Promemoria automatici inviati agli iscritti solo da remoto.',
+        'Controllo automatico degli iscritti solo da remoto.',
         '',
         ...righe,
         '',
@@ -210,10 +275,12 @@ Deno.serve(async (req) => {
   }
 
   return json({
-    ok: inviate > 0 || lista.length === 0,
+    ok: (inviate > 0 || lista.length === 0) && erroriChiusura === 0,
     n_previsti: lista.length,
     n_inviate: inviate,
     n_errori: errori,
+    n_chiusure: chiuse,
+    n_errori_chiusura: erroriChiusura,
     tipi: perTipo
   })
 })

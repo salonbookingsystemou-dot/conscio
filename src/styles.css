@@ -2815,6 +2815,51 @@ a { color: var(--moss-dark); }
   align-items: center;
   gap: 6px;
 }
+.conteggio-informali {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 8px;
+}
+.conteggio-informali-gruppo h4 {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  margin: 0 0 8px;
+}
+.conteggio-informali-gruppo ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.conteggio-informali-gruppo li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+  font-size: 15px;
+}
+.conteggio-informali-nome {
+  color: var(--ink);
+}
+.conteggio-informali-n {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--moss-dark);
+}
+.chip-volte {
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+.chip-spunta.is-on .chip-volte {
+  color: var(--moss-dark);
+}
 .grafico-tip-media {
   margin-top: 6px !important;
   padding-top: 6px;
