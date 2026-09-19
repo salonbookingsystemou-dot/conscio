@@ -2799,10 +2799,17 @@ a { color: var(--moss-dark); }
   border-radius: 50%;
 }
 .grafico-barra-tono,
+.grafico-barra-informale,
 .grafico-legenda-tono,
 .grafico-tip-tono-icona {
   display: block;
   overflow: visible;
+}
+.grafico-tip-informale {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 4px;
 }
 .grafico-legenda-tono,
 .grafico-tip-tono-icona {

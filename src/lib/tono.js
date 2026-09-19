@@ -60,15 +60,23 @@ export function serieMinutiGiornalieri(righe) {
     const iso = String(riga.data || '').slice(0, 10)
     const codice = riga.codice_partecipante
     if (!iso || !codice) continue
-    if (String(riga.tipo || '').toLowerCase() === 'informale') continue
-    const minuti = Number(riga.durata_minuti)
-    const aggiunta = Number.isFinite(minuti) && minuti > 0 ? minuti : 0
-    if (aggiunta <= 0 && !tonoSessione(riga)) continue
+    const tipo = String(riga.tipo || '').toLowerCase()
     if (!perGiorno.has(iso)) perGiorno.set(iso, new Map())
     const utenti = perGiorno.get(iso)
-    const prev = utenti.get(codice) || { minuti: 0, tono: null }
-    prev.minuti += aggiunta
+    const prev = utenti.get(codice) || { minuti: 0, tono: null, informali: [] }
+
+    if (tipo === 'informale') {
+      const nome = String(riga.esercizio || '').trim() || 'pratica informale'
+      if (!prev.informali.includes(nome)) prev.informali.push(nome)
+      utenti.set(codice, prev)
+      continue
+    }
+
+    const minuti = Number(riga.durata_minuti)
+    const aggiunta = tipo !== 'giorno' && Number.isFinite(minuti) && minuti > 0 ? minuti : 0
     const tono = tonoSessione(riga)
+    if (aggiunta <= 0 && !tono) continue
+    prev.minuti += aggiunta
     if (tono) prev.tono = tono
     utenti.set(codice, prev)
     if (prev.minuti > 0) codiciVisti.add(codice)
@@ -86,13 +94,14 @@ export function serieMinutiGiornalieri(righe) {
   for (let d = inizio; d <= fine; d = addDays(d, 1)) {
     const iso = formatISODate(d)
     const utenti = perGiorno.get(iso) || new Map()
-    const riga = { iso, data: etichettaDataCorta(iso), media: null, toni: {} }
+    const riga = { iso, data: etichettaDataCorta(iso), media: null, toni: {}, informali: {} }
     const valori = []
     for (const codice of listaCodici) {
       const voce = utenti.get(codice)
       if (!voce || !(voce.minuti > 0)) continue
       riga[codice] = voce.minuti
       riga.toni[codice] = voce.tono
+      riga.informali[codice] = voce.informali || []
       valori.push(voce.minuti)
     }
     if (valori.length > 0) {

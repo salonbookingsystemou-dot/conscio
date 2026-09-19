@@ -1181,12 +1181,12 @@ begin
   if v_id is not null then
     update log_pratica
     set note = trim(p_note),
-        durata_minuti = coalesce(p_durata, durata_minuti),
+        durata_minuti = null,
         tono_dopo = v_dopo
     where id = v_id;
   else
     insert into log_pratica (utente_id, esercizio_id, data, durata_minuti, note, tipo, tono_dopo)
-    values (v_utente_id, null, v_giorno, p_durata, trim(p_note), 'giorno', v_dopo)
+    values (v_utente_id, null, v_giorno, null, trim(p_note), 'giorno', v_dopo)
     returning id into v_id;
   end if;
 

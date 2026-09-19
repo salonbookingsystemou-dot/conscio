@@ -18,7 +18,10 @@ function aggregaGiorni(sessioni) {
     if (!chiave) continue
     const prev = mappa.get(chiave) || { n: 0, minuti: 0 }
     prev.n += 1
-    prev.minuti += Number(riga.durata_minuti) || 0
+    const tipo = String(riga.tipo || '').toLowerCase()
+    if (tipo !== 'giorno' && tipo !== 'informale') {
+      prev.minuti += Number(riga.durata_minuti) || 0
+    }
     mappa.set(chiave, prev)
   }
   return mappa

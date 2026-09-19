@@ -20,7 +20,6 @@ import {
   chiaveAscoltoEsercizio,
   almenoUnFormaleAscoltatoNelGiorno,
   memorizzaAscoltiDaProgramma,
-  minutiFormaliAscoltatiNelGiorno,
   salvaAscoltoFormale,
   sincronizzaAscoltiLocaliVersoServer
 } from '../lib/ascolto.js'
@@ -150,7 +149,6 @@ function spuntatoNelGiorno(esercizio, data) {
 function AnnotazioniGiorno({
   codice,
   data,
-  durataMinuti,
   annotazioni,
   puoRegistrare,
   onSalvato
@@ -172,7 +170,7 @@ function AnnotazioniGiorno({
       p_codice: codice.trim(),
       p_data: data,
       p_note: note.trim(),
-      p_durata: durataMinuti > 0 ? durataMinuti : null,
+      p_durata: null,
       p_tono_dopo: tonoDopo || null
     })
     if (error) {
@@ -413,12 +411,6 @@ export default function Programma() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [codice, corrente, dataScelta, formali, tickAscolto])
 
-  const durataGiorno = useMemo(() => {
-    if (!codice) return 0
-    return minutiFormaliAscoltatiNelGiorno(formali, codice.trim(), dataScelta)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [codice, dataScelta, formali, tickAscolto])
-
   function applicaSpuntaLocale(esercizio, fatto) {
     const giorno = String(dataScelta).slice(0, 10)
     setLezioni(prev => prev.map(l => ({
@@ -620,7 +612,6 @@ export default function Programma() {
               <AnnotazioniGiorno
                 codice={codice}
                 data={dataScelta}
-                durataMinuti={durataGiorno}
                 annotazioni={corrente.annotazioni_giorno || []}
                 puoRegistrare={ascoltoOk}
                 onSalvato={() => {

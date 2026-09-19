@@ -11,12 +11,16 @@ import {
   YAxis
 } from 'recharts'
 import { coloreTono, conteggioInformali, etichettaTono, etichettaVolte, serieMinutiGiornalieri } from '../lib/tono.js'
+import InformalIcon from './InformalIcon.jsx'
 import TonoIcon from './TonoIcon.jsx'
 
 function BarraConTono({ x, y, width, height, fill, payload, codice }) {
   if (!(width > 0) || !(height > 0)) return null
   const tono = payload?.toni?.[codice]
-  const lato = Math.max(12, Math.min(18, width + 2))
+  const informali = payload?.informali?.[codice] || []
+  const lato = Math.max(12, Math.min(16, width + 2))
+  const cx = x + width / 2 - lato / 2
+  const yTono = tono ? y - lato - 3 : y
   return (
     <g>
       <rect x={x} y={y} width={width} height={height} rx="2.5" fill={fill} />
@@ -24,13 +28,23 @@ function BarraConTono({ x, y, width, height, fill, payload, codice }) {
         <TonoIcon
           id={tono}
           className="grafico-barra-tono"
-          x={x + width / 2 - lato / 2}
-          y={y - lato - 3}
+          x={cx}
+          y={yTono}
           width={lato}
           height={lato}
           color={coloreTono(tono)}
         />
       )}
+      {informali.map((nome, i) => (
+        <InformalIcon
+          key={`${codice}-${nome}`}
+          className="grafico-barra-informale"
+          x={cx}
+          y={yTono - (i + 1) * (lato + 2)}
+          width={lato}
+          height={lato}
+        />
+      ))}
     </g>
   )
 }
@@ -61,6 +75,17 @@ function TooltipMinuti({ active, payload, label }) {
             {' '}
             {p.value} min
             {riga?.toni?.[p.dataKey] ? ` · ${etichettaTono(riga.toni[p.dataKey])}` : ''}
+            {(riga?.informali?.[p.dataKey] || []).length > 0 ? (
+              <>
+                {' · '}
+                {(riga.informali[p.dataKey]).map(nome => (
+                  <span key={nome} className="grafico-tip-informale">
+                    <InformalIcon className="grafico-tip-tono-icona" />
+                    {nome}
+                  </span>
+                ))}
+              </>
+            ) : null}
           </p>
         ))
       )}
@@ -78,6 +103,7 @@ function LegendaTono() {
       <li><TonoIcon id="neutro" className="grafico-legenda-tono" color={coloreTono('neutro')} /> Neutro</li>
       <li><TonoIcon id="spiacevole" className="grafico-legenda-tono" color={coloreTono('spiacevole')} /> Spiacevole</li>
       <li><span className="is-sconosciuto" /> Senza tono</li>
+      <li><InformalIcon className="grafico-legenda-tono" /> Pratica informale</li>
       <li><span className="is-media" /> Media del giorno</li>
     </ul>
   )
@@ -163,9 +189,9 @@ export default function GraficiTono({ sessioni, ambito }) {
             {minutiTotali} min in tutto
           </p>
           <div className="grafico-andamento-scorri">
-            <div className="grafico-box" style={{ minWidth: larghezza, height: 292 }}>
-              <ResponsiveContainer width="100%" height={292}>
-                <ComposedChart data={giorni} margin={{ top: 26, right: 12, left: 0, bottom: 4 }}>
+            <div className="grafico-box" style={{ minWidth: larghezza, height: 318 }}>
+              <ResponsiveContainer width="100%" height={318}>
+                <ComposedChart data={giorni} margin={{ top: 52, right: 12, left: 0, bottom: 4 }}>
                   <CartesianGrid stroke="#DAD9CE" strokeDasharray="3 3" vertical={false} />
                   <XAxis
                     dataKey="data"
