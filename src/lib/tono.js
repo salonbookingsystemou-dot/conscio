@@ -45,13 +45,28 @@ function tonoSessione(riga) {
   return riga?.tono_dopo || riga?.tono_prima || null
 }
 
-/** Una sessione = «Registra la pratica di oggi», non ascolti o spunte informali. */
-export function eSessioneRegistrata(riga) {
-  return String(riga?.tipo || '').toLowerCase() === 'giorno'
+const TIPI_SESSIONE = new Set(['giorno', 'ascolto', 'formale', 'a_casa'])
+
+/** Riga che fa pratica formale: giorno registrato oppure solo ascolto, non le informali. */
+export function eRigaSessione(riga) {
+  return TIPI_SESSIONE.has(String(riga?.tipo || '').toLowerCase())
 }
 
+function chiaveSessione(riga) {
+  const chi = riga?.codice_partecipante || riga?.utente_id || ''
+  const iso = String(riga?.data || '').slice(0, 10)
+  return chi && iso ? `${chi}|${iso}` : ''
+}
+
+/** Un giorno di pratica per persona: conta anche senza note o umore. */
 export function contaSessioni(righe) {
-  return (righe || []).filter(eSessioneRegistrata).length
+  const viste = new Set()
+  for (const riga of righe || []) {
+    if (!eRigaSessione(riga)) continue
+    const chiave = chiaveSessione(riga)
+    if (chiave) viste.add(chiave)
+  }
+  return viste.size
 }
 
 /** Minuti per codice e giorno, con tono dell’ultima sessione e media giornaliera. */

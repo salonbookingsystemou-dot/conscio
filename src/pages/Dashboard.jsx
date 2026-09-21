@@ -17,7 +17,7 @@ import EditorSplash from '../components/EditorSplash.jsx'
 import DialogConferma from '../components/DialogConferma.jsx'
 import { EMAIL_CONTATTO, STRUMENTI } from '../lib/contatti.js'
 import { addDays, formatISODate, oggiLocaleISO, parseISODate } from '../lib/date.js'
-import { eSessioneRegistrata } from '../lib/tono.js'
+import { contaSessioni } from '../lib/tono.js'
 
 const ESITI = [
   { id: 'in_attesa', label: 'In attesa' },
@@ -644,11 +644,10 @@ export default function Dashboard() {
     }
 
     const soglia = addDays(parseISODate(oggiLocaleISO()), -6)
-    const log7 = log.filter(l => {
-      if (!eSessioneRegistrata(l)) return false
+    const log7 = contaSessioni(log.filter(l => {
       const d = parseISODate(l.data)
       return d && soglia && d >= soglia
-    }).length
+    }))
     return {
       attivi,
       inAttesa,
