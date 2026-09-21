@@ -45,6 +45,15 @@ function tonoSessione(riga) {
   return riga?.tono_dopo || riga?.tono_prima || null
 }
 
+/** Una sessione = «Registra la pratica di oggi», non ascolti o spunte informali. */
+export function eSessioneRegistrata(riga) {
+  return String(riga?.tipo || '').toLowerCase() === 'giorno'
+}
+
+export function contaSessioni(righe) {
+  return (righe || []).filter(eSessioneRegistrata).length
+}
+
 /** Minuti per codice e giorno, con tono dell’ultima sessione e media giornaliera. */
 export function serieMinutiGiornalieri(righe) {
   const perGiorno = new Map()

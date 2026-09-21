@@ -7,7 +7,7 @@ import {
   XAxis,
   YAxis
 } from 'recharts'
-import { coloreTono, conteggioInformali, etichettaVolte, serieMinutiGiornalieri } from '../lib/tono.js'
+import { coloreTono, contaSessioni, conteggioInformali, etichettaVolte, serieMinutiGiornalieri } from '../lib/tono.js'
 import TonoIcon from './TonoIcon.jsx'
 
 const RAGGIO = 13
@@ -114,7 +114,7 @@ export default function GraficiTono({ sessioni, ambito }) {
   }, [giorni])
   const passo = Math.max(72, codici.length * 18)
   const larghezza = Math.max(giorniAsse.length * passo, 280)
-  const nSessioni = (sessioni || []).filter(s => String(s.tipo || '').toLowerCase() !== 'informale').length
+  const nSessioni = contaSessioni(sessioni)
   const minutiTotali = giorni.reduce((acc, g) => (
     acc + codici.reduce((sum, codice) => sum + (Number(g[codice]) || 0), 0)
   ), 0)
