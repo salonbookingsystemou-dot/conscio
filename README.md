@@ -15,7 +15,8 @@ PWA per gestire iscrizioni, cicli, lezioni, questionari e comunicazioni del perc
    `migrazione_modalita_fruizione.sql` (posti in presenza + fruizione remota),
    `migrazione_libreria_tracce.sql` (catalogo audio riusabile tra settimane e cicli),
    `migrazione_comunicazioni_remoto.sql` (avvisi solo agli utenti in remoto)
-   e `migrazione_inattivita_remoto.sql` + `migrazione_inattivita_15_giorni.sql` (avviso e chiusura se il percorso da remoto non parte).
+   e `migrazione_inattivita_remoto.sql` + `migrazione_inattivita_15_giorni.sql` (avviso e chiusura se il percorso da remoto non parte),
+   `migrazione_citazioni_incoraggiamento.sql` (email con citazione dopo la pratica del giorno).
 3. In Authentication → Users crea l’account del facilitatore. Poi in SQL:
 
    ```
@@ -67,6 +68,25 @@ Ogni avviso si invia **una sola volta**. Una copia riassuntiva (solo codici) arr
    - workflow `.github/workflows/notifica-inattivita.yml` (secret `SUPABASE_FUNCTIONS_URL` e `CRON_SECRET`)
 5. Dalla pagina Avvisi il facilitatore può anche premere «Controlla e invia ora».
 
+## Incoraggiamento dopo la pratica
+
+Quando un partecipante preme «Registra la pratica di oggi» (`log_pratica.tipo = 'giorno'`), parte un’email con conferma del giorno (1–56) e una citazione del tema della settimana. Le citazioni si inseriscono a mano in `quotes` (SQL o Studio): non vengono generate dal codice.
+
+1. Nell’SQL editor esegui `supabase/migrazione_citazioni_incoraggiamento.sql`.
+2. Imposta i secret `RESEND_API_KEY` (già usato dalle altre email) e `ENCOURAGEMENT_SECRET`. Opzionale: `RESEND_FROM` o `EMAIL_FROM` (il dominio mittente va verificato su Resend).
+3. Distribuisci: `supabase functions deploy invia-incoraggiamento-pratica --no-verify-jwt`.
+4. Il trigger sul database è già stato creato via SQL (`trg_invia_incoraggiamento_pratica` su INSERT di `log_pratica`, solo `tipo = 'giorno'`).
+   Se vuoi vederlo in Dashboard: **Integrations → Webhooks**
+   (non è più sotto Database). Link diretto:
+   `https://supabase.com/dashboard/project/<ref>/integrations/webhooks/overview`
+5. Prova senza una sessione reale:
+   ```
+   ENCOURAGEMENT_SECRET=... FUNCTIONS_URL=https://<ref>.supabase.co/functions/v1 \
+     supabase/functions/invia-incoraggiamento-pratica/prova.sh --codice CODICE123 --settimana 1
+   ```
+
+Un fallimento dell’invio non tocca il salvataggio della pratica: l’errore resta nei log della funzione. Una sola email per partecipante per giorno di pratica.
+
 ## Protezione accessi (porta)
 
 Entra, Iscrizione, recupero codice e Accedi facilitatore passano dall’edge function `porta` (tetto tentativi per IP hashato).
@@ -94,6 +114,7 @@ Vedi `supabase/schema.sql` per lo schema completo. Le tabelle principali:
 - `questionari` / `item` / `risposte` — PSS-10 e FFMQ-I, con timepoint T0/T1/T2/T3
 - `comunicazioni` — promemoria e annunci per ciclo
 - `notifiche_inattivita` — traccia dei promemoria automatici agli iscritti solo da remoto
+- `quotes` / `quote_sent_log` — citazioni per l’email di incoraggiamento dopo la pratica del giorno (solo service role)
 
 ## Superfici dell’app
 
