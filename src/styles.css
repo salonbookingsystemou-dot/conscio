@@ -2752,6 +2752,39 @@ a { color: var(--moss-dark); }
   color: var(--ink);
 }
 .grafico-tip p { margin: 0 0 2px; }
+.grafico-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+.grafico-stats li {
+  min-width: 0;
+  padding: 12px 12px 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--tint);
+}
+.grafico-stats-etichetta {
+  display: block;
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.grafico-stats-valore {
+  display: block;
+  margin: 0;
+  font-size: clamp(1.35rem, 3.2vw, 1.7rem);
+  font-weight: 700;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  color: var(--moss-dark);
+}
 .grafico-andamento-scorri {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -2800,6 +2833,9 @@ a { color: var(--moss-dark); }
 }
 .grafico-barra-tono,
 .grafico-barra-informale,
+.grafico-cerchio-tono,
+.grafico-cerchio-volto,
+.grafico-cerchio-informale,
 .grafico-legenda-tono,
 .grafico-tip-tono-icona {
   display: block;
