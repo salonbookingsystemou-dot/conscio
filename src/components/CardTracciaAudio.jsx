@@ -7,6 +7,18 @@ import {
   precaricaCampanaTibetana,
   suonaCampanaTibetana
 } from '../lib/campanaTibetana.js'
+import {
+  applicaPlaysInline,
+  ascoltaPausaAltreTracce,
+  avviaPlay,
+  avviaSblocco,
+  browserAudioRestrittivo,
+  erroreMediaIgnorabile,
+  errorePlayIgnorabile,
+  messaggioErroreRiproduzione,
+  pausaAltreTracce,
+  riavvolgiSicuro
+} from '../lib/riproduzioneAudio.js'
 
 const ACCENTO_DEFAULT = '#3F5443'
 /* Silhouette copiata dal mock (40 barre, altezze relative 29–97). */
@@ -109,6 +121,22 @@ export default function CardTracciaAudio({
   }, [])
 
   useEffect(() => {
+    applicaPlaysInline(audioRef.current)
+  }, [src])
+
+  useEffect(() => {
+    return ascoltaPausaAltreTracce(audioRef, () => {
+      annullaAvvioRef.current = true
+      campanaRef.current?.ferma()
+      campanaRef.current = null
+      setInCampana(false)
+      const el = audioRef.current
+      if (el) el.pause()
+      setInRiproduzione(false)
+    })
+  }, [])
+
+  useEffect(() => {
     if (anteprima || !src) return
     assicuraTracciaOffline(urlAudioSenzaTesto(src))
   }, [src, anteprima])
@@ -132,7 +160,7 @@ export default function CardTracciaAudio({
     const el = audioRef.current
     if (el) {
       el.pause()
-      el.currentTime = 0
+      riavvolgiSicuro(el)
     }
     onCompletoRef.current?.(gia)
     onDurataRef.current?.(0)
@@ -208,56 +236,33 @@ export default function CardTracciaAudio({
     registraDurata(e.currentTarget.duration)
   }
 
-  async function sbloccaAudio(el) {
-    ignoraEventiRef.current = true
-    el.muted = true
-    el.volume = 0
-    try {
-      const avvio = el.play().catch(() => {})
-      await Promise.race([
-        avvio,
-        new Promise(risolvi => window.setTimeout(risolvi, 80))
-      ])
-      el.pause()
-      el.currentTime = 0
-      lastRef.current = 0
-      avvio.then(() => {
-        if (campanaRef.current || ignoraEventiRef.current) {
-          el.pause()
-          try { el.currentTime = 0 } catch { /* ignore */ }
-        }
-      }).catch(() => {})
-    } catch {
-      /* sblocco Safari */
-    }
-    el.volume = 0
-    el.muted = true
-  }
-
   async function ascolta() {
     const el = audioRef.current
     if (!el) return
+    applicaPlaysInline(el)
+    pausaAltreTracce(el)
     const dallInizio = el.currentTime < 0.15
+    const skipCampana = dallInizio && browserAudioRestrittivo()
     annullaAvvioRef.current = false
-    if (!anteprima) assicuraTracciaOffline(src)
+    if (!anteprima) assicuraTracciaOffline(urlAudioSenzaTesto(src))
     try {
       setErrore(false)
-      if (dallInizio) {
+      if (dallInizio && !skipCampana) {
         contaAscoltoRef.current = false
         ignoraEventiRef.current = true
         setInCampana(true)
         setInRiproduzione(true)
+        /* Traccia per prima: il gesto utente sblocca l’elemento che deve suonare. */
+        const sblocco = avviaSblocco(el)
         void precaricaCampanaTibetana()
         const suono = suonaCampanaTibetana()
         campanaRef.current = suono
-        const sblocco = sbloccaAudio(el)
-        const esito = await suono.attesa
+        const [esito] = await Promise.all([suono.attesa, sblocco.chiudi()])
         campanaRef.current = null
         if (annullaAvvioRef.current || esito !== 'fine') {
           setInCampana(false)
           setInRiproduzione(false)
           ignoraEventiRef.current = false
-          await sblocco
           return
         }
         await new Promise(risolvi => window.setTimeout(risolvi, GAP_DOPO_CAMPANA_MS))
@@ -265,30 +270,39 @@ export default function CardTracciaAudio({
           setInCampana(false)
           setInRiproduzione(false)
           ignoraEventiRef.current = false
-          await sblocco
           return
         }
         setInCampana(false)
-        await sblocco
         el.pause()
-        el.currentTime = 0
+        riavvolgiSicuro(el)
         el.muted = false
         el.volume = 1
         playedRef.current = 0
         lastRef.current = 0
         ignoraEventiRef.current = false
+      } else if (dallInizio && skipCampana) {
+        contaAscoltoRef.current = false
+        el.muted = false
+        el.volume = 1
+        riavvolgiSicuro(el)
+        playedRef.current = 0
+        lastRef.current = 0
       }
       if (annullaAvvioRef.current) {
         setInRiproduzione(false)
         return
       }
       contaAscoltoRef.current = true
-      await el.play()
+      await avviaPlay(el)
       setInRiproduzione(true)
-    } catch {
+    } catch (err) {
       campanaRef.current?.ferma()
       campanaRef.current = null
       setInCampana(false)
+      if (errorePlayIgnorabile(err) || annullaAvvioRef.current) {
+        setInRiproduzione(false)
+        return
+      }
       setErrore(true)
       setInRiproduzione(false)
     }
@@ -319,7 +333,7 @@ export default function CardTracciaAudio({
     const el = audioRef.current
     if (!el) return
     el.pause()
-    el.currentTime = 0
+    riavvolgiSicuro(el)
     lastRef.current = 0
     playedRef.current = 0
     setInRiproduzione(false)
@@ -371,22 +385,23 @@ export default function CardTracciaAudio({
         className="player-audio-nativo"
         src={srcAudio}
         preload="metadata"
+        playsInline
         onTimeUpdate={onTimeUpdate}
         onSeeking={onSeeking}
         onEnded={onEnded}
         onLoadedMetadata={onLoadedMetadata}
-        onPlay={e => {
-          if (ignoraEventiRef.current || campanaRef.current) {
-            e.currentTarget.pause()
-            return
-          }
+        onPlay={() => {
+          if (ignoraEventiRef.current || campanaRef.current) return
           setInRiproduzione(true)
         }}
         onPause={() => {
           if (ignoraEventiRef.current || campanaRef.current) return
           setInRiproduzione(false)
         }}
-        onError={() => setErrore(true)}
+        onError={e => {
+          if (ignoraEventiRef.current || erroreMediaIgnorabile(e.currentTarget)) return
+          setErrore(true)
+        }}
       >
         Il browser non riproduce questa traccia.
       </audio>
@@ -436,7 +451,7 @@ export default function CardTracciaAudio({
       </div>
       {errore && (
         <p className="campo-errore" role="alert">
-          Non è stato possibile riprodurre la traccia. Riprova.
+          {messaggioErroreRiproduzione()}
         </p>
       )}
     </article>

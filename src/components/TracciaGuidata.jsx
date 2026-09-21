@@ -1,11 +1,24 @@
 import { useEffect, useRef, useState } from 'react'
 import { ascoltoCompletato, recuperaAscoltoSeManca, registraAscoltoCompleto } from '../lib/ascolto.js'
 import { assicuraTracciaOffline } from '../lib/cacheTracce.js'
+import { urlAudioSenzaTesto } from '../lib/tracce.js'
 import {
   GAP_DOPO_CAMPANA_MS,
   precaricaCampanaTibetana,
   suonaCampanaTibetana
 } from '../lib/campanaTibetana.js'
+import {
+  applicaPlaysInline,
+  ascoltaPausaAltreTracce,
+  avviaPlay,
+  avviaSblocco,
+  browserAudioRestrittivo,
+  erroreMediaIgnorabile,
+  errorePlayIgnorabile,
+  messaggioErroreRiproduzione,
+  pausaAltreTracce,
+  riavvolgiSicuro
+} from '../lib/riproduzioneAudio.js'
 
 function formattaTempo(secondi) {
   if (!Number.isFinite(secondi) || secondi < 0) return '0:00'
@@ -81,10 +94,26 @@ export default function TracciaGuidata({
     precaricaCampanaTibetana()
   }, [])
 
+  useEffect(() => {
+    applicaPlaysInline(audioRef.current)
+  }, [src])
+
+  useEffect(() => {
+    return ascoltaPausaAltreTracce(audioRef, () => {
+      annullaAvvioRef.current = true
+      campanaRef.current?.ferma()
+      campanaRef.current = null
+      setInCampana(false)
+      const el = audioRef.current
+      if (el) el.pause()
+      setInRiproduzione(false)
+    })
+  }, [])
+
   // Scarica in background la traccia reale così è disponibile anche offline.
   useEffect(() => {
     if (anteprima || !src) return
-    assicuraTracciaOffline(src)
+    assicuraTracciaOffline(urlAudioSenzaTesto(src))
   }, [src, anteprima])
 
   useEffect(() => {
@@ -107,7 +136,7 @@ export default function TracciaGuidata({
     const el = audioRef.current
     if (el) {
       el.pause()
-      el.currentTime = 0
+      riavvolgiSicuro(el)
     }
     onCompletoRef.current?.(gia)
     onDurataRef.current?.(0)
@@ -179,59 +208,33 @@ export default function TracciaGuidata({
     registraDurata(e.currentTarget.duration)
   }
 
-  async function sbloccaAudio(el) {
-    ignoraEventiRef.current = true
-    el.muted = true
-    el.volume = 0
-    try {
-      const avvio = el.play().catch(() => {})
-      await Promise.race([
-        avvio,
-        new Promise(risolvi => window.setTimeout(risolvi, 80))
-      ])
-      el.pause()
-      el.currentTime = 0
-      lastRef.current = 0
-      /* Se play() si conclude dopo la pausa, la traccia corta in cache
-         ripartirebbe a volume: la teniamo muta e ferma fino alla campana. */
-      avvio.then(() => {
-        if (campanaRef.current || ignoraEventiRef.current) {
-          el.pause()
-          try { el.currentTime = 0 } catch { /* ignore */ }
-        }
-      }).catch(() => {})
-    } catch {
-      /* lo sblocco serve a Safari; se fallisce, play() dopo la campana riprova */
-    }
-    el.volume = 0
-    el.muted = true
-  }
-
   async function ascolta() {
     const el = audioRef.current
     if (!el) return
+    applicaPlaysInline(el)
+    pausaAltreTracce(el)
     const dallInizio = el.currentTime < 0.15
+    const skipCampana = dallInizio && browserAudioRestrittivo()
     annullaAvvioRef.current = false
-    if (!anteprima) assicuraTracciaOffline(src)
+    if (!anteprima) assicuraTracciaOffline(urlAudioSenzaTesto(src))
     try {
       setErrore(false)
-      if (dallInizio) {
+      if (dallInizio && !skipCampana) {
         contaAscoltoRef.current = false
         ignoraEventiRef.current = true
         setInCampana(true)
         setInRiproduzione(true)
-        /* Campana PRIMA di ogni altra play(): su iOS il gesto vale solo per la prima. */
+        /* Traccia per prima: il gesto utente sblocca l’elemento che deve suonare. */
+        const sblocco = avviaSblocco(el)
         void precaricaCampanaTibetana()
         const suono = suonaCampanaTibetana()
         campanaRef.current = suono
-        const sblocco = sbloccaAudio(el)
-        const esito = await suono.attesa
+        const [esito] = await Promise.all([suono.attesa, sblocco.chiudi()])
         campanaRef.current = null
         if (annullaAvvioRef.current || esito !== 'fine') {
           setInCampana(false)
           setInRiproduzione(false)
           ignoraEventiRef.current = false
-          await sblocco
           return
         }
         await new Promise(risolvi => window.setTimeout(risolvi, GAP_DOPO_CAMPANA_MS))
@@ -239,30 +242,39 @@ export default function TracciaGuidata({
           setInCampana(false)
           setInRiproduzione(false)
           ignoraEventiRef.current = false
-          await sblocco
           return
         }
         setInCampana(false)
-        await sblocco
         el.pause()
-        el.currentTime = 0
+        riavvolgiSicuro(el)
         el.muted = false
         el.volume = 1
         playedRef.current = 0
         lastRef.current = 0
         ignoraEventiRef.current = false
+      } else if (dallInizio && skipCampana) {
+        contaAscoltoRef.current = false
+        el.muted = false
+        el.volume = 1
+        riavvolgiSicuro(el)
+        playedRef.current = 0
+        lastRef.current = 0
       }
       if (annullaAvvioRef.current) {
         setInRiproduzione(false)
         return
       }
       contaAscoltoRef.current = true
-      await el.play()
+      await avviaPlay(el)
       setInRiproduzione(true)
-    } catch {
+    } catch (err) {
       campanaRef.current?.ferma()
       campanaRef.current = null
       setInCampana(false)
+      if (errorePlayIgnorabile(err) || annullaAvvioRef.current) {
+        setInRiproduzione(false)
+        return
+      }
       setErrore(true)
       setInRiproduzione(false)
     }
@@ -293,7 +305,7 @@ export default function TracciaGuidata({
     const el = audioRef.current
     if (!el) return
     el.pause()
-    el.currentTime = 0
+    riavvolgiSicuro(el)
     lastRef.current = 0
     playedRef.current = 0
     contatoGiro.current = false
@@ -321,24 +333,25 @@ export default function TracciaGuidata({
       <audio
         ref={audioRef}
         className="player-audio-nativo"
-        src={src}
+        src={urlAudioSenzaTesto(src)}
         preload="metadata"
+        playsInline
         onTimeUpdate={onTimeUpdate}
         onSeeking={onSeeking}
         onEnded={onEnded}
         onLoadedMetadata={onLoadedMetadata}
-        onPlay={e => {
-          if (ignoraEventiRef.current || campanaRef.current) {
-            e.currentTarget.pause()
-            return
-          }
+        onPlay={() => {
+          if (ignoraEventiRef.current || campanaRef.current) return
           setInRiproduzione(true)
         }}
         onPause={() => {
           if (ignoraEventiRef.current || campanaRef.current) return
           setInRiproduzione(false)
         }}
-        onError={() => setErrore(true)}
+        onError={e => {
+          if (ignoraEventiRef.current || erroreMediaIgnorabile(e.currentTarget)) return
+          setErrore(true)
+        }}
       >
         Il browser non riproduce questa traccia.
       </audio>
@@ -390,7 +403,7 @@ export default function TracciaGuidata({
       <p className="hint">{completo ? 'Completata' : `Ascolto ${percento}%`}</p>
       {errore && (
         <p className="campo-errore" role="alert">
-          Non è stato possibile riprodurre la traccia. Riprova.
+          {messaggioErroreRiproduzione()}
         </p>
       )}
     </div>
