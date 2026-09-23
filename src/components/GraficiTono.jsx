@@ -175,7 +175,7 @@ export default function GraficiTono({ sessioni, ambito }) {
             </li>
           </ul>
           <div className="grafico-con-asse">
-            <div className="grafico-asse-y" style={{ width: LARGHEZZA_ASSE, height: ALTEZZA }} aria-hidden="true">
+            <div className="grafico-asse-y" style={{ width: LARGHEZZA_ASSE + 1, height: ALTEZZA }} aria-hidden="true">
               <ComposedChart
                 width={160}
                 height={ALTEZZA}
@@ -189,8 +189,6 @@ export default function GraficiTono({ sessioni, ambito }) {
                   allowDecimals={false}
                   tick={{ fill: '#5B665F', fontSize: 11 }}
                   width={LARGHEZZA_ASSE}
-                  axisLine={false}
-                  tickLine={false}
                 />
                 <Line dataKey="media" stroke="none" dot={false} activeDot={false} isAnimationActive={false} legendType="none" />
               </ComposedChart>
