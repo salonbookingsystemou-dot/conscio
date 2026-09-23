@@ -12,6 +12,28 @@ import TonoIcon from './TonoIcon.jsx'
 
 const RAGGIO = 13
 const SPOSTA = 18
+const ALTEZZA = 300
+const LARGHEZZA_ASSE = 36
+const ALTEZZA_ASSE_X = 36
+const MARGINE = { top: 18, bottom: 4 }
+
+function dominioMinuti(giorni, codici) {
+  let max = 0
+  for (const giorno of giorni) {
+    if (Number.isFinite(giorno.media)) max = Math.max(max, giorno.media)
+    for (const codice of codici) max = Math.max(max, Number(giorno[codice]) || 0)
+  }
+  if (max <= 0) return [0, 5]
+  const passo = max <= 20 ? 5 : max <= 50 ? 10 : max <= 120 ? 20 : 50
+  return [0, Math.ceil(max / passo) * passo]
+}
+
+function taccheMinuti([min, max]) {
+  const passo = max <= 20 ? 5 : max <= 50 ? 10 : max <= 120 ? 20 : 50
+  const tacche = []
+  for (let valore = min; valore <= max; valore += passo) tacche.push(valore)
+  return tacche
+}
 
 function TickGiorno({ x, y, payload }) {
   const testo = payload?.value
@@ -114,6 +136,8 @@ export default function GraficiTono({ sessioni, ambito }) {
   }, [giorni])
   const passo = Math.max(72, codici.length * 18)
   const larghezza = Math.max(giorniAsse.length * passo, 280)
+  const dominio = useMemo(() => dominioMinuti(giorni, codici), [giorni, codici])
+  const tacche = useMemo(() => taccheMinuti(dominio), [dominio])
   const nSessioni = contaSessioni(sessioni)
   const minutiTotali = giorni.reduce((acc, g) => (
     acc + codici.reduce((sum, codice) => sum + (Number(g[codice]) || 0), 0)
@@ -150,22 +174,44 @@ export default function GraficiTono({ sessioni, ambito }) {
               <strong className="grafico-stats-valore">{minutiTotali}</strong>
             </li>
           </ul>
-          <div className="grafico-andamento-scorri">
-            <div className="grafico-box" style={{ minWidth: larghezza, height: 300 }}>
-              <ResponsiveContainer width="100%" height={300}>
-                <ComposedChart data={giorniAsse} margin={{ top: 18, right: 20, left: 0, bottom: 4 }}>
+          <div className="grafico-con-asse">
+            <div className="grafico-asse-y" style={{ width: LARGHEZZA_ASSE, height: ALTEZZA }} aria-hidden="true">
+              <ComposedChart
+                width={160}
+                height={ALTEZZA}
+                data={giorniAsse}
+                margin={{ top: MARGINE.top, right: 0, left: 0, bottom: MARGINE.bottom }}
+              >
+                <XAxis dataKey="data" height={ALTEZZA_ASSE_X} tick={false} axisLine={false} tickLine={false} />
+                <YAxis
+                  domain={dominio}
+                  ticks={tacche}
+                  allowDecimals={false}
+                  tick={{ fill: '#5B665F', fontSize: 11 }}
+                  width={LARGHEZZA_ASSE}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Line dataKey="media" stroke="none" dot={false} activeDot={false} isAnimationActive={false} legendType="none" />
+              </ComposedChart>
+            </div>
+            <div className="grafico-andamento-scorri">
+            <div className="grafico-box" style={{ minWidth: larghezza, height: ALTEZZA }}>
+              <ResponsiveContainer width="100%" height={ALTEZZA}>
+                <ComposedChart data={giorniAsse} margin={{ top: MARGINE.top, right: 20, left: 0, bottom: MARGINE.bottom }}>
                   <CartesianGrid stroke="#DAD9CE" strokeDasharray="3 3" vertical={false} />
                   <XAxis
                     dataKey="data"
                     tick={TickGiorno}
                     interval={0}
-                    height={36}
+                    height={ALTEZZA_ASSE_X}
                   />
                   <YAxis
+                    hide
+                    width={0}
+                    domain={dominio}
+                    ticks={tacche}
                     allowDecimals={false}
-                    tick={{ fill: '#5B665F', fontSize: 11 }}
-                    width={36}
-                    unit=""
                   />
                   {codici.map(codice => (
                     <Line
@@ -194,6 +240,7 @@ export default function GraficiTono({ sessioni, ambito }) {
                   />
                 </ComposedChart>
               </ResponsiveContainer>
+            </div>
             </div>
           </div>
           <LegendaTono />

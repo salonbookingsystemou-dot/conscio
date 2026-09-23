@@ -2785,6 +2785,25 @@ a { color: var(--moss-dark); }
   font-variant-numeric: tabular-nums;
   color: var(--moss-dark);
 }
+.grafico-con-asse {
+  display: flex;
+  align-items: flex-start;
+  margin: 0 0 8px;
+}
+.grafico-asse-y {
+  flex: 0 0 auto;
+  overflow: hidden;
+  background: var(--surface);
+}
+.grafico-con-asse .grafico-andamento-scorri {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+.grafico-con-asse .grafico-box {
+  margin: 0;
+}
 .grafico-andamento-scorri {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
