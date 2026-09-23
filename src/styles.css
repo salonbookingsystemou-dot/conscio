@@ -2785,6 +2785,27 @@ a { color: var(--moss-dark); }
   font-variant-numeric: tabular-nums;
   color: var(--moss-dark);
 }
+@media (max-width: 480px) and (orientation: portrait) {
+  .grafico-stats {
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .grafico-stats li {
+    padding: 8px 5px 6px;
+    border-radius: 10px;
+  }
+  .grafico-stats-etichetta {
+    margin-bottom: 2px;
+    font-size: clamp(8px, 2.4vw, 9px);
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow-wrap: normal;
+  }
+  .grafico-stats-valore {
+    font-size: 1.15rem;
+  }
+}
 .grafico-con-asse {
   display: flex;
   align-items: flex-start;
