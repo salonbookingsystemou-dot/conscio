@@ -9,6 +9,11 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
+        // Su iPhone l’icona in home apre una navigazione gestita dal service worker.
+        // La route di Workbox, se il fetch fallisce, rifiuta respondWith e Safari
+        // mostra «Load failed». La gestiamo noi e non lasciamo mai la promise in errore.
+        importScripts: ['sw-navigazione.js'],
+        navigateFallback: null,
         // Precache anche l'audio locale (campana tibetana) oltre agli asset di build.
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,mp3}'],
         // Alza il limite: le tracce sono remote, ma teniamo margine per gli asset locali.
