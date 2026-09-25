@@ -78,11 +78,18 @@ export function registraAscoltoCompleto(id, secondi) {
   if (!codice) return false
   const tutto = leggiRegistro()
   const lista = Array.isArray(tutto[codice]) ? tutto[codice] : []
-  if (!lista.some(e => e.id === id)) {
-    lista.push({ id, secondi: Math.round(secondi), il: Date.now() })
-    tutto[codice] = lista
-    scriviRegistro(tutto)
+  const arrotondati = Math.round(secondi)
+  const esistente = lista.find(e => e.id === id)
+  if (!esistente) {
+    lista.push({ id, secondi: arrotondati, il: Date.now() })
+  } else if (arrotondati > (Number(esistente.secondi) || 0)) {
+    esistente.secondi = arrotondati
+    esistente.il = Date.now()
+  } else {
+    return true
   }
+  tutto[codice] = lista
+  scriviRegistro(tutto)
   return true
 }
 

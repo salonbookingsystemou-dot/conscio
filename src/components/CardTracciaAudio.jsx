@@ -96,6 +96,7 @@ export default function CardTracciaAudio({
   const onPersistenzaRef = useRef(onPersistenza)
   const durataNotaRef = useRef(0)
   const contatoGiro = useRef(ascoltoCompletato(persistenzaKey))
+  const accreditatoRef = useRef(0)
   const campanaRef = useRef(null)
   const ignoraEventiRef = useRef(false)
   const annullaAvvioRef = useRef(false)
@@ -152,6 +153,7 @@ export default function CardTracciaAudio({
     lastRef.current = 0
     durataNotaRef.current = 0
     contatoGiro.current = gia
+    accreditatoRef.current = 0
     contaAscoltoRef.current = false
     annullaAvvioRef.current = true
     campanaRef.current?.ferma()
@@ -191,11 +193,14 @@ export default function CardTracciaAudio({
     return null
   }
 
-  function marca(secondi) {
-    if (contatoGiro.current || !contaAscoltoRef.current) return
+  function marca(secondi, finito = false) {
+    if (!contaAscoltoRef.current && !contatoGiro.current) return
     const d = durataPerCredito(secondi)
     if (d == null) return
-    if (playedRef.current < d * soglia) return
+    const sogliaEffettiva = finito ? 0.9 : soglia
+    if (playedRef.current < d * sogliaEffettiva) return
+    if (contatoGiro.current && d <= accreditatoRef.current + 1) return
+    accreditatoRef.current = d
     contatoGiro.current = true
     if (!anteprima) {
       registraAscoltoCompleto(persistenzaKey, d)
@@ -217,7 +222,7 @@ export default function CardTracciaAudio({
     const delta = t - lastRef.current
     if (delta > 0 && delta < 1.5) playedRef.current += delta
     lastRef.current = t
-    if (playedRef.current >= d * soglia) marca(d)
+    if (playedRef.current >= d * soglia || contatoGiro.current) marca(d)
   }
 
   function onSeeking(e) {
@@ -229,7 +234,7 @@ export default function CardTracciaAudio({
     if (ignoraEventiRef.current || !contaAscoltoRef.current) return
     setInRiproduzione(false)
     const d = durataPerCredito(e.currentTarget.duration)
-    if (d != null && playedRef.current >= d * 0.9) marca(d)
+    if (d != null && playedRef.current >= d * 0.9) marca(d, true)
   }
 
   function onLoadedMetadata(e) {

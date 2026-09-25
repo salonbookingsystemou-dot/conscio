@@ -73,6 +73,7 @@ export default function TracciaGuidata({
   const onPersistenzaRef = useRef(onPersistenza)
   const durataNotaRef = useRef(0)
   const contatoGiro = useRef(ascoltoCompletato(persistenzaKey))
+  const accreditatoRef = useRef(0)
   const campanaRef = useRef(null)
   const ignoraEventiRef = useRef(false)
   const annullaAvvioRef = useRef(false)
@@ -128,6 +129,7 @@ export default function TracciaGuidata({
     lastRef.current = 0
     durataNotaRef.current = 0
     contatoGiro.current = gia
+    accreditatoRef.current = 0
     contaAscoltoRef.current = false
     annullaAvvioRef.current = true
     campanaRef.current?.ferma()
@@ -159,11 +161,12 @@ export default function TracciaGuidata({
   }
 
   function marca(secondi) {
-    if (contatoGiro.current || !contaAscoltoRef.current) return
+    if (!contaAscoltoRef.current && !contatoGiro.current) return
     const d = Number.isFinite(secondi) && secondi > 0 ? secondi : audioRef.current?.duration
     if (!Number.isFinite(d) || d < 8) return
-    const ascoltato = playedRef.current
-    if (ascoltato < d * 0.9) return
+    if (playedRef.current < d * 0.9) return
+    if (contatoGiro.current && d <= accreditatoRef.current + 1) return
+    accreditatoRef.current = d
     contatoGiro.current = true
     if (!anteprima) {
       registraAscoltoCompleto(persistenzaKey, d)
@@ -189,7 +192,7 @@ export default function TracciaGuidata({
     if (!completo) {
       setPercento(Math.min(100, Math.round((playedRef.current / d) * 100)))
     }
-    if (playedRef.current >= d * 0.95) marca(d)
+    if (playedRef.current >= d * 0.95 || contatoGiro.current) marca(d)
   }
 
   function onSeeking(e) {
@@ -309,6 +312,7 @@ export default function TracciaGuidata({
     lastRef.current = 0
     playedRef.current = 0
     contatoGiro.current = false
+    accreditatoRef.current = 0
     setInRiproduzione(false)
     setPosizione(0)
   }
