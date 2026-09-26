@@ -270,17 +270,18 @@ function TaskFormale({
           descrizione={esercizio.traccia_descrizione || testoDaUrlAudio(esercizio.traccia_audio)}
           etichettaDurata={durataLabel || undefined}
           persistenzaKey={chiave}
+          giaAscoltata={ascoltoNeiLog(esercizio, data)}
           onCompleto={suCompleto}
           onDurata={setDurataSec}
           onPersistenza={async secondi => {
-            await salvaAscoltoFormale({
+            const salvato = await salvaAscoltoFormale({
               codice,
               esercizioId: esercizio.id,
               data,
               secondi
             })
+            if (salvato) onAscolto?.(esercizio, data, secondi)
             await aggiornaAscolto?.()
-            onAscolto?.()
           }}
           onAscolto={() => {
             aggiornaAscolto?.()
@@ -410,6 +411,28 @@ export default function Programma() {
     return almenoUnFormaleAscoltatoNelGiorno(formali, codice.trim(), dataScelta)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [codice, corrente, dataScelta, formali, tickAscolto])
+
+  function segnaAscoltoNelGiorno(esercizio, data, secondi) {
+    const giorno = String(data || dataScelta).slice(0, 10)
+    const minuti = Math.max(1, Math.round((Number(secondi) || 0) / 60))
+    if (esercizio?.id && giorno) {
+      setLezioni(prev => prev.map(l => ({
+        ...l,
+        esercizi: (l.esercizi || []).map(e => {
+          if (e.id !== esercizio.id || ascoltoNeiLog(e, giorno)) return e
+          return {
+            ...e,
+            log: [...(e.log || []), {
+              data: giorno,
+              tipo: 'ascolto',
+              durata_minuti: minuti > 0 ? minuti : null
+            }]
+          }
+        })
+      })))
+    }
+    setTickAscolto(t => t + 1)
+  }
 
   function applicaSpuntaLocale(esercizio, fatto) {
     const giorno = String(dataScelta).slice(0, 10)
@@ -569,7 +592,7 @@ export default function Programma() {
                         data={dataScelta}
                         aggiornaAscolto={aggiornaAscolto}
                         onCompletoGiorno={() => setTickAscolto(t => t + 1)}
-                        onAscolto={() => setTickAscolto(t => t + 1)}
+                        onAscolto={segnaAscoltoNelGiorno}
                       />
                     ))}
                   </div>

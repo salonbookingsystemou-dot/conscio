@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ascoltoCompletato, recuperaAscoltoSeManca, registraAscoltoCompleto } from '../lib/ascolto.js'
+import { ascoltoCompletato, memorizzaAscolto, recuperaAscoltoSeManca, registraAscoltoCompleto } from '../lib/ascolto.js'
 import { testoDaUrlAudio, urlAudioSenzaTesto } from '../lib/tracce.js'
 import { assicuraTracciaOffline } from '../lib/cacheTracce.js'
 import {
@@ -81,6 +81,7 @@ export default function CardTracciaAudio({
   coloreAccento = ACCENTO_DEFAULT,
   sogliaCompletamento = 0.95,
   persistenzaKey,
+  giaAscoltata = false,
   onCompleto,
   onDurata,
   onAscolto,
@@ -106,7 +107,9 @@ export default function CardTracciaAudio({
   onAscoltoRef.current = onAscolto
   onPersistenzaRef.current = onPersistenza
 
-  const [completo, setCompleto] = useState(() => ascoltoCompletato(persistenzaKey))
+  const [completo, setCompleto] = useState(
+    () => giaAscoltata || ascoltoCompletato(persistenzaKey)
+  )
   const [inRiproduzione, setInRiproduzione] = useState(false)
   const [posizione, setPosizione] = useState(0)
   const [durata, setDurata] = useState(0)
@@ -143,7 +146,8 @@ export default function CardTracciaAudio({
   }, [src, anteprima])
 
   useEffect(() => {
-    const gia = ascoltoCompletato(persistenzaKey)
+    const gia = giaAscoltata || ascoltoCompletato(persistenzaKey)
+    if (giaAscoltata && persistenzaKey) memorizzaAscolto(persistenzaKey)
     setCompleto(gia)
     setInRiproduzione(false)
     setPosizione(0)
@@ -171,7 +175,7 @@ export default function CardTracciaAudio({
       campanaRef.current?.ferma()
       campanaRef.current = null
     }
-  }, [persistenzaKey, src])
+  }, [persistenzaKey, src, giaAscoltata])
 
   function registraDurata(secondi) {
     if (!Number.isFinite(secondi) || secondi <= 0) return
@@ -378,7 +382,7 @@ export default function CardTracciaAudio({
           <p className="card-traccia-meta">
             {etichettaDurata}
             {' · '}
-            traccia audio
+            {completo ? 'ascoltata' : 'traccia audio'}
           </p>
         </div>
       </header>
