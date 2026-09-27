@@ -289,21 +289,21 @@ function etichettaStato(stato) {
   return stato
 }
 
-// Timepoint del questionario attualmente aperto per un ciclo.
-// Stesse finestre dello schema (timepoint_in_finestra):
-// T0 fino alla settimana 1, T1 settimane 4-5, T2 settimane 8-9, T3 dopo la fine.
-// Nelle settimane intermedie (2-3, 6-7) non c'è nessun questionario aperto.
-function timepointAperto(ciclo) {
-  if (!ciclo) return 'T0' // idoneo remoto non ancora collegato a un ciclo: parte dal T0
+// Timepoint che la persona ha già potuto compilare, anche a finestra chiusa.
+// Finestre dello schema: T0 fino alla settimana 1, T1 nelle 4-5, T2 nelle 8-9, T3 dopo la fine.
+// Il T0 resta nel conteggio dopo la settimana 1.
+function timepointRaggiunti(ciclo) {
+  if (!ciclo) return ['T0']
   const oggi = parseISODate(oggiLocaleISO())
   const fine = parseISODate(ciclo.data_fine)
-  if (ciclo.stato === 'concluso') return 'T3'
-  if (fine && oggi && oggi > fine) return 'T3'
+  if (ciclo.stato === 'concluso' || (fine && oggi && oggi > fine)) {
+    return ['T0', 'T1', 'T2', 'T3']
+  }
   const sett = settimanaCiclo(ciclo.data_inizio)
-  if (sett <= 1) return 'T0'
-  if (sett >= 4 && sett <= 5) return 'T1'
-  if (sett >= 8) return 'T2'
-  return null
+  const lista = ['T0']
+  if (sett >= 4) lista.push('T1')
+  if (sett >= 8) lista.push('T2')
+  return lista
 }
 
 export default function Dashboard() {
@@ -617,7 +617,9 @@ export default function Dashboard() {
     const attivi = iscritti.filter(i => eIdoneo(i)).length
     const inAttesa = iscritti.filter(i => !eIdoneo(i) && !eRitirato(i)).length
 
-    // Quale timepoint è aperto ora e quanti idonei l'hanno compilato.
+    // Quanti idonei hanno compilato ciascun questionario tra chi l'ha già raggiunto.
+    // Non solo chi ha la finestra aperta oggi: in settimana 2 il T0 è chiuso,
+    // ma i compilati del gruppo restano nel conteggio.
     const cicloById = new Map(cicli.map(c => [c.id, c]))
     const compilato = { T0: new Set(), T1: new Set(), T2: new Set(), T3: new Set() }
     for (const p of punteggi) {
@@ -631,16 +633,17 @@ export default function Dashboard() {
       if (!eIdoneo(i)) continue
       const codice = i.utenti?.codice_partecipante
       if (!codice) continue
-      const tp = timepointAperto(i.ciclo_id ? cicloById.get(i.ciclo_id) : null)
-      if (!tp || !conteggi[tp]) continue
-      conteggi[tp].att += 1
-      if (compilato[tp].has(codice)) conteggi[tp].fatti += 1
+      const raggiunti = timepointRaggiunti(i.ciclo_id ? cicloById.get(i.ciclo_id) : null)
+      for (const tp of raggiunti) {
+        conteggi[tp].att += 1
+        if (compilato[tp].has(codice)) conteggi[tp].fatti += 1
+      }
     }
-    // Focus: il timepoint aperto che riguarda più idonei (a parità, il più precoce).
+    // Il questionario più avanti che qualcuno ha già potuto compilare.
     let tpFocus = null
     for (const tp of ['T0', 'T1', 'T2', 'T3']) {
       if (conteggi[tp].att === 0) continue
-      if (!tpFocus || conteggi[tp].att > conteggi[tpFocus].att) tpFocus = tp
+      tpFocus = tp
     }
 
     const soglia = addDays(parseISODate(oggiLocaleISO()), -6)
