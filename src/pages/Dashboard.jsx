@@ -646,20 +646,14 @@ export default function Dashboard() {
       tpFocus = tp
     }
 
-    const soglia = addDays(parseISODate(oggiLocaleISO()), -6)
-    const log7 = contaSessioni(log.filter(l => {
-      const d = parseISODate(l.data)
-      return d && soglia && d >= soglia
-    }))
     return {
       attivi,
       inAttesa,
       tpFocus,
       qFatti: tpFocus ? conteggi[tpFocus].fatti : 0,
-      qAttesi: tpFocus ? conteggi[tpFocus].att : 0,
-      log7
+      qAttesi: tpFocus ? conteggi[tpFocus].att : 0
     }
-  }, [iscritti, cicli, punteggi, log])
+  }, [iscritti, cicli, punteggi])
 
   const logVista = useMemo(() => {
     if (!aperto) return log
@@ -671,6 +665,8 @@ export default function Dashboard() {
     )
     return log.filter(l => codici.has(l.codice_partecipante))
   }, [log, aperto, iscritti])
+
+  const sessioniPratica = useMemo(() => contaSessioni(logVista), [logVista])
 
   const punteggiVista = useMemo(() => {
     if (!aperto) return punteggi
@@ -844,9 +840,9 @@ export default function Dashboard() {
                   </p>
                 </article>
                 <article className="dash-kpi-card">
-                  <p className="dash-kpi-label">Log pratica · 7 gg</p>
+                  <p className="dash-kpi-label">Sessioni di pratica</p>
                   <p className="dash-kpi-valore">
-                    {kpi.log7 === 0 ? '0' : `${kpi.log7} session${kpi.log7 === 1 ? 'e' : 'i'}`}
+                    {sessioniPratica === 0 ? '0' : `${sessioniPratica} session${sessioniPratica === 1 ? 'e' : 'i'}`}
                   </p>
                 </article>
               </div>
