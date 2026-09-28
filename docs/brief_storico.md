@@ -26,9 +26,10 @@ Non eliminare `CalendarioPratica` e `GraficoAndamentoPratica`: verifica prima se
 
 - **Data** a sinistra: numero del giorno + giorno della settimana abbreviato.
 - **Barra**: lunghezza = minuti di meditazione del giorno, su una scala fissa di 45 minuti per tutta la pagina
-  (oltre 45 la barra è piena). Colore = tono del giorno:
-  piacevole `var(--moss)`, neutro `#8A8F88`, spiacevole `var(--ochre)`.
-  Tono mancante: barra vuota con bordo (non grigio pieno, per non confonderla con "neutro").
+  (oltre 45 la barra è piena). Colore = tono del giorno, con i colori dei grafici (vedi `docs/progetto.md`):
+  piacevole `#4B6B57`, neutro `#B4B8B0`, spiacevole `#A8763E`.
+  Tono mancante: barra tratteggiata (`repeating-linear-gradient(135deg, #D6CFBD 0 2px, #F7F3EA 2px 5px)`
+  con bordo `#CFC8B4`), mai grigio pieno, per non confonderla con "neutro".
 - **Minuti** accanto alla barra e **etichetta del tono** con l'icona: riusa `TonoMini` / `TonoIcon`
   e le classi `.tono-mini.is-*` già esistenti. Il tono non deve mai essere affidato al solo colore.
 - **Nota** del diario, per intero, in Fraunces corsivo.
@@ -54,13 +55,15 @@ Per ogni giorno:
 
 Contatore generale:
 - **minuti totali** = somma dei minuti di tutti i giorni;
-- **giorni di pratica** = giorni con almeno una riga, **compresi quelli con sola pratica informale**
-  (decisione da confermare con Dimitri: in alternativa contare solo i giorni con almeno un ascolto).
+- **giorni di pratica** = giorni con **almeno una meditazione ascoltata per intero**, cioè almeno una riga
+  `tipo = 'ascolto'` (il player la salva solo oltre il 90-95% della traccia). Le giornate con sola pratica
+  informale non contano. È la stessa regola della scheda Pratica del facilitatore (decisione del 28/9/2026).
+  Etichetta: "N giorni con almeno una meditazione ascoltata per intero, su M".
 
-## Tono prima e dopo (quando arriverà)
+## Tono
 
-Quando gli ascolti registreranno `tono_prima` e `tono_dopo`, la barra potrà diventare bicolore
-(prima parte il tono iniziale, seconda parte quello finale). Non implementarlo ora.
+Solo il tono della giornata (dal diario). Non è previsto il tono prima e dopo ogni ascolto:
+chiederlo sarebbe troppo impegnativo per chi pratica (decisione del 28/9/2026).
 
 ## Stile
 

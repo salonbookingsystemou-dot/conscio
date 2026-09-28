@@ -22,6 +22,17 @@ Chiunque cambi qualcosa di importante aggiorna la sezione **Registro delle modif
 - Per la divulgazione si usano solo dati aggregati. Niente sottogruppi piccoli, niente dati individuali.
   Le citazioni dei partecipanti richiedono un consenso specifico (non ancora implementato).
 
+## Definizioni e colori condivisi (decisi il 28/9/2026)
+
+Valgono per tutte le schermate (storico del partecipante, dashboard, cruscotti):
+- **Giorno di pratica** = almeno una meditazione ascoltata per intero (una riga `log_pratica.tipo = 'ascolto'`,
+  che il player salva solo oltre il 90-95% della traccia). Le informali si contano a parte.
+- **Aderenza** = giornate di pratica / (iscritti × giorni trascorsi del ciclo).
+- **Durata del ciclo** = da `data_inizio` a `data_fine` comprese (Gruppo pilota: 50 giorni), mai fissata a 56.
+- **Tono** = solo il tono della giornata (diario). Niente tono prima/dopo per singolo ascolto: troppo impegnativo per chi pratica.
+- **Colori dei toni nei grafici**: piacevole `#4B6B57`, neutro `#B4B8B0`, spiacevole `#A8763E`,
+  senza tono tratteggiato. Nelle etichette con faccina restano quelli di `.tono-mini`.
+
 ## Momenti dei questionari
 
 | Momento | Finestra |
@@ -48,3 +59,8 @@ Applicato in produzione, documentato in `supabase/migrazione_checkin_progressi.s
 Deciso con Dimitri: lo storico diventa un calendario a scorrimento verticale, una riga per giornata
 (barra dei minuti colorata dal tono, etichetta del tono, nota), con un contatore generale in alto.
 Mockup in `docs/mockup/storico.html`, istruzioni in `docs/brief_storico.md`. Non ancora implementato.
+
+### 28/9/2026 · Nuova scheda Pratica del facilitatore (mockup, da Claude su claude.ai)
+Mockup in `docs/mockup/pratica.html`, istruzioni in `docs/brief_pratica.md`: quattro numeri, partecipazione
+giorno per giorno per tono, mappa del percorso e totale per partecipante senza codici, informali in tabella.
+Aggiornati anche mockup e brief dello Storico con le definizioni condivise qui sopra. Non ancora implementato.
