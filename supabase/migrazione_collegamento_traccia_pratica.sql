@@ -25,6 +25,10 @@ create table backfill_collegamenti_tracce (
   creato_il timestamptz not null default now()
 );
 
+-- Report solo da SQL editor: niente lettura via API.
+alter table backfill_collegamenti_tracce enable row level security;
+revoke all on table backfill_collegamenti_tracce from anon, authenticated, public;
+
 insert into backfill_collegamenti_tracce (
   esercizio_id, tipo, descrizione, traccia_audio_legacy,
   numero_settimana, ciclo_nome, traccia_id, esito

@@ -24,10 +24,8 @@ values (
 )
 on conflict (id) do nothing;
 
+-- Il bucket è pubblico: l'ascolto usa l'URL pubblico, senza elencare i file.
 drop policy if exists "lettura pubblica tracce" on storage.objects;
-create policy "lettura pubblica tracce"
-on storage.objects for select
-using (bucket_id = 'tracce-audio');
 
 drop policy if exists "facilitatore carica tracce" on storage.objects;
 create policy "facilitatore carica tracce"

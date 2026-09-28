@@ -5,6 +5,7 @@ create or replace function settimana_per_questionari(p_inizio date)
 returns int
 language sql
 stable
+set search_path = public
 as $$
   select case
     when p_inizio is null then 0
@@ -22,6 +23,7 @@ create or replace function timepoint_in_finestra(
 returns boolean
 language sql
 stable
+set search_path = public
 as $$
   select case p_timepoint
     when 'T0' then coalesce(p_settimana, 0) <= 1
