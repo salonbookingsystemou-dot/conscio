@@ -6,7 +6,6 @@ import {
   Line,
   LineChart,
   ResponsiveContainer,
-  Tooltip,
   XAxis,
   YAxis
 } from 'recharts'
@@ -62,34 +61,62 @@ function percentoNelRange(valore, min, max) {
 }
 
 const COLORE_SINGOLO = '#BFC8C0'
+const PASSI_ZOOM = 4
 
-function TooltipStrumento({ active, payload, label }) {
-  if (!active || !payload?.length) return null
-  const media = payload.find(p => p.dataKey === '__media')
-  const singoli = payload.filter(p => p.dataKey !== '__media' && p.value != null)
-  return (
-    <div className="grafico-tip">
-      <p>{label}</p>
-      {media && media.value != null && (
-        <p><strong>Media: {media.value}</strong> (n {media.payload?.__n ?? '—'})</p>
-      )}
-      {singoli.map(p => (
-        <p key={p.dataKey}>{p.dataKey}: {p.value}</p>
-      ))}
-    </div>
-  )
+// Al passo massimo la scala stringe attorno ai valori registrati, senza mai tagliarne uno.
+function dominioZoom({ min, max, codici, dati }, passo) {
+  const valori = dati.flatMap(riga => codici.map(c => riga[c]).filter(Number.isFinite))
+  if (passo === 0 || valori.length === 0) return [min, max]
+  const margine = Math.max(1, Math.round((max - min) * 0.05))
+  const basso = Math.max(min, Math.min(...valori) - margine)
+  const alto = Math.min(max, Math.max(...valori) + margine)
+  const t = passo / PASSI_ZOOM
+  return [Math.floor(min + (basso - min) * t), Math.ceil(max - (max - alto) * t)]
+}
+
+function taccheDominio([da, a]) {
+  const passo = Math.max(1, Math.ceil((a - da) / 4))
+  const tacche = []
+  for (let v = da; v < a; v += passo) tacche.push(v)
+  tacche.push(a)
+  return tacche
 }
 
 // Traiettorie individuali (linee sottili) + media in evidenza, per un singolo strumento.
 function GraficoStrumento({ strumento }) {
   const { nome, min, max, codici, dati, colore } = strumento
   const info = INFO_STRUMENTO[nome] || {}
-  const ticks = [min, Math.round((min + max) / 2), max]
+  const [zoom, setZoom] = useState(0)
+  const dominio = useMemo(() => dominioZoom(strumento, zoom), [strumento, zoom])
+  const ticks = zoom === 0 ? [min, Math.round((min + max) / 2), max] : taccheDominio(dominio)
   return (
     <div className="dash-q-strumento-grafico">
       <div className="dash-q-strumento-testa">
         <span className="dash-q-nome">{nome}</span>
         {info.sottotitolo && <span className="dash-q-sub">· {info.sottotitolo}</span>}
+        <div className="dash-q-zoom" role="group" aria-label={`Zoom sulla scala di ${nome}`}>
+          <button
+            type="button"
+            aria-label="Riduci zoom"
+            disabled={zoom === 0}
+            onClick={() => setZoom(z => Math.max(0, z - 1))}
+          >
+            −
+          </button>
+          <button
+            type="button"
+            aria-label="Aumenta zoom"
+            disabled={zoom === PASSI_ZOOM}
+            onClick={() => setZoom(z => Math.min(PASSI_ZOOM, z + 1))}
+          >
+            +
+          </button>
+          {zoom > 0 && (
+            <button type="button" className="dash-q-zoom-reset" onClick={() => setZoom(0)}>
+              Scala intera
+            </button>
+          )}
+        </div>
       </div>
       <div className="grafico-box">
         <ResponsiveContainer width="100%" height={240}>
@@ -97,12 +124,12 @@ function GraficoStrumento({ strumento }) {
             <CartesianGrid stroke="#DAD9CE" strokeDasharray="3 3" />
             <XAxis dataKey="timepoint" tick={{ fill: '#5B665F', fontSize: 12 }} />
             <YAxis
-              domain={[min, max]}
+              domain={dominio}
               ticks={ticks}
+              allowDataOverflow
               tick={{ fill: '#5B665F', fontSize: 11 }}
               width={38}
             />
-            <Tooltip content={<TooltipStrumento />} />
             <Legend wrapperStyle={{ fontSize: 12 }} />
             {codici.map(c => (
               <Line
@@ -131,6 +158,7 @@ function GraficoStrumento({ strumento }) {
       </div>
       <p className="dash-q-verso">
         Linee sottili = singoli partecipanti; linea in evidenza = media. {info.verso}
+        {zoom > 0 && ` · Scala ingrandita: ${dominio[0]}–${dominio[1]} (range completo ${min}–${max}).`}
       </p>
     </div>
   )

@@ -2222,6 +2222,36 @@ a { color: var(--moss-dark); }
   font-size: 13px;
   color: var(--ink-soft);
 }
+.dash-q-zoom {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+  align-self: center;
+}
+.dash-q-zoom button {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.dash-q-zoom button.dash-q-zoom-reset {
+  font-size: 12px;
+}
+.dash-q-zoom button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.dash-q-zoom button:focus-visible {
+  outline: 2px solid var(--moss);
+  outline-offset: 2px;
+}
 .q-scala {
   display: flex;
   align-items: center;
