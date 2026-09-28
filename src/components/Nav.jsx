@@ -99,6 +99,7 @@ export default function Nav() {
             </button>
           )}
           <NavLink to="/dati" onClick={chiudi}>I tuoi dati</NavLink>
+          <NavLink to="/segnala" onClick={chiudi}>Segnala un problema</NavLink>
           <button type="button" onClick={() => { chiudi(); esciPartecipante() }}>Esci</button>
         </>
       )}
@@ -107,6 +108,7 @@ export default function Nav() {
     <>
       <NavLink to="/iscrizione" onClick={chiudi}>Iscrizione</NavLink>
       <NavLink to="/entra" onClick={chiudi}>Entra</NavLink>
+      <NavLink to="/segnala" onClick={chiudi}>Segnala un problema</NavLink>
       <span className="nav-sep" aria-hidden="true" />
       <NavLink to="/accedi" onClick={chiudi} className="nav-secondaria">
         Area facilitatore

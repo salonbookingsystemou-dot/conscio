@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabaseConfigurato } from '../lib/supabaseClient'
 import { leggiCheckin } from '../lib/checkin.js'
+import InvitoCheckin from './InvitoCheckin.jsx'
 
 function IconaCheckin() {
   return (
@@ -41,22 +42,25 @@ export default function CardCheckin({ codice }) {
   const fatto = stato.compilato
 
   return (
-    <Link className={`card-checkin${fatto ? ' is-fatto' : ''}`} to="/checkin">
-      <span className="card-checkin-icona">{fatto ? <IconaFatto /> : <IconaCheckin />}</span>
-      <span className="card-checkin-testi">
-        <span className="card-checkin-occhiello">
-          {fatto ? etichettaSettimana(stato.settimana) : `${etichettaSettimana(stato.settimana)} · 1 minuto`}
+    <>
+      <InvitoCheckin codice={codice} stato={stato} />
+      <Link className={`card-checkin${fatto ? ' is-fatto' : ''}`} to="/checkin">
+        <span className="card-checkin-icona">{fatto ? <IconaFatto /> : <IconaCheckin />}</span>
+        <span className="card-checkin-testi">
+          <span className="card-checkin-occhiello">
+            {fatto ? etichettaSettimana(stato.settimana) : `${etichettaSettimana(stato.settimana)} · 1 minuto`}
+          </span>
+          <strong>{fatto ? 'Check-in fatto' : 'Com’è andata la settimana appena trascorsa?'}</strong>
+          <span className="card-checkin-sotto">
+            {fatto
+              ? 'Puoi modificarlo fino alla fine della settimana.'
+              : 'Stress, sonno e momenti di presenza: cinque domande veloci.'}
+          </span>
         </span>
-        <strong>{fatto ? 'Check-in fatto' : 'Com’è andata questa settimana?'}</strong>
-        <span className="card-checkin-sotto">
-          {fatto
-            ? 'Puoi modificarlo fino alla fine della settimana.'
-            : 'Stress, sonno e momenti di presenza: cinque domande veloci.'}
+        <span className={`card-checkin-azione${fatto ? '' : ' btn btn-avanti'}`}>
+          {fatto ? 'Modifica' : 'Inizia'}
         </span>
-      </span>
-      <span className={`card-checkin-azione${fatto ? '' : ' btn btn-avanti'}`}>
-        {fatto ? 'Modifica' : 'Inizia'}
-      </span>
-    </Link>
+      </Link>
+    </>
   )
 }

@@ -7,6 +7,7 @@ import { PartecipanteProvider } from './lib/partecipante.jsx'
 import { TonalitaProvider } from './lib/tonalita.jsx'
 import { avviaTonalita } from './lib/tonalita.js'
 import { pulisciCacheTracceLegacy } from './lib/cacheTracce.js'
+import ConfineErrori from './components/ConfineErrori.jsx'
 import './styles/tokens.css'
 import './styles.css'
 import './styles/admin.css'
@@ -20,14 +21,16 @@ pulisciCacheTracceLegacy()
 // e funziona sempre, senza bisogno di configurazioni server aggiuntive.
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <HashRouter>
-      <AuthProvider>
-        <PartecipanteProvider>
-          <TonalitaProvider>
-            <App />
-          </TonalitaProvider>
-        </PartecipanteProvider>
-      </AuthProvider>
-    </HashRouter>
+    <ConfineErrori intero>
+      <HashRouter>
+        <AuthProvider>
+          <PartecipanteProvider>
+            <TonalitaProvider>
+              <App />
+            </TonalitaProvider>
+          </PartecipanteProvider>
+        </AuthProvider>
+      </HashRouter>
+    </ConfineErrori>
   </React.StrictMode>
 )

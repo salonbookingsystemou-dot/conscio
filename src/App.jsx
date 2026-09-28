@@ -25,6 +25,8 @@ import InvitoHome from './components/InvitoHome.jsx'
 import BarraBassa from './components/BarraBassa.jsx'
 import Footer from './components/Footer.jsx'
 import PullToRefresh from './components/PullToRefresh.jsx'
+import ConfineErrori from './components/ConfineErrori.jsx'
+import Segnala from './pages/Segnala.jsx'
 
 function pagineAdminAmpie(pathname) {
   return pathname === '/dashboard'
@@ -42,12 +44,14 @@ export default function App() {
   const areaFacilitatore = Boolean(facilitatore) && !splash && pathname !== '/accedi'
 
   const routes = (
+      <ConfineErrori key={pathname}>
         <Routes>
           <Route path="/" element={<Splash />} />
           <Route path="/iscrizione" element={<Iscrizione />} />
           <Route path="/documenti/:slug" element={<Documento />} />
           <Route path="/dati" element={<IMieiDati />} />
           <Route path="/entra" element={<Entra />} />
+          <Route path="/segnala" element={<Segnala />} />
           <Route path="/onboarding" element={<SoloRegistrato><Onboarding /></SoloRegistrato>} />
           <Route path="/questionari" element={<SoloRegistrato><Questionari /></SoloRegistrato>} />
           <Route path="/pratica" element={<SoloPercorso><LogPratica /></SoloPercorso>} />
@@ -61,6 +65,7 @@ export default function App() {
           <Route path="/percorso" element={<SoloFacilitatore><Percorso /></SoloFacilitatore>} />
           <Route path="/percorso/:cicloId/settimana/:numero" element={<SoloFacilitatore><EditorSettimana /></SoloFacilitatore>} />
         </Routes>
+      </ConfineErrori>
   )
 
   return (

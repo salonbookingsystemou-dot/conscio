@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@200;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@200;400;500;600;700&display=swap');
 
 :root {
   --bg: #EFF1EA;
@@ -93,6 +93,12 @@ a { color: var(--moss-dark); }
   text-decoration: underline;
   color: var(--moss-dark);
 }
+
+.segnala-form textarea { resize: vertical; min-height: 110px; }
+.segnala-form .hint { margin: 0 0 14px; }
+.segnala-ok p { margin: 0 0 6px; }
+.errore-app { padding-top: 8px; padding-bottom: 8px; }
+.errore-app .card h3 { margin-top: 0; }
 
 .stato-attesa {
   display: flex;
@@ -2738,6 +2744,156 @@ a { color: var(--moss-dark); }
 .tono-mini.is-spiacevole { background: var(--tint-ochre); color: var(--ochre); }
 .tono-mini.is-neutro { background: #E8E8E4; color: var(--ink); }
 .tono-mini.is-piacevole { background: var(--tint); color: var(--moss-dark); }
+.tono-mini.is-nd {
+  background: transparent;
+  color: var(--ink-soft);
+  border: 1px dashed #B5BAB2;
+  padding: 1px 8px;
+}
+
+.storico { display: flex; flex-direction: column; }
+.storico .tono-mini {
+  margin-left: 0;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.storico-contatori {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 4px 0 14px;
+}
+.storico-contatore {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.storico-contatore p { margin: 0; }
+.storico-contatore-valore {
+  font-family: 'Fraunces', serif;
+  font-size: 30px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.storico-contatore-valore span { font-size: 17px; }
+.storico-contatore-testo { font-size: 12px; color: var(--ink-soft); line-height: 1.4; }
+.storico-legenda {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.storico-legenda li { display: flex; align-items: center; gap: 6px; }
+.storico-legenda-barra {
+  width: 18px;
+  height: 8px;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+.storico-scala { margin: 8px 0 0; font-size: 12px; color: var(--ink-soft); }
+.storico-legenda-barra.is-piacevole,
+.storico-barra.is-piacevole { background: var(--moss); }
+.storico-legenda-barra.is-neutro,
+.storico-barra.is-neutro { background: #8A8F88; }
+.storico-legenda-barra.is-spiacevole,
+.storico-barra.is-spiacevole { background: var(--ochre); }
+.storico-legenda-barra.is-nd { background: var(--surface); border: 2px solid #9AA39C; }
+.storico-barra.is-nd { background: var(--surface); box-shadow: inset 0 0 0 2px #9AA39C; }
+.storico-settimana-testa {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 26px 0 8px;
+}
+.storico-settimana:first-of-type .storico-settimana-testa { padding-top: 18px; }
+.storico-settimana-testa h3 {
+  margin: 0;
+  font-family: 'Fraunces', serif;
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.3;
+}
+.storico-settimana-numero { font-weight: 600; }
+.storico-settimana-tema { font-style: italic; color: var(--ink-soft); }
+.storico-settimana-date { font-size: 12px; color: var(--ink-soft); white-space: nowrap; }
+.storico-giorni { list-style: none; margin: 0; padding: 0; }
+.storico-giorno {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 14px;
+  padding: 14px 0;
+  border-top: 1px solid #DDDDD3;
+}
+.storico-giorno.is-vuoto { padding: 10px 0; align-items: center; }
+.storico-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding-top: 1px;
+}
+.storico-num {
+  font-family: 'Fraunces', serif;
+  font-size: 24px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.storico-dow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+.storico-giorno.is-vuoto .storico-num { font-size: 18px; color: #7C857F; }
+.storico-vuoto-testo { margin: 0; font-size: 13px; color: #7C857F; }
+.storico-corpo { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.storico-riga {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 48px 120px;
+  align-items: center;
+  gap: 10px;
+}
+.storico-riga .tono-mini { justify-self: start; }
+.storico-pista {
+  height: 12px;
+  border-radius: 6px;
+  background: #E3E4DC;
+  overflow: hidden;
+}
+.storico-barra { height: 12px; min-width: 12px; border-radius: 6px; }
+.storico-min {
+  font-size: 12px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.storico-nota {
+  margin: 0;
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.storico-pratiche { margin: 0; font-size: 12px; color: var(--ink-soft); line-height: 1.45; }
+.storico-fine {
+  margin: 0;
+  border-top: 1px solid #DDDDD3;
+  padding-top: 14px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
 
 .grafico-box {
   width: 100%;
@@ -3637,6 +3793,21 @@ body:has(.splash) {
   color: var(--ink-soft);
   font-size: 15px;
 }
+.invito-checkin { padding-top: 28px; }
+.invito-home .invito-checkin-occhiello {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ochre);
+  margin: 0 0 8px;
+}
+.invito-checkin-azioni {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.invito-checkin-azioni .btn { width: 100%; justify-content: center; }
 .invito-home-passi {
   display: grid;
   gap: 8px;

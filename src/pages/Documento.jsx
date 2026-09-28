@@ -76,6 +76,10 @@ function Informativa() {
           <strong>Prove di consenso e sicurezza dell’app</strong>: art. 6, par. 1, lett. c)
           e f) GDPR — dimostrare i consensi e tenere l’applicazione utilizzabile.
         </li>
+        <li>
+          <strong>Segnalazioni di problemi</strong> (facoltative e anonime): art. 6, par. 1,
+          lett. f) GDPR — legittimo interesse a correggere gli errori dell’app.
+        </li>
       </ul>
       <p>
         Il percorso resta una pratica di meditazione sulla consapevolezza a scopo
@@ -101,7 +105,13 @@ function Informativa() {
           è facoltativo e richiede un consenso esplicito a parte, che chiediamo in app prima
           della prima compilazione;
         </li>
-        <li>eventuali materiali di documentazione social, solo con Modulo B.</li>
+        <li>eventuali materiali di documentazione social, solo con Modulo B;</li>
+        <li>
+          segnalazioni di problemi dell’app, solo se decidi di inviarne una: il testo che
+          scrivi, la pagina, il tipo di browser, le dimensioni dello schermo e, se l’app si è
+          interrotta, il messaggio tecnico dell’errore. Sono anonime (senza codice né email),
+          arrivano per email a chi gestisce l’app e non vengono salvate nel database.
+        </li>
       </ul>
       <p>
         Non chiediamo il nome. L’email non viene unita alle risposte dei questionari
@@ -133,7 +143,8 @@ function Informativa() {
         scriverti) entro 90 giorni. I dati legati al codice restano per l’analisi
         del pilota. Se chiedi di uscire, non raccogliamo altri dati; quanto già
         raccolto in forma di codice può restare se serve a non spezzare lo studio,
-        nei limiti di legge.
+        nei limiti di legge. Le segnalazioni di problemi restano nella casella email
+        solo il tempo necessario a risolverli.
       </p>
 
       <h3>6. I tuoi diritti</h3>

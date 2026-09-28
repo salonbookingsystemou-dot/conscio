@@ -57,6 +57,15 @@ function messaggioErrore(err: { message?: string } | null): string {
   return 'ERRORE'
 }
 
+/** Le segnalazioni sono anonime: nessun codice partecipante arriva nell'email. */
+function senzaCodici(testo: string): string {
+  return testo.replace(/MBSR-[A-Z0-9]{4,12}/gi, '[codice rimosso]')
+}
+
+function campoTesto(valore: unknown, max: number): string {
+  return typeof valore === 'string' ? senzaCodici(valore.trim()).slice(0, max) : ''
+}
+
 function emailValida(email: string): boolean {
   if (!email || email.length > 200) return false
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -426,6 +435,48 @@ Deno.serve(async (req) => {
       testo: testoIdoneita(codice)
     })
     return json({ ok: true, inviata })
+  }
+
+  if (azione === 'segnala_problema') {
+    const honeypot = typeof corpo.sito_web === 'string' ? corpo.sito_web.trim() : ''
+    if (honeypot) return json({ ok: true })
+
+    const messaggio = campoTesto(corpo.messaggio, 3000)
+    const errore = campoTesto(corpo.errore, 6000)
+    if (messaggio.length < 3 && !errore) return json({ error: 'MESSAGGIO_MANCANTE' }, 400)
+
+    const blocco = await limita('segnala_ip', chiaveIp, 5, 3600)
+    if (blocco) return blocco
+
+    const pagina = campoTesto(corpo.pagina, 200) || 'non indicata'
+    const browser = campoTesto(corpo.browser, 400) || 'non indicato'
+    const schermo = campoTesto(corpo.schermo, 40) || 'non indicato'
+    const versione = campoTesto(corpo.versione, 40) || 'non indicata'
+    const momento = new Date().toLocaleString('it-IT', { timeZone: 'Europe/Rome' })
+
+    const ok = await inviaEmail({
+      to: REPLY_TO,
+      oggetto: errore
+        ? `Segnalazione problema con errore dell’app (${pagina})`
+        : `Segnalazione problema (${pagina})`,
+      testo: [
+        'Nuova segnalazione anonima dall’app Conscio.',
+        '',
+        'Messaggio:',
+        messaggio || '(nessun messaggio, solo errore automatico)',
+        '',
+        `Pagina: ${pagina}`,
+        `Quando: ${momento}`,
+        `Versione app: ${versione}`,
+        `Schermo: ${schermo}`,
+        `Browser: ${browser}`,
+        ...(errore ? ['', 'Errore tecnico:', errore] : []),
+        '',
+        '— App Conscio'
+      ].join('\n')
+    })
+    if (!ok) return json({ error: 'INVIO_NON_RIUSCITO' }, 502)
+    return json({ ok: true })
   }
 
   if (azione === 'prova_firma') {
