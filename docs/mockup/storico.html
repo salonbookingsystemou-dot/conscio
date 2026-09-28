@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup · Storico di pratica</title>
+<!-- Mockup statico di riferimento (dati di esempio). Non fa parte dell'app: vedi docs/brief_storico.md -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&amp;family=Inter:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#EFF1EA;font-family:Inter,system-ui,sans-serif;color:#24312C}
+a{color:#2F4438}a:hover{color:#24312C}
+.giorno{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;padding:14px 0;border-top:1px solid #DDDDD3}
+.data{display:flex;flex-direction:column;align-items:center;gap:1px;padding-top:1px}
+.num{font-family:Fraunces,Georgia,serif;font-size:24px;line-height:1;font-variant-numeric:tabular-nums}
+.dow{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#5B665F}
+.corpo{display:flex;flex-direction:column;gap:8px;min-width:0}
+.riga{display:flex;align-items:center;gap:10px}
+.pista{flex-grow:1;height:12px;border-radius:6px;background:#E3E4DC;overflow:hidden}
+.barra{height:12px;border-radius:6px}
+.pia{background:#4B6B57}
+.neu{background:#8A8F88}
+.spi{background:#A8763E}
+.nd{background:#FBFAF6;box-shadow:inset 0 0 0 2px #9AA39C}
+.min{font-size:12px;color:#5B665F;white-space:nowrap;font-variant-numeric:tabular-nums;min-width:40px;text-align:right}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;border-radius:999px;padding:3px 9px 3px 5px;white-space:nowrap}
+.segno{width:15px;height:15px;display:block;flex-shrink:0}
+.chip-pia{background:#DCE4DB;color:#2F4438}
+.chip-neu{background:#E8E8E4;color:#24312C}
+.chip-spi{background:#EEDFCB;color:#7A5226}
+.chip-nd{background:transparent;color:#5B665F;border:1px dashed #B5BAB2;padding:2px 9px}
+.nota{margin:0;font-family:Fraunces,Georgia,serif;font-style:italic;font-size:15px;line-height:1.5;color:#24312C}
+.pratiche{font-size:12px;color:#5B665F;line-height:1.45}
+.vuoto{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;padding:10px 0;border-top:1px solid #DDDDD3;align-items:center}
+</style>
+</head>
+<body>
+<div style="width: 390px; height: 1760px; box-sizing: border-box; background: #EFF1EA; padding: 24px 20px 40px; display: flex; flex-direction: column">
+
+<div style="display: flex; flex-direction: column; gap: 6px; padding-bottom: 16px">
+<div style="font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; color: #5B665F">Il mio percorso · dati di esempio</div>
+<h1 style="margin: 0; font-family: Fraunces, Georgia, serif; font-weight: 600; font-size: 30px; line-height: 1.15">Storico di pratica</h1>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 10px 0 6px"><div style="background: #FBFAF6; border: 1px solid #DAD9CE; border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px"><div style="font-family: Fraunces, Georgia, serif; font-size: 30px; line-height: 1.1; font-variant-numeric: tabular-nums">145 <span style="font-size: 17px">min</span></div><div style="font-size: 12px; color: #5B665F; line-height: 1.4">di meditazione dall'inizio del percorso</div></div><div style="background: #FBFAF6; border: 1px solid #DAD9CE; border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px"><div style="font-family: Fraunces, Georgia, serif; font-size: 30px; line-height: 1.1; font-variant-numeric: tabular-nums">10 <span style="font-size: 17px">giorni</span></div><div style="font-size: 12px; color: #5B665F; line-height: 1.4">di pratica, su 11 dall'inizio del percorso</div></div></div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; padding-top: 4px"><span style="display: flex; align-items: center; gap: 6px"><span style="width: 18px; height: 8px; border-radius: 4px; background: #4B6B57"></span><span class="chip chip-pia"><svg class="segno" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12.4" fill="currentColor" fill-opacity="0.1" stroke="currentColor" stroke-width="1.9"></circle><circle cx="11.5" cy="13.7" r="1.35" fill="currentColor"></circle><circle cx="20.5" cy="13.7" r="1.35" fill="currentColor"></circle><path d="M10.8 18.2c2.8 3.8 7.6 3.8 10.4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>Piacevole</span></span><span style="display: flex; align-items: center; gap: 6px"><span style="width: 18px; height: 8px; border-radius: 4px; background: #8A8F88"></span><span class="chip chip-neu"><svg class="segno" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12.4" fill="currentColor" fill-opacity="0.1" stroke="currentColor" stroke-width="1.9"></circle><circle cx="11.5" cy="13.5" r="1.35" fill="currentColor"></circle><circle cx="20.5" cy="13.5" r="1.35" fill="currentColor"></circle><path d="M11 20.3h10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>Neutro</span></span><span style="display: flex; align-items: center; gap: 6px"><span style="width: 18px; height: 8px; border-radius: 4px; background: #A8763E"></span><span class="chip chip-spi"><svg class="segno" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12.4" fill="currentColor" fill-opacity="0.1" stroke="currentColor" stroke-width="1.9"></circle><circle cx="11.5" cy="13.1" r="1.35" fill="currentColor"></circle><circle cx="20.5" cy="13.1" r="1.35" fill="currentColor"></circle><path d="M10.8 21.6c2.8-3.6 7.6-3.6 10.4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>Spiacevole</span></span><span style="display: flex; align-items: center; gap: 6px"><span style="width: 18px; height: 8px; border-radius: 4px; box-sizing: border-box; border: 2px solid #9AA39C; background: #FBFAF6"></span><span class="chip chip-nd">Tono non indicato</span></span></div>
+<div style="font-size: 12px; color: #5B665F">La barra è il tempo di meditazione del giorno (scala fino a 45 min).</div>
+</div>
+
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 14px 0 8px">
+<div style="font-family: Fraunces, Georgia, serif; font-size: 17px"><span style="font-weight: 600">Settimana 2</span> <span style="font-style: italic; color: #5B665F">· Avverti la salita pazientemente</span></div>
+</div>
+
+<div class="giorno">
+<div class="data"><span class="num">28</span><span class="dow">lun</span></div>
+<div class="corpo">
+<div class="riga"><div class="pista"><div class="barra pia" style="width: 44%"></div></div><span class="min">20 min</span><span class="chip chip-pia"><svg class="segno" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12.4" fill="currentColor" fill-opacity="0.1" stroke="currentColor" stroke-width="1.9"></circle><circle cx="11.5" cy="13.7" r="1.35" fill="currentColor"></circle><circle cx="20.5" cy="13.7" r="1.35" fill="currentColor"></circle><path d="M10.8 18.2c2.8 3.8 7.6 3.8 10.4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>Piacevole</span></div>
+<p class="nota">«Ho notato quanto corro anche quando mangio. Rallentare all'inizio è stato strano, poi quasi piacevole.»</p>
+<div class="pratiche">Body Scan, Mindful check-in · informale: mentre mangi</div>
+</div>
+</div>
+
+<div class="giorno">
+<div class="data"><span class="num">27</span><span class="dow">dom</span></div>
+<div class="corpo">
+<div class="riga"><div class="pista"><div class="barra neu" style="width: 22%"></div></div><span class="min">10 min</span><span class="chip chip-neu"><svg class="segno" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12.4" fill="currentColor" fill-opacity="0.1" stroke="currentColor" stroke-width="1.9"></circle><circle cx="11.5" cy="13.5" r="1.35" fill="currentColor"></circle><circle cx="20.5" cy="13.5" r="1.35" fill="currentColor"></circle><path d="M11 20.3h10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>Neutro</span></div>
+<p class="nota">«Mente molto agitata. Sono rimasto seduto fino alla fine, anche se continuavo a pensare al lavoro.»</p>
+<div class="pratiche">Meditazione sul respiro</div>
+</div>
+</div>
+
+<div class="giorno">
+<div class="data"><span class="num">26</span><span class="dow">sab</span></div>
+<div class="corpo">
+<div class="riga"><div class="pista"><div class="barra nd" style="width: 11%"></div></div><span class="min">5 min</span><span class="chip chip-nd">Tono non indicato</span></div>
+<div class="pratiche">Mindful check-in · nessuna nota</div>
+</div>
+</div>
+
+<div class="giorno">
+<div class="data"><span class="num">25</span><span class="dow">ven</span></div>
+<div class="corpo">
+<div class="riga"><div class="pista"><div class="barra spi" style="width: 33%"></div></div><span class="min">15 min</span><span class="chip chip-spi"><svg class="segno" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12.4" fill="currentColor" fill-opacity="0.1" stroke="currentColor" stroke-width="1.9"></circle><circle cx="11.5" cy="13.1" r="1.35" fill="currentColor"></circle><circle cx="20.5" cy="13.1" r="1.35" fill="currentColor"></circle><path d="M10.8 21.6c2.8-3.6 7.6-3.6 10.4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>Spiacevole</span></div>
+<p class="nota">«Dolore alla schiena per quasi tutto il body scan. Ho provato a restarci invece di cambiare posizione subito.»</p>
+<div class="pratiche">Body Scan · informale: quando lavi i denti</div>
+</div>
+</div>
+
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 26px 0 8px">
+<div style="font-family: Fraunces, Georgia, serif; font-size: 17px"><span style="font-weight: 600">Settimana 1</span> <span style="font-style: italic; color: #5B665F">· In cammino</span></div>
+</div>
+
+<div class="giorno">
+<div class="data"><span class="num">24</span><span class="dow">gio</span></div>
+<div class="corpo">
+<div class="riga"><div class="pista"><div class="barra neu" style="width: 44%"></div></div><span class="min">20 min</span><span class="chip chip-neu"><svg class="segno" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12.4" fill="currentColor" fill-opacity="0.1" stroke="currentColor" stroke-width="1.9"></circle><circle cx="11.5" cy="13.5" r="1.35" fill="currentColor"></circle><circle cx="20.5" cy="13.5" r="1.35" fill="currentColor"></circle><path d="M11 20.3h10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>Neutro</span></div>
+<p class="nota">«Il body scan mi ha fatto addormentare verso la fine. Domani provo di mattina.»</p>
+<div class="pratiche">Body Scan, Mindful check-in</div>
+</div>
+</div>
+
+<div class="vuoto">
+<div class="data"><span class="num" style="font-size: 18px; color: #7C857F">23</span><span class="dow">mer</span></div>
+<div style="font-size: 13px; color: #7C857F">Nessuna pratica registrata</div>
+</div>
+
+<div class="giorno">
+<div class="data"><span class="num">22</span><span class="dow">mar</span></div>
+<div class="corpo">
+<div class="riga"><div class="pista"><div class="barra pia" style="width: 56%"></div></div><span class="min">25 min</span><span class="chip chip-pia"><svg class="segno" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12.4" fill="currentColor" fill-opacity="0.1" stroke="currentColor" stroke-width="1.9"></circle><circle cx="11.5" cy="13.7" r="1.35" fill="currentColor"></circle><circle cx="20.5" cy="13.7" r="1.35" fill="currentColor"></circle><path d="M10.8 18.2c2.8 3.8 7.6 3.8 10.4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>Piacevole</span></div>
+<p class="nota">«Ho fatto il check-in anche in ufficio, prima di una riunione. Sono entrato più calmo.»</p>
+<div class="pratiche">Body Scan, Mindful check-in (2 volte) · informale: bere il caffè</div>
+</div>
+</div>
+
+<div class="giorno">
+<div class="data"><span class="num">21</span><span class="dow">lun</span></div>
+<div class="corpo">
+<div class="riga"><div class="pista"><div class="barra pia" style="width: 33%"></div></div><span class="min">15 min</span><span class="chip chip-pia"><svg class="segno" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12.4" fill="currentColor" fill-opacity="0.1" stroke="currentColor" stroke-width="1.9"></circle><circle cx="11.5" cy="13.7" r="1.35" fill="currentColor"></circle><circle cx="20.5" cy="13.7" r="1.35" fill="currentColor"></circle><path d="M10.8 18.2c2.8 3.8 7.6 3.8 10.4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>Piacevole</span></div>
+<p class="nota">«Il respiro in pancia si sente meglio da sdraiato.»</p>
+<div class="pratiche">Body Scan</div>
+</div>
+</div>
+
+<div class="giorno">
+<div class="data"><span class="num">20</span><span class="dow">dom</span></div>
+<div class="corpo">
+<div class="riga"><div class="pista"></div><span class="min">—</span><span class="chip chip-nd">Solo informale</span></div>
+<div class="pratiche">Informale: lavare i piatti</div>
+</div>
+</div>
+
+<div class="giorno">
+<div class="data"><span class="num">19</span><span class="dow">sab</span></div>
+<div class="corpo">
+<div class="riga"><div class="pista"><div class="barra neu" style="width: 33%"></div></div><span class="min">15 min</span><span class="chip chip-neu"><svg class="segno" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12.4" fill="currentColor" fill-opacity="0.1" stroke="currentColor" stroke-width="1.9"></circle><circle cx="11.5" cy="13.5" r="1.35" fill="currentColor"></circle><circle cx="20.5" cy="13.5" r="1.35" fill="currentColor"></circle><path d="M11 20.3h10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>Neutro</span></div>
+<p class="nota">«Tanti pensieri, ma li ho visti passare più spesso del solito.»</p>
+<div class="pratiche">Body Scan</div>
+</div>
+</div>
+
+<div class="giorno">
+<div class="data"><span class="num">18</span><span class="dow">ven</span></div>
+<div class="corpo">
+<div class="riga"><div class="pista"><div class="barra pia" style="width: 44%"></div></div><span class="min">20 min</span><span class="chip chip-pia"><svg class="segno" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12.4" fill="currentColor" fill-opacity="0.1" stroke="currentColor" stroke-width="1.9"></circle><circle cx="11.5" cy="13.7" r="1.35" fill="currentColor"></circle><circle cx="20.5" cy="13.7" r="1.35" fill="currentColor"></circle><path d="M10.8 18.2c2.8 3.8 7.6 3.8 10.4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>Piacevole</span></div>
+<p class="nota">«Primo giorno. Mi aspettavo di annoiarmi, invece il tempo è passato in fretta.»</p>
+<div class="pratiche">Body Scan, Mindful check-in</div>
+</div>
+</div>
+
+<div style="border-top: 1px solid #DDDDD3; padding-top: 14px; font-size: 13px; color: #5B665F">Inizio del percorso · 18 settembre</div>
+
+</div>
+</body>
+</html>

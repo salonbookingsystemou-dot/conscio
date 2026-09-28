@@ -43,3 +43,8 @@ Applicato in produzione, documentato in `supabase/migrazione_checkin_progressi.s
 - Export e reset dei dati includono il check-in.
 
 **Da fare nel frontend:** vedi `docs/brief_checkin.md`.
+
+### 28/9/2026 · Nuova schermata Storico (mockup, da Claude su claude.ai)
+Deciso con Dimitri: lo storico diventa un calendario a scorrimento verticale, una riga per giornata
+(barra dei minuti colorata dal tono, etichetta del tono, nota), con un contatore generale in alto.
+Mockup in `docs/mockup/storico.html`, istruzioni in `docs/brief_storico.md`. Non ancora implementato.
