@@ -12,7 +12,7 @@ import {
 } from 'recharts'
 import { supabase } from '../lib/supabaseClient'
 import { punteggioFfmq, punteggioPss10 } from '../lib/scoring'
-import GraficiTono from '../components/GraficiTono.jsx'
+import SchedaPratica from '../components/SchedaPratica.jsx'
 import EditorSplash from '../components/EditorSplash.jsx'
 import DialogConferma from '../components/DialogConferma.jsx'
 import { EMAIL_CONTATTO, STRUMENTI } from '../lib/contatti.js'
@@ -633,6 +633,18 @@ export default function Dashboard() {
   }, [punteggi])
 
   const cicloPerId = useMemo(() => new Map(cicli.map(c => [c.id, c])), [cicli])
+
+  // Chi segue un percorso individuale da remoto (senza ciclo) ha un calendario suo: resta fuori.
+  const codiciPerCiclo = useMemo(() => {
+    const mappa = new Map()
+    for (const i of iscritti) {
+      const codice = i.utenti?.codice_partecipante
+      if (!i.ciclo_id || !codice || !eIdoneo(i)) continue
+      if (!mappa.has(i.ciclo_id)) mappa.set(i.ciclo_id, [])
+      mappa.get(i.ciclo_id).push(codice)
+    }
+    return mappa
+  }, [iscritti])
 
   const kpi = useMemo(() => {
     const attivi = iscritti.filter(i => eIdoneo(i)).length
@@ -1491,22 +1503,12 @@ export default function Dashboard() {
           id={`${tabsId}-panel-pratica`}
           aria-labelledby={`${tabsId}-pratica`}
         >
-          <header className="dash-panel-testa">
-            <div>
-              <h2>Pratica</h2>
-              <p className="lead">
-                Minuti giorno per giorno
-                {cicloAperto ? ` per «${cicloAperto.nome_ciclo}»` : ' di tutti i cicli'}
-                {' · '}per codice. Le informali si contano a parte, per volte.
-              </p>
-            </div>
-          </header>
-          {!cicloAperto && cicli.length > 0 && (
-            <p className="hint">
-              Per filtrare un’edizione, apri un ciclo dalla scheda Cicli.
-            </p>
-          )}
-          <GraficiTono sessioni={logVista} ambito={cicloAperto?.nome_ciclo} />
+          <SchedaPratica
+            ciclo={cicloAperto}
+            cicli={cicli}
+            codiciPerCiclo={codiciPerCiclo}
+            log={log}
+          />
         </div>
       )}
 

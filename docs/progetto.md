@@ -63,4 +63,10 @@ Mockup in `docs/mockup/storico.html`, istruzioni in `docs/brief_storico.md`. Non
 ### 28/9/2026 · Nuova scheda Pratica del facilitatore (mockup, da Claude su claude.ai)
 Mockup in `docs/mockup/pratica.html`, istruzioni in `docs/brief_pratica.md`: quattro numeri, partecipazione
 giorno per giorno per tono, mappa del percorso e totale per partecipante senza codici, informali in tabella.
-Aggiornati anche mockup e brief dello Storico con le definizioni condivise qui sopra. Non ancora implementato.
+Aggiornati anche mockup e brief dello Storico con le definizioni condivise qui sopra.
+
+### 28/9/2026 · Scheda Pratica implementata (da Cursor)
+`src/components/SchedaPratica.jsx` (calcoli in `src/lib/pratica.js`) sostituisce `GraficiTono` nella dashboard.
+Iscritti al ciclo = iscrizioni idonee con `ciclo_id` (esclusi ritirati e percorsi individuali da remoto).
+Senza ciclo aperto la scheda mostra il ciclo in corso (o l'ultimo iniziato); solo se nessun ciclo è
+iniziato restano i quattro numeri, sommati su tutti i cicli. Nessuna modifica al database.
