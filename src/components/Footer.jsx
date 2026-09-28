@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { ORGANIZZAZIONE } from '../lib/contatti.js'
 
 export default function Footer() {
@@ -11,6 +12,8 @@ export default function Footer() {
         >
           {ORGANIZZAZIONE.nome}
         </a>
+        <span aria-hidden="true"> · </span>
+        <Link to="/segnala">Segnala un problema</Link>
       </p>
     </footer>
   )

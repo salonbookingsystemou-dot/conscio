@@ -1,29 +1,41 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
 import { usePartecipante } from '../lib/partecipante.jsx'
+import { costruisciStorico } from '../lib/storico.js'
 import ChiediCodice from '../components/ChiediCodice.jsx'
 import StatoAttesa from '../components/StatoAttesa.jsx'
 import StatoVuoto from '../components/StatoVuoto.jsx'
-import CalendarioPratica from '../components/CalendarioPratica.jsx'
-import GraficoAndamentoPratica from '../components/GraficoAndamentoPratica.jsx'
+import StoricoGiornate from '../components/StoricoGiornate.jsx'
+
+function temiDaProgramma(data) {
+  const payload = typeof data === 'string' ? JSON.parse(data) : data
+  const temi = {}
+  for (const lezione of payload?.lezioni || []) {
+    const tema = String(lezione.tema || '').trim()
+    if (tema) temi[lezione.numero_settimana] = tema
+  }
+  return temi
+}
 
 export default function LogPratica() {
   const { codice, registrato } = usePartecipante()
   const [storico, setStorico] = useState([])
   const [ciclo, setCiclo] = useState(null)
-  const [giornoAttivo, setGiornoAttivo] = useState(null)
+  const [temi, setTemi] = useState({})
   const [errore, setErrore] = useState(null)
   const [caricato, setCaricato] = useState(false)
 
   async function caricaStorico(codicePulito) {
-    const [{ data, error }, { data: cicloData, error: cicloErrore }] = await Promise.all([
+    const [{ data, error }, { data: cicloData, error: cicloErrore }, { data: programma }] = await Promise.all([
       supabase.rpc('log_pratica_del_partecipante', { p_codice: codicePulito }),
-      supabase.rpc('ciclo_del_partecipante', { p_codice: codicePulito })
+      supabase.rpc('ciclo_del_partecipante', { p_codice: codicePulito }),
+      supabase.rpc('programma_del_partecipante', { p_codice: codicePulito })
     ])
     if (error || cicloErrore) return false
     setStorico(data || [])
     setCiclo(cicloData || null)
+    setTemi(programma ? temiDaProgramma(programma) : {})
     setCaricato(true)
     return true
   }
@@ -42,17 +54,14 @@ export default function LogPratica() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [registrato, codice])
 
-  const visibili = giornoAttivo
-    ? storico.filter(r => String(r.data).slice(0, 10) === giornoAttivo)
-    : storico
+  const dati = useMemo(() => costruisciStorico(storico, ciclo, temi), [storico, ciclo, temi])
 
   return (
     <div>
       <h2>Storico di pratica</h2>
       <p className="lead">
-        Il diario della settimana sta in{' '}
+        Una riga per ogni giorno del percorso, dalla più recente. Il diario si scrive in{' '}
         <Link to="/programma">Settimana</Link>, sotto ogni pratica.
-        Qui vedi l’andamento del tono nel tempo, collegato alle sessioni.
       </p>
 
       {!registrato && (
@@ -62,42 +71,13 @@ export default function LogPratica() {
 
       {registrato && !caricato && !errore && <StatoAttesa etichetta="Caricamento dello storico…" />}
       {caricato && (
-        <>
-          <div className="card">
-            <CalendarioPratica
-              inizio={ciclo?.data_inizio}
-              fine={ciclo?.data_fine}
-              sessioni={storico}
-              giornoAttivo={giornoAttivo}
-              onGiorno={iso => {
-                setGiornoAttivo(prev => (prev === iso ? null : iso))
-              }}
-            />
-          </div>
-          <div className="card">
-            <h3>
-              {giornoAttivo
-                ? `Andamento del ${new Date(`${giornoAttivo}T12:00:00`).toLocaleDateString('it-IT')}`
-                : 'Andamento del tono'}
-            </h3>
-            {giornoAttivo && (
-              <p className="hint">
-                <button type="button" className="btn btn-ghost" onClick={() => setGiornoAttivo(null)}>
-                  Mostra tutto il percorso
-                </button>
-              </p>
-            )}
-            {visibili.length === 0 ? (
-              <StatoVuoto titolo={giornoAttivo ? 'Nessuna sessione' : 'Diario ancora vuoto'}>
-                {giornoAttivo
-                  ? 'In questo giorno non risulta nessuna pratica registrata.'
-                  : 'Quando completi una pratica in Settimana, comparirà qui.'}
-              </StatoVuoto>
-            ) : (
-              <GraficoAndamentoPratica sessioni={visibili} />
-            )}
-          </div>
-        </>
+        storico.length === 0 && dati.settimane.length === 0 ? (
+          <StatoVuoto titolo="Diario ancora vuoto">
+            Quando completi una pratica in Settimana, comparirà qui.
+          </StatoVuoto>
+        ) : (
+          <StoricoGiornate {...dati} />
+        )
       )}
     </div>
   )

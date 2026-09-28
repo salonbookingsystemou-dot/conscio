@@ -10,6 +10,7 @@ import {
   testoIncoraggiamentoConFirma,
   type CitazioneEmail
 } from '../_shared/emailIncoraggiamento.ts'
+import { ordinalGiorno, scegliCuriosita, type Curiosita } from '../_shared/curiositaMindfulness.ts'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -90,6 +91,7 @@ async function inviaResend(opts: {
   to: string
   oggetto: string
   citazione: CitazioneEmail
+  curiosita: Curiosita | null
 }): Promise<{ ok: boolean, errore?: string }> {
   const apiKey = Deno.env.get('RESEND_API_KEY')
   if (!apiKey) return { ok: false, errore: 'RESEND_NON_CONFIGURATO' }
@@ -105,8 +107,8 @@ async function inviaResend(opts: {
         to: [opts.to],
         reply_to: REPLY_TO,
         subject: opts.oggetto,
-        text: testoIncoraggiamentoConFirma(opts.citazione),
-        html: htmlIncoraggiamento(opts.citazione)
+        text: testoIncoraggiamentoConFirma(opts.citazione, opts.curiosita),
+        html: htmlIncoraggiamento(opts.citazione, opts.curiosita)
       })
     })
     if (res.ok) return { ok: true }
@@ -201,10 +203,25 @@ async function inviaIncoraggiamento(
     bookTitle: riga.book_title
   }
 
+  const { count, error: errConteggio } = await admin
+    .from('quote_sent_log')
+    .select('id', { count: 'exact', head: true })
+    .eq('utente_id', opts.utenteId)
+  if (errConteggio) {
+    console.error('conteggio curiosita', errConteggio.message)
+  }
+  const curiosita = scegliCuriosita({
+    utenteId: opts.utenteId,
+    inviiPrecedenti: errConteggio
+      ? ordinalGiorno(opts.practiceDate)
+      : (count ?? 0)
+  })
+
   const invio = await inviaResend({
     to: email,
     oggetto: oggettoIncoraggiamento(cal.giorno_percorso),
-    citazione
+    citazione,
+    curiosita
   })
   if (!invio.ok) {
     console.error('invio incoraggiamento fallito', invio.errore)
@@ -231,8 +248,52 @@ async function inviaIncoraggiamento(
     ok: true,
     settimana: cal.settimana,
     giorno: cal.giorno_percorso,
-    quote_id: riga.id
+    quote_id: riga.id,
+    curiosita_id: curiosita?.id ?? null
   }
+}
+
+async function inviaProvaDiretta(
+  admin: SupabaseClient,
+  email: string,
+  settimanaRichiesta?: number
+): Promise<Record<string, unknown>> {
+  const settimana = Math.max(1, Math.min(8, settimanaRichiesta || 1))
+  const { data: citazioni, error } = await admin
+    .from('quotes')
+    .select('author, book_title, quote_text, week_theme')
+    .eq('active', true)
+    .order('created_at', { ascending: true })
+    .limit(40)
+  if (error) {
+    console.error('citazioni prova', error.message)
+    return { ok: false, motivo: 'NESSUNA_CITAZIONE' }
+  }
+  const elenco = citazioni || []
+  const delTema = elenco.filter(q => q.week_theme === settimana && !String(q.quote_text).includes('[ESEMPIO'))
+  const altre = elenco.filter(q => !String(q.quote_text).includes('[ESEMPIO'))
+  const riga = delTema[0] || altre[0] || elenco[0]
+  if (!riga?.quote_text) return { ok: false, motivo: 'NESSUNA_CITAZIONE' }
+
+  const curiosita = scegliCuriosita({ utenteId: 'prova-email', inviiPrecedenti: 0 })
+  const invio = await inviaResend({
+    to: email,
+    oggetto: oggettoIncoraggiamento(1),
+    citazione: {
+      quoteText: riga.quote_text,
+      author: riga.author,
+      bookTitle: riga.book_title
+    },
+    curiosita
+  })
+  if (!invio.ok) {
+    return {
+      ok: false,
+      motivo: invio.errore === 'RESEND_NON_CONFIGURATO' ? 'RESEND_NON_CONFIGURATO' : 'RESEND_ERRORE',
+      errore: invio.errore
+    }
+  }
+  return { ok: true, motivo: 'PROVA', curiosita_id: curiosita?.id ?? null }
 }
 
 Deno.serve(async (req) => {
@@ -252,6 +313,18 @@ Deno.serve(async (req) => {
   }
 
   const prova = Boolean(corpo.prova)
+  const emailProva = typeof corpo.email === 'string' ? corpo.email.trim().toLowerCase() : ''
+  if (prova && emailValida(emailProva)) {
+    const adminProva = createClient(url, serviceKey)
+    const settimanaProva = typeof corpo.week_number === 'number' ? corpo.week_number : 1
+    try {
+      return json(await inviaProvaDiretta(adminProva, emailProva, settimanaProva))
+    } catch (err) {
+      console.error('invia-incoraggiamento-pratica', err)
+      return json({ ok: false, motivo: 'ERRORE_INTERNO' })
+    }
+  }
+
   const record = recordDaWebhook(corpo)
   let utenteId = ''
   let practiceDate = dataIso(undefined)

@@ -1,0 +1,272 @@
+[
+  {
+    "id": "uk-scuole-myriad",
+    "categoria": "scuola",
+    "titolo": "Il più grande esperimento al mondo di mindfulness nelle scuole",
+    "testo": "Tra il 2018 e il 2021 il governo britannico ha finanziato una sperimentazione in oltre 370 scuole per insegnare tecniche di meditazione e regolazione emotiva agli studenti, guidata da Oxford University insieme all'Anna Freud National Centre e allo University College London.",
+    "paese": "Regno Unito",
+    "fonte": "MYRIAD Project, Università di Oxford / Anna Freud National Centre for Children and Families / UCL",
+    "url": "https://www.psych.ox.ac.uk/research/research-groups/mindfulness"
+  },
+  {
+    "id": "oxford-mindfulness-centre",
+    "categoria": "sanita",
+    "titolo": "La mindfulness è nel servizio sanitario pubblico britannico",
+    "testo": "L'Oxford Mindfulness Centre, fondato nel 2008 nel Dipartimento di Psichiatria dell'università, ha sviluppato la terapia MBCT (Mindfulness-Based Cognitive Therapy), oggi accessibile gratuitamente tramite il servizio sanitario nazionale inglese (NHS) a milioni di pazienti con depressione ricorrente.",
+    "paese": "Regno Unito",
+    "fonte": "Oxford Mindfulness Centre, Department of Psychiatry, University of Oxford",
+    "url": "https://www.psych.ox.ac.uk/research/research-groups/mindfulness"
+  },
+  {
+    "id": "bangor-cmrp",
+    "categoria": "sanita",
+    "titolo": "Un centro universitario dedicato alla mindfulness dal 2001",
+    "testo": "Il Centre for Mindfulness Research and Practice dell'Università di Bangor (Galles) forma istruttori di mindfulness dal 2001 ed è uno dei centri più longevi al mondo nel suo genere, con forte legame storico con il servizio sanitario britannico (NHS).",
+    "paese": "Regno Unito",
+    "fonte": "Centre for Mindfulness Research and Practice, Bangor University",
+    "url": "https://www.bangor.ac.uk/mindfulness"
+  },
+  {
+    "id": "westminster-parlamento",
+    "categoria": "istituzioni",
+    "titolo": "La mindfulness è entrata in Parlamento",
+    "testo": "Dal 2013 un gruppo di deputati e Lord britannici si ritrova ogni martedì a Westminster per una sessione di meditazione. Nato come corso sperimentale di 8 settimane tenuto dall'Oxford Mindfulness Centre, è oggi finanziato direttamente dalla Camera dei Comuni, e oltre 150 parlamentari l'hanno seguito nel tempo.",
+    "paese": "Regno Unito",
+    "fonte": "Mindfulness All-Party Parliamentary Group / The Mindfulness Initiative, report \"Mindfulness in Westminster\" (2023)",
+    "url": "https://www.themindfulnessinitiative.org"
+  },
+  {
+    "id": "harvard-mgh-materia-grigia",
+    "categoria": "sanita",
+    "titolo": "Otto settimane di mindfulness cambiano la struttura del cervello",
+    "testo": "Uno studio del Massachusetts General Hospital, affiliato a Harvard Medical School e guidato dalla neuroscienziata Sara Lazar, ha documentato per la prima volta con risonanza magnetica un aumento della densità di materia grigia nell'ippocampo dopo un programma MBSR di 8 settimane, con circa 27 minuti di pratica al giorno.",
+    "paese": "Stati Uniti",
+    "fonte": "Harvard Gazette, \"Eight weeks to a better brain\" (2011), studio pubblicato su Psychiatry Research: Neuroimaging",
+    "url": "https://news.harvard.edu/gazette/story/2011/01/eight-weeks-to-a-better-brain/"
+  },
+  {
+    "id": "harvard-thich-nhat-hanh-center",
+    "categoria": "sanita",
+    "titolo": "Un centro da 25 milioni di dollari dedicato alla mindfulness",
+    "testo": "Nel 2023 la Harvard T.H. Chan School of Public Health ha inaugurato il Thich Nhat Hanh Center for Mindfulness in Public Health, reso possibile da una donazione anonima di 25 milioni di dollari — una delle più grandi mai ricevute dalla scuola.",
+    "paese": "Stati Uniti",
+    "fonte": "Harvard T.H. Chan School of Public Health",
+    "url": "https://hsph.harvard.edu/news/thich-nhat-hanh-center-for-mindfulness-in-public-health-launched-at-harvard-t-h-chan-school-of-public-health/"
+  },
+  {
+    "id": "harvard-college-benessere",
+    "categoria": "istituzioni",
+    "titolo": "Meditazione anche per gli studenti universitari",
+    "testo": "Il Center for Wellness degli Harvard University Health Services offre agli studenti una gamma di opzioni di meditazione integrate nella vita universitaria quotidiana, parte del più ampio impegno di Harvard sul benessere mentale nel campus.",
+    "paese": "Stati Uniti",
+    "fonte": "Harvard Gazette",
+    "url": "https://news.harvard.edu/gazette/tag/mindfulness/"
+  },
+  {
+    "id": "sport-leonardo-fabbri",
+    "categoria": "sport",
+    "titolo": "Il campione europeo di getto del peso medita prima delle gare",
+    "testo": "Leonardo Fabbri, campione europeo e vice campione del mondo del getto del peso, integra la meditazione consapevole nella preparazione alle gare, alternando meditazioni concentrative in autonomia a sessioni guidate dal suo coach.",
+    "paese": "Italia",
+    "fonte": "Intervista pubblicata su corsedimoto.com",
+    "url": "https://www.corsedimoto.com/paolo-gozzi-blog/mindfullness-allenamento-mentale-piu-veloce-piu-felice"
+  },
+  {
+    "id": "sport-phil-jackson-bulls",
+    "categoria": "sport",
+    "titolo": "La mindfulness nella dinastia dei Chicago Bulls",
+    "testo": "Phil Jackson, allenatore dei Chicago Bulls di Michael Jordan negli anni '90, fu tra i primi a introdurre sistematicamente la mindfulness nell'allenamento di una squadra professionistica, con l'aiuto dell'istruttore George Mumford.",
+    "paese": "Stati Uniti",
+    "fonte": "Fonti giornalistiche multiple sulla storia dei Chicago Bulls anni '90",
+    "url": ""
+  },
+  {
+    "id": "stat-pubmed-crescita",
+    "categoria": "dati",
+    "titolo": "Da 1 a 305 studi scientifici in poco più di 40 anni",
+    "testo": "Su PubMed, il principale database di studi scientifici in medicina, nel 1979 fu pubblicato un solo studio controllato sulla mindfulness. Nel 2023 gli studi controllati pubblicati erano 305 — e solo nei primi 11 giorni del 2024 ne erano già usciti 11.",
+    "paese": "Dato internazionale",
+    "fonte": "DORS (Documentazione, Ricerca e Formazione per la Promozione della Salute), \"Mindfulness oggi: quale presente e quale futuro\" (2024)",
+    "url": "https://www.dors.it/2024/02/mindfulness-oggi-quale-presente-e-quale-futuro/"
+  },
+  {
+    "id": "stat-harvard-25000-studi",
+    "categoria": "dati",
+    "titolo": "Quasi 25.000 studi scientifici sulla mindfulness",
+    "testo": "All'inizio del 2023 risultavano quasi 25.000 studi sulla mindfulness pubblicati su riviste scientifiche peer-reviewed in discipline diverse — un campo di ricerca ancora giovane ma in fortissima crescita.",
+    "paese": "Dato internazionale",
+    "fonte": "Harvard T.H. Chan School of Public Health, comunicato di lancio del Thich Nhat Hanh Center",
+    "url": "https://hsph.harvard.edu/news/thich-nhat-hanh-center-for-mindfulness-in-public-health-launched-at-harvard-t-h-chan-school-of-public-health/"
+  },
+  {
+    "id": "umass-nascita-mbsr",
+    "categoria": "sanita",
+    "titolo": "Il protocollo MBSR nasce nel 1979",
+    "testo": "Jon Kabat-Zinn ha fondato la Stress Reduction Clinic (oggi Center for Mindfulness) alla University of Massachusetts Medical School nel 1979, dando origine al protocollo MBSR: da allora centinaia di migliaia di persone nel mondo lo hanno seguito.",
+    "paese": "Stati Uniti",
+    "fonte": "UMass Memorial Health, Center for Mindfulness",
+    "url": "https://www.ummhealth.org/services-treatments/center-mindfulness"
+  },
+  {
+    "id": "nice-2022-depressione",
+    "categoria": "sanita",
+    "titolo": "Le linee guida britanniche raccomandano la mindfulness anche per la depressione lieve",
+    "testo": "Nel giugno 2022 il NICE (National Institute for Health and Care Excellence) ha aggiornato le linee guida sulla depressione includendo i programmi basati sulla mindfulness, come la MBCT, tra le opzioni psicologiche di prima linea per i nuovi episodi di depressione meno grave — non più solo per la prevenzione delle ricadute, come in precedenza.",
+    "paese": "Regno Unito",
+    "fonte": "NICE (National Institute for Health and Care Excellence), guideline NG222 (2022)",
+    "url": "https://www.nice.org.uk/guidance/ng222"
+  },
+  {
+    "id": "mbct-prevenzione-ricadute",
+    "categoria": "sanita",
+    "titolo": "Dal 2004 la mindfulness previene le ricadute depressive nel servizio sanitario britannico",
+    "testo": "Le linee guida cliniche britanniche raccomandano la Mindfulness-Based Cognitive Therapy (MBCT) per prevenire le ricadute nella depressione ricorrente fin dal 2004. Uno studio del 2019 su pazienti seguiti nel mondo reale ha rilevato che il 96% delle persone trattate con MBCT durante la remissione è rimasto in salute per tutto il periodo di trattamento.",
+    "paese": "Regno Unito",
+    "fonte": "National Institute for Health Research (NIHR)",
+    "url": "https://www.nihr.ac.uk/story/mindfulness-based-cognitive-therapy-prevents-depression-relapse"
+  },
+  {
+    "id": "sanita-italia-asl-mbsr",
+    "categoria": "sanita",
+    "titolo": "L'MBSR arriva anche nelle ASL italiane",
+    "testo": "Diverse Aziende Sanitarie Locali italiane, come l'ASL del Medio Campidano in Sardegna, organizzano corsi ufficiali basati sul protocollo MBSR rivolti a operatori sanitari e cittadini — segno di una crescente integrazione della mindfulness nei percorsi di prevenzione e benessere del Servizio Sanitario Nazionale.",
+    "paese": "Italia",
+    "fonte": "ASL Medio Campidano",
+    "url": "https://www.aslmediocampidano.it/corso-protocollo-mbsr-mindfulness-based-stress-reduction/"
+  },
+  {
+    "id": "google-search-inside-yourself",
+    "categoria": "istituzioni",
+    "titolo": "Il corso di mindfulness nato dentro Google",
+    "testo": "Nel 2007 l'ingegnere Chade-Meng Tan ha creato in Google il corso \"Search Inside Yourself\", basato su mindfulness e intelligenza emotiva. Il programma ha avuto talmente successo tra i dipendenti da diventare, anni dopo, un'organizzazione indipendente (SIY Global) che oggi forma persone e aziende in tutto il mondo.",
+    "paese": "Stati Uniti",
+    "fonte": "SIY Global",
+    "url": "https://www.siyglobal.com/emotional-intelligence-programs/search-inside-yourself"
+  },
+  {
+    "id": "sap-mindfulness-corporate",
+    "categoria": "istituzioni",
+    "titolo": "Oltre 6.500 dipendenti formati in un colosso del software",
+    "testo": "Dal 2012 SAP ha reso la mindfulness parte della propria cultura aziendale globale attraverso il corso \"Search Inside Yourself\": oltre 6.500 dipendenti lo hanno completato, con una lista d'attesa interna di altri 5.500.",
+    "paese": "Germania / diffusione internazionale",
+    "fonte": "Mindful Leader",
+    "url": "https://www.mindfulleader.org/blog/28807-mindfulness-sap-the-journey-tactics"
+  },
+  {
+    "id": "aetna-corporate-wellness",
+    "categoria": "istituzioni",
+    "titolo": "Una grande compagnia assicurativa scommette sulla mindfulness dei dipendenti",
+    "testo": "Nel 2010 la compagnia assicurativa statunitense Aetna ha coinvolto 239 dipendenti in un programma pilota di 12 settimane di mindfulness e yoga. Lo studio ha rilevato che i dipendenti con i livelli di stress percepito più alti avevano costi sanitari annui superiori di quasi 2.000 dollari rispetto a chi riportava i livelli più bassi, un dato che ha spinto l'azienda a estendere il programma a tutta la forza lavoro.",
+    "paese": "Stati Uniti",
+    "fonte": "Mindful.org, \"Aetna's Mindfulness Initiative\"",
+    "url": "https://www.mindful.org/aetna-employees-being-mindful/"
+  },
+  {
+    "id": "usa-marines-mmft",
+    "categoria": "istituzioni",
+    "titolo": "I Marines statunitensi si allenano anche con la mindfulness",
+    "testo": "Uno studio del 2011 su riservisti dei Marine statunitensi in preparazione al dispiegamento in Iraq ha testato il \"Mindfulness-based Mind Fitness Training\" (MMFT): chi si è allenato di più con gli esercizi di mindfulness ha mostrato un aumento significativo dei punteggi di consapevolezza, correlato a una riduzione dello stress percepito.",
+    "paese": "Stati Uniti",
+    "fonte": "Stanley, Schaldach, Kiyonaga & Jha (2011), Cognitive and Behavioral Practice",
+    "url": "https://umindfulness.as.miami.edu/_assets/pdf/stanleyetal_2011.pdf"
+  },
+  {
+    "id": "prison-mindfulness-institute",
+    "categoria": "istituzioni",
+    "titolo": "Un programma di mindfulness nato dentro una cella",
+    "testo": "Il Prison Mindfulness Institute è stato fondato nel 1989 da Fleet Maull mentre era detenuto nel carcere federale di Springfield, in Missouri. Da allora l'organizzazione forma detenuti, volontari e personale penitenziario alla meditazione in carceri di diversi paesi.",
+    "paese": "Stati Uniti",
+    "fonte": "Prison Mindfulness Institute",
+    "url": "https://www.prisonmindfulness.org/who-we-are"
+  },
+  {
+    "id": "tihar-jail-vipassana",
+    "categoria": "istituzioni",
+    "titolo": "Il più grande corso di meditazione mai tenuto al mondo, in un carcere",
+    "testo": "Nel novembre 1993 la direttrice del carcere di Tihar (Delhi, India), Kiran Bedi, avviò il primo corso di meditazione Vipassana per i detenuti. Nell'aprile 1994 un corso tenuto nello stesso carcere raccolse oltre 1.000 detenuti contemporaneamente — probabilmente il più grande corso di Vipassana mai organizzato al mondo — portando poi alla creazione di un centro permanente, Dhamma Tihar.",
+    "paese": "India",
+    "fonte": "Vipassana Research Institute",
+    "url": "https://www.vridhamma.org/research/Vipassana-in-Jails-An-Historical-Review"
+  },
+  {
+    "id": "westminster-mindful-nation-report",
+    "categoria": "istituzioni",
+    "titolo": "Il primo rapporto al mondo che tratta la mindfulness come politica pubblica nazionale",
+    "testo": "Nel 2015, dopo un'inchiesta durata 12 mesi, il gruppo parlamentare britannico sulla mindfulness ha pubblicato il rapporto \"Mindful Nation UK\", definito la prima volta in cui la mindfulness è stata presa sul serio come politica pubblica nazionale: tra le raccomandazioni, portare la MBCT nel servizio sanitario per le persone a rischio di depressione ricorrente e istituire scuole pilota per l'insegnamento della mindfulness.",
+    "paese": "Regno Unito",
+    "fonte": "Mindfulness All-Party Parliamentary Group (MAPPG) / Department of Psychiatry, University of Oxford",
+    "url": "https://www.psych.ox.ac.uk/news/mps-back-the-mindful-nation-uk-report"
+  },
+  {
+    "id": "parlamento-europeo-mindfulness",
+    "categoria": "istituzioni",
+    "titolo": "Anche il Parlamento europeo ha dedicato una giornata alla mindfulness",
+    "testo": "Il 10 dicembre 2020 si è tenuto il primo evento dedicato alla mindfulness per gli eurodeputati, organizzato con The Mindfulness Initiative e la Scuola Europea di Amministrazione. Tra i partecipanti, la vicepremier belga Petra De Sutter ha dichiarato: \"La mindfulness mi rende un essere umano migliore e una politica migliore.\"",
+    "paese": "Unione Europea (Belgio)",
+    "fonte": "The Mindfulness Initiative",
+    "url": "https://www.themindfulnessinitiative.org/european-parliament-event"
+  },
+  {
+    "id": "mindful-schools-usa",
+    "categoria": "scuola",
+    "titolo": "Oltre 50.000 insegnanti formati alla mindfulness negli Stati Uniti",
+    "testo": "L'organizzazione no-profit Mindful Schools, nata in California, ha collaborato con oltre 500 scuole e formato più di 50.000 educatori statunitensi all'insegnamento della mindfulness in classe.",
+    "paese": "Stati Uniti",
+    "fonte": "Mindful Schools",
+    "url": "https://www.mindfulschools.org/about/"
+  },
+  {
+    "id": "mindup-goldie-hawn",
+    "categoria": "scuola",
+    "titolo": "Sette milioni di bambini raggiunti da un programma scolastico fondato da un'attrice",
+    "testo": "MindUP, il programma di mindfulness ed educazione socio-emotiva per le scuole creato dalla Goldie Hawn Foundation, ha raggiunto finora oltre 7 milioni di bambini nel mondo e formato più di 275.000 educatori.",
+    "paese": "Stati Uniti / diffusione internazionale",
+    "fonte": "MindUP, The Goldie Hawn Foundation",
+    "url": "https://www.mindup.org/"
+  },
+  {
+    "id": "olanda-bullismo-mindfulness",
+    "categoria": "scuola",
+    "titolo": "Nei Paesi Bassi la mindfulness sostituisce i programmi anti-bullismo",
+    "testo": "Nelle 20 scuole di Amsterdam dove insegna il metodo \"Sitting Still Like a Frog\" ideato dall'esperta olandese Eline Snel, 750 bambini seguono un training di mindfulness: in alcune classi, dopo l'adozione del metodo, non è più stato necessario alcun programma specifico contro il bullismo perché il fenomeno è diminuito sensibilmente.",
+    "paese": "Paesi Bassi",
+    "fonte": "Quotidiano Sanità (2018)",
+    "url": "https://www.quotidianosanita.it/scienza-e-farmaci/in-olanda-il-bullismo-a-scuola-si-combatte-con-la-mindfulness/"
+  },
+  {
+    "id": "sport-seattle-seahawks",
+    "categoria": "sport",
+    "titolo": "La squadra di football che ha vinto il Super Bowl meditando",
+    "testo": "Sotto la guida dell'allenatore Pete Carroll e dello psicologo dello sport Michael Gervais, i Seattle Seahawks hanno integrato sistematicamente la mindfulness e la meditazione nell'allenamento della squadra, vincendo il Super Bowl XLVIII nel febbraio 2014.",
+    "paese": "Stati Uniti",
+    "fonte": "Mindful.org, \"Seahawks Bring Meditation to the Super Bowl\"",
+    "url": "https://www.mindful.org/seahawks-bring-meditation-to-the-superbowl/"
+  },
+  {
+    "id": "sport-george-mumford-jordan-bryant",
+    "categoria": "sport",
+    "titolo": "Il maestro di mindfulness dietro Michael Jordan e Kobe Bryant",
+    "testo": "George Mumford, insegnante di meditazione Vipassana, ha lavorato come coach di mindfulness per i Chicago Bulls di Michael Jordan a partire dal 1993 e per i Los Angeles Lakers di Kobe Bryant dal 1999, su chiamata dell'allenatore Phil Jackson, contribuendo al clima mentale delle rispettive dinastie vincenti.",
+    "paese": "Stati Uniti",
+    "fonte": "Tricycle Magazine, \"George Mumford: Meditation Coach of the L.A. Lakers\"",
+    "url": "https://tricycle.org/magazine/la-lakers-meditation-coach/"
+  },
+  {
+    "id": "time-mindful-revolution",
+    "categoria": "dati",
+    "titolo": "La mindfulness in copertina su Time",
+    "testo": "Il 3 febbraio 2014 la rivista Time ha dedicato la propria copertina a \"The Mindful Revolution\" (La rivoluzione della consapevolezza), segnando simbolicamente l'ingresso della pratica nel mainstream culturale e mediatico occidentale.",
+    "paese": "Stati Uniti",
+    "fonte": "Time Magazine",
+    "url": "https://content.time.com/time/covers/0,16641,20140203,00.html"
+  },
+  {
+    "id": "journal-mindfulness-springer",
+    "categoria": "dati",
+    "titolo": "Una rivista scientifica dedicata solo alla mindfulness",
+    "testo": "Dal 2010 esiste una rivista accademica peer-reviewed interamente dedicata alla ricerca sulla mindfulness, pubblicata da Springer Nature e intitolata semplicemente \"Mindfulness\": raccoglie oggi migliaia di articoli scientifici sull'argomento.",
+    "paese": "Dato internazionale",
+    "fonte": "Springer Nature, rivista \"Mindfulness\"",
+    "url": "https://link.springer.com/journal/12671"
+  }
+]

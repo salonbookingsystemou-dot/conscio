@@ -264,6 +264,7 @@ create or replace function settimana_per_questionari(p_inizio date)
 returns int
 language sql
 stable
+set search_path = public
 as $$
   select case
     when p_inizio is null then 0
@@ -281,6 +282,7 @@ create or replace function timepoint_in_finestra(
 returns boolean
 language sql
 stable
+set search_path = public
 as $$
   select case p_timepoint
     when 'T0' then coalesce(p_settimana, 0) <= 1
@@ -571,18 +573,16 @@ begin
 end;
 $$;
 
-revoke all on function codice_partecipante_valido(text) from public;
-revoke all on function ha_compilato_timepoint(text, text) from public;
-revoke all on function settimana_per_questionari(date) from public;
-revoke all on function timepoint_in_finestra(text, int, date, date) from public;
-revoke all on function assicura_ciclo_contenuto(uuid) from public;
-revoke all on function esercizio_del_percorso(uuid, uuid) from public;
-revoke all on function avvia_orologio_pratica(uuid, date) from public;
+revoke all on function codice_partecipante_valido(text) from public, anon, authenticated;
+revoke all on function ha_compilato_timepoint(text, text) from public, anon, authenticated;
+revoke all on function settimana_per_questionari(date) from public, anon, authenticated;
+revoke all on function timepoint_in_finestra(text, int, date, date) from public, anon, authenticated;
+revoke all on function assicura_ciclo_contenuto(uuid) from public, anon, authenticated;
+revoke all on function esercizio_del_percorso(uuid, uuid) from public, anon, authenticated;
+revoke all on function avvia_orologio_pratica(uuid, date) from public, anon, authenticated;
 revoke all on function stato_questionari_del_partecipante(text) from public;
 revoke all on function salva_risposte_questionario(text, text, jsonb) from public;
 
-grant execute on function codice_partecipante_valido(text) to anon, authenticated;
-grant execute on function ha_compilato_timepoint(text, text) to anon, authenticated;
 grant execute on function stato_questionari_del_partecipante(text) to anon, authenticated;
 grant execute on function salva_risposte_questionario(text, text, jsonb) to anon, authenticated;
 
@@ -1115,7 +1115,11 @@ begin
 
   if v_id is not null then
     update log_pratica
-    set durata_minuti = coalesce(v_minuti, durata_minuti)
+    set durata_minuti = case
+      when v_minuti is null then durata_minuti
+      when durata_minuti is null then v_minuti
+      else greatest(durata_minuti, v_minuti)
+    end
     where id = v_id;
   else
     insert into log_pratica (utente_id, esercizio_id, data, durata_minuti, note, tipo)
@@ -1760,6 +1764,9 @@ begin
 end;
 $$;
 
+-- Ruota su tutte le citazioni attive: un giorno, una frase diversa.
+-- Prima le mai inviate del tema della settimana, poi le altre mai inviate,
+-- poi la meno recente. L'ultima inviata non torna se ne esiste un'altra.
 create or replace function scegli_citazione(
   p_utente_id uuid,
   p_settimana int
@@ -1779,40 +1786,43 @@ declare
   v_sett int := greatest(1, least(8, coalesce(p_settimana, 1)));
 begin
   return query
-  with inedite as (
-    select q.id, q.author, q.book_title, q.quote_text, q.week_theme
-    from quotes q
-    where q.week_theme = v_sett
-      and q.active = true
-      and not exists (
-        select 1
-        from quote_sent_log l
-        where l.quote_id = q.id
-          and l.utente_id = p_utente_id
-          and l.week_number = v_sett
-      )
-    order by random()
+  with invii as (
+    select l.quote_id, max(l.sent_at) as ultimo_invio
+    from quote_sent_log l
+    where l.utente_id = p_utente_id
+    group by l.quote_id
+  ),
+  ultima as (
+    select l.quote_id
+    from quote_sent_log l
+    where l.utente_id = p_utente_id
+    order by l.sent_at desc
     limit 1
   ),
-  riuso as (
-    select q.id, q.author, q.book_title, q.quote_text, q.week_theme
-    from quotes q
-    join (
-      select l.quote_id, max(l.sent_at) as ultimo_invio
-      from quote_sent_log l
-      where l.utente_id = p_utente_id
-        and l.week_number = v_sett
-      group by l.quote_id
-    ) l on l.quote_id = q.id
-    where q.week_theme = v_sett
-      and q.active = true
-      and not exists (select 1 from inedite)
-    order by l.ultimo_invio asc
-    limit 1
+  attive as (
+    select count(*)::int as n
+    from quotes
+    where active = true
   )
-  select i.id, i.author, i.book_title, i.quote_text, i.week_theme from inedite i
-  union all
-  select r.id, r.author, r.book_title, r.quote_text, r.week_theme from riuso r
+  select q.id, q.author, q.book_title, q.quote_text, q.week_theme
+  from quotes q
+  left join invii i on i.quote_id = q.id
+  cross join attive a
+  where q.active = true
+    and (
+      a.n < 2
+      or not exists (
+        select 1 from ultima u where u.quote_id = q.id
+      )
+    )
+  order by
+    case
+      when i.ultimo_invio is null and q.week_theme = v_sett then 0
+      when i.ultimo_invio is null then 1
+      else 2
+    end,
+    i.ultimo_invio asc nulls first,
+    random()
   limit 1;
 end;
 $$;
@@ -1824,7 +1834,7 @@ revoke all on function registra_ascolto_formale(text, uuid, date, int) from publ
 revoke all on function minuti_ascolto_del_partecipante(text) from public;
 revoke all on function esporta_dati_del_partecipante(text) from public;
 revoke all on function iscrivi_partecipante(text, uuid, text, boolean, boolean, boolean) from public;
-revoke all on function salva_log_pratica(text, date, int, text, text, uuid, text, text) from public;
+revoke all on function salva_log_pratica(text, date, int, text, text, uuid, text, text) from public, anon, authenticated;
 revoke all on function risposte_pseudonime() from public;
 revoke all on function log_pratica_pseudonimi() from public;
 revoke all on function log_pratica_del_partecipante(text) from public;
@@ -1832,24 +1842,23 @@ revoke all on function email_destinatari_ciclo(uuid, boolean, boolean) from publ
 revoke all on function pratica_iniziata(uuid) from public;
 revoke all on function candidati_inattivita_remoto() from public;
 revoke all on function candidati_ritiro_inattivita() from public;
-revoke all on function ritira_inattivo(uuid) from public;
 revoke all on function separa_email_cicli_conclusi(int) from public;
 revoke all on function programma_del_partecipante(text) from public;
 revoke all on function comunicazioni_del_partecipante(text) from public;
 revoke all on function ciclo_del_partecipante(text) from public;
-revoke all on function calendario_pratica_utente(uuid, date) from public;
-revoke all on function scegli_citazione(uuid, int) from public;
+revoke all on function calendario_pratica_utente(uuid, date) from public, anon, authenticated;
+revoke all on function scegli_citazione(uuid, int) from public, anon, authenticated;
+revoke all on function ritira_inattivo(uuid) from public, anon, authenticated;
 
 grant execute on function is_facilitatore() to anon, authenticated;
 grant execute on function iscrivi_partecipante(text, uuid, text, boolean, boolean, boolean) to anon, authenticated;
-grant execute on function salva_log_pratica(text, date, int, text, text, uuid, text, text) to anon, authenticated;
 grant execute on function risposte_pseudonime() to authenticated;
 grant execute on function log_pratica_pseudonimi() to authenticated;
 grant execute on function log_pratica_del_partecipante(text) to anon, authenticated;
 grant execute on function email_destinatari_ciclo(uuid, boolean, boolean) to authenticated;
 grant execute on function candidati_inattivita_remoto() to authenticated, service_role;
 grant execute on function candidati_ritiro_inattivita() to authenticated, service_role;
-grant execute on function ritira_inattivo(uuid) to authenticated, service_role;
+grant execute on function ritira_inattivo(uuid) to service_role;
 grant execute on function separa_email_cicli_conclusi(int) to authenticated;
 grant execute on function programma_del_partecipante(text) to anon, authenticated;
 grant execute on function comunicazioni_del_partecipante(text) to anon, authenticated;
@@ -1939,9 +1948,9 @@ values (
 )
 on conflict (id) do nothing;
 
-create policy "lettura pubblica tracce"
-on storage.objects for select
-using (bucket_id = 'tracce-audio');
+-- Il bucket è pubblico: l'URL /object/public/ basta per ascoltare.
+-- Una policy SELECT su tutto il bucket permetterebbe di elencare i file.
+drop policy if exists "lettura pubblica tracce" on storage.objects;
 
 create policy "facilitatore carica tracce"
 on storage.objects for insert

@@ -13,8 +13,23 @@ import StatoAttesa from '../components/StatoAttesa.jsx'
 const ETICHETTE = {
   T0: { titolo: 'T0 — Inizio', sottotitolo: 'Prima di partire e durante la settimana 1' },
   T1: { titolo: 'T1 — Metà percorso', sottotitolo: 'Settimane 4 e 5' },
-  T2: { titolo: 'T2 — Fine percorso', sottotitolo: 'Settimane 8 e 9' },
-  T3: { titolo: 'T3 — Follow-up', sottotitolo: 'Dopo la fine del ciclo' }
+  T2: { titolo: 'T2 — Fine percorso', sottotitolo: 'Dalla settimana 8 a due settimane dopo la fine' },
+  T3: { titolo: 'T3 — Follow-up', sottotitolo: 'Da 4 a 8 settimane dopo la fine del percorso' }
+}
+
+function dataEstesa(iso) {
+  if (!iso) return null
+  return new Date(`${String(iso).slice(0, 10)}T12:00:00`).toLocaleDateString('it-IT', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
+}
+
+function scadenzaTimepoint(tp) {
+  if (tp.stato === 'aperto' && tp.chiude_il) return `Aperto fino al ${dataEstesa(tp.chiude_il)}`
+  if (tp.id === 'T3' && tp.stato === 'in_attesa' && tp.apre_il) return `Si apre il ${dataEstesa(tp.apre_il)}`
+  return null
 }
 
 const STATO_BADGE = {
@@ -524,6 +539,7 @@ export default function Questionari() {
               const bloccatoAltri = forzatoT0 && tp.id !== 'T0' && !t0Completo
               const puoIniziare = tp.stato === 'aperto' && !bloccatoAltri
               const puoVedere = tp.stato === 'completato'
+              const scadenza = scadenzaTimepoint(tp)
               return (
                 <li key={tp.id} className={`tp-card is-${tp.stato}`}>
                   <div className="tp-card-corpo">
@@ -536,6 +552,7 @@ export default function Questionari() {
                         </span>
                       </div>
                       <p className="tp-card-quando">{tp.quando || meta?.sottotitolo}</p>
+                      {scadenza && <p className="tp-card-scadenza">{scadenza}</p>}
                     </div>
                   </div>
                   {(puoIniziare || puoVedere) && (
