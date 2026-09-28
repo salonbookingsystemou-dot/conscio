@@ -1,0 +1,8 @@
+---
+description: Contesto condiviso di Conscio e regole per database e dati
+alwaysApply: true
+---
+- Prima di lavorare leggi `docs/progetto.md`: contiene le decisioni, le regole sui dati e il registro delle modifiche fatte anche da altri strumenti.
+- Ogni modifica al database va scritta in un nuovo file `supabase/migrazione_*.sql`. Prima di ridefinire una funzione, parti dall'ultima versione presente nei file `supabase/`.
+- Dopo una modifica importante (schema, dati raccolti, privacy, flussi) aggiungi una voce al registro in `docs/progetto.md`.
+- Ogni nuova categoria di dati va aggiunta a informativa, export e reset dei dati del partecipante.
