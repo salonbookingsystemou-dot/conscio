@@ -7,9 +7,10 @@ import {
   fasciaMinuti,
   mediana,
   numeriPratica,
-  periodoCiclo,
-  taccheIscritti
+  periodoCiclo
 } from '../lib/pratica.js'
+
+const TACCHE_PERCENTUALI = [0, 25, 50, 75, 100]
 
 /** Senza un ciclo aperto: quello in corso, altrimenti il più recente già iniziato. */
 function cicloPredefinito(cicli) {
@@ -84,7 +85,8 @@ function titoloColonna(giorno, iscritti) {
   const data = etichettaDataBreve(giorno.data)
   if (giorno.futuro) return `${data}: ancora da fare`
   const { piacevole, neutro, spiacevole, nd } = giorno.toni
-  return `${data}: ${giorno.praticanti} su ${iscritti} hanno praticato `
+  const quota = iscritti > 0 ? Math.round((giorno.praticanti / iscritti) * 100) : 0
+  return `${data}: ${giorno.praticanti} su ${iscritti} hanno praticato, il ${quota}% `
     + `(piacevole ${piacevole}, neutro ${neutro}, spiacevole ${spiacevole}, senza tono ${nd})`
 }
 
@@ -102,7 +104,6 @@ function Settimane({ settimane, cella }) {
 
 function Partecipazione({ dati, scorriRef, onScroll }) {
   const { iscritti, settimane } = dati
-  const tacche = taccheIscritti(iscritti)
   const scala = Math.max(1, iscritti)
   return (
     <section className="pratica-card" aria-labelledby="pratica-partecipazione-titolo">
@@ -110,26 +111,26 @@ function Partecipazione({ dati, scorriRef, onScroll }) {
         <div>
           <h3 id="pratica-partecipazione-titolo">Partecipazione giorno per giorno</h3>
           <p>
-            Quante persone hanno ascoltato per intero almeno una meditazione, su {iscritti} iscritti,
-            divise per tono della giornata.
+            Quota del gruppo ({iscritti} iscritti) che ha ascoltato per intero almeno una meditazione,
+            divisa per tono della giornata. 100% = tutti hanno praticato.
           </p>
         </div>
         <LegendaToni />
       </header>
       <div className="pratica-riga">
         <div className="pratica-asse-y" aria-hidden="true">
-          {tacche.map(t => (
-            <span key={t} style={{ bottom: `${(t / scala) * 100}%` }}>{t}</span>
+          {TACCHE_PERCENTUALI.map(t => (
+            <span key={t} style={{ bottom: `${t}%` }}>{t}%</span>
           ))}
         </div>
         <div className="pratica-scorri" ref={scorriRef} onScroll={onScroll}>
           <div className="pratica-scorri-interno" style={{ '--pratica-slot': settimane.length * 7 }}>
             <div className="pratica-barre">
-              {tacche.map(t => (
+              {TACCHE_PERCENTUALI.map(t => (
                 <span
                   key={t}
                   className={`pratica-griglia${t === 0 ? ' is-base' : ''}`}
-                  style={{ bottom: `${(t / scala) * 100}%` }}
+                  style={{ bottom: `${t}%` }}
                   aria-hidden="true"
                 />
               ))}

@@ -1112,6 +1112,8 @@
   min-width: 0;
   overflow-x: auto;
   overscroll-behavior-x: contain;
+  padding-top: 1px;
+  margin-top: -1px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
 }
@@ -1131,7 +1133,7 @@
 /* Asse y, colonne e totale a destra: stessa griglia in grafico e mappa, così i giorni si allineano. */
 .pratica-riga {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) 72px;
+  grid-template-columns: 34px minmax(0, 1fr) 72px;
   align-items: start;
   gap: var(--space-10);
 }
@@ -1387,7 +1389,7 @@
 @media (max-width: 640px) {
   .pratica-card { padding: var(--space-20) var(--space-14); }
   .pratica-riga {
-    grid-template-columns: 20px minmax(0, 1fr) 50px;
+    grid-template-columns: 30px minmax(0, 1fr) 50px;
     gap: var(--space-6);
   }
   .pratica-mappa-totale { font-size: 12px; }

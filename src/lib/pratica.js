@@ -188,12 +188,3 @@ export function numeriPratica(modelli) {
     spunte: modelli.reduce((acc, m) => acc + m.spunte, 0)
   }
 }
-
-/** Tacche pari da 0 al numero di iscritti. */
-export function taccheIscritti(n) {
-  if (n <= 0) return [0]
-  const passo = n <= 10 ? 2 : 2 * Math.ceil(n / 10)
-  const tacche = []
-  for (let t = 0; t <= n; t += passo) tacche.push(t)
-  return tacche
-}
