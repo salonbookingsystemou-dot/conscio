@@ -6,23 +6,24 @@ function chiave(codice, settimana) {
   return `conscio-invito-checkin:${codice.trim().toUpperCase()}:${settimana}`
 }
 
+// sessionStorage: la modale torna a ogni apertura dell'app, non a ogni cambio di pagina.
 function giaMostrato(codice, settimana) {
   try {
-    return localStorage.getItem(chiave(codice, settimana)) === '1'
+    return sessionStorage.getItem(chiave(codice, settimana)) === '1'
   } catch {
-    return true
+    return false
   }
 }
 
 function memorizzaMostrato(codice, settimana) {
   try {
-    localStorage.setItem(chiave(codice, settimana), '1')
+    sessionStorage.setItem(chiave(codice, settimana), '1')
   } catch {
     /* storage non disponibile */
   }
 }
 
-/** Una sola volta a settimana, e mai insieme all'invito a installare l'app. */
+/** A ogni apertura dell'app finché il check-in non è compilato, mai insieme all'invito a installare l'app. */
 export default function InvitoCheckin({ codice, stato }) {
   const dialog = useRef(null)
   const navigate = useNavigate()

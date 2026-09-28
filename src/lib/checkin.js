@@ -56,6 +56,7 @@ export function messaggioErroreCheckin(error) {
   if (testo.includes('CONSENSO_CHECKIN_MANCANTE')) return 'Prima di compilare serve il tuo consenso al check-in.'
   if (testo.includes('ACCESSO_NON_IDONEO')) return 'Il check-in si apre dopo l’esito idoneo dello screening.'
   if (testo.includes('CHECKIN_NON_APERTO')) return 'Il check-in non è aperto in questa settimana.'
+  if (testo.includes('CHECKIN_GIA_COMPILATO')) return 'Il check-in di questa settimana è già registrato.'
   if (testo.includes('TROPPI_TENTATIVI')) return 'Troppi salvataggi ravvicinati. Riprova tra qualche minuto.'
   return 'Non è stato possibile salvare il check-in. Riprova.'
 }

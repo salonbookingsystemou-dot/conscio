@@ -121,6 +121,21 @@ function Consenso({ codice, onDato }) {
   )
 }
 
+function GiaRegistrato({ settimana }) {
+  return (
+    <div className="checkin">
+      <p className="badge badge-settimana">{etichettaSettimana(settimana)}</p>
+      <h2>Check-in già registrato</h2>
+      <p className="lead">
+        Hai già compilato il check-in di questa settimana. Il prossimo si apre con la settimana successiva.
+      </p>
+      <div className="azioni">
+        <Link className="btn btn-avanti" to="/programma">Torna alla settimana</Link>
+      </div>
+    </div>
+  )
+}
+
 function Grazie({ segnalazione, settimana }) {
   return (
     <div className="checkin">
@@ -140,7 +155,7 @@ function Grazie({ segnalazione, settimana }) {
         </div>
       ) : (
         <p className="lead">
-          Grazie. Puoi modificarlo fino alla fine della settimana.
+          Grazie. Il prossimo check-in si apre con la settimana successiva.
         </p>
       )}
       <div className="azioni">
@@ -184,15 +199,6 @@ export default function Checkin() {
         setErrore(messaggioErroreCheckin(error))
       } else {
         setStato(letto)
-        const k = letto.checkin
-        if (k) {
-          setStress(k.stress ?? null)
-          setSonno(k.sonno ?? null)
-          setPresenza(k.presenza_quotidiana ?? null)
-          setOstacoli(k.ostacoli || [])
-          setDifficile(k.esperienza_difficile ?? null)
-          setNota(k.nota_difficile || '')
-        }
       }
       setCaricamento(false)
     })
@@ -219,6 +225,10 @@ export default function Checkin() {
       nota: nota.trim()
     })
     setInvio(false)
+    if (error?.message?.includes('CHECKIN_GIA_COMPILATO')) {
+      setStato(s => ({ ...s, compilato: true }))
+      return
+    }
     if (error || !esito?.ok) {
       setErrore(messaggioErroreCheckin(error))
       return
@@ -263,13 +273,14 @@ export default function Checkin() {
     return <Consenso codice={codice} onDato={() => setStato(s => ({ ...s, consenso: true }))} />
   }
 
+  if (stato.compilato) return <GiaRegistrato settimana={stato.settimana} />
+
   return (
     <form className="checkin" onSubmit={invia}>
       <p className="badge badge-settimana">{etichettaSettimana(stato.settimana)}</p>
       <h2>Il check-in della settimana</h2>
       <p className="lead">
         Un minuto per guardare com’è andata. Non ci sono risposte giuste.
-        {stato.compilato ? ' L’hai già compilato: puoi modificarlo fino alla fine della settimana.' : ''}
       </p>
 
       <div className="card checkin-card">
@@ -374,13 +385,13 @@ export default function Checkin() {
         {errore && <p className="campo-errore" role="alert">{errore}</p>}
         <div className="azioni">
           <button className="btn btn-avanti" type="submit" disabled={!completo || invio}>
-            {invio ? 'Salvataggio…' : stato.compilato ? 'Aggiorna il check-in' : 'Salva il check-in'}
+            {invio ? 'Salvataggio…' : 'Salva il check-in'}
           </button>
           <Link className="btn btn-ghost" to="/programma">Annulla</Link>
         </div>
-        {!completo && (
-          <p className="hint">Rispondi a stress, sonno, presenza e all’ultima domanda per salvare.</p>
-        )}
+        {completo
+          ? <p className="hint">Una volta salvato, il check-in non si può più modificare.</p>
+          : <p className="hint">Rispondi a stress, sonno, presenza e all’ultima domanda per salvare.</p>}
       </div>
     </form>
   )

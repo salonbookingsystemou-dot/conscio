@@ -70,3 +70,10 @@ Aggiornati anche mockup e brief dello Storico con le definizioni condivise qui s
 Iscritti al ciclo = iscrizioni idonee con `ciclo_id` (esclusi ritirati e percorsi individuali da remoto).
 Senza ciclo aperto la scheda mostra il ciclo in corso (o l'ultimo iniziato); solo se nessun ciclo è
 iniziato restano i quattro numeri, sommati su tutti i cicli. Nessuna modifica al database.
+
+### 28/9/2026 · Check-in non modificabile, niente banner (da Cursor)
+Applicato in produzione, documentato in `supabase/migrazione_checkin_non_modificabile.sql`:
+`salva_checkin` non aggiorna più un check-in esistente e rifiuta con `CHECKIN_GIA_COMPILATO`.
+Nell'app la pagina del check-in mostra "già registrato" invece del modulo, il banner nella pagina Programma
+è stato tolto e l'invito passa solo dalla modale, che ricompare a ogni apertura dell'app finché il check-in
+della settimana non è compilato. Supera quanto scritto in `docs/brief_checkin.md` sulla modifica entro la settimana.
