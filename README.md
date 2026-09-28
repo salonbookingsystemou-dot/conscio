@@ -87,6 +87,28 @@ Quando un partecipante preme «Registra la pratica di oggi» (`log_pratica.tipo 
 
 Un fallimento dell’invio non tocca il salvataggio della pratica: l’errore resta nei log della funzione. Una sola email per partecipante per giorno di pratica.
 
+## Check-in settimanale e finestre dei questionari
+
+`supabase/migrazione_dati_progressi.sql` è già applicata in produzione (28/9/2026): ora della pratica (`log_pratica.registrato_il`), tabella `checkin_settimanali` con le RPC `checkin_del_partecipante` / `salva_checkin`, nuove finestre T2 (dalla settimana 8 a fine + 14 giorni) e T3 (da fine + 28 a fine + 56). È nel repository come riferimento: non rieseguirla. Lo stesso vale per `supabase/migrazione_consenso_checkin.sql`: prima del primo check-in serve un consenso esplicito separato (`utenti.consenso_checkin_il`, RPC `dai_consenso_checkin`), che l’app chiede nella schermata del check-in.
+
+Avviso al facilitatore quando un check-in segnala un’esperienza difficile (solo codice e settimana, mai la nota):
+
+1. Secret: `RESEND_API_KEY` e `CHECKIN_WEBHOOK_SECRET`. Opzionale: `FACILITATORE_EMAIL` (predefinito `contact@wordpresschef.it`).
+2. Distribuisci: `supabase functions deploy avvisa-segnalazione-checkin --no-verify-jwt`.
+3. Trigger `trg_avvisa_segnalazione_checkin` su `checkin_settimanali` (INSERT e UPDATE): `supabase/migrazione_webhook_checkin.sql`, sostituendo `__CHECKIN_WEBHOOK_SECRET__` con il secret. Parte solo quando `esperienza_difficile` diventa `true` e la segnalazione non è già gestita; la nota non esce dal database.
+
+Tutti e tre i passi sono già fatti in produzione (28/9/2026).
+
+Le segnalazioni aperte compaiono nella scheda Cicli dell’area facilitatore, con la nota e il bottone «Segna come gestita».
+
+Promemoria T3 all’apertura (fine + 28 giorni) e 7 giorni prima della chiusura:
+
+1. Nell’SQL editor esegui `supabase/migrazione_promemoria_t3.sql`.
+2. Distribuisci: `supabase functions deploy promemoria-questionari --no-verify-jwt` (secret `CRON_SECRET`, `RESEND_API_KEY`).
+3. Programma l’invio giornaliero: workflow `.github/workflows/promemoria-questionari.yml` oppure Edge Functions → Schedules.
+
+Ogni promemoria parte una sola volta per persona e percorso, e non a chi ha già compilato T3. Migrazione e deploy sono già fatti in produzione; il workflow parte dopo il push su `main`.
+
 ## Protezione accessi (porta)
 
 Entra, Iscrizione, recupero codice e Accedi facilitatore passano dall’edge function `porta` (tetto tentativi per IP hashato).
@@ -114,6 +136,8 @@ Vedi `supabase/schema.sql` per lo schema completo. Le tabelle principali:
 - `questionari` / `item` / `risposte` — PSS-10 e FFMQ-I, con timepoint T0/T1/T2/T3
 - `comunicazioni` — promemoria e annunci per ciclo
 - `notifiche_inattivita` — traccia dei promemoria automatici agli iscritti solo da remoto
+- `checkin_settimanali` — check-in della settimana (stress, sonno, presenza, ostacoli, momenti difficili); la nota la legge solo il facilitatore
+- `promemoria_questionari` — traccia dei promemoria T3 inviati
 - `quotes` / `quote_sent_log` — citazioni per l’email di incoraggiamento dopo la pratica del giorno (solo service role)
 
 ## Superfici dell’app

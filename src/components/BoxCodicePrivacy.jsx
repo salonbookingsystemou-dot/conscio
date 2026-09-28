@@ -48,7 +48,7 @@ export default function BoxCodicePrivacy({ esempio = ESEMPIO }) {
         </div>
       </header>
       <p>
-        Questionari e diario di pratica sono legati al <strong>codice partecipante</strong>,
+        Questionari, diario di pratica e check-in settimanale sono legati al <strong>codice partecipante</strong>,
         non al tuo nominativo. È una <strong>pseudonimizzazione</strong>: nelle analisi
         e nelle viste di ricerca resta il codice, non chi sei.
       </p>

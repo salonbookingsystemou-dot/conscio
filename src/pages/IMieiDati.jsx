@@ -87,7 +87,7 @@ export default function IMieiDati() {
       <h2>I tuoi dati</h2>
       <p className="lead">
         Qui eserciti accesso e portabilità: scarichi ciò che è collegato al tuo codice.
-        Puoi anche azzerare questionari, diario e onboarding.
+        Puoi anche azzerare questionari, diario, check-in e onboarding.
       </p>
 
       {!registrato && (
@@ -101,7 +101,7 @@ export default function IMieiDati() {
             <h3>Export</h3>
             <p>
               Il file contiene email (se ancora presente), consensi, iscrizioni, risposte ai
-              questionari e log di pratica. Non contiene dati di altre persone.
+              questionari, log di pratica e check-in settimanali. Non contiene dati di altre persone.
             </p>
             <div className="azioni">
               <button className="btn" type="button" disabled={invio} onClick={esporta}>
@@ -121,7 +121,7 @@ export default function IMieiDati() {
           <div className="card card-dati-pericolo">
             <h3>Reset</h3>
             <p>
-              Cancella questionari, diario di pratica e onboarding legati al tuo codice.
+              Cancella questionari, diario di pratica, check-in settimanali e onboarding legati al tuo codice.
               Restano codice, email, consensi e iscrizione. L’operazione non si può annullare.
             </p>
             <div className="azioni">
@@ -163,7 +163,7 @@ export default function IMieiDati() {
         onConferma={resettaDati}
         onAnnulla={() => setConfermaAperta(false)}
       >
-        Stai per cancellare questionari, diario di pratica e risposte di onboarding.
+        Stai per cancellare questionari, diario di pratica, check-in settimanali e risposte di onboarding.
         Codice, email e posto nel ciclo restano. Non si può tornare indietro.
       </DialogConferma>
     </div>

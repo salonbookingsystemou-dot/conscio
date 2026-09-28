@@ -20,6 +20,7 @@ import Programma from './pages/Programma.jsx'
 import Onboarding from './pages/Onboarding.jsx'
 import Documento from './pages/Documento.jsx'
 import IMieiDati from './pages/IMieiDati.jsx'
+import Checkin from './pages/Checkin.jsx'
 import InvitoHome from './components/InvitoHome.jsx'
 import BarraBassa from './components/BarraBassa.jsx'
 import Footer from './components/Footer.jsx'
@@ -51,6 +52,7 @@ export default function App() {
           <Route path="/questionari" element={<SoloRegistrato><Questionari /></SoloRegistrato>} />
           <Route path="/pratica" element={<SoloPercorso><LogPratica /></SoloPercorso>} />
           <Route path="/programma" element={<SoloPercorso><Programma /></SoloPercorso>} />
+          <Route path="/checkin" element={<SoloPercorso><Checkin /></SoloPercorso>} />
           <Route path="/comunicazioni" element={<SoloPercorso><Comunicazioni /></SoloPercorso>} />
           <Route path="/accedi" element={<Accedi />} />
           <Route path="/dashboard" element={<SoloFacilitatore><Dashboard /></SoloFacilitatore>} />

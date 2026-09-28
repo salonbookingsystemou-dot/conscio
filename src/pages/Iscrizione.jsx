@@ -237,7 +237,7 @@ const SCHEDE_PERCORSO = [
   {
     id: 'questionari',
     titolo: 'Due questionari',
-    testo: 'Prima, durante, alla fine e a tre mesi dalla fine del ciclo.'
+    testo: 'Prima, durante, alla fine e da 4 a 8 settimane dopo la fine del ciclo.'
   }
 ]
 

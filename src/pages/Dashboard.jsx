@@ -290,19 +290,20 @@ function etichettaStato(stato) {
 }
 
 // Timepoint che la persona ha già potuto compilare, anche a finestra chiusa.
-// Finestre dello schema: T0 fino alla settimana 1, T1 nelle 4-5, T2 nelle 8-9, T3 dopo la fine.
+// Finestre dello schema: T0 fino alla settimana 1, T1 nelle 4-5,
+// T2 dalla settimana 8 a 14 giorni dopo la fine, T3 da 4 a 8 settimane dopo la fine.
 // Il T0 resta nel conteggio dopo la settimana 1.
 function timepointRaggiunti(ciclo) {
   if (!ciclo) return ['T0']
   const oggi = parseISODate(oggiLocaleISO())
-  const fine = parseISODate(ciclo.data_fine)
-  if (ciclo.stato === 'concluso' || (fine && oggi && oggi > fine)) {
-    return ['T0', 'T1', 'T2', 'T3']
-  }
+  const inizio = parseISODate(ciclo.data_inizio)
+  const fine = parseISODate(ciclo.data_fine) || (inizio ? addDays(inizio, 62) : null)
+  const dopoFine = ciclo.stato === 'concluso' || (fine && oggi && oggi > fine)
   const sett = settimanaCiclo(ciclo.data_inizio)
   const lista = ['T0']
-  if (sett >= 4) lista.push('T1')
-  if (sett >= 8) lista.push('T2')
+  if (dopoFine || sett >= 4) lista.push('T1')
+  if (dopoFine || sett >= 8) lista.push('T2')
+  if (fine && oggi && oggi >= addDays(fine, 28)) lista.push('T3')
   return lista
 }
 
@@ -314,6 +315,8 @@ export default function Dashboard() {
   const [punteggi, setPunteggi] = useState([])
   const [log, setLog] = useState([])
   const [notificheInattivita, setNotificheInattivita] = useState([])
+  const [segnalazioni, setSegnalazioni] = useState([])
+  const [gestendo, setGestendo] = useState(null)
   const [aperto, setAperto] = useState(null)
   const [mostraForm, setMostraForm] = useState(false)
   const [errore, setErrore] = useState(null)
@@ -340,7 +343,8 @@ export default function Dashboard() {
           .select('id, esito_screening, modalita_fruizione, ciclo_id, utenti(codice_partecipante, email, stato_screening, onboarding_completato)'),
         supabase.rpc('risposte_pseudonime'),
         supabase.rpc('log_pratica_pseudonimi'),
-        supabase.from('notifiche_inattivita').select('tipo, inviata_il, utenti(codice_partecipante)')
+        supabase.from('notifiche_inattivita').select('tipo, inviata_il, utenti(codice_partecipante)'),
+        supabase.rpc('segnalazioni_difficili_aperte')
       ])
 
       const cicliRes = risultati[1]
@@ -377,6 +381,11 @@ export default function Dashboard() {
       const notRes = risultati[5]
       if (notRes.status === 'fulfilled' && !notRes.value.error) {
         setNotificheInattivita(notRes.value.data || [])
+      }
+
+      const segRes = risultati[6]
+      if (segRes.status === 'fulfilled' && !segRes.value.error) {
+        setSegnalazioni(segRes.value.data || [])
       }
     } catch {
       setErrore('Non è stato possibile aggiornare la dashboard.')
@@ -555,6 +564,18 @@ export default function Dashboard() {
         carica()
       }
     })
+  }
+
+  async function segnaGestita(checkinId) {
+    setErrore(null)
+    setGestendo(checkinId)
+    const { error } = await supabase.rpc('segna_segnalazione_gestita', { p_checkin_id: checkinId })
+    setGestendo(null)
+    if (error) {
+      setErrore('Non è stato possibile segnare la segnalazione come gestita.')
+      return
+    }
+    setSegnalazioni(lista => lista.filter(s => s.checkin_id !== checkinId))
   }
 
   const cicloAperto = cicli.find(c => c.id === aperto)
@@ -821,6 +842,49 @@ export default function Dashboard() {
                   </button>
                 </div>
               </header>
+
+              {segnalazioni.length > 0 && (
+                <section className="dash-ciclo-sezione dash-segnalazioni" aria-labelledby="segnalazioni-titolo">
+                  <header className="dash-ciclo-sezione-testa">
+                    <div>
+                      <h3 id="segnalazioni-titolo">
+                        Segnalazioni da gestire
+                        <span className="dash-ciclo-conteggio">{segnalazioni.length}</span>
+                      </h3>
+                      <p className="hint">
+                        Dal check-in settimanale: la persona ha vissuto un momento difficile durante la pratica.
+                        Contattala, poi segna la segnalazione come gestita. La nota resta solo qui.
+                      </p>
+                    </div>
+                  </header>
+                  <ul className="dash-segnalazioni-lista">
+                    {segnalazioni.map(s => (
+                      <li key={s.checkin_id} className="dash-segnalazione">
+                        <div className="dash-segnalazione-testi">
+                          <div className="dash-segnalazione-meta">
+                            <span className="badge">{s.codice_partecipante}</span>
+                            <span>{s.settimana === 9 ? 'Settimana intensiva' : `Settimana ${s.settimana}`}</span>
+                            {s.creato_il && (
+                              <span>· {new Date(s.creato_il).toLocaleDateString('it-IT')}</span>
+                            )}
+                          </div>
+                          <p className="dash-segnalazione-nota">
+                            {s.nota || <span className="hint">Nessuna nota.</span>}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          className="btn btn-ghost"
+                          disabled={gestendo === s.checkin_id}
+                          onClick={() => segnaGestita(s.checkin_id)}
+                        >
+                          {gestendo === s.checkin_id ? 'Salvataggio…' : 'Segna come gestita'}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
 
               <div className="dash-kpi">
                 <article className="dash-kpi-card">

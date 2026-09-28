@@ -4,6 +4,7 @@ import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
 import { useAuth } from '../lib/auth.jsx'
 import { usePartecipante } from '../lib/partecipante.jsx'
 import ChiediCodice from '../components/ChiediCodice.jsx'
+import CardCheckin from '../components/CardCheckin.jsx'
 import CampoNota from '../components/CampoNota.jsx'
 import CalendarioPratica from '../components/CalendarioPratica.jsx'
 import CardTracciaAudio from '../components/CardTracciaAudio.jsx'
@@ -509,6 +510,8 @@ export default function Programma() {
       )}
       {registrato && invio && !aperto && <StatoAttesa etichetta="Caricamento del programma…" />}
       {errore && <p className="campo-errore" role="alert">{errore}</p>}
+
+      {aperto && <CardCheckin codice={codice} />}
 
       {aperto && ciclo?.orologio_personale && !ciclo?.orologio_avviato && lezioni.length > 0 && (
         <p className="questionari-avviso is-azione">

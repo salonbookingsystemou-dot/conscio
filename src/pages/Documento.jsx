@@ -63,6 +63,12 @@ function Informativa() {
           percorso e lo studio pilota. Le risposte si legano al codice, non al nome.
         </li>
         <li>
+          <strong>Check-in settimanale</strong> (stress, sonno, presenza, ostacoli, momenti
+          difficili): art. 6, par. 1, lett. a) e art. 9, par. 2, lett. a) GDPR — consenso
+          esplicito separato, chiesto in app prima della prima compilazione. Facoltativo:
+          non cambia la partecipazione al percorso.
+        </li>
+        <li>
           <strong>Documentazione social</strong>: art. 6, par. 1, lett. a) GDPR —
           consenso separato nel Modulo B.
         </li>
@@ -86,6 +92,14 @@ function Informativa() {
         <li>
           registri di pratica: data, pratica, orario, nota, tono dell’esperienza
           (piacevole, neutro, spiacevole);
+        </li>
+        <li>
+          check-in settimanale: stress e sonno della settimana, momenti di presenza
+          nella giornata, cosa ha reso difficile praticare, se hai vissuto momenti
+          difficili durante la pratica ed eventuale nota (la legge solo chi conduce il
+          percorso, per poterti contattare; non entra in nessuna pubblicazione). Il check-in
+          è facoltativo e richiede un consenso esplicito a parte, che chiediamo in app prima
+          della prima compilazione;
         </li>
         <li>eventuali materiali di documentazione social, solo con Modulo B.</li>
       </ul>
@@ -198,7 +212,7 @@ function Diritti() {
       </ol>
       <p>
         Il file contiene email (se ancora presente), consensi, iscrizioni, item e
-        valori dei questionari, note di pratica. Non contiene dati di altri.
+        valori dei questionari, note di pratica, check-in settimanali. Non contiene dati di altri.
       </p>
 
       <h3>3. Correzione, limitazione, opposizione, revoca</h3>
