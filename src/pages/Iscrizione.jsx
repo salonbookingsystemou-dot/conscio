@@ -59,9 +59,8 @@ function IconaPercorso({ id }) {
             textAnchor="middle"
             fill="currentColor"
             stroke="none"
-            fontFamily="Fraunces, Georgia, serif"
-            fontSize="10"
-            fontWeight="600"
+            fontFamily="'Source Serif 4', Georgia, serif"
+            fontSize="12"
           >
             2
           </text>

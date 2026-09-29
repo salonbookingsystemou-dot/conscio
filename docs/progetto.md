@@ -33,6 +33,11 @@ Valgono per tutte le schermate (storico del partecipante, dashboard, cruscotti):
 - **Colori dei toni nei grafici**: piacevole `#4B6B57`, neutro `#B4B8B0`, spiacevole `#A8763E`,
   senza tono tratteggiato. Nelle etichette con faccina restano quelli di `.tono-mini`.
 
+## Stile
+
+Un solo design system per partecipante, facilitatore ed email, con riferimento la scheda Pratica:
+regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente colori, font o raggi scritti a mano.
+
 ## Momenti dei questionari
 
 | Momento | Finestra |
@@ -77,3 +82,19 @@ Applicato in produzione, documentato in `supabase/migrazione_checkin_non_modific
 Nell'app la pagina del check-in mostra "già registrato" invece del modulo, il banner nella pagina Programma
 è stato tolto e l'invito passa solo dalla modale, che ricompare a ogni apertura dell'app finché il check-in
 della settimana non è compilato. Supera quanto scritto in `docs/brief_checkin.md` sulla modifica entro la settimana.
+
+### 29/9/2026 · Trigger dell'email di incoraggiamento nel repository (da Cursor)
+Il trigger `trg_invia_incoraggiamento_pratica` e la funzione `invia_incoraggiamento_dopo_pratica()` esistevano
+solo in produzione: ora sono in `supabase/migrazione_trigger_incoraggiamento.sql` (secret sostituito da un segnaposto).
+Nessuna modifica in produzione. Verificato che gli invii del mattino risultano accettati da Resend: se un'email
+non arriva, controllare lo stato di consegna nella dashboard di Resend.
+
+### 29/9/2026 · Design system unico (da Cursor)
+Lo stile della scheda Pratica diventa quello di tutta l'app: regole in `docs/design-system.md`, token in
+`src/styles/tokens.css` (copie in `src/lib/colori.js` per i grafici e in `supabase/functions/_shared/stileEmail.ts`
+per le email). Tolti Fraunces, Inter e la classe `.mbsr-theme`: partecipante e facilitatore usano gli stessi
+font (Source Serif 4 per i titoli, Public Sans per il testo), lo stesso fondo crema e la stessa scala dei titoli.
+Supera la proposta a due temi dello stesso giorno; resta valida la scelta di Source Serif 4. La Tonalità ora parte
+dai nuovi colori e con il valore predefinito non sovrascrive i token. Lo Storico usa i colori dei toni dei grafici
+(neutro `#B4B8B0`, senza tono tratteggiato). Le email cambiano aspetto solo dopo il deploy delle funzioni.
+Nessuna modifica al database né ai dati raccolti.

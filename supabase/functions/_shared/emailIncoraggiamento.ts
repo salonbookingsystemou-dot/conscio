@@ -1,5 +1,6 @@
 import { escapeHtml, htmlConCorpo, testoConFirma } from './firmaEmail.ts'
 import type { Curiosita } from './curiositaMindfulness.ts'
+import { EMAIL } from './stileEmail.ts'
 
 export type CitazioneEmail = {
   quoteText: string
@@ -25,14 +26,14 @@ function htmlCuriosita(curiosita: Curiosita): string {
   const fonte = escapeHtml(curiosita.fonte)
   const url = curiosita.url.trim()
   const fonteHtml = url
-    ? `<a href="${escapeHtml(url)}" style="color:#3C5A48;text-decoration:underline;">${fonte}</a>`
+    ? `<a href="${escapeHtml(url)}" style="color:${EMAIL.accent};text-decoration:underline;">${fonte}</a>`
     : fonte
   return [
-    '<div style="margin:24px 0 0;padding:16px 16px 14px 14px;background:#FBFAF6;border:1px solid #DAD9CE;border-left:3px solid #A8763E;border-radius:10px;">',
-    '<p style="margin:0 0 8px;font-size:13px;line-height:1.4;color:#A8763E;">Lo sapevi che...</p>',
-    `<p style="margin:0 0 8px;font-weight:bold;color:#24312C;">${titolo}</p>`,
-    `<p style="margin:0 0 12px;color:#24312C;">${testo}</p>`,
-    `<p style="margin:0;font-size:12px;line-height:1.45;color:#5B665F;">Fonte: ${fonteHtml}</p>`,
+    `<div style="margin:24px 0 0;padding:18px 20px;background:${EMAIL.surface};border:1px solid ${EMAIL.border};border-left:3px solid ${EMAIL.ochre};border-radius:14px;">`,
+    `<p style="margin:0 0 8px;font-size:11px;line-height:1.4;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:${EMAIL.ochre};">Lo sapevi che...</p>`,
+    `<p style="margin:0 0 8px;font-family:${EMAIL.fontDisplay};font-size:22px;line-height:1.15;color:${EMAIL.ink};">${titolo}</p>`,
+    `<p style="margin:0 0 12px;color:${EMAIL.ink};">${testo}</p>`,
+    `<p style="margin:0;font-size:12px;line-height:1.45;color:${EMAIL.muted};">Fonte: ${fonteHtml}</p>`,
     '</div>'
   ].join('')
 }
@@ -65,9 +66,9 @@ export function htmlIncoraggiamento(citazione: CitazioneEmail, curiosita: Curios
   const corpo = [
     '<p style="margin:0 0 16px;">Ciao,</p>',
     '<p style="margin:0 0 20px;">hai appena completato la tua pratica di oggi. Un passo in più in un percorso che si costruisce proprio così: un giorno alla volta, senza fretta.</p>',
-    `<p style="margin:0 0 10px;font-weight:bold;">«${quote}»</p>`,
-    `<p style="margin:0;font-size:16px;line-height:1.4;color:#2c2a26;">${author}</p>`,
-    `<p style="margin:2px 0 4px;font-size:13px;line-height:1.45;color:#5c584f;font-style:italic;">${book}</p>`,
+    `<p style="margin:0 0 10px;font-family:${EMAIL.fontDisplay};font-size:24px;line-height:1.25;color:${EMAIL.ink};">«${quote}»</p>`,
+    `<p style="margin:0;font-size:15px;line-height:1.4;font-weight:600;color:${EMAIL.ink};">${author}</p>`,
+    `<p style="margin:2px 0 4px;font-size:13px;line-height:1.45;color:${EMAIL.muted};">${book}</p>`,
     curiosita ? htmlCuriosita(curiosita) : '',
     '<p style="margin:20px 0 0;">A domani, con la stessa presenza.</p>'
   ].join('')

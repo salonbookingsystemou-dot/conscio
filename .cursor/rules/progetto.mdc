@@ -6,3 +6,4 @@ alwaysApply: true
 - Ogni modifica al database va scritta in un nuovo file `supabase/migrazione_*.sql`. Prima di ridefinire una funzione, parti dall'ultima versione presente nei file `supabase/`.
 - Dopo una modifica importante (schema, dati raccolti, privacy, flussi) aggiungi una voce al registro in `docs/progetto.md`.
 - Ogni nuova categoria di dati va aggiunta a informativa, export e reset dei dati del partecipante.
+- Per lo stile segui `docs/design-system.md`: nel CSS usa i token di `src/styles/tokens.css`, niente colori, font o raggi scritti a mano.

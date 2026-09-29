@@ -10,11 +10,6 @@ export default function AdminChrome({ children, ampio = false }) {
   const menuId = useId()
 
   useEffect(() => {
-    document.body.classList.add('mbsr-theme')
-    return () => document.body.classList.remove('mbsr-theme')
-  }, [])
-
-  useEffect(() => {
     setAperto(false)
   }, [pathname])
 
@@ -40,7 +35,7 @@ export default function AdminChrome({ children, ampio = false }) {
   }
 
   return (
-    <div className="mbsr-theme admin-app">
+    <div className="admin-app">
       <header className={`admin-top${aperto ? ' is-open' : ''}`}>
         <div className="admin-top-riga">
           <Link to="/dashboard" className="admin-brand" onClick={chiudi}>

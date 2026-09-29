@@ -1,4 +1,5 @@
 import { addDays, formatISODate, parseISODate } from './date.js'
+import { COLORI_TONO_ETICHETTA } from './colori.js'
 
 export const TONI = [
   { id: 'spiacevole', label: 'Spiacevole' },
@@ -30,12 +31,7 @@ export function valoreTono(tono) {
   return Object.prototype.hasOwnProperty.call(VALORE_TONO, tono) ? VALORE_TONO[tono] : null
 }
 
-export const COLORE_TONO = {
-  piacevole: '#4B6B57',
-  neutro: '#8A8F88',
-  spiacevole: '#A8763E',
-  sconosciuto: '#C5C2B6'
-}
+export const COLORE_TONO = COLORI_TONO_ETICHETTA
 
 export function coloreTono(tono) {
   return COLORE_TONO[tono] || COLORE_TONO.sconosciuto

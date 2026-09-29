@@ -1,32 +1,91 @@
-/* Font redesign auto-ospitati: bundle Vite + precache PWA (woff2).
-   Inter e Fraunces restano sul CDN in styles.css: servono solo alle
-   schermate già esistenti, che questo file non modifica. */
-@import '@fontsource/instrument-serif/latin-400.css';
-@import '@fontsource/instrument-serif/latin-400-italic.css';
+/* Design system di Conscio. Riferimento: scheda Pratica del facilitatore
+   (docs/mockup/pratica.html). Regole d'uso in docs/design-system.md.
+   Unica fonte dei token per app del partecipante, area facilitatore e,
+   copiati a mano, email (supabase/functions/_shared/stileEmail.ts) e
+   grafici (src/lib/colori.js): se cambi un valore qui, cambialo anche lì. */
+@import '@fontsource/source-serif-4/latin-400.css';
+@import '@fontsource/source-serif-4/latin-400-italic.css';
 @import '@fontsource/public-sans/latin-400.css';
+@import '@fontsource/public-sans/latin-400-italic.css';
 @import '@fontsource/public-sans/latin-500.css';
 @import '@fontsource/public-sans/latin-600.css';
+@import '@fontsource/public-sans/latin-700.css';
 
-/* Estende :root di src/styles.css. I token già usati in tutta l'app
-   (--ink, --bg, --surface, --border, --danger, --fs-title, --fs-body,
-   --fs-label, --radius-sm/md/lg) restano quelli: non li riscriviamo. */
 :root {
-  --muted: #8A836F;
-  --accent: #3F5443;
-  --accent-soft: #E8ECE3;
-  --border-soft: #F0ECDF;
+  /* Superfici */
+  --bg: #F5F1E7;
+  --surface: #FFFFFF;
+  --surface-muted: #F7F3EA;
+  --track: #F3EFE4;
+  --fill-empty: #EFEADC;
+
+  /* Testo. --faint solo per segnaposto e decorazioni: sul fondo non raggiunge 4.5:1. */
+  --ink: #262419;
+  --ink-2: #4A4536;
+  --muted: #6B6553;
+  --faint: #8A836F;
+
+  /* Bordi e linee */
+  --border: #E9E3D3;
+  --border-soft: #F1ECDF;
+  --grid: #ECE6D6;
   --border-dashed: #E3DDC9;
+  --border-strong: #CFC8B4;
+
+  /* Accento e stati */
+  --accent: #3F5443;
+  --accent-hover: #2F3F33;
+  --accent-soft: #E8ECE3;
+  --on-accent: #FFFFFF;
+  --moss: #4B6B57;
+  --moss-light: #8BA792;
+  --moss-pale: #C9D6C9;
+  --ochre: #A8763E;
+  --ochre-soft: #F2E8DA;
+  --terra: #8B5E4B;
+  --terra-dark: #6B4436;
+  --danger: #A6503C;
+  --danger-hover: #8A3F2E;
   --danger-soft: #F3E6E0;
 
-  --font-display: 'Instrument Serif', 'Fraunces', serif;
-  --font-body: 'Public Sans', 'Inter', sans-serif;
+  /* Toni della giornata nei grafici (decisi il 28/9/2026, docs/progetto.md) */
+  --tono-piacevole: #4B6B57;
+  --tono-neutro: #B4B8B0;
+  --tono-spiacevole: #A8763E;
+  --tono-nd: repeating-linear-gradient(135deg, #D6CFBD 0 2px, #F7F3EA 2px 5px);
+  --tono-nd-bordo: #CFC8B4;
+  /* Toni nelle etichette con faccina (.tono-mini, scelta del tono) */
+  --tono-neutro-etichetta: #8A8F88;
+  --tono-neutro-etichetta-soft: #ECEBE6;
 
-  --fs-page: 30px;
-  --fs-card: 32px;
+  /* Scala dei minuti (mappa del percorso, calendari) */
+  --scala-0: #EFEADC;
+  --scala-1: #C9D6C9;
+  --scala-2: #8BA792;
+  --scala-3: #3F5443;
+
+  /* Tipografia */
+  --font-display: 'Source Serif 4', Georgia, serif;
+  --font-body: 'Public Sans', system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --fs-display: clamp(28px, 1.4vw + 20px, 36px);
+  --fs-number: clamp(28px, 0.8vw + 22px, 32px);
+  --fs-section: clamp(21px, 0.4vw + 19px, 24px);
+  --fs-item: 18px;
+  --fs-body: 15px;
+  --fs-small: 14px;
   --fs-meta: 13px;
+  --fs-caption: 12px;
   --fs-eyebrow: 11px;
   --ls-eyebrow: 0.12em;
+  --ls-table: 0.06em;
+  --lh-display: 1.1;
+  --lh-title: 1.2;
+  --lh-body: 1.5;
 
+  /* Spaziature */
+  --space-2: 2px;
   --space-4: 4px;
   --space-6: 6px;
   --space-8: 8px;
@@ -41,21 +100,36 @@
   --space-28: 28px;
   --space-32: 32px;
   --space-36: 36px;
+  --space-44: 44px;
+  --space-48: 48px;
 
+  /* Raggi */
+  --radius-xs: 3px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-tile: 14px;
+  --radius-lg: 16px;
   --radius-xl: 24px;
   --radius-pill: 999px;
 
-  --shadow-elevated: 0 24px 48px -20px rgba(38, 36, 26, 0.22);
-  --shadow-hover: 0 8px 18px -12px rgba(38, 36, 26, 0.25);
-}
+  /* Ombre e velo delle modali */
+  --shadow-hover: 0 8px 18px -12px rgba(38, 36, 25, 0.25);
+  --shadow-float: 0 10px 28px rgba(38, 36, 25, 0.12);
+  --shadow-elevated: 0 24px 48px -20px rgba(38, 36, 25, 0.22);
+  --shadow-dialog: 0 18px 48px rgba(38, 36, 25, 0.16);
+  --backdrop: rgba(38, 36, 25, 0.38);
+  --focus-ring: 3px solid color-mix(in srgb, var(--accent) 35%, transparent);
 
-/* Stessi nomi dei token esistenti, valori della palette redesign.
-   Usalo sul wrapper delle schermate nuove: così var(--ink) / var(--bg)
-   restano invariati fuori da questo albero. */
-.mbsr-theme {
-  --ink: #262419;
-  --bg: #F5F1E7;
-  --surface: #FFFFFF;
-  --border: #E9E3D3;
-  --danger: #A6503C;
+  /* Nomi storici, tenuti come alias: nel codice nuovo usa quelli sopra. */
+  --ink-soft: var(--muted);
+  --moss-dark: var(--accent);
+  --tint: var(--accent-soft);
+  --tint-ochre: var(--ochre-soft);
+  --primary: var(--accent);
+  --on-primary: var(--on-accent);
+  --primary-container: var(--accent-soft);
+  --on-primary-container: var(--accent);
+  --outline: var(--border);
+  --error: var(--danger);
+  --on-error: var(--on-accent);
 }

@@ -525,7 +525,7 @@ function AdminDialogo({ titolo, children, onChiudi, className }) {
   return (
     <dialog
       ref={el}
-      className={['mbsr-theme admin-dialogo', className].filter(Boolean).join(' ')}
+      className={['admin-dialogo', className].filter(Boolean).join(' ')}
       onClose={onChiudi}
       onCancel={e => {
         e.preventDefault()

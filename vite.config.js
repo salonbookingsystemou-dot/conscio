@@ -57,7 +57,7 @@ export default defineConfig({
         short_name: 'MBSR',
         description: 'Gestione iscrizioni, lezioni, questionari e log di pratica per i cicli del percorso MBSR',
         theme_color: '#4B6B57',
-        background_color: '#EFF1EA',
+        background_color: '#F5F1E7',
         display: 'standalone',
         start_url: './',
         icons: [

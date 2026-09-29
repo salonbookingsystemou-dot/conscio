@@ -1,3 +1,5 @@
+import { EMAIL } from './stileEmail.ts'
+
 const ICONA_APP = 'https://conscio.mnesti.it/icon-192.png'
 const SITO_HANUMAN = 'https://www.hanumanstudio.it/'
 const FIRMA_TESTO =
@@ -12,11 +14,11 @@ export function escapeHtml(testo: string): string {
 
 export function firmaHtml(): string {
   return [
-    '<div style="margin-top:28px;padding-top:20px;border-top:1px solid #d8d4cc;">',
-    `<img src="${ICONA_APP}" width="48" height="48" alt="Percorso MBSR" style="display:block;border:0;width:48px;height:48px;border-radius:10px;" />`,
-    '<p style="margin:12px 0 0;font-family:Georgia,\'Times New Roman\',serif;font-size:12px;line-height:1.5;color:#5c584f;">',
+    `<div style="margin-top:28px;padding-top:20px;border-top:1px solid ${EMAIL.border};">`,
+    `<img src="${ICONA_APP}" width="48" height="48" alt="Percorso MBSR" style="display:block;border:0;width:48px;height:48px;border-radius:12px;" />`,
+    `<p style="margin:12px 0 0;font-family:${EMAIL.fontBody};font-size:12px;line-height:1.5;color:${EMAIL.muted};">`,
     'Percorso MBSR è un progetto dell’Associazione ADS Hanuman, Via San Leonardo 10, Ariano Irpino (AV) — ',
-    `<a href="${SITO_HANUMAN}" style="color:#3C5A48;text-decoration:underline;">hanumanstudio.it</a>`,
+    `<a href="${SITO_HANUMAN}" style="color:${EMAIL.accent};text-decoration:underline;">hanumanstudio.it</a>`,
     ' — tutti i diritti sono riservati',
     '</p>',
     '</div>'
@@ -29,8 +31,8 @@ export function testoConFirma(testo: string): string {
 
 function involucroEmail(corpoHtml: string): string {
   return [
-    '<!DOCTYPE html><html><body style="margin:0;padding:16px 12px;background:#f6f4ef;">',
-    '<div style="max-width:560px;font-family:Georgia,\'Times New Roman\',serif;font-size:16px;line-height:1.55;color:#2c2a26;">',
+    `<!DOCTYPE html><html><body style="margin:0;padding:16px 12px;background:${EMAIL.bg};">`,
+    `<div style="max-width:560px;font-family:${EMAIL.fontBody};font-size:16px;line-height:1.55;color:${EMAIL.ink};">`,
     corpoHtml,
     firmaHtml(),
     '</div></body></html>'

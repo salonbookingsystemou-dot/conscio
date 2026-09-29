@@ -17,6 +17,7 @@ import DialogConferma from '../components/DialogConferma.jsx'
 import { EMAIL_CONTATTO, STRUMENTI } from '../lib/contatti.js'
 import { addDays, formatISODate, oggiLocaleISO, parseISODate } from '../lib/date.js'
 import { contaSessioni } from '../lib/tono.js'
+import { ASSE_GRAFICO, COLORI, COLORI_STRUMENTO } from '../lib/colori.js'
 
 const ESITI = [
   { id: 'in_attesa', label: 'In attesa' },
@@ -41,8 +42,8 @@ const MESI_CORTI = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set
 
 // Metadata per la lettura intuitiva dei questionari (nessuna interpretazione clinica).
 const INFO_STRUMENTO = {
-  'PSS-10': { sottotitolo: 'stress percepito', verso: 'Più a destra = più stress percepito', colore: '#A8763E' },
-  'FFMQ-I': { sottotitolo: 'consapevolezza', verso: 'Più a destra = più consapevolezza', colore: '#4B6B57' }
+  'PSS-10': { sottotitolo: 'stress percepito', verso: 'Più a destra = più stress percepito', colore: COLORI_STRUMENTO['PSS-10'] },
+  'FFMQ-I': { sottotitolo: 'consapevolezza', verso: 'Più a destra = più consapevolezza', colore: COLORI_STRUMENTO['FFMQ-I'] }
 }
 
 const FFMQ_SOTTOSCALE_INFO = [
@@ -60,7 +61,7 @@ function percentoNelRange(valore, min, max) {
   return Math.max(0, Math.min(100, Math.round(((valore - min) / (max - min)) * 100)))
 }
 
-const COLORE_SINGOLO = '#BFC8C0'
+const COLORE_SINGOLO = COLORI_STRUMENTO.singolo
 const PASSI_ZOOM = 4
 
 // Al passo massimo la scala stringe attorno ai valori registrati, senza mai tagliarne uno.
@@ -121,13 +122,13 @@ function GraficoStrumento({ strumento }) {
       <div className="grafico-box">
         <ResponsiveContainer width="100%" height={240}>
           <LineChart data={dati} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
-            <CartesianGrid stroke="#DAD9CE" strokeDasharray="3 3" />
-            <XAxis dataKey="timepoint" tick={{ fill: '#5B665F', fontSize: 12 }} />
+            <CartesianGrid stroke={ASSE_GRAFICO.griglia} strokeDasharray="3 3" />
+            <XAxis dataKey="timepoint" tick={{ fill: ASSE_GRAFICO.testo, fontSize: 12 }} />
             <YAxis
               domain={dominio}
               ticks={ticks}
               allowDataOverflow
-              tick={{ fill: '#5B665F', fontSize: 11 }}
+              tick={{ fill: ASSE_GRAFICO.testo, fontSize: ASSE_GRAFICO.fontSize }}
               width={38}
             />
             <Legend wrapperStyle={{ fontSize: 12 }} />
@@ -802,7 +803,7 @@ export default function Dashboard() {
             riga.__n = n
             return riga
           })
-        return { ...s, codici, dati, colore: INFO_STRUMENTO[s.nome]?.colore || '#4B6B57' }
+        return { ...s, codici, dati, colore: INFO_STRUMENTO[s.nome]?.colore || COLORI.moss }
       })
   }, [punteggiVista])
 

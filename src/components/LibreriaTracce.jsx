@@ -124,7 +124,7 @@ export default function LibreriaTracce({
         Sostituire il file aggiorna tutti i collegamenti.
       </p>
       {erroreElimina && (
-        <div className="mbsr-theme lezioni-errore-collegamenti" role="alert">
+        <div className="lezioni-errore-collegamenti" role="alert">
           <p>
             Non puoi eliminare «{erroreElimina.titolo}»: è ancora collegata a
             {erroreElimina.collegamenti.length === 1 ? ' questa pratica:' : ' queste pratiche:'}
@@ -246,7 +246,7 @@ export default function LibreriaTracce({
                         ].filter(Boolean).join(' · ')}
                       </p>
                       {n > 0 && (
-                        <div className="mbsr-theme lezioni-libreria-collegamenti">
+                        <div className="lezioni-libreria-collegamenti">
                           <span className="lezioni-libreria-collegamenti-kicker">Collegata a</span>
                           <ul>
                             {(collegamenti[t.id] || []).map((voce, i) => (

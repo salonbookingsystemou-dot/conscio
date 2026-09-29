@@ -660,7 +660,7 @@ function EditorDialogo({ titolo, children, onChiudi }) {
   return (
     <dialog
       ref={el}
-      className="mbsr-theme admin-dialogo"
+      className="admin-dialogo"
       onClose={onChiudi}
       onCancel={e => {
         e.preventDefault()

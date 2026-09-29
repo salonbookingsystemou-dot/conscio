@@ -19,8 +19,9 @@ import {
   pausaAltreTracce,
   riavvolgiSicuro
 } from '../lib/riproduzioneAudio.js'
+import { COLORI } from '../lib/colori.js'
 
-const ACCENTO_DEFAULT = '#3F5443'
+const ACCENTO_DEFAULT = COLORI.accent
 /* Silhouette copiata dal mock (40 barre, altezze relative 29–97). */
 const BARRE_ONDA = [
   10, 16, 21, 13, 18, 25, 14, 8, 20, 24, 11, 17, 28, 16, 10, 21, 18, 13, 25, 14,

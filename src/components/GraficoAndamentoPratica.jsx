@@ -9,13 +9,9 @@ import {
   YAxis
 } from 'recharts'
 import { etichettaTono, serieSessioniTono } from '../lib/tono.js'
+import { ASSE_GRAFICO, COLORI, COLORI_TONO } from '../lib/colori.js'
 
-const COLORI = {
-  linea: '#4B6B57',
-  spiacevole: '#A8763E',
-  neutro: '#8A8F88',
-  piacevole: '#4B6B57'
-}
+const COLORI_PUNTI = { linea: COLORI.moss, ...COLORI_TONO }
 
 function etichettaAsse(v) {
   if (v === 1) return 'Piacevole'
@@ -26,14 +22,14 @@ function etichettaAsse(v) {
 
 function PuntoTono({ cx, cy, payload }) {
   if (cx == null || cy == null || !payload) return null
-  const fill = COLORI[payload.tono] || COLORI.linea
+  const fill = COLORI_PUNTI[payload.tono] || COLORI_PUNTI.linea
   return (
     <circle
       cx={cx}
       cy={cy}
       r={7}
       fill={fill}
-      stroke="#FBFAF6"
+      stroke={COLORI.surface}
       strokeWidth={2}
       style={{ cursor: 'pointer' }}
     />
@@ -90,10 +86,10 @@ export default function GraficoAndamentoPratica({ sessioni }) {
         <div className="grafico-box" style={{ minWidth: larghezza, height: 248 }}>
           <ResponsiveContainer width="100%" height={248}>
             <LineChart data={dati} margin={{ top: 16, right: 16, left: 4, bottom: 8 }}>
-              <CartesianGrid stroke="#DAD9CE" strokeDasharray="3 3" vertical={false} />
+              <CartesianGrid stroke={ASSE_GRAFICO.griglia} strokeDasharray="3 3" vertical={false} />
               <XAxis
                 dataKey="etichetta"
-                tick={{ fill: '#5B665F', fontSize: 11 }}
+                tick={{ fill: ASSE_GRAFICO.testo, fontSize: ASSE_GRAFICO.fontSize }}
                 interval={0}
                 height={36}
               />
@@ -101,12 +97,12 @@ export default function GraficoAndamentoPratica({ sessioni }) {
                 domain={[-1.15, 1.15]}
                 ticks={[-1, 0, 1]}
                 tickFormatter={etichettaAsse}
-                tick={{ fill: '#5B665F', fontSize: 11 }}
+                tick={{ fill: ASSE_GRAFICO.testo, fontSize: ASSE_GRAFICO.fontSize }}
                 width={78}
               />
               <Tooltip
                 trigger="click"
-                cursor={{ stroke: '#4B6B57', strokeDasharray: '4 4' }}
+                cursor={{ stroke: COLORI.moss, strokeDasharray: '4 4' }}
                 content={<TooltipSessione />}
               />
               <Line
@@ -117,7 +113,7 @@ export default function GraficoAndamentoPratica({ sessioni }) {
                 connectNulls
                 isAnimationActive={false}
                 dot={<PuntoTono />}
-                activeDot={{ r: 9, stroke: '#FBFAF6', strokeWidth: 2 }}
+                activeDot={{ r: 9, stroke: COLORI.surface, strokeWidth: 2 }}
               />
             </LineChart>
           </ResponsiveContainer>

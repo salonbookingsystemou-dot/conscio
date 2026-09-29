@@ -1,3 +1,5 @@
+import { COLORI } from '../lib/colori.js'
+
 export default function TonoIcon({
   id,
   className = 'tono-segno',
@@ -8,7 +10,7 @@ export default function TonoIcon({
   color,
   pieno = false
 }) {
-  const volto = pieno ? '#FBFAF6' : 'currentColor'
+  const volto = pieno ? COLORI.surface : 'currentColor'
   return (
     <svg
       className={className}
@@ -26,7 +28,7 @@ export default function TonoIcon({
         r="12.4"
         fill="currentColor"
         fillOpacity={pieno ? 1 : 0.1}
-        stroke={pieno ? '#FBFAF6' : 'currentColor'}
+        stroke={pieno ? COLORI.surface : 'currentColor'}
         strokeWidth={pieno ? 1.4 : 1.9}
       />
       {id === 'spiacevole' && (
