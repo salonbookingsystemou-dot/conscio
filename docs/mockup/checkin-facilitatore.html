@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mockup — Check-in (facilitatore)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:#262419; --bg:#F5F1E7; --surface:#FFFFFF; --border:#E9E3D3;
+    --muted:#8A836F; --accent:#3F5443; --accent-soft:#E8ECE3; --danger:#A6503C; --danger-soft:#F3E6E0;
+    --font-display:'Instrument Serif', serif; --font-body:'Public Sans', sans-serif;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-body); line-height:1.5; }
+  .pagina { max-width:960px; margin:0 auto; padding:32px 24px 90px; }
+  h1,h2,h3 { font-family:var(--font-display); font-weight:400; margin:0 0 6px; }
+  h1 { font-size:1.9rem; }
+  h2 { font-size:1.2rem; }
+  .lead { color:var(--muted); margin:0 0 26px; max-width:60ch; }
+
+  .tabs { display:flex; gap:6px; margin-bottom:26px; border-bottom:1px solid var(--border); }
+  .tab { font-family:inherit; font-size:.92rem; padding:10px 16px; background:none; border:none;
+    color:var(--muted); border-bottom:2px solid transparent; cursor:pointer; }
+  .tab.is-on { color:var(--ink); border-bottom-color:var(--accent); font-weight:500; }
+
+  .numeri { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:28px; }
+  .numero { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:16px 18px; }
+  .numero-label { font-size:.78rem; color:var(--muted); margin:0 0 6px; }
+  .numero-valore { font-family:var(--font-display); font-size:1.7rem; margin:0; }
+  .numero-nota { font-size:.76rem; color:var(--muted); margin:4px 0 0; }
+
+  .sezione { background:var(--surface); border:1px solid var(--border); border-radius:18px;
+    padding:22px 22px 20px; margin-bottom:20px; }
+  .sezione h2 { margin-bottom:4px; }
+  .sezione-nota { font-size:.82rem; color:var(--muted); margin:0 0 18px; }
+
+  /* --- colonne per settimana (stress/sonno medi) --- */
+  .colonne { display:flex; align-items:flex-end; gap:10px; height:140px; margin:10px 0 6px; }
+  .colonna-gruppo { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .colonna-coppia { display:flex; align-items:flex-end; gap:3px; height:100px; }
+  .colonna { width:14px; border-radius:4px 4px 0 0; }
+  .colonna.is-stress { background:var(--danger); opacity:.75; }
+  .colonna.is-sonno { background:var(--accent); }
+  .colonna-label { font-size:.7rem; color:var(--muted); }
+  .legenda { display:flex; gap:18px; font-size:.78rem; color:var(--muted); margin-top:8px; }
+  .legenda span { display:inline-flex; align-items:center; gap:6px; }
+  .campione { width:10px; height:10px; border-radius:3px; display:inline-block; }
+  .campione.is-stress { background:var(--danger); opacity:.75; }
+  .campione.is-sonno { background:var(--accent); }
+
+  /* --- presenza: barre impilate 5 livelli --- */
+  .presenza-colonne { display:flex; align-items:flex-end; gap:10px; height:120px; margin:10px 0 6px; }
+  .presenza-colonna { flex:1; display:flex; flex-direction:column-reverse; width:22px; margin:0 auto;
+    border-radius:3px; overflow:hidden; }
+  .presenza-gruppo { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .presenza-seg { width:100%; }
+  .presenza-seg.l0 { background:#E9E3D3; }
+  .presenza-seg.l1 { background:#D8CFAE; }
+  .presenza-seg.l2 { background:#B7C4AA; }
+  .presenza-seg.l3 { background:#7E9A81; }
+  .presenza-seg.l4 { background:var(--accent); }
+
+  table.ostacoli { width:100%; border-collapse:collapse; font-size:.88rem; }
+  table.ostacoli th, table.ostacoli td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--border); }
+  table.ostacoli th { color:var(--muted); font-weight:500; font-size:.78rem; }
+
+  .segnalazioni { background:var(--danger-soft); border:1px solid #E4C9BE; border-radius:16px; padding:16px 18px; margin-bottom:20px; }
+  .segnalazioni h3 { margin:0 0 4px; color:var(--danger); }
+  .segnalazioni p { margin:0; font-size:.86rem; color:var(--ink); }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+  <div class="tabs">
+    <button class="tab">Cicli</button>
+    <button class="tab">Questionari</button>
+    <button class="tab">Pratica</button>
+    <button class="tab is-on">Check-in</button>
+    <button class="tab">Sito</button>
+  </div>
+
+  <h1>Check-in settimanale</h1>
+  <p class="lead">
+    Vista aggregata del gruppo: nessun codice partecipante, nessun dato individuale.
+    Le segnalazioni di momenti difficili restano nella scheda Cicli, dove già vengono gestite.
+  </p>
+
+  <div class="numeri">
+    <article class="numero">
+      <p class="numero-label">Compilazione, settimana 4</p>
+      <p class="numero-valore">6 su 8</p>
+      <p class="numero-nota">75% degli iscritti al ciclo</p>
+    </article>
+    <article class="numero">
+      <p class="numero-label">Stress medio di gruppo</p>
+      <p class="numero-valore">5,1</p>
+      <p class="numero-nota">su 10, questa settimana</p>
+    </article>
+    <article class="numero">
+      <p class="numero-label">Sonno medio di gruppo</p>
+      <p class="numero-valore">6,4</p>
+      <p class="numero-nota">su 10, questa settimana</p>
+    </article>
+    <article class="numero">
+      <p class="numero-label">Check-in totali</p>
+      <p class="numero-valore">27</p>
+      <p class="numero-nota">da inizio ciclo</p>
+    </article>
+  </div>
+
+  <section class="sezione">
+    <h2>Stress e sonno medi, settimana per settimana</h2>
+    <p class="sezione-nota">Media del gruppo su chi ha compilato quella settimana. Scala 0–10.</p>
+    <div class="colonne">
+      <div class="colonna-gruppo">
+        <div class="colonna-coppia">
+          <span class="colonna is-stress" style="height:68%;"></span>
+          <span class="colonna is-sonno" style="height:40%;"></span>
+        </div>
+        <span class="colonna-label">Sett. 1</span>
+      </div>
+      <div class="colonna-gruppo">
+        <div class="colonna-coppia">
+          <span class="colonna is-stress" style="height:58%;"></span>
+          <span class="colonna is-sonno" style="height:55%;"></span>
+        </div>
+        <span class="colonna-label">Sett. 2</span>
+      </div>
+      <div class="colonna-gruppo">
+        <div class="colonna-coppia">
+          <span class="colonna is-stress" style="height:52%;"></span>
+          <span class="colonna is-sonno" style="height:60%;"></span>
+        </div>
+        <span class="colonna-label">Sett. 3</span>
+      </div>
+      <div class="colonna-gruppo">
+        <div class="colonna-coppia">
+          <span class="colonna is-stress" style="height:51%;"></span>
+          <span class="colonna is-sonno" style="height:64%;"></span>
+        </div>
+        <span class="colonna-label">Sett. 4</span>
+      </div>
+      <div class="colonna-gruppo">
+        <div class="colonna-coppia"></div>
+        <span class="colonna-label" style="opacity:.5;">Sett. 5</span>
+      </div>
+    </div>
+    <div class="legenda">
+      <span><span class="campione is-stress"></span>Stress medio</span>
+      <span><span class="campione is-sonno"></span>Sonno medio</span>
+    </div>
+  </section>
+
+  <section class="sezione">
+    <h2>Presenza durante la giornata</h2>
+    <p class="sezione-nota">Distribuzione delle risposte del gruppo, dal basso: mai → molto spesso.</p>
+    <div class="presenza-colonne">
+      <div class="presenza-gruppo">
+        <div class="presenza-colonna" style="height:90px;">
+          <span class="presenza-seg l0" style="height:25%;"></span>
+          <span class="presenza-seg l1" style="height:25%;"></span>
+          <span class="presenza-seg l2" style="height:25%;"></span>
+          <span class="presenza-seg l3" style="height:15%;"></span>
+          <span class="presenza-seg l4" style="height:10%;"></span>
+        </div>
+        <span class="colonna-label">Sett. 1</span>
+      </div>
+      <div class="presenza-gruppo">
+        <div class="presenza-colonna" style="height:90px;">
+          <span class="presenza-seg l0" style="height:15%;"></span>
+          <span class="presenza-seg l1" style="height:20%;"></span>
+          <span class="presenza-seg l2" style="height:30%;"></span>
+          <span class="presenza-seg l3" style="height:20%;"></span>
+          <span class="presenza-seg l4" style="height:15%;"></span>
+        </div>
+        <span class="colonna-label">Sett. 2</span>
+      </div>
+      <div class="presenza-gruppo">
+        <div class="presenza-colonna" style="height:90px;">
+          <span class="presenza-seg l0" style="height:10%;"></span>
+          <span class="presenza-seg l1" style="height:15%;"></span>
+          <span class="presenza-seg l2" style="height:25%;"></span>
+          <span class="presenza-seg l3" style="height:30%;"></span>
+          <span class="presenza-seg l4" style="height:20%;"></span>
+        </div>
+        <span class="colonna-label">Sett. 3</span>
+      </div>
+      <div class="presenza-gruppo">
+        <div class="presenza-colonna" style="height:90px;">
+          <span class="presenza-seg l0" style="height:10%;"></span>
+          <span class="presenza-seg l1" style="height:10%;"></span>
+          <span class="presenza-seg l2" style="height:20%;"></span>
+          <span class="presenza-seg l3" style="height:35%;"></span>
+          <span class="presenza-seg l4" style="height:25%;"></span>
+        </div>
+        <span class="colonna-label">Sett. 4</span>
+      </div>
+    </div>
+    <div class="legenda">
+      <span><span class="campione" style="background:#E9E3D3;"></span>mai</span>
+      <span><span class="campione" style="background:#D8CFAE;"></span>raramente</span>
+      <span><span class="campione" style="background:#B7C4AA;"></span>qualche volta</span>
+      <span><span class="campione" style="background:#7E9A81;"></span>spesso</span>
+      <span><span class="campione is-sonno"></span>molto spesso</span>
+    </div>
+  </section>
+
+  <section class="sezione">
+    <h2>Ostacoli più segnalati</h2>
+    <p class="sezione-nota">Da inizio ciclo, tra chi ha risposto alla domanda (facoltativa).</p>
+    <table class="ostacoli">
+      <thead><tr><th>Ostacolo</th><th>Volte segnalato</th><th>Persone</th></tr></thead>
+      <tbody>
+        <tr><td>Tempo</td><td>14</td><td>6 su 8</td></tr>
+        <tr><td>Stanchezza</td><td>9</td><td>5 su 8</td></tr>
+        <tr><td>Mi sono dimenticato</td><td>5</td><td>3 su 8</td></tr>
+        <tr><td>Noia</td><td>2</td><td>2 su 8</td></tr>
+        <tr><td>Disagio durante la pratica</td><td>1</td><td>1 su 8</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="segnalazioni">
+    <h3>Promemoria</h3>
+    <p>
+      Le segnalazioni di momenti difficili durante la pratica restano nella scheda <strong>Cicli</strong>,
+      con codice e nota, per poter contattare la persona. Qui non compaiono: questa scheda mostra solo
+      numeri di gruppo.
+    </p>
+  </div>
+
+</div>
+</body>
+</html>

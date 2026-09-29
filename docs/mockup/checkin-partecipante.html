@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mockup — Il tuo check-in nel tempo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #EFF1EA; --surface: #FBFAF6; --ink: #24312C; --ink-soft: #5B665F;
+    --moss: #4B6B57; --moss-dark: #2F4438; --ochre: #A8763E; --border: #DAD9CE;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif; line-height:1.5; }
+  .pagina { max-width:640px; margin:0 auto; padding:28px 20px 80px; }
+  h1,h2 { font-family:'Fraunces',serif; font-weight:600; margin:0 0 8px; }
+  h1 { font-size:1.7rem; }
+  .lead { color:var(--ink-soft); margin:0 0 22px; max-width:52ch; }
+  .badge { display:inline-block; padding:3px 10px; border-radius:999px; background:var(--surface);
+    border:1px solid var(--border); font-size:.78rem; color:var(--ink-soft); }
+  .contatori { display:flex; gap:12px; margin:18px 0 28px; }
+  .contatore { flex:1; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:14px 16px; }
+  .contatore-label { font-size:.78rem; color:var(--ink-soft); margin:0 0 4px; }
+  .contatore-valore { font-family:'Fraunces',serif; font-size:1.4rem; margin:0; }
+
+  .settimana { border-top:1px solid var(--border); padding:18px 0; }
+  .settimana:first-of-type { border-top:none; }
+  .settimana-testa { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
+  .settimana-titolo { font-family:'Fraunces',serif; font-size:1rem; }
+  .settimana-data { font-size:.78rem; color:var(--ink-soft); }
+
+  .righe-slider { display:flex; flex-direction:column; gap:10px; margin-bottom:10px; }
+  .riga-slider { display:flex; align-items:center; gap:10px; }
+  .riga-slider-etichetta { width:64px; flex-shrink:0; font-size:.82rem; color:var(--ink-soft); }
+  .riga-slider-barra { flex:1; height:8px; border-radius:999px; background:var(--border); position:relative; overflow:hidden; }
+  .riga-slider-riempimento { position:absolute; inset:0; border-radius:999px; background:var(--moss); }
+  .riga-slider.is-sonno .riga-slider-riempimento { background:var(--ochre); }
+  .riga-slider-valore { width:26px; text-align:right; font-family:'Fraunces',serif; font-size:.92rem; }
+
+  .presenza-riga { display:flex; align-items:center; gap:8px; font-size:.86rem; color:var(--ink); margin-bottom:10px; }
+  .presenza-riga strong { font-weight:600; }
+
+  .chip-riga { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:4px; }
+  .chip { font-size:.76rem; padding:3px 9px; border-radius:999px; background:var(--tint,#E8ECE4);
+    border:1px solid var(--border); color:var(--ink-soft); }
+
+  .settimana-vuota { color:var(--ink-soft); font-size:.86rem; font-style:italic; }
+  .settimana.is-futuro { opacity:.55; }
+
+  .disclaimer { background:#E8ECE4; border:1px solid var(--border); border-radius:14px; padding:14px 16px;
+    font-size:.85rem; color:var(--ink-soft); margin-top:24px; }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+  <p class="badge">MBSR-7K2Q</p>
+  <h1>Il tuo check-in nel tempo</h1>
+  <p class="lead">
+    Come sono cambiate le tue risposte settimana dopo settimana. Solo i tuoi dati, nessun confronto
+    con il resto del gruppo.
+  </p>
+
+  <div class="contatori">
+    <div class="contatore">
+      <p class="contatore-label">Check-in compilati</p>
+      <p class="contatore-valore">4 su 6</p>
+    </div>
+    <div class="contatore">
+      <p class="contatore-label">Stress medio</p>
+      <p class="contatore-valore">5,3 / 10</p>
+    </div>
+    <div class="contatore">
+      <p class="contatore-label">Sonno medio</p>
+      <p class="contatore-valore">6,8 / 10</p>
+    </div>
+  </div>
+
+  <!-- Settimana con dati -->
+  <div class="settimana">
+    <div class="settimana-testa">
+      <span class="settimana-titolo">Settimana 4</span>
+      <span class="settimana-data">10 ottobre 2026</span>
+    </div>
+    <div class="righe-slider">
+      <div class="riga-slider is-stress">
+        <span class="riga-slider-etichetta">Stress</span>
+        <div class="riga-slider-barra"><span class="riga-slider-riempimento" style="width:40%;"></span></div>
+        <span class="riga-slider-valore">4</span>
+      </div>
+      <div class="riga-slider is-sonno">
+        <span class="riga-slider-etichetta">Sonno</span>
+        <div class="riga-slider-barra"><span class="riga-slider-riempimento" style="width:70%;"></span></div>
+        <span class="riga-slider-valore">7</span>
+      </div>
+    </div>
+    <p class="presenza-riga">Presenza durante la giornata: <strong>spesso</strong></p>
+    <div class="chip-riga">
+      <span class="chip">stanchezza</span>
+      <span class="chip">tempo</span>
+    </div>
+  </div>
+
+  <!-- Settimana con solo stress/sonno, nessun ostacolo -->
+  <div class="settimana">
+    <div class="settimana-testa">
+      <span class="settimana-titolo">Settimana 3</span>
+      <span class="settimana-data">3 ottobre 2026</span>
+    </div>
+    <div class="righe-slider">
+      <div class="riga-slider is-stress">
+        <span class="riga-slider-etichetta">Stress</span>
+        <div class="riga-slider-barra"><span class="riga-slider-riempimento" style="width:60%;"></span></div>
+        <span class="riga-slider-valore">6</span>
+      </div>
+      <div class="riga-slider is-sonno">
+        <span class="riga-slider-etichetta">Sonno</span>
+        <div class="riga-slider-barra"><span class="riga-slider-riempimento" style="width:60%;"></span></div>
+        <span class="riga-slider-valore">6</span>
+      </div>
+    </div>
+    <p class="presenza-riga">Presenza durante la giornata: <strong>qualche volta</strong></p>
+  </div>
+
+  <!-- Settimana senza check-in compilato -->
+  <div class="settimana">
+    <div class="settimana-testa">
+      <span class="settimana-titolo">Settimana 2</span>
+    </div>
+    <p class="settimana-vuota">Check-in non compilato questa settimana.</p>
+  </div>
+
+  <div class="settimana">
+    <div class="settimana-testa">
+      <span class="settimana-titolo">Settimana 1</span>
+      <span class="settimana-data">19 settembre 2026</span>
+    </div>
+    <div class="righe-slider">
+      <div class="riga-slider is-stress">
+        <span class="riga-slider-etichetta">Stress</span>
+        <div class="riga-slider-barra"><span class="riga-slider-riempimento" style="width:80%;"></span></div>
+        <span class="riga-slider-valore">8</span>
+      </div>
+      <div class="riga-slider is-sonno">
+        <span class="riga-slider-etichetta">Sonno</span>
+        <div class="riga-slider-barra"><span class="riga-slider-riempimento" style="width:40%;"></span></div>
+        <span class="riga-slider-valore">4</span>
+      </div>
+    </div>
+    <p class="presenza-riga">Presenza durante la giornata: <strong>raramente</strong></p>
+    <div class="chip-riga"><span class="chip">disagio durante la pratica</span></div>
+  </div>
+
+  <!-- Settimana futura -->
+  <div class="settimana is-futuro">
+    <div class="settimana-testa">
+      <span class="settimana-titolo">Settimana 5</span>
+    </div>
+    <p class="settimana-vuota">Si apre con la prossima settimana.</p>
+  </div>
+
+  <p class="disclaimer">
+    Questi numeri descrivono come hai risposto settimana dopo settimana. Non sono una valutazione
+    clinica e il percorso non sostituisce una presa in carico psicologica o terapeutica professionale.
+    Se in una settimana hai segnalato un momento difficile, quella nota non compare qui: la vede
+    solo chi conduce il percorso.
+  </p>
+
+</div>
+</body>
+</html>

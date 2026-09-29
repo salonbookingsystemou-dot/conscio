@@ -44,6 +44,17 @@ Valgono per tutte le schermate (storico del partecipante, dashboard, cruscotti):
 
 ## Registro delle modifiche
 
+### 29/9/2026 · Andamento del check-in settimanale, partecipante e facilitatore (mockup, da Claude su claude.ai)
+Mockup in `docs/mockup/checkin-partecipante.html` e `docs/mockup/checkin-facilitatore.html`, istruzioni in
+`docs/brief_andamento_checkin.md`. Non ancora implementato. Oggi il check-in si può solo compilare: stress,
+sonno, presenza e ostacoli non sono visibili da nessuna parte (solo le segnalazioni di momenti difficili
+arrivano al facilitatore, nella scheda Cicli). Il brief aggiunge: per il partecipante, uno storico
+settimana per settimana dentro `Checkin.jsx`; per il facilitatore, una nuova scheda "Check-in" nella
+dashboard con soli dati aggregati di gruppo (nessun codice, nessuna riga individuale — stessa regola già
+seguita da `SchedaPratica`). Richiede una nuova RPC di sola lettura, proposta e non ancora applicata in
+`supabase/migrazione_checkin_storico.sql` (`checkin_storico_del_partecipante`); la scheda del facilitatore
+non ne ha bisogno, legge direttamente `checkin_settimanali` via la policy RLS già esistente.
+
 ### 29/9/2026 · Nuova schermata "Il tuo andamento" per il partecipante (mockup, da Claude su claude.ai)
 Mockup in `docs/mockup/andamento.html`, istruzioni in `docs/brief_andamento.md`. Non ancora implementato.
 Aggiunge un passo `andamento` dentro `Questionari.jsx`: confronto tra i timepoint già completati (PSS-10,
