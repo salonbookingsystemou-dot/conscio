@@ -46,6 +46,16 @@ Valgono per tutte le schermate (storico del partecipante, dashboard, cruscotti):
 
 ## Registro delle modifiche
 
+### 30/9/2026 · Diagnosi verificata con numeri reali sul codice (da Claude su claude.ai)
+Aggiornata la sezione 1 di `docs/design-system.md` con un conteggio riga per riga delle classi del vecchio
+sistema (`.btn`/`.badge`/`.card`/`.field`/`.disclaimer`/`.campo-errore`) nelle schermate facilitatore:
+confermato che `Dashboard.jsx` (tab Cicli/Questionari), `Comunicazioni.jsx` e `Segnala.jsx` le usano ancora,
+mentre `Libreria.jsx`, `Percorso.jsx`, `EditorSettimana.jsx` e `SchedaPratica.jsx` sono già puliti — il
+confine passa dentro `Dashboard.jsx` stessa, non fra pagine diverse. Trovato anche un file orfano,
+`src/pages/Lezioni.jsx`: non più raggiungibile (`/lezioni` reindirizza a `/percorso`), nessun altro file lo
+importa, usa ancora il vecchio sistema. Non serve una fase dedicata: va solo eliminato prima che qualcuno
+lo riprenda per errore durante la bonifica.
+
 ### 30/9/2026 · Deciso il font dei titoli unico: Source Serif 4 (da Claude su claude.ai)
 Sostituisce Fraunces (tema Partecipante) e Instrument Serif (tema Facilitatore) come `--font-display`,
 che diventa un primitivo condiviso invece di un token per tema (vedi `docs/design-system.md`, sez. 3.1 e

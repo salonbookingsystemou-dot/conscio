@@ -51,6 +51,20 @@ Il bridging però si ferma al colore:
   due badge, due form field (`.field` vs `.admin-field`) — concettualmente identici, scritti due volte con
   proprietà leggermente diverse (es. altezza minima pulsante 48px nel vecchio, 42px nel nuovo).
 
+**Dove esattamente, contato riga per riga (conteggio di classi `.btn`/`.btn-ghost`/`.badge`/`.card`/
+`.field`/`.disclaimer`/`.campo-errore` nel JSX, non nel CSS):**
+
+| Schermata facilitatore | Classi vecchio sistema usate |
+|---|---|
+| `Dashboard.jsx` (tab Cicli/Questionari) | 8× `.btn`, 5× `.btn-ghost`, 11× `.badge`, 6× `.card`, 9× `.field` |
+| `Comunicazioni.jsx` | 6× `.btn`, 4× `.btn-ghost`, 4× `.badge`, 5× `.card`, 6× `.field`, 4× `.disclaimer`, 3× `.campo-errore` |
+| `Segnala.jsx` | 1× `.card` |
+| `Libreria.jsx`, `Percorso.jsx`, `EditorSettimana.jsx`, `SchedaPratica.jsx` | nessuna — solo classi `.admin-*`/`.pratica-*`/`.percorso-*` |
+
+Questo conferma che il confine non è "pagina per pagina" ma **dentro `Dashboard.jsx` stessa**: la tab
+Pratica (via `SchedaPratica`) è già nel sistema nuovo, le tab Cicli e Questionari nello stesso file sono
+ancora nel vecchio.
+
 ### 1.2 Anche il sistema "vecchio" da solo non è pulito
 
 Non è solo un problema di convivenza fra due sistemi: `styles.css` da solo ha già drift interno.
@@ -68,6 +82,16 @@ scelta di design esplicita e documentata) e area **Facilitatore** (più densa, o
 intenzionale e va mantenuto: sono due pubblici con esigenze diverse. Il problema è che **dentro** l'area
 Facilitatore ci sono due implementazioni concorrenti dello stesso linguaggio, non che le due aree siano
 diverse fra loro.
+
+### 1.4 Un quarto file, non collegato: `src/pages/Lezioni.jsx`
+
+Non fa parte della diagnosi sopra (non è mai montato), ma va segnalato prima che qualcuno lo riprenda
+pensando sia vivo: la rotta `/lezioni` fa `<Navigate to="/percorso" replace />` in `App.jsx`, e nessun
+altro file importa `Lezioni.jsx` (solo il nome della variabile `lezioni` ricorre altrove, per coincidenza).
+Il file esiste ancora, usa il vecchio sistema (`.btn`, `.field`, `.card`, `.badge`, `.campo-errore`), ed è
+stato superato da `Percorso.jsx`/`EditorSettimana.jsx`. Da eliminare in un passaggio di pulizia (non
+richiede una fase dedicata della migrazione, essendo codice morto), per evitare che rientri per errore nel
+lavoro di bonifica.
 
 ---
 
