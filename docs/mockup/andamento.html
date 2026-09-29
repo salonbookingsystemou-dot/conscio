@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mockup — Il tuo andamento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #EFF1EA;
+    --surface: #FBFAF6;
+    --ink: #24312C;
+    --ink-soft: #5B665F;
+    --moss: #4B6B57;
+    --moss-dark: #2F4438;
+    --ochre: #A8763E;
+    --border: #DAD9CE;
+    --danger: #A3402F;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.5;
+  }
+  .pagina {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 28px 20px 80px;
+  }
+  h1, h2, h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    margin: 0 0 8px;
+  }
+  h1 { font-size: 1.7rem; }
+  h2 { font-size: 1.2rem; margin-top: 0; }
+  .lead {
+    color: var(--ink-soft);
+    margin: 0 0 24px;
+    max-width: 52ch;
+  }
+  .hint {
+    color: var(--ink-soft);
+    font-size: 0.88rem;
+  }
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+  }
+
+  /* --- Selettore strumento (tab semplici, non dataviz) --- */
+  .andamento-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+  }
+  .andamento-tab {
+    font-family: inherit;
+    font-size: 0.92rem;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .andamento-tab.is-on {
+    background: var(--moss);
+    border-color: var(--moss);
+    color: #fff;
+  }
+
+  /* --- Card per strumento --- */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 22px 20px;
+    margin-bottom: 18px;
+  }
+  .card-strumento-testa {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+  .card-strumento-nome {
+    font-family: 'Fraunces', serif;
+    font-size: 1.05rem;
+  }
+  .card-strumento-range {
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+  }
+
+  /* --- Righe per momento (T0..T3) --- */
+  .andamento-righe {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 18px;
+  }
+  .andamento-riga {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .andamento-riga-tp {
+    flex-shrink: 0;
+    width: 34px;
+    text-align: center;
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--moss-dark);
+    padding-top: 2px;
+  }
+  .andamento-riga-corpo { flex: 1; min-width: 0; }
+  .andamento-riga-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .andamento-riga-data {
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+  }
+  .andamento-riga-delta {
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+
+  /* --- Barra orientamento (riuso dello stile esistente .orientamento) --- */
+  .orientamento { margin-top: 4px; }
+  .orientamento-riga {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .orientamento-chip {
+    font-size: 0.86rem;
+    font-weight: 500;
+  }
+  .orientamento.is-contenuto .orientamento-chip { color: var(--moss-dark); }
+  .orientamento.is-intermedio .orientamento-chip { color: var(--ochre); }
+  .orientamento.is-elevato .orientamento-chip { color: #8B5E4B; }
+  .orientamento-valore {
+    font-family: 'Fraunces', serif;
+    font-size: 1rem;
+  }
+  .orientamento-barra {
+    position: relative;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--border);
+    overflow: hidden;
+  }
+  .orientamento-riempimento {
+    position: absolute;
+    inset: 0;
+    width: 0%;
+    border-radius: 999px;
+  }
+  .orientamento.is-contenuto .orientamento-riempimento { background: var(--moss); }
+  .orientamento.is-intermedio .orientamento-riempimento { background: var(--ochre); }
+  .orientamento.is-elevato .orientamento-riempimento { background: #8B5E4B; }
+
+  /* --- Riga futura / non ancora compilata --- */
+  .andamento-riga.is-futuro .andamento-riga-tp { color: var(--ink-soft); }
+  .andamento-riga.is-futuro .orientamento-barra {
+    background: repeating-linear-gradient(135deg, #E4E0D2 0 3px, var(--surface) 3px 7px);
+    border: 1px dashed var(--border);
+  }
+  .andamento-riga-vuota {
+    font-size: 0.86rem;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+
+  /* --- Sottoscale FFMQ: versione compatta, righe multiple più sottili --- */
+  .sottoscala-blocco { margin-top: 20px; }
+  .sottoscala-blocco summary {
+    cursor: pointer;
+    font-size: 0.92rem;
+    color: var(--moss-dark);
+    font-weight: 500;
+  }
+  .sottoscala-riga {
+    margin-top: 14px;
+  }
+  .sottoscala-riga-nome {
+    font-size: 0.86rem;
+    margin-bottom: 6px;
+    color: var(--ink);
+  }
+  .sottoscala-mini-righe {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .sottoscala-mini-riga {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sottoscala-mini-tp {
+    width: 22px;
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+  .sottoscala-mini-barra {
+    flex: 1;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .sottoscala-mini-riempimento {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+  }
+  .is-contenuto .sottoscala-mini-riempimento { background: var(--moss); }
+  .is-intermedio .sottoscala-mini-riempimento { background: var(--ochre); }
+  .is-elevato .sottoscala-mini-riempimento { background: #8B5E4B; }
+  .sottoscala-mini-valore {
+    width: 22px;
+    font-size: 0.76rem;
+    color: var(--ink-soft);
+    text-align: right;
+  }
+
+  .disclaimer {
+    background: var(--tint, #E8ECE4);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    margin-top: 22px;
+  }
+
+  .stato-insufficiente {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--ink-soft);
+  }
+  .stato-insufficiente strong { color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+  <p class="badge">MBSR-7K2Q</p>
+  <h1>Il tuo andamento</h1>
+  <p class="lead">
+    Come sono cambiate le tue risposte nei momenti del percorso che hai già completato.
+    Non è un grafico clinico: è solo un modo per rivedere ciò che hai già risposto.
+  </p>
+
+  <div class="andamento-tabs">
+    <button class="andamento-tab is-on" type="button">PSS-10 · stress percepito</button>
+    <button class="andamento-tab" type="button">FFMQ-I · consapevolezza</button>
+  </div>
+
+  <!-- ===== Vista PSS-10 ===== -->
+  <section class="card">
+    <div class="card-strumento-testa">
+      <span class="card-strumento-nome">PSS-10 · stress percepito</span>
+      <span class="card-strumento-range">Range 0–40</span>
+    </div>
+
+    <div class="andamento-righe">
+
+      <div class="andamento-riga">
+        <span class="andamento-riga-tp">T0</span>
+        <div class="andamento-riga-corpo">
+          <div class="andamento-riga-meta">
+            <span class="andamento-riga-data">12 settembre 2026</span>
+          </div>
+          <div class="orientamento is-elevato">
+            <div class="orientamento-riga">
+              <span class="orientamento-chip">Verso il massimo del range</span>
+              <span class="orientamento-valore">27</span>
+            </div>
+            <div class="orientamento-barra">
+              <span class="orientamento-riempimento" style="width: 67%;"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="andamento-riga">
+        <span class="andamento-riga-tp">T1</span>
+        <div class="andamento-riga-corpo">
+          <div class="andamento-riga-meta">
+            <span class="andamento-riga-data">10 ottobre 2026</span>
+            <span class="andamento-riga-delta">rispetto a T0: −6 punti</span>
+          </div>
+          <div class="orientamento is-intermedio">
+            <div class="orientamento-riga">
+              <span class="orientamento-chip">Verso il centro del range</span>
+              <span class="orientamento-valore">21</span>
+            </div>
+            <div class="orientamento-barra">
+              <span class="orientamento-riempimento" style="width: 52%;"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="andamento-riga is-futuro">
+        <span class="andamento-riga-tp">T2</span>
+        <div class="andamento-riga-corpo">
+          <div class="andamento-riga-meta">
+            <span class="andamento-riga-data">Si apre a fine percorso</span>
+          </div>
+          <p class="andamento-riga-vuota">Non ancora compilato.</p>
+        </div>
+      </div>
+
+      <div class="andamento-riga is-futuro">
+        <span class="andamento-riga-tp">T3</span>
+        <div class="andamento-riga-corpo">
+          <div class="andamento-riga-meta">
+            <span class="andamento-riga-data">Follow-up, 4–8 settimane dopo</span>
+          </div>
+          <p class="andamento-riga-vuota">Non ancora compilato.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== Vista FFMQ-I (nascosta nel mockup statico; mostrata al click sulla tab) ===== -->
+  <section class="card" style="display:none;">
+    <div class="card-strumento-testa">
+      <span class="card-strumento-nome">FFMQ-I · consapevolezza (totale)</span>
+      <span class="card-strumento-range">Range 39–195</span>
+    </div>
+
+    <div class="andamento-righe">
+      <div class="andamento-riga">
+        <span class="andamento-riga-tp">T0</span>
+        <div class="andamento-riga-corpo">
+          <div class="andamento-riga-meta">
+            <span class="andamento-riga-data">12 settembre 2026</span>
+          </div>
+          <div class="orientamento is-contenuto">
+            <div class="orientamento-riga">
+              <span class="orientamento-chip">Verso il minimo del range</span>
+              <span class="orientamento-valore">108</span>
+            </div>
+            <div class="orientamento-barra">
+              <span class="orientamento-riempimento" style="width: 30%;"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="andamento-riga">
+        <span class="andamento-riga-tp">T1</span>
+        <div class="andamento-riga-corpo">
+          <div class="andamento-riga-meta">
+            <span class="andamento-riga-data">10 ottobre 2026</span>
+            <span class="andamento-riga-delta">rispetto a T0: +14 punti</span>
+          </div>
+          <div class="orientamento is-intermedio">
+            <div class="orientamento-riga">
+              <span class="orientamento-chip">Verso il centro del range</span>
+              <span class="orientamento-valore">122</span>
+            </div>
+            <div class="orientamento-barra">
+              <span class="orientamento-riempimento" style="width: 53%;"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sottoscale: dettaglio facoltativo, chiuso di default -->
+    <details class="sottoscala-blocco">
+      <summary>Vedi il dettaglio per le 5 sottoscale</summary>
+
+      <div class="sottoscala-riga">
+        <p class="sottoscala-riga-nome">Osservare</p>
+        <div class="sottoscala-mini-righe">
+          <div class="sottoscala-mini-riga is-intermedio">
+            <span class="sottoscala-mini-tp">T0</span>
+            <div class="sottoscala-mini-barra"><span class="sottoscala-mini-riempimento" style="width:48%;"></span></div>
+            <span class="sottoscala-mini-valore">21</span>
+          </div>
+          <div class="sottoscala-mini-riga is-elevato">
+            <span class="sottoscala-mini-tp">T1</span>
+            <div class="sottoscala-mini-barra"><span class="sottoscala-mini-riempimento" style="width:70%;"></span></div>
+            <span class="sottoscala-mini-valore">26</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sottoscala-riga">
+        <p class="sottoscala-riga-nome">Non giudicare</p>
+        <div class="sottoscala-mini-righe">
+          <div class="sottoscala-mini-riga is-contenuto">
+            <span class="sottoscala-mini-tp">T0</span>
+            <div class="sottoscala-mini-barra"><span class="sottoscala-mini-riempimento" style="width:22%;"></span></div>
+            <span class="sottoscala-mini-valore">15</span>
+          </div>
+          <div class="sottoscala-mini-riga is-intermedio">
+            <span class="sottoscala-mini-tp">T1</span>
+            <div class="sottoscala-mini-barra"><span class="sottoscala-mini-riempimento" style="width:50%;"></span></div>
+            <span class="sottoscala-mini-valore">20</span>
+          </div>
+        </div>
+      </div>
+
+      <p class="hint" style="margin-top:14px;">… le altre tre sottoscale seguono lo stesso schema (Descrivere, Agire con consapevolezza, Non reagire).</p>
+    </details>
+  </section>
+
+  <p class="disclaimer">
+    Questi numeri descrivono come sono cambiate le tue risposte da un momento all'altro del percorso,
+    rispetto al range del questionario. Non sono una diagnosi né una valutazione clinica, e il
+    percorso non sostituisce una presa in carico psicologica o terapeutica professionale.
+  </p>
+
+  <hr style="border:none;border-top:1px solid var(--border);margin:36px 0;">
+
+  <!-- ===== Stato alternativo: meno di due momenti completati ===== -->
+  <h2 style="font-size:0.95rem;color:var(--ink-soft);font-weight:500;">
+    Stato alternativo — da mostrare se è stato completato un solo momento
+  </h2>
+  <div class="card stato-insufficiente">
+    <p><strong>Il tuo andamento sarà visibile qui</strong></p>
+    <p class="hint">
+      Hai completato solo T0 finora. Appena avrai risposto anche a un secondo momento
+      (T1), potrai vedere come sono cambiate le tue risposte.
+    </p>
+  </div>
+
+</div>
+</body>
+</html>

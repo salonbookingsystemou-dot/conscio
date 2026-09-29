@@ -44,6 +44,13 @@ Valgono per tutte le schermate (storico del partecipante, dashboard, cruscotti):
 
 ## Registro delle modifiche
 
+### 29/9/2026 · Nuova schermata "Il tuo andamento" per il partecipante (mockup, da Claude su claude.ai)
+Mockup in `docs/mockup/andamento.html`, istruzioni in `docs/brief_andamento.md`. Non ancora implementato.
+Aggiunge un passo `andamento` dentro `Questionari.jsx`: confronto tra i timepoint già completati (PSS-10,
+FFMQ-I totale e sottoscale), a barre orientamento in fila per T0-T3, senza grafico ad assi e senza
+interpretazione del cambiamento (solo la differenza numerica). Nessuna nuova RPC: riusa
+`risposte_questionario_del_partecipante` e `calcolaPunteggi` già esistenti per ogni timepoint.
+
 ### 28/9/2026 · Dati sui progressi (da Claude su claude.ai)
 Applicato in produzione, documentato in `supabase/migrazione_checkin_progressi.sql`:
 - `log_pratica.registrato_il`: ora di registrazione (vuota per le righe precedenti).
