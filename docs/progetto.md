@@ -58,7 +58,8 @@ per le email). Tolti Fraunces, Inter e la classe `.mbsr-theme`: partecipante e f
 font (Source Serif 4 per i titoli, Public Sans per il testo), lo stesso fondo crema e la stessa scala dei titoli.
 Supera la proposta a due temi dello stesso giorno; resta valida la scelta di Source Serif 4. La Tonalità ora parte
 dai nuovi colori e con il valore predefinito non sovrascrive i token. Lo Storico usa i colori dei toni dei grafici
-(neutro `#B4B8B0`, senza tono tratteggiato). Le email cambiano aspetto solo dopo il deploy delle funzioni.
+(neutro `#B4B8B0`, senza tono tratteggiato). Pubblicato il 30/9: sito su GitHub Pages e le sei funzioni email
+ridistribuite con le stesse impostazioni JWT di prima.
 Nessuna modifica al database né ai dati raccolti.
 
 ### 30/9/2026 · Diagnosi verificata con numeri reali sul codice (da Claude su claude.ai)
