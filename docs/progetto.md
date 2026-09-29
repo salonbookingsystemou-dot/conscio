@@ -11,6 +11,8 @@ Chiunque cambi qualcosa di importante aggiorna la sezione **Registro delle modif
   dalla dashboard o da uno strumento esterno.
 - **Funzioni del database:** prima di modificarne una, leggi la versione più recente nei file `supabase/`
   (l'ultimo file che la ridefinisce vince), non una copia precedente.
+- **Stile grafico:** `docs/design-system.md` è la fonte di verità sui token e sui componenti. Prima di
+  scrivere CSS nuovo, controlla lì se il token o il componente esiste già (sezione 5 del documento).
 
 ## Regole sui dati
 
@@ -43,6 +45,17 @@ Valgono per tutte le schermate (storico del partecipante, dashboard, cruscotti):
 | T3 (follow-up) | da 4 a 8 settimane dopo la fine |
 
 ## Registro delle modifiche
+
+### 30/9/2026 · Design system e strategia per unificare lo stile facilitatore (analisi, da Claude su claude.ai)
+Documento completo in `docs/design-system.md`. Diagnosi: l'area facilitatore ha oggi due linguaggi visivi
+paralleli, nati senza una decisione esplicita — `styles.css` (Fraunces/Inter, usato anche dalle tab Cicli
+e Questionari della dashboard, da Comunicazioni e da Segnala) e `src/styles/admin.css` + `tokens.css`
+(Instrument Serif/Public Sans, usato solo da Libreria, EditorSettimana, Percorso e dalla tab Pratica).
+Il meccanismo di aggancio `.mbsr-theme` già esiste ma copre solo i colori, non font/spaziatura/raggio.
+Il documento definisce un'architettura di token unica con due temi (`.tema-partecipante`/
+`.tema-facilitatore`), una mappa dei componenti doppioni da unificare (card, pulsanti, badge, campi,
+alert), e una strategia a 4 fasi (consolidare i token → bonificare i componenti condivisi → migrare la
+dashboard → ritirare i doppioni → governance). Non ancora implementato: solo analisi e piano.
 
 ### 29/9/2026 · Andamento del check-in settimanale, partecipante e facilitatore (mockup, da Claude su claude.ai)
 Mockup in `docs/mockup/checkin-partecipante.html` e `docs/mockup/checkin-facilitatore.html`, istruzioni in
