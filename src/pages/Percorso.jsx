@@ -95,7 +95,7 @@ export default function Percorso() {
         </select>
       </div>
 
-      {errore && <p className="admin-alert" role="alert">{errore}</p>}
+      {errore && <p className="avviso-errore" role="alert">{errore}</p>}
 
       {cicloId && (
         <div className="percorso-griglia">

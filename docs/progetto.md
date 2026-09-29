@@ -51,6 +51,20 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 30/9/2026 · Componenti doppi unificati, tolto Lezioni.jsx (da Claude Code)
+Dopo il tema unico di Cursor restavano due versioni degli stessi componenti. Ora ce n'è una sola per concetto,
+in `src/styles.css`, elencata in `docs/design-system.md` (sezione "Componenti condivisi"): `.btn` con le
+varianti `.btn-pericolo`, `.btn-ghost.is-pericolo`, `.is-piccolo`; `.card` con `.is-lista` e `.card-vuota`;
+`.field`; `.dialogo` + `.dialogo-azioni`; `.avviso-errore`. Tolti `.admin-btn-*`, `.admin-card`, `.admin-field`,
+`.admin-alert`, `.admin-dialogo` (Libreria, EditorSettimana, Percorso) e `.dialog-conferma`,
+`.btn-ciclo-elimina`, `.btn-elimina` (DialogConferma, Dashboard, Comunicazioni, IMieiDati). Differenze visibili
+nell'area facilitatore: pulsanti alti 48px come nel resto dell'app, "Annulla" con contorno, conferme
+distruttive in rosso pieno anche nelle modali del partecipante. Eliminato `src/pages/Lezioni.jsx` (non più
+raggiungibile) con le sue regole CSS. Gli ultimi colori scritti a mano in `styles.css` sono diventati token
+(`--ochre-strong`, `--moss-strong`). Segnati come superati `docs/mockup/design-system.html` (proposta a due
+temi) e le note su `.mbsr-theme`/Instrument Serif nei brief. Nessuna modifica al database. Non ancora
+pubblicato sul sito.
+
 ### 30/9/2026 · Design system unico implementato (da Cursor)
 Lo stile della scheda Pratica diventa quello di tutta l'app: regole in `docs/design-system.md`, token in
 `src/styles/tokens.css` (copie in `src/lib/colori.js` per i grafici e in `supabase/functions/_shared/stileEmail.ts`

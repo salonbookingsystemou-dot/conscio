@@ -356,12 +356,12 @@ export default function EditorSettimana() {
               ))}
             </div>
 
-            {errore && <p className="admin-alert" role="alert">{errore}</p>}
+            {errore && <p className="avviso-errore" role="alert">{errore}</p>}
             {okMsg && <p className="editor-ok">{okMsg}</p>}
 
             {scheda === 'tema' && (
               <form className="editor-pannello" onSubmit={salvaTema}>
-                <div className="admin-field">
+                <div className="field">
                   <label htmlFor="editor-titolo">Titolo</label>
                   <input
                     id="editor-titolo"
@@ -371,7 +371,7 @@ export default function EditorSettimana() {
                     placeholder={n === 9 ? 'Giornata intensiva' : `Tema settimana ${n}`}
                   />
                 </div>
-                <div className="admin-field">
+                <div className="field">
                   <label htmlFor="editor-sottotitolo">Sottotitolo (facoltativo)</label>
                   <input
                     id="editor-sottotitolo"
@@ -380,7 +380,7 @@ export default function EditorSettimana() {
                     placeholder="Una riga sotto il titolo"
                   />
                 </div>
-                <div className="admin-field">
+                <div className="field">
                   <label htmlFor="editor-materiali">Materiali per il gruppo (facoltativo)</label>
                   <textarea
                     id="editor-materiali"
@@ -390,7 +390,7 @@ export default function EditorSettimana() {
                     placeholder="Link, dispense o note"
                   />
                 </div>
-                <button className="admin-btn-primario" type="submit" disabled={invio}>
+                <button className="btn" type="submit" disabled={invio}>
                   {invio ? 'Salvataggio…' : 'Salva tema'}
                 </button>
               </form>
@@ -399,7 +399,7 @@ export default function EditorSettimana() {
             {scheda === 'formali' && (
               <div className="editor-pannello">
                 {!lezione ? (
-                  <p className="admin-card-vuota">Salva prima il tema per aggiungere le pratiche formali.</p>
+                  <p className="card-vuota">Salva prima il tema per aggiungere le pratiche formali.</p>
                 ) : (
                   <>
                     <ul className="editor-lista">
@@ -413,7 +413,7 @@ export default function EditorSettimana() {
                           <li key={ex.id} className="editor-riga">
                             {inModifica ? (
                               <div className="editor-riga-form">
-                                <div className="admin-field">
+                                <div className="field">
                                   <label htmlFor={`formale-nome-${ex.id}`}>Nome</label>
                                   <input
                                     id={`formale-nome-${ex.id}`}
@@ -421,7 +421,7 @@ export default function EditorSettimana() {
                                     onChange={e => setModifica({ ...modifica, descrizione: e.target.value })}
                                   />
                                 </div>
-                                <div className="admin-field">
+                                <div className="field">
                                   <label htmlFor={`formale-durata-${ex.id}`}>Durata (minuti)</label>
                                   <input
                                     id={`formale-durata-${ex.id}`}
@@ -432,7 +432,7 @@ export default function EditorSettimana() {
                                     onChange={e => setModifica({ ...modifica, durata_minuti: e.target.value })}
                                   />
                                 </div>
-                                <div className="admin-field">
+                                <div className="field">
                                   <label htmlFor={`formale-traccia-${ex.id}`}>Traccia collegata</label>
                                   <SelettoreTraccia
                                     id={`formale-traccia-${ex.id}`}
@@ -442,11 +442,11 @@ export default function EditorSettimana() {
                                     onCambia={id => setModifica({ ...modifica, tracciaId: id || '' })}
                                   />
                                 </div>
-                                <div className="admin-dialogo-azioni">
-                                  <button type="button" className="admin-btn-primario" disabled={invio} onClick={() => salvaFormale(ex)}>
+                                <div className="dialogo-azioni">
+                                  <button type="button" className="btn" disabled={invio} onClick={() => salvaFormale(ex)}>
                                     Salva
                                   </button>
-                                  <button type="button" className="admin-btn-ghost" onClick={() => setModifica(null)}>
+                                  <button type="button" className="btn btn-ghost" onClick={() => setModifica(null)}>
                                     Annulla
                                   </button>
                                 </div>
@@ -496,7 +496,7 @@ export default function EditorSettimana() {
 
                     <form className="editor-aggiungi" onSubmit={aggiungiFormale}>
                       <p className="editor-aggiungi-kicker">Aggiungi una pratica formale</p>
-                      <div className="admin-field">
+                      <div className="field">
                         <label htmlFor="nuova-formale-nome">Nome</label>
                         <input
                           id="nuova-formale-nome"
@@ -506,7 +506,7 @@ export default function EditorSettimana() {
                           placeholder="es. Body Scan"
                         />
                       </div>
-                      <div className="admin-field">
+                      <div className="field">
                         <label htmlFor="nuova-formale-durata">Durata (minuti)</label>
                         <input
                           id="nuova-formale-durata"
@@ -519,7 +519,7 @@ export default function EditorSettimana() {
                           placeholder="15"
                         />
                       </div>
-                      <div className="admin-field">
+                      <div className="field">
                         <label htmlFor="nuova-formale-traccia">Traccia</label>
                         <SelettoreTraccia
                           id="nuova-formale-traccia"
@@ -529,7 +529,7 @@ export default function EditorSettimana() {
                           onCambia={id => setNuovaFormale({ ...nuovaFormale, tracciaId: id || '' })}
                         />
                       </div>
-                      <button className="admin-btn-primario" type="submit" disabled={invio || !nuovaFormale.tracciaId}>
+                      <button className="btn" type="submit" disabled={invio || !nuovaFormale.tracciaId}>
                         Aggiungi pratica
                       </button>
                     </form>
@@ -541,7 +541,7 @@ export default function EditorSettimana() {
             {scheda === 'informali' && (
               <div className="editor-pannello">
                 {!lezione ? (
-                  <p className="admin-card-vuota">Salva prima il tema per aggiungere le pratiche informali.</p>
+                  <p className="card-vuota">Salva prima il tema per aggiungere le pratiche informali.</p>
                 ) : (
                   <>
                     <ul className="editor-lista">
@@ -554,7 +554,7 @@ export default function EditorSettimana() {
                           <li key={ex.id} className="editor-riga">
                             {inModifica ? (
                               <div className="editor-riga-form">
-                                <div className="admin-field">
+                                <div className="field">
                                   <label htmlFor={`informale-nome-${ex.id}`}>Nome</label>
                                   <input
                                     id={`informale-nome-${ex.id}`}
@@ -562,11 +562,11 @@ export default function EditorSettimana() {
                                     onChange={e => setModifica({ ...modifica, descrizione: e.target.value })}
                                   />
                                 </div>
-                                <div className="admin-dialogo-azioni">
-                                  <button type="button" className="admin-btn-primario" disabled={invio} onClick={() => salvaInformale(ex)}>
+                                <div className="dialogo-azioni">
+                                  <button type="button" className="btn" disabled={invio} onClick={() => salvaInformale(ex)}>
                                     Salva
                                   </button>
-                                  <button type="button" className="admin-btn-ghost" onClick={() => setModifica(null)}>
+                                  <button type="button" className="btn btn-ghost" onClick={() => setModifica(null)}>
                                     Annulla
                                   </button>
                                 </div>
@@ -606,7 +606,7 @@ export default function EditorSettimana() {
 
                     <form className="editor-aggiungi" onSubmit={aggiungiInformale}>
                       <p className="editor-aggiungi-kicker">Aggiungi una pratica informale</p>
-                      <div className="admin-field">
+                      <div className="field">
                         <label htmlFor="nuova-informale-nome">Nome</label>
                         <input
                           id="nuova-informale-nome"
@@ -616,7 +616,7 @@ export default function EditorSettimana() {
                           placeholder="es. Bere il caffè consapevolmente"
                         />
                       </div>
-                      <button className="admin-btn-primario" type="submit" disabled={invio}>
+                      <button className="btn" type="submit" disabled={invio}>
                         Aggiungi pratica
                       </button>
                     </form>
@@ -634,11 +634,11 @@ export default function EditorSettimana() {
           onChiudi={() => !invio && setDaEliminare(null)}
         >
           <p>«{daEliminare.descrizione}» sparisce dalla settimana. La traccia resta in libreria.</p>
-          <div className="admin-dialogo-azioni">
-            <button type="button" className="admin-btn-pericolo" disabled={invio} onClick={confermaElimina}>
+          <div className="dialogo-azioni">
+            <button type="button" className="btn btn-pericolo" disabled={invio} onClick={confermaElimina}>
               {invio ? 'Rimozione…' : 'Rimuovi pratica'}
             </button>
-            <button type="button" className="admin-btn-ghost" disabled={invio} onClick={() => setDaEliminare(null)}>
+            <button type="button" className="btn btn-ghost" disabled={invio} onClick={() => setDaEliminare(null)}>
               Annulla
             </button>
           </div>
@@ -660,7 +660,7 @@ function EditorDialogo({ titolo, children, onChiudi }) {
   return (
     <dialog
       ref={el}
-      className="admin-dialogo"
+      className="dialogo"
       onClose={onChiudi}
       onCancel={e => {
         e.preventDefault()

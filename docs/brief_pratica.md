@@ -14,8 +14,8 @@ scheda con, dall'alto:
 4. **Totale per partecipante** (barre orizzontali ordinate, senza codici) e **Pratiche informali** (tabella), affiancati.
 
 `GraficoAndamentoPratica` e le funzioni di `src/lib/tono.js` usate altrove non vanno toccate.
-Stile: tema amministrazione (`.mbsr-theme`, `src/styles/tokens.css`): Instrument Serif per titoli e numeri,
-Public Sans per il resto, fondo `--bg`, riquadri `--surface` con bordo `--border`.
+Stile: tema unico (`src/styles/tokens.css`, `docs/design-system.md`; in origine `.mbsr-theme` con Instrument Serif):
+Source Serif 4 per titoli e numeri, Public Sans per il resto, fondo `--bg`, riquadri `--surface` con bordo `--border`.
 
 ## Regole comuni (valgono per tutta la scheda)
 

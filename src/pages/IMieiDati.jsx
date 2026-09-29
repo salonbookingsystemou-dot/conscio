@@ -126,7 +126,7 @@ export default function IMieiDati() {
             </p>
             <div className="azioni">
               <button
-                className="btn btn-ghost btn-ciclo-elimina"
+                className="btn btn-ghost is-pericolo"
                 type="button"
                 disabled={resetInvio}
                 onClick={() => {

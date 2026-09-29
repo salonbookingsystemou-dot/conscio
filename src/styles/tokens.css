@@ -42,6 +42,9 @@
   --moss-pale: #C9D6C9;
   --ochre: #A8763E;
   --ochre-soft: #F2E8DA;
+  /* Testo su fondo ocra o verde tenue: versioni scurite per il contrasto. */
+  --ochre-strong: color-mix(in srgb, var(--ochre) 72%, #000);
+  --moss-strong: color-mix(in srgb, var(--moss) 70%, #000);
   --terra: #8B5E4B;
   --terra-dark: #6B4436;
   --danger: #A6503C;

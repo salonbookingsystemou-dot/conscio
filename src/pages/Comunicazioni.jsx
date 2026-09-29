@@ -478,7 +478,7 @@ export default function Comunicazioni() {
             <button className="btn btn-ghost" type="button" disabled={invio} onClick={() => iniziaModifica(c)}>
               Modifica
             </button>
-            <button className="btn-elimina" type="button" disabled={invio} onClick={() => chiediElimina(c)}>
+            <button className="btn btn-ghost is-pericolo" type="button" disabled={invio} onClick={() => chiediElimina(c)}>
               Cancella
             </button>
           </div>

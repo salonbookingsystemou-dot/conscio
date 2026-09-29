@@ -71,3 +71,23 @@ Le intestazioni di tabella sono maiuscole a 12px con `--ls-table`. Il corsivo re
 - **Card con titolo**: `h3` in serif `--fs-section`, descrizione `--fs-small` `--muted`, legenda a destra.
   Esempio: `.pratica-card`.
 - **Tabella**: intestazioni maiuscole `--fs-caption`, righe separate da `--border-soft`, numeri `tabular-nums`.
+
+## Componenti condivisi (in `src/styles.css`, uno per concetto)
+
+Valgono per partecipante e facilitatore. Non creare un secondo componente per lo stesso concetto:
+aggiungi una variante qui.
+
+| Concetto | Classe | Varianti |
+|---|---|---|
+| Pulsante | `.btn` | `.btn-ghost` (contorno), `.btn-tonal`, `.btn-text`, `.btn-pericolo` (rosso pieno, conferma di un'azione distruttiva), `.btn-ghost.is-pericolo` (contorno, testo rosso: apre un'azione distruttiva), `.is-piccolo` (righe di elenchi densi) |
+| Card | `.card` | `.card.is-lista` (senza padding, per righe a filo bordo), `.card-vuota` (messaggio di card vuota o in caricamento) |
+| Campo di modulo | `.field` | — |
+| Modale | `.dialogo` (+ `.dialogo-azioni`) | `.dialogo.is-ascolto` (più larga, per l'anteprima di una traccia) |
+| Errore | `.avviso-errore` (riquadro sopra un modulo o un elenco), `.campo-errore` (riga sotto un campo) | — |
+| Nota informativa | `.disclaimer` | — |
+
+Le classi `.admin-*` rimaste in `src/styles/admin.css` sono solo layout di pagina dell'area facilitatore
+(barra degli strumenti, righe della libreria, testata), non componenti generici. Unificazione fatta il
+30/9/2026: tolti `.admin-btn-*`, `.admin-card`, `.admin-field`, `.admin-alert`, `.admin-dialogo`,
+`.dialog-conferma`, `.btn-ciclo-elimina`, `.btn-elimina`.
+

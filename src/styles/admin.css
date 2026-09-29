@@ -145,6 +145,7 @@
 
 .admin-cerca {
   flex: 1 1 auto;
+  align-self: stretch;
   display: flex;
   align-items: center;
   gap: var(--space-10);
@@ -184,87 +185,6 @@
 .admin-cerca:focus-within {
   outline: 3px solid color-mix(in srgb, var(--accent) 35%, transparent);
   outline-offset: 1px;
-}
-
-.admin-btn-primario,
-.admin-btn-ghost,
-.admin-btn-pericolo {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-8);
-  min-height: 42px;
-  padding: var(--space-8) var(--space-16);
-  border: 0;
-  border-radius: var(--radius-md);
-  font-family: var(--font-body);
-  font-size: var(--fs-body);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.admin-btn-primario {
-  flex: 0 0 auto;
-  background: var(--accent);
-  color: var(--on-accent);
-}
-
-.admin-btn-primario svg {
-  width: 16px;
-  height: 16px;
-}
-
-.admin-btn-primario:hover {
-  background: var(--accent-hover);
-  box-shadow: var(--shadow-hover);
-}
-
-.admin-btn-ghost {
-  background: transparent;
-  color: var(--ink);
-}
-
-.admin-btn-ghost:hover {
-  background: var(--accent-soft);
-}
-
-.admin-btn-pericolo {
-  background: var(--danger);
-  color: var(--on-accent);
-}
-
-.admin-btn-pericolo:hover {
-  background: var(--danger-hover);
-}
-
-.admin-btn-primario:disabled,
-.admin-btn-ghost:disabled,
-.admin-btn-pericolo:disabled {
-  opacity: 0.55;
-  cursor: default;
-  box-shadow: none;
-}
-
-.admin-alert {
-  margin: 0 0 var(--space-16);
-  padding: var(--space-12) var(--space-16);
-  border-radius: var(--radius-md);
-  background: var(--danger-soft);
-  color: var(--danger);
-}
-
-.admin-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-
-.admin-card-vuota {
-  margin: 0;
-  padding: var(--space-28) var(--space-20);
-  color: var(--muted);
-  font-style: italic;
 }
 
 .admin-lista {
@@ -356,81 +276,6 @@
 .admin-icon-btn:disabled {
   opacity: 0.45;
   cursor: default;
-}
-
-.admin-dialogo.is-ascolto {
-  width: min(32rem, calc(100% - var(--space-32)));
-}
-
-.admin-dialogo.is-ascolto .card-traccia {
-  box-shadow: none;
-  padding: clamp(16px, 4vw, 24px);
-}
-
-.admin-dialogo {
-  width: min(26rem, calc(100% - var(--space-32)));
-  margin: auto;
-  padding: var(--space-24);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  color: var(--ink);
-  font-family: var(--font-body);
-  box-shadow: var(--shadow-elevated);
-}
-
-.admin-dialogo::backdrop {
-  background: color-mix(in srgb, var(--ink) 28%, transparent);
-}
-
-.admin-dialogo h2 {
-  margin: 0 0 var(--space-16);
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: var(--fs-section);
-  line-height: var(--lh-title);
-}
-
-.admin-dialogo > p {
-  margin: 0 0 var(--space-16);
-  color: var(--muted);
-  font-size: var(--fs-body);
-}
-
-.admin-field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-  margin-bottom: var(--space-16);
-}
-
-.admin-field label {
-  font-size: var(--fs-meta);
-  color: var(--muted);
-}
-
-.admin-field input,
-.admin-field textarea {
-  width: 100%;
-  padding: var(--space-10) var(--space-12);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--ink);
-  font: inherit;
-}
-
-.admin-field input:focus,
-.admin-field textarea:focus {
-  outline: 3px solid color-mix(in srgb, var(--accent) 35%, transparent);
-  border-color: var(--accent);
-}
-
-.admin-dialogo-azioni {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8);
-  margin-top: var(--space-8);
 }
 
 .admin-elenco-usi {
@@ -904,7 +749,7 @@
     align-items: stretch;
   }
 
-  .admin-btn-primario {
+  .admin-toolbar .btn {
     width: 100%;
   }
 

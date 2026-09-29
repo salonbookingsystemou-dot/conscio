@@ -1128,7 +1128,7 @@ export default function Dashboard() {
                             </label>
                             <button
                               type="button"
-                              className="btn-elimina"
+                              className="btn btn-ghost is-pericolo is-piccolo dash-iscrizione-azioni-ritira"
                               onClick={() => eliminaIscritto(i)}
                             >
                               Ritira
@@ -1352,7 +1352,7 @@ export default function Dashboard() {
                               </label>
                               <button
                                 type="button"
-                                className="btn-elimina"
+                                className="btn btn-ghost is-pericolo is-piccolo dash-iscrizione-azioni-ritira"
                                 onClick={() => eliminaIscritto(i)}
                               >
                                 Ritira
@@ -1375,7 +1375,7 @@ export default function Dashboard() {
                   </div>
                   <button
                     type="button"
-                    className="btn btn-ghost btn-ciclo-elimina"
+                    className="btn btn-ghost is-pericolo"
                     onClick={() => eliminaCiclo(cicloAperto)}
                   >
                     Elimina ciclo

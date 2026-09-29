@@ -256,19 +256,19 @@ export default function Libreria() {
             placeholder="Cerca una traccia…"
           />
         </label>
-        <button type="button" className="admin-btn-primario" onClick={apriCarica}>
+        <button type="button" className="btn" onClick={apriCarica}>
           <IconaPiu />
           Carica traccia
         </button>
       </div>
 
-      {errore && <p className="admin-alert" role="alert">{errore}</p>}
+      {errore && <p className="avviso-errore" role="alert">{errore}</p>}
 
-      <section className="admin-card" aria-label="Elenco tracce">
+      <section className="card is-lista" aria-label="Elenco tracce">
         {caricamento ? (
-          <p className="admin-card-vuota">Caricamento della libreria…</p>
+          <p className="card-vuota">Caricamento della libreria…</p>
         ) : filtrate.length === 0 ? (
-          <p className="admin-card-vuota">
+          <p className="card-vuota">
             {tracce.length === 0
               ? 'Nessuna traccia ancora. Carica il primo file per renderlo disponibile ovunque.'
               : 'Nessuna traccia corrisponde alla ricerca.'}
@@ -379,8 +379,8 @@ export default function Libreria() {
             }
             anteprima
           />
-          <div className="admin-dialogo-azioni">
-            <button type="button" className="admin-btn-ghost" onClick={() => setDialogo(null)}>
+          <div className="dialogo-azioni">
+            <button type="button" className="btn btn-ghost" onClick={() => setDialogo(null)}>
               Chiudi
             </button>
           </div>
@@ -392,7 +392,7 @@ export default function Libreria() {
           titolo="Carica traccia"
           onChiudi={() => occupato !== 'carica' && setDialogo(null)}
         >
-          <div className="admin-field">
+          <div className="field">
             <label htmlFor="nuova-traccia-titolo">Titolo</label>
             <input
               id="nuova-traccia-titolo"
@@ -401,7 +401,7 @@ export default function Libreria() {
               placeholder="es. Body Scan"
             />
           </div>
-          <div className="admin-field">
+          <div className="field">
             <label htmlFor="nuova-traccia-testo">Testo sotto il titolo nella card</label>
             <textarea
               id="nuova-traccia-testo"
@@ -411,16 +411,16 @@ export default function Libreria() {
               placeholder="Facoltativo"
             />
           </div>
-          <div className="admin-dialogo-azioni">
+          <div className="dialogo-azioni">
             <button
               type="button"
-              className="admin-btn-primario"
+              className="btn"
               disabled={occupato === 'carica'}
               onClick={() => fileNuovo.current?.click()}
             >
               {occupato === 'carica' ? 'Caricamento…' : 'Scegli il file audio'}
             </button>
-            <button type="button" className="admin-btn-ghost" disabled={occupato === 'carica'} onClick={() => setDialogo(null)}>
+            <button type="button" className="btn btn-ghost" disabled={occupato === 'carica'} onClick={() => setDialogo(null)}>
               Annulla
             </button>
           </div>
@@ -432,7 +432,7 @@ export default function Libreria() {
           titolo="Modifica traccia"
           onChiudi={() => occupato !== 'modifica' && setDialogo(null)}
         >
-          <div className="admin-field">
+          <div className="field">
             <label htmlFor="modifica-traccia-titolo">Titolo</label>
             <input
               id="modifica-traccia-titolo"
@@ -441,7 +441,7 @@ export default function Libreria() {
               required
             />
           </div>
-          <div className="admin-field">
+          <div className="field">
             <label htmlFor="modifica-traccia-testo">Testo sotto il titolo nella card</label>
             <textarea
               id="modifica-traccia-testo"
@@ -451,16 +451,16 @@ export default function Libreria() {
               placeholder="Facoltativo"
             />
           </div>
-          <div className="admin-dialogo-azioni">
+          <div className="dialogo-azioni">
             <button
               type="button"
-              className="admin-btn-primario"
+              className="btn"
               disabled={occupato === 'modifica'}
               onClick={confermaModifica}
             >
               {occupato === 'modifica' ? 'Salvataggio…' : 'Salva'}
             </button>
-            <button type="button" className="admin-btn-ghost" disabled={occupato === 'modifica'} onClick={() => setDialogo(null)}>
+            <button type="button" className="btn btn-ghost" disabled={occupato === 'modifica'} onClick={() => setDialogo(null)}>
               Annulla
             </button>
           </div>
@@ -473,16 +473,16 @@ export default function Libreria() {
           onChiudi={() => occupato !== 'elimina' && setDialogo(null)}
         >
           <p>Eliminare «{dialogo.traccia.titolo}» dalla libreria? Il file verrà rimosso.</p>
-          <div className="admin-dialogo-azioni">
+          <div className="dialogo-azioni">
             <button
               type="button"
-              className="admin-btn-pericolo"
+              className="btn btn-pericolo"
               disabled={occupato === 'elimina'}
               onClick={confermaElimina}
             >
               {occupato === 'elimina' ? 'Eliminazione…' : 'Elimina traccia'}
             </button>
-            <button type="button" className="admin-btn-ghost" disabled={occupato === 'elimina'} onClick={() => setDialogo(null)}>
+            <button type="button" className="btn btn-ghost" disabled={occupato === 'elimina'} onClick={() => setDialogo(null)}>
               Annulla
             </button>
           </div>
@@ -502,8 +502,8 @@ export default function Libreria() {
               </li>
             ))}
           </ul>
-          <div className="admin-dialogo-azioni">
-            <button type="button" className="admin-btn-primario" onClick={() => setDialogo(null)}>
+          <div className="dialogo-azioni">
+            <button type="button" className="btn" onClick={() => setDialogo(null)}>
               Ho capito
             </button>
           </div>
@@ -525,7 +525,7 @@ function AdminDialogo({ titolo, children, onChiudi, className }) {
   return (
     <dialog
       ref={el}
-      className={['admin-dialogo', className].filter(Boolean).join(' ')}
+      className={['dialogo', className].filter(Boolean).join(' ')}
       onClose={onChiudi}
       onCancel={e => {
         e.preventDefault()

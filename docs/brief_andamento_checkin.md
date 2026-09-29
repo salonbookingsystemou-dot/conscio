@@ -109,7 +109,7 @@ toccarla: resta l'unico punto dove compaiono codice e nota).
 Non riusare i colori del tono (piacevole/neutro/spiacevole) per stress e sonno: sono scale diverse
 (0–10, non un giudizio in 3 categorie) e mischiarle confonderebbe. Nel mockup sono usati un colore
 "caldo" per lo stress e l'accento principale del tema amministrazione per il sonno, a titolo di
-esempio — adatta ai token già definiti in `src/styles/tokens.css` (`.mbsr-theme`) invece di introdurne
+esempio — adatta ai token già definiti in `src/styles/tokens.css` (tema unico, vedi `docs/design-system.md`) invece di introdurne
 di nuovi. Per la presenza (5 livelli), una scala di intensità di un solo colore va bene, come nel mockup.
 
 ## Privacy

@@ -379,6 +379,18 @@ a:not([class]):hover { color: var(--ink); }
   min-width: 0;
   overflow-wrap: anywhere;
 }
+/* Card che contiene un elenco di righe a filo bordo. */
+.card.is-lista {
+  padding: 0;
+  overflow: hidden;
+}
+/* Messaggio dentro una card vuota o in caricamento. */
+.card-vuota {
+  margin: 0;
+  padding: var(--space-28) var(--space-20);
+  color: var(--muted);
+  font-style: italic;
+}
 
 .field { margin-bottom: 16px; min-width: 0; }
 .field label { display: block; font-size: var(--fs-meta); color: var(--ink-soft); margin-bottom: 6px; letter-spacing: 0.02em; }
@@ -486,6 +498,32 @@ a:not([class]):hover { color: var(--ink); }
   background: transparent;
   color: color-mix(in srgb, var(--ink) 38%, var(--surface));
 }
+.btn svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+/* Azione distruttiva confermata (dentro una modale): pieno, rosso. */
+.btn-pericolo {
+  background: var(--danger);
+  color: var(--on-accent);
+}
+.btn-pericolo:hover:not(:disabled) {
+  background: var(--danger-hover);
+}
+/* Pulsante che apre un'azione distruttiva: contorno, testo rosso. */
+.btn-ghost.is-pericolo {
+  color: var(--danger);
+}
+.btn-ghost.is-pericolo:hover:not(:disabled) {
+  background: var(--danger-soft);
+}
+/* Variante compatta per righe di elenchi e tabelle dense. */
+.btn.is-piccolo {
+  min-height: 36px;
+  padding: var(--space-8) var(--space-14);
+  font-size: var(--fs-meta);
+}
 
 .azioni {
   display: flex;
@@ -497,28 +535,58 @@ a:not([class]):hover { color: var(--ink); }
 .card-dati-pericolo {
   border-color: color-mix(in srgb, var(--danger) 28%, var(--border));
 }
-.dialog-conferma {
-  width: min(26rem, calc(100% - 40px));
+/* Modale: un solo componente per conferme e moduli (partecipante e facilitatore). */
+.dialogo {
+  width: min(26rem, calc(100% - var(--space-32)));
   max-width: 100%;
-  padding: 24px 22px 20px;
+  margin: auto;
+  padding: var(--space-24);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);
   color: var(--ink);
+  font-family: var(--font-body);
   box-shadow: var(--shadow-dialog);
 }
-.dialog-conferma::backdrop {
+.dialogo::backdrop {
   background: var(--backdrop);
 }
-.dialog-conferma h3 {
-  margin: 0 0 8px;
+.dialogo h2,
+.dialogo h3 {
+  margin: 0 0 var(--space-12);
+  font-family: var(--font-display);
+  font-weight: 400;
   font-size: var(--fs-section);
+  line-height: var(--lh-title);
 }
-.dialog-conferma p {
-  margin: 0 0 16px;
-  color: var(--ink-soft);
-  font-size: 14px;
-  line-height: 1.5;
+.dialogo > p {
+  margin: 0 0 var(--space-16);
+  color: var(--muted);
+  font-size: var(--fs-small);
+  line-height: var(--lh-body);
+}
+.dialogo.is-ascolto {
+  width: min(32rem, calc(100% - var(--space-32)));
+}
+.dialogo.is-ascolto .card-traccia {
+  box-shadow: none;
+  padding: clamp(16px, 4vw, 24px);
+}
+.dialogo-azioni {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  margin-top: var(--space-8);
+}
+
+/* Riquadro d'errore sopra un modulo o un elenco. */
+.avviso-errore {
+  margin: 0 0 var(--space-16);
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-md);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: var(--fs-body);
 }
 
 .item-block {
@@ -1795,9 +1863,6 @@ a:not([class]):hover { color: var(--ink); }
   margin-top: 4px;
   padding-top: 8px;
 }
-.btn-ciclo-elimina {
-  color: var(--danger);
-}
 .posti { font-size: 15px; color: var(--moss-dark); }
 
 /* Dashboard facilitatore a tab + overview cicli */
@@ -2045,7 +2110,7 @@ a:not([class]):hover { color: var(--ink); }
 }
 .badge-modalita.is-remoto {
   background: var(--tint-ochre);
-  color: color-mix(in srgb, var(--ochre) 72%, #000);
+  color: var(--ochre-strong);
 }
 .badge-ritirato {
   background: color-mix(in srgb, var(--ink) 10%, var(--surface));
@@ -2092,12 +2157,12 @@ a:not([class]):hover { color: var(--ink); }
 /* Primo accesso fatto, T0 mancante */
 .dash-stato.is-ambra {
   background: var(--tint-ochre);
-  color: color-mix(in srgb, var(--ochre) 72%, #000);
+  color: var(--ochre-strong);
 }
 /* In percorso (T0 fatto) */
 .dash-stato.is-attivo {
   background: var(--tint);
-  color: color-mix(in srgb, var(--moss) 70%, #000);
+  color: var(--moss-strong);
 }
 /* Rilevazioni intermedie/finali (T1, T2) */
 .dash-stato.is-avanti {
@@ -2379,7 +2444,7 @@ a:not([class]):hover { color: var(--ink); }
   margin: 0;
   max-width: 36em;
 }
-.dash-ciclo-pericolo .btn-ciclo-elimina {
+.dash-ciclo-pericolo .btn {
   flex: 0 0 auto;
 }
 .dash-kpi {
@@ -2509,7 +2574,7 @@ a:not([class]):hover { color: var(--ink); }
 }
 .badge-stato.is-reclutamento {
   background: var(--tint-ochre);
-  color: color-mix(in srgb, var(--ochre) 70%, #000);
+  color: var(--ochre-strong);
 }
 .badge-stato.is-concluso {
   background: color-mix(in srgb, var(--ink-soft) 12%, var(--surface));
@@ -2582,19 +2647,7 @@ a:not([class]):hover { color: var(--ink); }
   color: var(--ink);
   background: var(--surface);
 }
-.btn-elimina {
-  margin-left: 0;
-  background: transparent;
-  color: var(--danger);
-  border: 1px solid var(--border);
-  padding: 10px 12px;
-  font-size: 13px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-family: inherit;
-  align-self: flex-end;
-}
-.btn-elimina:hover { background: var(--danger-soft); }
+.dash-iscrizione-azioni-ritira { align-self: flex-end; }
 
 .pratica-blocco {
   border-top: 1px solid var(--border);
@@ -4402,15 +4455,6 @@ body:has(.splash) {
   min-width: 0;
   overflow-wrap: anywhere;
 }
-
-/* Gestione settimane (facilitatore) — allineata alla vista pratica */
-.lezioni-gestione .lead {
-  margin-bottom: 16px;
-}
-.lezioni-ciclo {
-  max-width: 420px;
-  margin-bottom: 12px;
-}
 .settimana-pill.is-vuota .sett-tema {
   color: var(--ink-soft);
   font-style: italic;
@@ -4418,96 +4462,6 @@ body:has(.splash) {
 .settimana-pill.is-vuota:not(.is-on) {
   border-style: dashed;
   opacity: 0.85;
-}
-.lezioni-meta {
-  margin-bottom: 8px;
-}
-.lezioni-sett-capo {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-.lezioni-sett-guida {
-  margin: 0;
-  max-width: 40em;
-}
-.lezioni-sezione {
-  margin-top: 22px;
-  padding-top: 18px;
-  border-top: 1px solid color-mix(in srgb, var(--moss) 14%, var(--border));
-}
-.lezioni-sezione:first-of-type {
-  margin-top: 4px;
-  padding-top: 0;
-  border-top: 0;
-}
-.lezioni-sezione-capo h3,
-.lezioni-sezione > h3 {
-  margin: 0 0 4px;
-}
-.lezioni-sezione-capo .hint {
-  margin: 0 0 12px;
-}
-.lezioni-pratica,
-.lezioni-informale {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 14px 16px;
-  background: var(--surface);
-  min-width: 0;
-}
-.lezioni-pratica.is-modifica,
-.lezioni-informale.is-modifica {
-  border-color: color-mix(in srgb, var(--moss) 45%, var(--border));
-  background: color-mix(in srgb, var(--tint) 40%, var(--surface));
-  box-shadow: inset 3px 0 0 var(--moss);
-}
-.lezioni-pratica-kicker {
-  margin: 0 0 10px;
-  font-size: var(--fs-eyebrow);
-  font-weight: 600;
-  letter-spacing: var(--ls-eyebrow);
-  text-transform: uppercase;
-  color: var(--moss-dark);
-}
-.lezioni-pratica-capo {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px 16px;
-}
-.lezioni-pratica-testi {
-  min-width: 0;
-  flex: 1 1 14rem;
-}
-.lezioni-pratica-testi h4,
-.lezioni-informale-nome {
-  margin: 0 0 4px;
-  font-size: 1.05rem;
-  line-height: 1.3;
-  overflow-wrap: anywhere;
-}
-.lezioni-informale-nome {
-  margin: 0;
-  flex: 1 1 12rem;
-}
-.lezioni-pratica-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 10px;
-  margin: 0;
-  font-size: 13px;
-  color: var(--ink-soft);
-}
-.lezioni-pratica-meta .is-ok {
-  color: var(--moss-dark);
-  font-weight: 600;
-}
-.lezioni-pratica-meta .is-manca {
-  color: var(--terra);
-  font-weight: 600;
 }
 .lezioni-pratica-azioni {
   display: flex;
@@ -4527,34 +4481,6 @@ body:has(.splash) {
 }
 .lezioni-anteprima .card-traccia {
   margin-top: 12px;
-}
-.lezioni-aggiungi-card {
-  margin-top: 14px;
-  padding: 14px 16px;
-  border: 1.5px dashed color-mix(in srgb, var(--moss) 35%, var(--border));
-  border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--tint) 28%, var(--surface));
-}
-.lezioni-lista-informali {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.lezioni-edit-ex .field {
-  margin-bottom: 10px;
-}
-.lezioni-edit-ex .lezioni-selettore-traccia {
-  width: 100%;
-  max-width: 100%;
-}
-.lezioni-tema-input {
-  font-family: inherit;
-  font-size: 1.25rem;
-  font-weight: 600;
-  line-height: 1.3;
 }
 .lezioni-avanzate {
   margin: 8px 0 12px;
@@ -4583,27 +4509,10 @@ body:has(.splash) {
   flex: 1 1 16rem;
   min-width: 0;
 }
-.lezioni-ex-azioni {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
-}
 .lezioni-file-btn {
   display: inline-flex;
   align-items: center;
   cursor: pointer;
-}
-.lezioni-aggiungi {
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid color-mix(in srgb, var(--moss) 14%, var(--border));
-}
-.lezioni-edit-ex {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
 }
 .lezioni-edit-chip {
   flex: 1;
@@ -4616,10 +4525,6 @@ body:has(.splash) {
   flex: 0 0 auto;
   font-size: 12px;
   align-self: center;
-}
-.lezioni-errore {
-  color: var(--danger);
-  margin: 0 0 16px;
 }
 .lezioni-libreria {
   margin: 0 0 20px;
@@ -4657,8 +4562,7 @@ body:has(.splash) {
   background: var(--surface);
 }
 .lezioni-libreria-carica .field,
-.lezioni-libreria-form .field,
-.lezioni-edit-ex .field {
+.lezioni-libreria-form .field {
   flex: none;
   width: 100%;
   margin: 0;
@@ -4667,8 +4571,7 @@ body:has(.splash) {
 .lezioni-libreria-form .lezioni-file-btn {
   align-self: flex-start;
 }
-.lezioni-libreria-form textarea,
-.lezioni-edit-ex textarea {
+.lezioni-libreria-form textarea {
   min-height: 4em;
   resize: vertical;
 }

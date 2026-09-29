@@ -36,7 +36,7 @@ export default function DialogConferma({
   return (
     <dialog
       ref={el}
-      className="dialog-conferma"
+      className="dialogo"
       onClose={chiudi}
       onCancel={e => {
         e.preventDefault()
@@ -48,9 +48,9 @@ export default function DialogConferma({
     >
       <h3>{titolo}</h3>
       {typeof children === 'string' ? <p>{children}</p> : children}
-      <div className="azioni">
+      <div className="dialogo-azioni">
         <button
-          className={pericolo ? 'btn btn-ghost btn-ciclo-elimina' : 'btn'}
+          className={pericolo ? 'btn btn-pericolo' : 'btn'}
           type="button"
           disabled={occupato}
           onClick={onConferma}
