@@ -46,6 +46,16 @@ Valgono per tutte le schermate (storico del partecipante, dashboard, cruscotti):
 
 ## Registro delle modifiche
 
+### 30/9/2026 · Deciso il font dei titoli unico: Source Serif 4 (da Claude su claude.ai)
+Sostituisce Fraunces (tema Partecipante) e Instrument Serif (tema Facilitatore) come `--font-display`,
+che diventa un primitivo condiviso invece di un token per tema (vedi `docs/design-system.md`, sez. 3.1 e
+3.2bis, aggiornate). Il font del corpo testo resta invece diverso per tema (Inter / Public Sans): la
+decisione riguarda solo i titoli. Confronto fatto in `docs/mockup/font-titoli-alternative.html` (Fraunces,
+Newsreader, Source Serif 4, Piazzolla); scelto per la leggibilità dei numeri tabellari nelle stat tile
+della dashboard. Da fare in implementazione (fase 1 della strategia): rimuovere `Fraunces` dall'import
+Google Fonts in `src/styles.css` (Inter resta), sostituire `@fontsource/instrument-serif` con
+`@fontsource/source-serif-4` in `src/styles/tokens.css`.
+
 ### 30/9/2026 · Design system e strategia per unificare lo stile facilitatore (analisi, da Claude su claude.ai)
 Documento completo in `docs/design-system.md`. Diagnosi: l'area facilitatore ha oggi due linguaggi visivi
 paralleli, nati senza una decisione esplicita — `styles.css` (Fraunces/Inter, usato anche dalle tab Cicli

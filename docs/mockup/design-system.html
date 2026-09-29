@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Conscio · proposta design system</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600;700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 
 /* ======================================================================
@@ -35,6 +35,10 @@
 
   --shadow-hover: 0 8px 18px -12px rgba(38, 36, 26, 0.25);
   --shadow-elevated: 0 24px 48px -20px rgba(38, 36, 26, 0.22);
+
+  /* Font dei titoli — deciso il 30/9/2026: unico per entrambi i temi (sostituisce
+     Fraunces / Instrument Serif). Il font del corpo testo resta per tema, vedi sotto. */
+  --font-display: 'Source Serif 4', serif;
 }
 
 /* ======================================================================
@@ -64,7 +68,6 @@
   --primary-container: var(--tint);
   --on-primary-container: var(--moss-dark);
 
-  --font-display: 'Fraunces', serif;
   --font-body: 'Inter', sans-serif;
 }
 
@@ -90,7 +93,6 @@
   --primary-container: var(--accent-soft);
   --on-primary-container: var(--accent);
 
-  --font-display: 'Instrument Serif', serif;
   --font-body: 'Public Sans', sans-serif;
 }
 
@@ -112,7 +114,7 @@ body {
   display: flex; align-items: center; justify-content: space-between;
   flex-wrap: wrap; gap: 12px;
 }
-.guida-intestazione h1 { font-size: 1.1rem; margin: 0; font-family: 'Fraunces', serif; }
+.guida-intestazione h1 { font-size: 1.1rem; margin: 0; font-family: 'Source Serif 4', serif; }
 .guida-tabs { display: flex; gap: 6px; }
 .guida-tab {
   font-family: 'Inter', sans-serif;
@@ -261,7 +263,7 @@ body {
 
   <section class="sezione">
     <h2>Tipografia</h2>
-    <p class="sezione-nota"><span class="tipo-display">Fraunces</span> per i titoli, <span class="tipo-body">Inter</span> per il corpo del testo.</p>
+    <p class="sezione-nota"><span class="tipo-display">Source Serif 4</span> per i titoli (condiviso con l'altro tema), <span class="tipo-body">Inter</span> per il corpo del testo.</p>
     <div class="tipo-riga"><span class="tipo-etichetta">--fs-page 30px</span><span class="tipo-display" style="font-size:30px;">Il tuo andamento</span></div>
     <div class="tipo-riga"><span class="tipo-etichetta">--fs-title 1.5rem</span><span class="tipo-display" style="font-size:1.5rem;">Questionari</span></div>
     <div class="tipo-riga"><span class="tipo-etichetta">--fs-body 15px</span><span class="tipo-body" style="font-size:15px;">Un minuto per guardare com'è andata. Non ci sono risposte giuste.</span></div>
@@ -367,7 +369,7 @@ body {
 
   <section class="sezione">
     <h2>Tipografia</h2>
-    <p class="sezione-nota"><span class="tipo-display">Instrument Serif</span> per i titoli, <span class="tipo-body">Public Sans</span> per il corpo del testo.</p>
+    <p class="sezione-nota"><span class="tipo-display">Source Serif 4</span> per i titoli (condiviso con l'altro tema), <span class="tipo-body">Public Sans</span> per il corpo del testo.</p>
     <div class="tipo-riga"><span class="tipo-etichetta">--fs-page 30px</span><span class="tipo-display" style="font-size:30px;">Check-in settimanale</span></div>
     <div class="tipo-riga"><span class="tipo-etichetta">--fs-card 32px</span><span class="tipo-display" style="font-size:32px;">6 su 8</span></div>
     <div class="tipo-riga"><span class="tipo-etichetta">--fs-body 15px</span><span class="tipo-body" style="font-size:15px;">Vista aggregata del gruppo: nessun codice, nessun dato individuale.</span></div>

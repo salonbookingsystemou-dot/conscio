@@ -103,7 +103,7 @@ diverse fra loro.
   --radius-xl: 24px;
   --radius-pill: 999px;
 
-  /* Tipografia — dimensioni (i font restano per tema, vedi 3.2) */
+  /* Tipografia — dimensioni (i font restano per tema, vedi 3.2, tranne il display: vedi sotto) */
   --fs-eyebrow: 11px;  --ls-eyebrow: 0.12em;
   --fs-label: 13px;
   --fs-meta: 13px;
@@ -111,6 +111,10 @@ diverse fra loro.
   --fs-title: 1.5rem;   /* participant: usato per h2 di sezione */
   --fs-page: 30px;      /* facilitatore: titolo di pagina */
   --fs-card: 32px;      /* facilitatore: numero grande in una stat card */
+
+  /* Font dei titoli — deciso il 30/9/2026: UNICO per entrambi i temi (vedi 3.2bis).
+     Sostituisce Fraunces (participant) e Instrument Serif (facilitatore). */
+  --font-display: 'Source Serif 4', serif;
 
   /* Ombre (solo facilitatore le usa oggi; restano disponibili a entrambi) */
   --shadow-hover: 0 8px 18px -12px rgba(38, 36, 26, 0.25);
@@ -123,6 +127,28 @@ diverse fra loro.
 Nota sulla tipografia: `--fs-title` (participant) e `--fs-page`/`--fs-card` (facilitatore) restano nomi
 distinti perché rispondono a gerarchie visive diverse (il participant ha una gerarchia di titoli più
 piatta), ma nessuno dei due va più scritto come numero letterale nei componenti.
+
+### 3.2bis Font dei titoli: un solo font condiviso
+
+Decisione del 30/9/2026: invece di un `--font-display` diverso per tema (Fraunces per il partecipante,
+Instrument Serif per il facilitatore), **un solo font dei titoli per tutta l'app: Source Serif 4**
+(Google Fonts, variabile, ottimo per numeri tabellari — importante per le stat tile della dashboard).
+Il font del corpo testo resta invece diverso per tema (Inter / Public Sans, vedi 3.2): la scelta riguarda
+solo `--font-display`, non `--font-body`.
+
+Motivo: fra le alternative confrontate (Fraunces, Newsreader, Source Serif 4, Piazzolla — vedi
+`docs/mockup/font-titoli-alternative.html`), Source Serif 4 è quella pensata per la leggibilità dei numeri
+in contesti densi di dati, il caso d'uso più frequente lato facilitatore (punteggi, medie, contatori).
+
+Implicazioni sul caricamento dei font:
+
+- **Da rimuovere**: `Fraunces` dalla riga `@import` di Google Fonts in cima a `src/styles.css` (Inter
+  resta, è ancora il font body del tema partecipante).
+- **Da sostituire**: l'import self-hosted `@fontsource/instrument-serif` in `src/styles/tokens.css` con
+  `@fontsource/source-serif-4` (stesso meccanismo di auto-hosting già usato per Instrument Serif e Public
+  Sans, per coerenza e per il precache PWA offline).
+- Verificare che nessuna regola in `styles.css` scriva ancora `font-family: 'Fraunces'` come letterale
+  dopo la fase 1 della migrazione (sezione 6): a quel punto ogni titolo passa da `var(--font-display)`.
 
 ### 3.2 Semantici per tema
 
@@ -145,7 +171,7 @@ piatta), ma nessuno dei due va più scritto come numero letterale nei componenti
   --primary-container: var(--tint);
   --on-primary-container: var(--moss-dark);
 
-  --font-display: 'Fraunces', serif;
+  /* --font-display non va più ridefinito qui: è un primitivo condiviso, vedi 3.1/3.2bis */
   --font-body: 'Inter', sans-serif;
 }
 
@@ -167,7 +193,7 @@ piatta), ma nessuno dei due va più scritto come numero letterale nei componenti
   --primary-container: var(--accent-soft);
   --on-primary-container: var(--accent);
 
-  --font-display: 'Instrument Serif', serif;
+  /* --font-display non va più ridefinito qui: è un primitivo condiviso, vedi 3.1/3.2bis */
   --font-body: 'Public Sans', sans-serif;
 }
 ```
