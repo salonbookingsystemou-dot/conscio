@@ -6,6 +6,9 @@ diversi senza una decisione esplicita. Questo documento registra la diagnosi, po
 unico di token e componenti, poi una strategia di migrazione a fasi. Va letto insieme a `docs/progetto.md`
 (regole sui dati, definizioni condivise) di cui è il complemento sul lato visivo.
 
+Vetrina visiva dei token e dei componenti proposti (sezione 3): `docs/mockup/design-system.html`
+(aprilo nel browser; un pulsante alterna Tema Partecipante / Tema Facilitatore sulla stessa pagina).
+
 ---
 
 ## 1. Diagnosi: cosa c'è oggi
