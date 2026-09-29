@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Conscio · proposta design system</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600;700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+
+/* ======================================================================
+   1. PRIMITIVI — sez. 3.1 di docs/design-system.md
+   Uguali in entrambi i temi: spaziatura, raggi, dimensioni tipografiche,
+   ombre. Non vanno mai duplicati o sovrascritti da un tema.
+   ====================================================================== */
+:root {
+  --space-4: 4px;  --space-6: 6px;  --space-8: 8px;   --space-10: 10px;
+  --space-12: 12px; --space-14: 14px; --space-16: 16px; --space-18: 18px;
+  --space-20: 20px; --space-22: 22px; --space-24: 24px; --space-28: 28px;
+  --space-32: 32px; --space-36: 36px;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+
+  --fs-eyebrow: 11px;  --ls-eyebrow: 0.12em;
+  --fs-label: 13px;
+  --fs-meta: 13px;
+  --fs-body: 15px;
+  --fs-title: 1.5rem;
+  --fs-page: 30px;
+  --fs-card: 32px;
+
+  --shadow-hover: 0 8px 18px -12px rgba(38, 36, 26, 0.25);
+  --shadow-elevated: 0 24px 48px -20px rgba(38, 36, 26, 0.22);
+
+  /* Font dei titoli — deciso il 30/9/2026: unico per entrambi i temi (sostituisce
+     Fraunces / Instrument Serif). Il font del corpo testo resta per tema, vedi sotto. */
+  --font-display: 'Source Serif 4', serif;
+}
+
+/* ======================================================================
+   2. SEMANTICI PER TEMA — sez. 3.2
+   Stessi nomi di variabile, valori diversi. Un componente scritto con
+   var(--primary) / var(--font-display) si adatta da solo.
+   ====================================================================== */
+.tema-partecipante {
+  --ink: #24312C;
+  --ink-soft: #5B665F;
+  --muted: #5B665F;
+  --bg: #EFF1EA;
+  --surface: #FBFAF6;
+  --moss: #4B6B57;
+  --moss-dark: #2F4438;
+  --ochre: #A8763E;
+  --border: #DAD9CE;
+  --border-soft: #E3E1D4;
+  --danger: #A3402F;
+  --danger-soft: #F3E1DC;
+  --tint: color-mix(in srgb, var(--moss) 18%, var(--surface));
+  --tint-ochre: color-mix(in srgb, var(--ochre) 22%, var(--surface));
+  --accent: var(--moss);
+  --accent-soft: var(--tint);
+  --primary: var(--moss);
+  --on-primary: #fff;
+  --primary-container: var(--tint);
+  --on-primary-container: var(--moss-dark);
+
+  --font-body: 'Inter', sans-serif;
+}
+
+.tema-facilitatore {
+  --ink: #262419;
+  --ink-soft: #6B6552;
+  --muted: #8A836F;
+  --bg: #F5F1E7;
+  --surface: #FFFFFF;
+  --border: #E9E3D3;
+  --border-soft: #F0ECDF;
+  --border-dashed: #E3DDC9;
+  --danger: #A6503C;
+  --danger-soft: #F3E6E0;
+  --accent: #3F5443;
+  --accent-soft: #E8ECE3;
+  --moss: var(--accent);
+  --moss-dark: #2B3A2E;
+  --ochre: #A8763E;
+  --tint: var(--accent-soft);
+  --primary: var(--accent);
+  --on-primary: var(--surface);
+  --primary-container: var(--accent-soft);
+  --on-primary-container: var(--accent);
+
+  --font-body: 'Public Sans', sans-serif;
+}
+
+/* ======================================================================
+   Pagina (guida di stile, non fa parte del design system)
+   ====================================================================== */
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: #E4E0D2;
+  color: #24312C;
+  font-family: 'Inter', sans-serif;
+}
+.guida-intestazione {
+  position: sticky; top: 0; z-index: 10;
+  background: #FBFAF6;
+  border-bottom: 1px solid #DAD9CE;
+  padding: 14px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+}
+.guida-intestazione h1 { font-size: 1.1rem; margin: 0; font-family: 'Source Serif 4', serif; }
+.guida-tabs { display: flex; gap: 6px; }
+.guida-tab {
+  font-family: 'Inter', sans-serif;
+  font-size: .86rem;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid #DAD9CE;
+  background: #fff;
+  color: #5B665F;
+  cursor: pointer;
+}
+.guida-tab.is-on { background: #24312C; border-color: #24312C; color: #fff; }
+
+.tema-vetrina { padding: 32px 24px 90px; max-width: 1040px; margin: 0 auto; }
+.tema-vetrina[hidden] { display: none; }
+
+.sezione { margin-bottom: 40px; }
+.sezione h2 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  margin: 0 0 4px;
+  color: var(--ink);
+}
+.sezione-nota { color: var(--muted, var(--ink-soft)); font-size: .88rem; margin: 0 0 18px; max-width: 62ch; }
+
+/* --- palette --- */
+.palette-griglia { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+.swatch { border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border); }
+.swatch-colore { height: 56px; }
+.swatch-testi { background: var(--surface); padding: 8px 10px; }
+.swatch-nome { font-family: monospace; font-size: .74rem; color: var(--ink); display: block; }
+.swatch-valore { font-family: monospace; font-size: .7rem; color: var(--muted, var(--ink-soft)); }
+
+/* --- tipografia --- */
+.tipo-riga { display: flex; align-items: baseline; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--border-soft, var(--border)); }
+.tipo-riga:last-child { border-bottom: none; }
+.tipo-etichetta { width: 130px; flex-shrink: 0; font-family: monospace; font-size: .74rem; color: var(--muted, var(--ink-soft)); }
+.tipo-display { font-family: var(--font-display); color: var(--ink); }
+.tipo-body { font-family: var(--font-body); color: var(--ink); }
+
+/* --- spaziatura --- */
+.spazio-riga { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.spazio-etichetta { width: 90px; flex-shrink: 0; font-family: monospace; font-size: .76rem; color: var(--muted, var(--ink-soft)); }
+.spazio-barra { height: 14px; background: var(--accent, var(--moss)); border-radius: 3px; }
+
+/* --- raggi --- */
+.raggi-griglia { display: flex; gap: 16px; flex-wrap: wrap; }
+.raggio-campione { text-align: center; }
+.raggio-box { width: 72px; height: 72px; background: var(--primary-container); border: 1px solid var(--border); margin-bottom: 6px; }
+.raggio-etichetta { font-family: monospace; font-size: .72rem; color: var(--muted, var(--ink-soft)); }
+
+/* ======================================================================
+   3. COMPONENTI CANONICI — sez. 3.3
+   Un solo nome di classe per concetto, scritto solo con i token.
+   ====================================================================== */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-20);
+}
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--space-8);
+  min-height: 44px; padding: var(--space-10) var(--space-20);
+  border: none; border-radius: var(--radius-md);
+  font-family: var(--font-body); font-size: var(--fs-body); font-weight: 600;
+  cursor: pointer; text-decoration: none;
+  background: var(--primary); color: var(--on-primary);
+}
+.btn:hover { filter: brightness(0.96); box-shadow: var(--shadow-hover); }
+.btn-ghost {
+  background: transparent; color: var(--on-primary-container);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { background: var(--primary-container); box-shadow: none; }
+.btn-pericolo { background: var(--danger); color: #fff; }
+.btn-pericolo:hover { filter: brightness(0.94); }
+
+.badge {
+  display: inline-block; font-size: var(--fs-label); font-family: var(--font-body);
+  padding: 3px 10px; border-radius: var(--radius-pill);
+  background: var(--primary-container); color: var(--on-primary-container);
+}
+
+.field { display: flex; flex-direction: column; gap: var(--space-6); max-width: 320px; }
+.field label { font-size: var(--fs-label); font-family: var(--font-body); color: var(--ink-soft, var(--muted)); }
+.field input {
+  font-family: var(--font-body); font-size: var(--fs-body);
+  padding: var(--space-10) var(--space-12);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--ink);
+}
+
+.alert {
+  font-family: var(--font-body); font-size: var(--fs-body);
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-md);
+  background: var(--primary-container); color: var(--on-primary-container);
+}
+.alert.is-errore { background: var(--danger-soft); color: var(--danger); }
+
+.riga-lista {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: var(--space-14) var(--space-16);
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  background: var(--surface); font-family: var(--font-body); font-size: var(--fs-body);
+  color: var(--ink); margin-bottom: var(--space-8);
+}
+
+.componenti-griglia { display: flex; flex-direction: column; gap: var(--space-20); }
+.componenti-riga { display: flex; gap: var(--space-12); flex-wrap: wrap; align-items: center; }
+.componenti-etichetta { font-family: monospace; font-size: .74rem; color: var(--muted, var(--ink-soft)); width: 100%; margin-bottom: 4px; }
+
+</style>
+</head>
+<body>
+
+<header class="guida-intestazione">
+  <h1>Conscio · proposta design system</h1>
+  <div class="guida-tabs">
+    <button class="guida-tab is-on" onclick="mostraTema('partecipante')">Tema Partecipante</button>
+    <button class="guida-tab" onclick="mostraTema('facilitatore')">Tema Facilitatore</button>
+  </div>
+</header>
+
+<!-- ============================= TEMA PARTECIPANTE ============================= -->
+<div id="vetrina-partecipante" class="tema-vetrina tema-partecipante" style="background:var(--bg);">
+
+  <section class="sezione">
+    <h2>Palette</h2>
+    <p class="sezione-nota">Valori di oggi (nessun cambiamento proposto): calma, non clinica, carta/terra.</p>
+    <div class="palette-griglia">
+      <div class="swatch"><div class="swatch-colore" style="background:var(--ink);"></div><div class="swatch-testi"><span class="swatch-nome">--ink</span><span class="swatch-valore">#24312C</span></div></div>
+      <div class="swatch"><div class="swatch-colore" style="background:var(--ink-soft);"></div><div class="swatch-testi"><span class="swatch-nome">--ink-soft</span><span class="swatch-valore">#5B665F</span></div></div>
+      <div class="swatch"><div class="swatch-colore" style="background:var(--bg); border-bottom:1px solid var(--border);"></div><div class="swatch-testi"><span class="swatch-nome">--bg</span><span class="swatch-valore">#EFF1EA</span></div></div>
+      <div class="swatch"><div class="swatch-colore" style="background:var(--surface); border-bottom:1px solid var(--border);"></div><div class="swatch-testi"><span class="swatch-nome">--surface</span><span class="swatch-valore">#FBFAF6</span></div></div>
+      <div class="swatch"><div class="swatch-colore" style="background:var(--moss);"></div><div class="swatch-testi"><span class="swatch-nome">--moss (primary)</span><span class="swatch-valore">#4B6B57</span></div></div>
+      <div class="swatch"><div class="swatch-colore" style="background:var(--moss-dark);"></div><div class="swatch-testi"><span class="swatch-nome">--moss-dark</span><span class="swatch-valore">#2F4438</span></div></div>
+      <div class="swatch"><div class="swatch-colore" style="background:var(--ochre);"></div><div class="swatch-testi"><span class="swatch-nome">--ochre</span><span class="swatch-valore">#A8763E</span></div></div>
+      <div class="swatch"><div class="swatch-colore" style="background:var(--border);"></div><div class="swatch-testi"><span class="swatch-nome">--border</span><span class="swatch-valore">#DAD9CE</span></div></div>
+      <div class="swatch"><div class="swatch-colore" style="background:var(--danger);"></div><div class="swatch-testi"><span class="swatch-nome">--danger</span><span class="swatch-valore">#A3402F</span></div></div>
+      <div class="swatch"><div class="swatch-colore" style="background:var(--tint);"></div><div class="swatch-testi"><span class="swatch-nome">--tint</span><span class="swatch-valore">mix moss 18%</span></div></div>
+    </div>
+  </section>
+
+  <section class="sezione">
+    <h2>Tipografia</h2>
+    <p class="sezione-nota"><span class="tipo-display">Source Serif 4</span> per i titoli (condiviso con l'altro tema), <span class="tipo-body">Inter</span> per il corpo del testo.</p>
+    <div class="tipo-riga"><span class="tipo-etichetta">--fs-page 30px</span><span class="tipo-display" style="font-size:30px;">Il tuo andamento</span></div>
+    <div class="tipo-riga"><span class="tipo-etichetta">--fs-title 1.5rem</span><span class="tipo-display" style="font-size:1.5rem;">Questionari</span></div>
+    <div class="tipo-riga"><span class="tipo-etichetta">--fs-body 15px</span><span class="tipo-body" style="font-size:15px;">Un minuto per guardare com'è andata. Non ci sono risposte giuste.</span></div>
+    <div class="tipo-riga"><span class="tipo-etichetta">--fs-meta 13px</span><span class="tipo-body" style="font-size:13px;color:var(--ink-soft);">Aperto fino al 12 ottobre 2026</span></div>
+    <div class="tipo-riga"><span class="tipo-etichetta">--fs-eyebrow 11px</span><span class="tipo-body" style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--moss-dark);">Primo accesso</span></div>
+  </section>
+
+  <section class="sezione">
+    <h2>Spaziatura</h2>
+    <div class="spazio-riga"><span class="spazio-etichetta">--space-8</span><div class="spazio-barra" style="width:8px;"></div></div>
+    <div class="spazio-riga"><span class="spazio-etichetta">--space-16</span><div class="spazio-barra" style="width:16px;"></div></div>
+    <div class="spazio-riga"><span class="spazio-etichetta">--space-24</span><div class="spazio-barra" style="width:24px;"></div></div>
+    <div class="spazio-riga"><span class="spazio-etichetta">--space-32</span><div class="spazio-barra" style="width:32px;"></div></div>
+  </section>
+
+  <section class="sezione">
+    <h2>Raggi</h2>
+    <div class="raggi-griglia">
+      <div class="raggio-campione"><div class="raggio-box" style="border-radius:var(--radius-sm);"></div><span class="raggio-etichetta">sm · 8px</span></div>
+      <div class="raggio-campione"><div class="raggio-box" style="border-radius:var(--radius-md);"></div><span class="raggio-etichetta">md · 12px</span></div>
+      <div class="raggio-campione"><div class="raggio-box" style="border-radius:var(--radius-lg);"></div><span class="raggio-etichetta">lg · 16px</span></div>
+      <div class="raggio-campione"><div class="raggio-box" style="border-radius:var(--radius-xl);"></div><span class="raggio-etichetta">xl · 24px</span></div>
+      <div class="raggio-campione"><div class="raggio-box" style="border-radius:var(--radius-pill);"></div><span class="raggio-etichetta">pill</span></div>
+    </div>
+  </section>
+
+  <section class="sezione">
+    <h2>Componenti canonici</h2>
+    <p class="sezione-nota">Stessa classe, stesso markup del tema Facilitatore: cambia solo il tema che li avvolge.</p>
+    <div class="componenti-griglia">
+
+      <div>
+        <p class="componenti-etichetta">.card</p>
+        <div class="card">
+          <p style="margin:0 0 8px;font-family:var(--font-display);font-size:1.1rem;">Settimana 4</p>
+          <p style="margin:0;font-size:var(--fs-body);color:var(--ink-soft);">Tema: coltivare la gentilezza verso di sé.</p>
+        </div>
+      </div>
+
+      <div>
+        <p class="componenti-etichetta">.btn / .btn-ghost / .btn-pericolo</p>
+        <div class="componenti-riga">
+          <button class="btn">Salva il check-in</button>
+          <button class="btn btn-ghost">Annulla</button>
+          <button class="btn btn-pericolo">Resetta tutti i miei dati</button>
+        </div>
+      </div>
+
+      <div>
+        <p class="componenti-etichetta">.badge</p>
+        <div class="componenti-riga">
+          <span class="badge">T0 — Inizio</span>
+          <span class="badge">MBSR-7K2Q</span>
+        </div>
+      </div>
+
+      <div>
+        <p class="componenti-etichetta">.field</p>
+        <div class="field">
+          <label for="p-codice">Codice partecipante</label>
+          <input id="p-codice" type="text" placeholder="MBSR-7K2Q" />
+        </div>
+      </div>
+
+      <div>
+        <p class="componenti-etichetta">.alert / .alert.is-errore</p>
+        <div class="componenti-riga" style="flex-direction:column;align-items:stretch;">
+          <div class="alert">Questi numeri non sono una valutazione clinica.</div>
+          <div class="alert is-errore">Codice non riconosciuto. Controlla e riprova.</div>
+        </div>
+      </div>
+
+      <div>
+        <p class="componenti-etichetta">.riga-lista</p>
+        <div class="riga-lista"><span>T1 — Metà percorso</span><span class="badge">Aperto</span></div>
+        <div class="riga-lista"><span>T2 — Fine percorso</span><span class="badge">In attesa</span></div>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
+<!-- ============================= TEMA FACILITATORE ============================= -->
+<div id="vetrina-facilitatore" class="tema-vetrina tema-facilitatore" style="background:var(--bg);" hidden>
+
+  <section class="sezione">
+    <h2>Palette</h2>
+    <p class="sezione-nota">Valori di oggi di <code>.mbsr-theme</code> (nessun cambiamento proposto): più densa, orientata ai dati.</p>
+    <div class="palette-griglia">
+      <div class="swatch"><div class="swatch-colore" style="background:var(--ink);"></div><div class="swatch-testi"><span class="swatch-nome">--ink</span><span class="swatch-valore">#262419</span></div></div>
+      <div class="swatch"><div class="swatch-colore" style="background:var(--muted);"></div><div class="swatch-testi"><span class="swatch-nome">--muted</span><span class="swatch-valore">#8A836F</span></div></div>
+      <div class="swatch"><div class="swatch-colore" style="background:var(--bg); border-bottom:1px solid var(--border);"></div><div class="swatch-testi"><span class="swatch-nome">--bg</span><span class="swatch-valore">#F5F1E7</span></div></div>
+      <div class="swatch"><div class="swatch-colore" style="background:var(--surface); border-bottom:1px solid var(--border);"></div><div class="swatch-testi"><span class="swatch-nome">--surface</span><span class="swatch-valore">#FFFFFF</span></div></div>
+      <div class="swatch"><div class="swatch-colore" style="background:var(--accent);"></div><div class="swatch-testi"><span class="swatch-nome">--accent (primary)</span><span class="swatch-valore">#3F5443</span></div></div>
+      <div class="swatch"><div class="swatch-colore" style="background:var(--accent-soft);"></div><div class="swatch-testi"><span class="swatch-nome">--accent-soft</span><span class="swatch-valore">#E8ECE3</span></div></div>
+      <div class="swatch"><div class="swatch-colore" style="background:var(--border);"></div><div class="swatch-testi"><span class="swatch-nome">--border</span><span class="swatch-valore">#E9E3D3</span></div></div>
+      <div class="swatch"><div class="swatch-colore" style="background:var(--border-dashed);"></div><div class="swatch-testi"><span class="swatch-nome">--border-dashed</span><span class="swatch-valore">#E3DDC9</span></div></div>
+      <div class="swatch"><div class="swatch-colore" style="background:var(--danger);"></div><div class="swatch-testi"><span class="swatch-nome">--danger</span><span class="swatch-valore">#A6503C</span></div></div>
+      <div class="swatch"><div class="swatch-colore" style="background:var(--danger-soft);"></div><div class="swatch-testi"><span class="swatch-nome">--danger-soft</span><span class="swatch-valore">#F3E6E0</span></div></div>
+    </div>
+  </section>
+
+  <section class="sezione">
+    <h2>Tipografia</h2>
+    <p class="sezione-nota"><span class="tipo-display">Source Serif 4</span> per i titoli (condiviso con l'altro tema), <span class="tipo-body">Public Sans</span> per il corpo del testo.</p>
+    <div class="tipo-riga"><span class="tipo-etichetta">--fs-page 30px</span><span class="tipo-display" style="font-size:30px;">Check-in settimanale</span></div>
+    <div class="tipo-riga"><span class="tipo-etichetta">--fs-card 32px</span><span class="tipo-display" style="font-size:32px;">6 su 8</span></div>
+    <div class="tipo-riga"><span class="tipo-etichetta">--fs-body 15px</span><span class="tipo-body" style="font-size:15px;">Vista aggregata del gruppo: nessun codice, nessun dato individuale.</span></div>
+    <div class="tipo-riga"><span class="tipo-etichetta">--fs-meta 13px</span><span class="tipo-body" style="font-size:13px;color:var(--muted);">75% degli iscritti al ciclo</span></div>
+    <div class="tipo-riga"><span class="tipo-etichetta">--fs-eyebrow 11px</span><span class="tipo-body" style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);">Compilazione</span></div>
+  </section>
+
+  <section class="sezione">
+    <h2>Spaziatura</h2>
+    <div class="spazio-riga"><span class="spazio-etichetta">--space-8</span><div class="spazio-barra" style="width:8px;"></div></div>
+    <div class="spazio-riga"><span class="spazio-etichetta">--space-16</span><div class="spazio-barra" style="width:16px;"></div></div>
+    <div class="spazio-riga"><span class="spazio-etichetta">--space-24</span><div class="spazio-barra" style="width:24px;"></div></div>
+    <div class="spazio-riga"><span class="spazio-etichetta">--space-32</span><div class="spazio-barra" style="width:32px;"></div></div>
+  </section>
+
+  <section class="sezione">
+    <h2>Raggi</h2>
+    <div class="raggi-griglia">
+      <div class="raggio-campione"><div class="raggio-box" style="border-radius:var(--radius-sm);"></div><span class="raggio-etichetta">sm · 8px</span></div>
+      <div class="raggio-campione"><div class="raggio-box" style="border-radius:var(--radius-md);"></div><span class="raggio-etichetta">md · 12px</span></div>
+      <div class="raggio-campione"><div class="raggio-box" style="border-radius:var(--radius-lg);"></div><span class="raggio-etichetta">lg · 16px</span></div>
+      <div class="raggio-campione"><div class="raggio-box" style="border-radius:var(--radius-xl);"></div><span class="raggio-etichetta">xl · 24px</span></div>
+      <div class="raggio-campione"><div class="raggio-box" style="border-radius:var(--radius-pill);"></div><span class="raggio-etichetta">pill</span></div>
+    </div>
+  </section>
+
+  <section class="sezione">
+    <h2>Componenti canonici</h2>
+    <p class="sezione-nota">Stessa classe, stesso markup del tema Partecipante: qui sostituiscono <code>.admin-card</code>, <code>.admin-btn-*</code>, <code>.admin-field</code>, <code>.admin-alert</code>.</p>
+    <div class="componenti-griglia">
+
+      <div>
+        <p class="componenti-etichetta">.card</p>
+        <div class="card">
+          <p style="margin:0 0 8px;font-family:var(--font-display);font-size:1.1rem;">Stress medio di gruppo</p>
+          <p style="margin:0;font-family:var(--font-display);font-size:1.7rem;">5,1</p>
+        </div>
+      </div>
+
+      <div>
+        <p class="componenti-etichetta">.btn / .btn-ghost / .btn-pericolo</p>
+        <div class="componenti-riga">
+          <button class="btn">Nuovo ciclo</button>
+          <button class="btn btn-ghost">Esporta dati aggregati</button>
+          <button class="btn btn-pericolo">Elimina ciclo</button>
+        </div>
+      </div>
+
+      <div>
+        <p class="componenti-etichetta">.badge</p>
+        <div class="componenti-riga">
+          <span class="badge">6 su 8</span>
+          <span class="badge">Aperto</span>
+        </div>
+      </div>
+
+      <div>
+        <p class="componenti-etichetta">.field</p>
+        <div class="field">
+          <label for="f-nome">Nome del ciclo</label>
+          <input id="f-nome" type="text" placeholder="Gruppo pilota" />
+        </div>
+      </div>
+
+      <div>
+        <p class="componenti-etichetta">.alert / .alert.is-errore</p>
+        <div class="componenti-riga" style="flex-direction:column;align-items:stretch;">
+          <div class="alert">Dati aggregati: nessun sottogruppo piccolo, nessun dato individuale.</div>
+          <div class="alert is-errore">Non è stato possibile aggiornare l'esito.</div>
+        </div>
+      </div>
+
+      <div>
+        <p class="componenti-etichetta">.riga-lista</p>
+        <div class="riga-lista"><span>MBSR-7K2Q</span><span class="badge">Idoneo</span></div>
+        <div class="riga-lista"><span>MBSR-4T1N</span><span class="badge">In attesa</span></div>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
+<script>
+function mostraTema(tema) {
+  document.getElementById('vetrina-partecipante').hidden = tema !== 'partecipante';
+  document.getElementById('vetrina-facilitatore').hidden = tema !== 'facilitatore';
+  document.querySelectorAll('.guida-tab').forEach(function (b) { b.classList.remove('is-on'); });
+  event.target.classList.add('is-on');
+}
+</script>
+
+</body>
+</html>
