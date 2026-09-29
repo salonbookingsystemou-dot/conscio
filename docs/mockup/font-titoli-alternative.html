@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Alternative per il font dei titoli</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Piazzolla:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#24312C; --ink-soft:#5B665F; --bg:#EFF1EA; --surface:#FBFAF6; --border:#DAD9CE; --moss:#4B6B57; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif; }
+  .pagina { max-width:880px; margin:0 auto; padding:30px 24px 90px; }
+  h1 { font-size:1.4rem; margin:0 0 6px; }
+  .intro { color:var(--ink-soft); max-width:62ch; margin:0 0 30px; }
+  .candidato { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px 26px; margin-bottom:22px; }
+  .candidato-testa { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:16px; flex-wrap:wrap; gap:8px; }
+  .candidato-nome { font-size:1.05rem; font-weight:600; }
+  .candidato-tag { font-size:.78rem; color:var(--ink-soft); background:var(--bg); border:1px solid var(--border); border-radius:999px; padding:2px 10px; }
+  .campioni { display:grid; grid-template-columns:1.3fr 1fr; gap:24px; margin-bottom:14px; }
+  @media (max-width:640px) { .campioni { grid-template-columns:1fr; } }
+  .campione-blocco-label { font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); margin:0 0 6px; }
+  .campione-titolo { margin:0 0 6px; }
+  .campione-sub { font-style:italic; color:var(--ink-soft); margin:0; font-size:.95rem; }
+  .stat-box { background:var(--bg); border-radius:12px; padding:14px 16px; }
+  .stat-numero { font-size:2.1rem; margin:0; line-height:1; }
+  .stat-label { font-size:.78rem; color:var(--ink-soft); margin:6px 0 0; font-family:'Inter',sans-serif; }
+  .nota { font-size:.86rem; color:var(--ink-soft); margin:0; }
+  .nota strong { color:var(--ink); }
+</style>
+</head>
+<body>
+<div class="pagina">
+
+  <h1>Alternative per il font dei titoli (unico, per tutta l'app)</h1>
+  <p class="intro">
+    Ogni candidato è mostrato in due contesti: un titolo "da partecipante" (caldo, con sottotitolo in
+    corsivo) e un numero grande "da facilitatore" (stat tile della dashboard) — per verificare che regga
+    entrambi i registri con un solo font, invece dei due di oggi (Fraunces / Instrument Serif).
+    Il font del corpo testo (Inter / Public Sans) non cambia: qui si valuta solo il font dei titoli.
+  </p>
+
+  <!-- 1. FRAUNCES — opzione "zero rischio" -->
+  <div class="candidato">
+    <div class="candidato-testa">
+      <span class="candidato-nome">Fraunces</span>
+      <span class="candidato-tag">già in uso oggi (partecipante) · consigliato</span>
+    </div>
+    <div class="campioni">
+      <div>
+        <p class="campione-blocco-label">Titolo partecipante</p>
+        <h2 class="campione-titolo" style="font-family:'Fraunces',serif; font-weight:600; font-size:1.7rem;">Il tuo andamento</h2>
+        <p class="campione-sub" style="font-family:'Fraunces',serif;">Come sono cambiate le tue risposte nei momenti del percorso.</p>
+      </div>
+      <div class="stat-box">
+        <p class="campione-blocco-label">Stat facilitatore</p>
+        <p class="stat-numero" style="font-family:'Fraunces',serif; font-weight:600;">27</p>
+        <p class="stat-label">Sessioni di pratica</p>
+      </div>
+    </div>
+    <p class="nota">
+      <strong>Perché è l'opzione più semplice:</strong> è già il font più maturo del progetto (variabile,
+      asse ottico da testo a display, corsivo vero, numeri già usati nei punteggi PSS-10/FFMQ-I). Unificare
+      su Fraunces significa <em>eliminare</em> Instrument Serif invece di aggiungere un terzo font:
+      un self-hosted (@fontsource) in meno da mantenere. Il carattere è caldo per il partecipante; a pesi
+      600+ nei numeri grandi regge bene anche il contesto dashboard, come si vede sopra.
+    </p>
+  </div>
+
+  <!-- 2. NEWSREADER -->
+  <div class="candidato">
+    <div class="candidato-testa">
+      <span class="candidato-nome">Newsreader</span>
+      <span class="candidato-tag">Google Fonts · variabile</span>
+    </div>
+    <div class="campioni">
+      <div>
+        <p class="campione-blocco-label">Titolo partecipante</p>
+        <h2 class="campione-titolo" style="font-family:'Newsreader',serif; font-weight:600; font-size:1.7rem;">Il tuo andamento</h2>
+        <p class="campione-sub" style="font-family:'Newsreader',serif;">Come sono cambiate le tue risposte nei momenti del percorso.</p>
+      </div>
+      <div class="stat-box">
+        <p class="campione-blocco-label">Stat facilitatore</p>
+        <p class="stat-numero" style="font-family:'Newsreader',serif; font-weight:600;">27</p>
+        <p class="stat-label">Sessioni di pratica</p>
+      </div>
+    </div>
+    <p class="nota">
+      Serif editoriale, più formale e "da testata giornalistica" di Fraunces: meno calore, più autorevolezza.
+      Ha un asse ottico dedicato ai testi piccoli, utile per le etichette. Buona scelta se si vuole un tono
+      più sobrio per entrambi i pubblici, meno "caldo" dell'attuale Fraunces.
+    </p>
+  </div>
+
+  <!-- 3. SOURCE SERIF 4 -->
+  <div class="candidato">
+    <div class="candidato-testa">
+      <span class="candidato-nome">Source Serif 4</span>
+      <span class="candidato-tag">Google Fonts · variabile · di Adobe</span>
+    </div>
+    <div class="campioni">
+      <div>
+        <p class="campione-blocco-label">Titolo partecipante</p>
+        <h2 class="campione-titolo" style="font-family:'Source Serif 4',serif; font-weight:600; font-size:1.7rem;">Il tuo andamento</h2>
+        <p class="campione-sub" style="font-family:'Source Serif 4',serif;">Come sono cambiate le tue risposte nei momenti del percorso.</p>
+      </div>
+      <div class="stat-box">
+        <p class="campione-blocco-label">Stat facilitatore</p>
+        <p class="stat-numero" style="font-family:'Source Serif 4',serif; font-weight:600;">27</p>
+        <p class="stat-label">Sessioni di pratica</p>
+      </div>
+    </div>
+    <p class="nota">
+      Disegnata da Adobe per leggibilità in testi lunghi e numeri tabellari puliti: è probabilmente la
+      scelta più "sicura" per una dashboard con molte cifre (stress medio, sonno medio, punteggi). Meno
+      personalità distintiva di Fraunces — più neutra, meno riconoscibile come marchio di Conscio.
+    </p>
+  </div>
+
+  <!-- 4. PIAZZOLLA -->
+  <div class="candidato">
+    <div class="candidato-testa">
+      <span class="candidato-nome">Piazzolla</span>
+      <span class="candidato-tag">Google Fonts · variabile</span>
+    </div>
+    <div class="campioni">
+      <div>
+        <p class="campione-blocco-label">Titolo partecipante</p>
+        <h2 class="campione-titolo" style="font-family:'Piazzolla',serif; font-weight:600; font-size:1.7rem;">Il tuo andamento</h2>
+        <p class="campione-sub" style="font-family:'Piazzolla',serif;">Come sono cambiate le tue risposte nei momenti del percorso.</p>
+      </div>
+      <div class="stat-box">
+        <p class="campione-blocco-label">Stat facilitatore</p>
+        <p class="stat-numero" style="font-family:'Piazzolla',serif; font-weight:600;">27</p>
+        <p class="stat-label">Sessioni di pratica</p>
+      </div>
+    </div>
+    <p class="nota">
+      La più simile a Fraunces per spirito (variabile, asse ottico, un po' di carattere nelle curve) ma
+      con grazie più marcate e un'aria leggermente più "libro" che "rivista". Alternativa valida se si
+      vuole restare nella stessa famiglia di sensazioni ma con un disegno diverso da quello attuale.
+    </p>
+  </div>
+
+  <div class="candidato" style="background:transparent;border-style:dashed;">
+    <p class="nota" style="margin:0;">
+      <strong>Raccomandazione:</strong> se l'obiettivo è solo togliere l'incoerenza (due serif diversi) col
+      minimo rischio e senza perdere il carattere già associato al progetto, <strong>Fraunces</strong> è la
+      scelta più diretta — è l'unica delle quattro che non introduce un font nuovo da caricare/mantenere.
+      Le altre tre sono valide se invece si vuole cogliere l'occasione per cambiare anche il carattere
+      visivo, non solo unificarlo.
+    </p>
+  </div>
+
+</div>
+</body>
+</html>
