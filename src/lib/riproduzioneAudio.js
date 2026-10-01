@@ -90,6 +90,7 @@ export function avviaSblocco(el) {
 export async function avviaPlay(el) {
   if (!el) throw new Error('no audio')
   applicaPlaysInline(el)
+  const punto = el.currentTime
   try {
     await el.play()
   } catch (err) {
@@ -97,6 +98,9 @@ export async function avviaPlay(el) {
     try { el.load() } catch { /* ignore */ }
     applicaPlaysInline(el)
     await new Promise(risolvi => window.setTimeout(risolvi, 80))
+    if (Number.isFinite(punto) && punto >= 0.15) {
+      try { el.currentTime = punto } catch { /* metadati non ancora pronti */ }
+    }
     await el.play()
   }
 }

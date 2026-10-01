@@ -51,6 +51,13 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 1/10/2026 · Il player non si ferma più al salvataggio dell’ascolto (da Cursor)
+Intorno al 95% la traccia viene accreditata e il programma si aggiorna. Quell’aggiornamento
+rimetteva in pausa il player e lo riportava all’inizio, quindi la card risultava già ascoltata
+per intero. Ora l’audio prosegue fino alla fine; la dicitura «ascoltata» compare solo a traccia
+conclusa (o riaprendo un ascolto già salvato). Pausa e ripresa restano sul punto raggiunto.
+Nessuna modifica al database: il credito resta oltre il 90-95%.
+
 ### 30/9/2026 · Componenti doppi unificati, tolto Lezioni.jsx (da Claude Code)
 Dopo il tema unico di Cursor restavano due versioni degli stessi componenti. Ora ce n'è una sola per concetto,
 in `src/styles.css`, elencata in `docs/design-system.md` (sezione "Componenti condivisi"): `.btn` con le
@@ -62,8 +69,8 @@ nell'area facilitatore: pulsanti alti 48px come nel resto dell'app, "Annulla" co
 distruttive in rosso pieno anche nelle modali del partecipante. Eliminato `src/pages/Lezioni.jsx` (non più
 raggiungibile) con le sue regole CSS. Gli ultimi colori scritti a mano in `styles.css` sono diventati token
 (`--ochre-strong`, `--moss-strong`). Segnati come superati `docs/mockup/design-system.html` (proposta a due
-temi) e le note su `.mbsr-theme`/Instrument Serif nei brief. Nessuna modifica al database. Non ancora
-pubblicato sul sito.
+temi) e le note su `.mbsr-theme`/Instrument Serif nei brief. Nessuna modifica al database. Pubblicato il 1/10
+insieme alla correzione del player.
 
 ### 30/9/2026 · Design system unico implementato (da Cursor)
 Lo stile della scheda Pratica diventa quello di tutta l'app: regole in `docs/design-system.md`, token in

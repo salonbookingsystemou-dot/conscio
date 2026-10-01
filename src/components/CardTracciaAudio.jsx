@@ -103,6 +103,9 @@ export default function CardTracciaAudio({
   const ignoraEventiRef = useRef(false)
   const annullaAvvioRef = useRef(false)
   const contaAscoltoRef = useRef(false)
+  const giaAscoltataRef = useRef(giaAscoltata)
+  const posizioneRealeRef = useRef(0)
+  giaAscoltataRef.current = giaAscoltata
   onCompletoRef.current = onCompleto
   onDurataRef.current = onDurata
   onAscoltoRef.current = onAscolto
@@ -136,8 +139,14 @@ export default function CardTracciaAudio({
       campanaRef.current = null
       setInCampana(false)
       const el = audioRef.current
-      if (el) el.pause()
+      if (el) {
+        if (Number.isFinite(el.currentTime) && el.currentTime >= 0.15) {
+          posizioneRealeRef.current = el.currentTime
+        }
+        el.pause()
+      }
       setInRiproduzione(false)
+      if (posizioneRealeRef.current >= 1) setPosizione(posizioneRealeRef.current)
     })
   }, [])
 
@@ -147,8 +156,11 @@ export default function CardTracciaAudio({
   }, [src, anteprima])
 
   useEffect(() => {
-    const gia = giaAscoltata || ascoltoCompletato(persistenzaKey)
-    if (giaAscoltata && persistenzaKey) memorizzaAscolto(persistenzaKey)
+    // `giaAscoltata` diventa true a circa il 95%, quando il salvataggio aggiorna
+    // il programma. Non è tra le dipendenze: altrimenti questo effetto mette in
+    // pausa e riavvolge la traccia mentre gli ultimi minuti stanno ancora suonando.
+    const gia = giaAscoltataRef.current || ascoltoCompletato(persistenzaKey)
+    if (giaAscoltataRef.current && persistenzaKey) memorizzaAscolto(persistenzaKey)
     setCompleto(gia)
     setInRiproduzione(false)
     setPosizione(0)
@@ -156,6 +168,7 @@ export default function CardTracciaAudio({
     setErrore(false)
     playedRef.current = 0
     lastRef.current = 0
+    posizioneRealeRef.current = 0
     durataNotaRef.current = 0
     contatoGiro.current = gia
     accreditatoRef.current = 0
@@ -176,7 +189,7 @@ export default function CardTracciaAudio({
       campanaRef.current?.ferma()
       campanaRef.current = null
     }
-  }, [persistenzaKey, src, giaAscoltata])
+  }, [persistenzaKey, src])
 
   function registraDurata(secondi) {
     if (!Number.isFinite(secondi) || secondi <= 0) return
@@ -204,6 +217,9 @@ export default function CardTracciaAudio({
     if (d == null) return
     const sogliaEffettiva = finito ? 0.9 : soglia
     if (playedRef.current < d * sogliaEffettiva) return
+    // «Ascoltata» in card solo a traccia finita. Il credito (90–95%) resta prima,
+    // così le annotazioni si aprono, ma gli ultimi minuti continuano a suonare.
+    if (finito) setCompleto(true)
     if (contatoGiro.current && d <= accreditatoRef.current + 1) return
     accreditatoRef.current = d
     contatoGiro.current = true
@@ -212,7 +228,6 @@ export default function CardTracciaAudio({
       if (onPersistenzaRef.current) onPersistenzaRef.current(d)
       else onAscoltoRef.current?.()
     }
-    setCompleto(true)
     onCompletoRef.current?.(true)
   }
 
@@ -221,6 +236,9 @@ export default function CardTracciaAudio({
     const el = e.currentTarget
     const t = el.currentTime
     const d = el.duration
+    // In pausa alcuni browser azzerano currentTime: la barra non deve saltare al 100%.
+    if (el.paused && t < 0.15 && posizioneRealeRef.current >= 1) return
+    if (Number.isFinite(t) && t >= 0.15) posizioneRealeRef.current = t
     setPosizione(t)
     if (Number.isFinite(d) && d > 0) registraDurata(d)
     if (!Number.isFinite(d) || d < 8) return
@@ -238,7 +256,13 @@ export default function CardTracciaAudio({
   function onEnded(e) {
     if (ignoraEventiRef.current || !contaAscoltoRef.current) return
     setInRiproduzione(false)
-    const d = durataPerCredito(e.currentTarget.duration)
+    const el = e.currentTarget
+    const t = el.currentTime
+    if (Number.isFinite(t) && t >= 0.15) {
+      posizioneRealeRef.current = t
+      setPosizione(t)
+    }
+    const d = durataPerCredito(el.duration)
     if (d != null && playedRef.current >= d * 0.9) marca(d, true)
   }
 
@@ -251,6 +275,10 @@ export default function CardTracciaAudio({
     if (!el) return
     applicaPlaysInline(el)
     pausaAltreTracce(el)
+    const ricordata = posizioneRealeRef.current
+    if (!el.ended && el.currentTime < 0.15 && ricordata >= 1) {
+      try { el.currentTime = ricordata } catch { /* metadati non pronti */ }
+    }
     const dallInizio = el.currentTime < 0.15
     const skipCampana = dallInizio && browserAudioRestrittivo()
     annullaAvvioRef.current = false
@@ -289,6 +317,7 @@ export default function CardTracciaAudio({
         el.volume = 1
         playedRef.current = 0
         lastRef.current = 0
+        posizioneRealeRef.current = 0
         ignoraEventiRef.current = false
       } else if (dallInizio && skipCampana) {
         contaAscoltoRef.current = false
@@ -297,6 +326,7 @@ export default function CardTracciaAudio({
         riavvolgiSicuro(el)
         playedRef.current = 0
         lastRef.current = 0
+        posizioneRealeRef.current = 0
       }
       if (annullaAvvioRef.current) {
         setInRiproduzione(false)
@@ -329,8 +359,11 @@ export default function CardTracciaAudio({
     }
     const el = audioRef.current
     if (!el) return
+    const t = el.currentTime
+    if (Number.isFinite(t) && t >= 0.15) posizioneRealeRef.current = t
     el.pause()
     setInRiproduzione(false)
+    if (posizioneRealeRef.current >= 1) setPosizione(posizioneRealeRef.current)
   }
 
   function stop() {
@@ -342,12 +375,15 @@ export default function CardTracciaAudio({
     }
     const el = audioRef.current
     if (!el) return
+    const giaCredito = contatoGiro.current
     el.pause()
     riavvolgiSicuro(el)
     lastRef.current = 0
     playedRef.current = 0
+    posizioneRealeRef.current = 0
     setInRiproduzione(false)
     setPosizione(0)
+    if (giaCredito) setCompleto(true)
   }
 
   function toggleRiproduzione() {
