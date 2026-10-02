@@ -51,6 +51,12 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 2/10/2026 · Mappa dell'interfaccia (da Claude Code)
+Nuovo `docs/interfaccia.md`: gusci partecipante e facilitatore, schermate con i blocchi che le compongono,
+catalogo dei componenti per famiglia, pattern ricorrenti, layout e checklist per re-design. Segnalati due
+componenti non usati (`GraficoAndamentoPratica.jsx`, `TracciaGuidata.jsx`). Collegato da `CLAUDE.md` e
+`docs/design-system.md`. Nessuna modifica al codice né al database.
+
 ### 2/10/2026 · Mappa dell'architettura (da Claude Code)
 Nuovo `docs/architettura.md`: vista d'insieme (PWA, Supabase, Edge Functions, servizi esterni), route e guardie,
 modello dati, funzioni con i loro inneschi, flussi chiave e deploy. Va aggiornato quando cambiano route, tabelle,

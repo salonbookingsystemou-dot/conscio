@@ -6,6 +6,8 @@ Riferimento visivo: la scheda **Pratica** del facilitatore (`docs/mockup/pratica
 del 30/9/2026 (`.tema-partecipante` / `.tema-facilitatore`, vetrina in `docs/mockup/design-system.html`),
 di cui resta solo la scelta del font dei titoli.
 
+L'inventario di schermate, componenti React e pattern è in `docs/interfaccia.md`.
+
 ## Dove stanno i valori
 
 | Dove | File |
