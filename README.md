@@ -31,8 +31,8 @@ PWA per gestire iscrizioni, cicli, lezioni, questionari e comunicazioni del perc
    npm install
    npm run dev
    ```
-6. **Pubblicazione**: `vite.config.js` usa già `base` e `start_url` `/conscio/`
-   (repo [salonbookingsystemou-dot/conscio](https://github.com/salonbookingsystemou-dot/conscio)).
+6. **Pubblicazione**: `vite.config.js` usa `base: './'`; il sito è servito da `conscio.mnesti.it` (`public/CNAME`).
+   Repo [salonbookingsystemou-dot/conscio](https://github.com/salonbookingsystemou-dot/conscio).
 7. Su GitHub: Settings → Pages → Source → "GitHub Actions".
 8. Su GitHub: Settings → Secrets and variables → Actions, aggiungi i due secret
    `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` (li userà il workflow di deploy).

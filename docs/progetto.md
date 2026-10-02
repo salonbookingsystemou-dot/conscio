@@ -51,6 +51,12 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 2/10/2026 · Mappa dell'architettura (da Claude Code)
+Nuovo `docs/architettura.md`: vista d'insieme (PWA, Supabase, Edge Functions, servizi esterni), route e guardie,
+modello dati, funzioni con i loro inneschi, flussi chiave e deploy. Va aggiornato quando cambiano route, tabelle,
+funzioni o servizi esterni. Corretto anche il README (base `./` e dominio `conscio.mnesti.it`).
+Nessuna modifica al codice né al database.
+
 ### 2/10/2026 · Data di modifica delle tracce (da Cursor)
 In libreria ogni traccia mostra creazione e modifica, con ora. Nuova colonna `tracce.aggiornato_il`
 (`supabase/migrazione_traccia_aggiornato_il.sql`): per le tracce già presenti coincide con la creazione;
