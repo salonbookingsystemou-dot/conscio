@@ -225,6 +225,13 @@
   color: var(--muted);
 }
 
+.admin-riga-date {
+  margin: var(--space-4) 0 0;
+  color: var(--muted);
+  font-size: var(--fs-caption);
+  font-variant-numeric: tabular-nums;
+}
+
 .admin-riga-descrizione {
   margin: var(--space-8) 0 0;
   color: var(--muted);
@@ -1214,6 +1221,129 @@
 
 .pratica-tabella-sett {
   color: var(--muted);
+}
+
+.genera-campi {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 var(--space-16);
+}
+
+.genera-nota {
+  margin: 0 0 var(--space-16);
+  color: var(--muted);
+  font-size: var(--fs-small);
+}
+
+.genera-strumenti {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-12);
+}
+
+.genera-seed {
+  margin: 0;
+  flex: 0 1 10rem;
+}
+
+.genera-conferma p {
+  margin: 0 0 var(--space-12);
+}
+
+.genera-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.genera-paragrafo {
+  padding: var(--space-18) var(--space-20);
+}
+
+.genera-lista li.is-attivo .genera-paragrafo {
+  background: var(--accent-soft);
+}
+
+.genera-paragrafo-testa {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-8);
+  margin-bottom: var(--space-8);
+}
+
+.genera-kicker {
+  margin: 0;
+  font-size: var(--fs-eyebrow);
+  font-weight: 600;
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.genera-meta {
+  margin: 0;
+  font-size: var(--fs-caption);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.genera-paragrafo textarea {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: var(--space-12);
+  padding: 10px 12px;
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.genera-paragrafo textarea:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--moss) 40%, transparent);
+  outline-offset: 1px;
+  border-color: var(--moss);
+}
+
+.genera-pausa {
+  padding: var(--space-12) var(--space-20);
+  background: var(--surface-muted);
+  border-top: 1px solid var(--border-soft);
+}
+
+.genera-pausa .field {
+  margin: 0;
+  max-width: 12rem;
+}
+
+.genera-riepilogo {
+  padding: var(--space-18) var(--space-20) var(--space-20);
+  border-top: 1px solid var(--border);
+}
+
+.genera-riepilogo > p:first-child {
+  margin: 0 0 var(--space-8);
+  font-variant-numeric: tabular-nums;
+}
+
+.genera-file {
+  margin-top: var(--space-16);
+}
+
+.genera-player {
+  display: block;
+  width: 100%;
+  margin: var(--space-8) 0 var(--space-8);
+}
+
+@media (max-width: 640px) {
+  .genera-campi {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {

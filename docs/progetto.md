@@ -51,6 +51,19 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 2/10/2026 · Data di modifica delle tracce (da Cursor)
+In libreria ogni traccia mostra creazione e modifica, con ora. Nuova colonna `tracce.aggiornato_il`
+(`supabase/migrazione_traccia_aggiornato_il.sql`): per le tracce già presenti coincide con la creazione;
+da lì in poi un trigger la aggiorna a ogni modifica di titolo, testo o file. Nessun dato nuovo dei partecipanti.
+
+### 2/10/2026 · Generazione tracce con ElevenLabs (da Cursor)
+Pagina facilitatore `/genera`: si incolla lo script, si divide in paragrafi, si sceglie il modello
+(Multilingual v2, V3 o Flash) e la voce, si mettono pause in secondi tra i paragrafi. L’audio si
+ascolta paragrafo per paragrafo o tutto di seguito; il file MP3 entra in libreria solo con «Salva».
+Le pause sono silenzio aggiunto in app e non passano da ElevenLabs. La chiave sta nel secret
+`ELEVENLABS_API_KEY` della funzione `genera-voce`. Nessuna modifica al database e nessun dato nuovo
+dei partecipanti: lo script non viene salvato, in libreria restano titolo, testo della card e file.
+
 ### 1/10/2026 · Il player non si ferma più al salvataggio dell’ascolto (da Cursor)
 Intorno al 95% la traccia viene accreditata e il programma si aggiorna. Quell’aggiornamento
 rimetteva in pausa il player e lo riportava all’inizio, quindi la card risultava già ascoltata

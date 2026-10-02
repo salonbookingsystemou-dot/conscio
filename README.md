@@ -124,6 +124,15 @@ Il recupero codice è “cieco”: l’app non mostra mai email↔codice; se l�
 
 Frontend e SQL/edge vanno aggiornati insieme: dopo il revoke, le RPC `stato_accesso_codice` e `iscrivi_partecipante` non sono più chiamabili con la chiave anon.
 
+## Generazione tracce (ElevenLabs)
+
+Dalla pagina **Genera** il facilitatore incolla uno script, sceglie modello e voce, mette le pause tra i paragrafi e salva l’MP3 in libreria. Lo script non viene scritto nel database.
+
+1. Imposta il secret `ELEVENLABS_API_KEY` (Dashboard Supabase → Edge Functions → Secrets).
+2. Distribuisci: `supabase functions deploy genera-voce`.
+
+Senza la chiave la pagina avvisa che la generazione non è attiva. I crediti li consuma l’account ElevenLabs, come dall’interfaccia.
+
 ## Struttura dati
 
 Vedi `supabase/schema.sql` per lo schema completo. Le tabelle principali:

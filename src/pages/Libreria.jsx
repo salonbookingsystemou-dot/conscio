@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import CardTracciaAudio from '../components/CardTracciaAudio.jsx'
 import {
   collegamentiTracce,
@@ -21,6 +22,26 @@ function etichettaCollegamento(voce) {
 function durataBreve(minuti) {
   if (!Number.isFinite(minuti) || minuti <= 0) return null
   return `${minuti} min`
+}
+
+function perCreazione(a, b) {
+  const ta = Date.parse(a.creato_il || '') || 0
+  const tb = Date.parse(b.creato_il || '') || 0
+  if (tb !== ta) return tb - ta
+  return String(a.titolo || '').localeCompare(String(b.titolo || ''), 'it')
+}
+
+function formattaQuando(iso) {
+  if (!iso) return null
+  const data = new Date(iso)
+  if (Number.isNaN(data.getTime())) return null
+  return data.toLocaleString('it-IT', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
 
 function IconaLente() {
@@ -132,8 +153,10 @@ export default function Libreria() {
 
   const filtrate = useMemo(() => {
     const q = ricerca.trim().toLowerCase()
-    if (!q) return tracce
-    return tracce.filter(t => String(t.titolo || '').toLowerCase().includes(q))
+    const base = q
+      ? tracce.filter(t => String(t.titolo || '').toLowerCase().includes(q))
+      : tracce
+    return [...base].sort(perCreazione)
   }, [tracce, ricerca])
 
   function apriCarica() {
@@ -256,6 +279,7 @@ export default function Libreria() {
             placeholder="Cerca una traccia…"
           />
         </label>
+        <Link to="/genera" className="btn btn-ghost">Genera</Link>
         <button type="button" className="btn" onClick={apriCarica}>
           <IconaPiu />
           Carica traccia
@@ -278,6 +302,8 @@ export default function Libreria() {
             {filtrate.map(t => {
               const minuti = durataBreve(t.durata_minuti)
               const descrizione = String(t.descrizione || '').trim()
+              const creata = formattaQuando(t.creato_il)
+              const modificata = formattaQuando(t.aggiornato_il)
               return (
                 <li key={t.id} className="admin-riga">
                   <div className="admin-riga-testi">
@@ -285,6 +311,13 @@ export default function Libreria() {
                       <strong>{t.titolo}</strong>
                       {minuti && <span className="admin-riga-durata"> · {minuti}</span>}
                     </p>
+                    {(creata || modificata) && (
+                      <p className="admin-riga-date">
+                        {creata && <time dateTime={t.creato_il}>Creata il {creata}</time>}
+                        {creata && modificata && ' · '}
+                        {modificata && <time dateTime={t.aggiornato_il}>modificata il {modificata}</time>}
+                      </p>
+                    )}
                     {descrizione && (
                       <p className="admin-riga-descrizione">{descrizione}</p>
                     )}

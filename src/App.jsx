@@ -11,6 +11,7 @@ import Entra from './pages/Entra.jsx'
 import Accedi from './pages/Accedi.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Libreria from './pages/Libreria.jsx'
+import GeneraTraccia from './pages/GeneraTraccia.jsx'
 import Percorso from './pages/Percorso.jsx'
 import EditorSettimana from './pages/EditorSettimana.jsx'
 import Questionari from './pages/Questionari.jsx'
@@ -35,6 +36,7 @@ function pagineAdminAmpie(pathname) {
     || pathname === '/programma'
     || pathname === '/pratica'
     || pathname === '/comunicazioni'
+    || pathname === '/genera'
 }
 
 export default function App() {
@@ -62,6 +64,7 @@ export default function App() {
           <Route path="/dashboard" element={<SoloFacilitatore><Dashboard /></SoloFacilitatore>} />
           <Route path="/lezioni" element={<Navigate to="/percorso" replace />} />
           <Route path="/libreria" element={<SoloFacilitatore><Libreria /></SoloFacilitatore>} />
+          <Route path="/genera" element={<SoloFacilitatore><GeneraTraccia /></SoloFacilitatore>} />
           <Route path="/percorso" element={<SoloFacilitatore><Percorso /></SoloFacilitatore>} />
           <Route path="/percorso/:cicloId/settimana/:numero" element={<SoloFacilitatore><EditorSettimana /></SoloFacilitatore>} />
         </Routes>

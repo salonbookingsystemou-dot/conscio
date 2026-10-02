@@ -142,12 +142,21 @@ export async function durataFileAudio(file) {
   })
 }
 
-const COLONNE_TRACCIA = 'id, titolo, descrizione, url, storage_path, durata_minuti, creato_il'
+const COLONNE_TRACCIA = 'id, titolo, descrizione, url, storage_path, durata_minuti, creato_il, aggiornato_il'
+const COLONNE_TRACCIA_SENZA_AGGIORNAMENTO = 'id, titolo, descrizione, url, storage_path, durata_minuti, creato_il'
 const COLONNE_TRACCIA_BASE = 'id, titolo, url, storage_path, durata_minuti, creato_il'
 
+function testoErrore(error) {
+  return `${error?.code || ''} ${error?.message || ''} ${error?.details || ''} ${error?.hint || ''}`
+}
+
+function colonnaAssente(error, nome) {
+  return new RegExp(nome, 'i').test(testoErrore(error))
+}
+
 function colonnaDescrizioneMancante(error) {
-  const msg = `${error?.code || ''} ${error?.message || ''} ${error?.details || ''} ${error?.hint || ''}`
-  return /descrizione|42703|PGRST204/i.test(msg)
+  if (colonnaAssente(error, 'aggiornato_il')) return false
+  return /descrizione|42703|PGRST204/i.test(testoErrore(error))
 }
 
 export async function elencaTracce() {
@@ -155,10 +164,17 @@ export async function elencaTracce() {
     .from('tracce')
     .select(COLONNE_TRACCIA)
     .order('titolo', { ascending: true })
+  let risposta = prima
+  if (risposta.error && colonnaAssente(risposta.error, 'aggiornato_il')) {
+    risposta = await supabase
+      .from('tracce')
+      .select(COLONNE_TRACCIA_SENZA_AGGIORNAMENTO)
+      .order('titolo', { ascending: true })
+  }
   let lista
-  if (!prima.error) {
-    lista = prima.data || []
-  } else if (colonnaDescrizioneMancante(prima.error)) {
+  if (!risposta.error) {
+    lista = (risposta.data || []).map(t => ({ ...t, aggiornato_il: t.aggiornato_il || null }))
+  } else if (colonnaDescrizioneMancante(risposta.error)) {
     const { data, error } = await supabase
       .from('tracce')
       .select(COLONNE_TRACCIA_BASE)
@@ -166,7 +182,7 @@ export async function elencaTracce() {
     if (error) throw error
     lista = (data || []).map(t => ({ ...t, descrizione: null }))
   } else {
-    throw prima.error
+    throw risposta.error
   }
   return lista.map(t => {
     const testo = String(t.descrizione || '').trim() || testoDaUrlAudio(t.url)

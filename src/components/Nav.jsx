@@ -77,6 +77,7 @@ export default function Nav() {
           <NavLink to="/dashboard" onClick={chiudi}>Cicli</NavLink>
           <NavLink to="/percorso" onClick={chiudi}>Percorso</NavLink>
           <NavLink to="/libreria" onClick={chiudi}>Libreria</NavLink>
+          <NavLink to="/genera" onClick={chiudi}>Genera</NavLink>
           <NavLink to="/comunicazioni" onClick={chiudi}>Avvisi</NavLink>
           <button type="button" onClick={() => { chiudi(); esci() }}>Esci</button>
         </>

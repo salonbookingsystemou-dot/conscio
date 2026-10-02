@@ -50,7 +50,8 @@ create table tracce (
   url text not null unique,
   storage_path text,
   durata_minuti int,
-  creato_il timestamptz default now()
+  creato_il timestamptz default now(),
+  aggiornato_il timestamptz not null default now()
 );
 
 create table lezioni (
@@ -1898,6 +1899,24 @@ create policy "facilitatore gestisce tracce" on tracce
   for all using (is_facilitatore()) with check (is_facilitatore());
 
 grant select, insert, update, delete on tracce to authenticated;
+
+create or replace function public.tracce_segna_aggiornamento()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.aggiornato_il = now();
+  return new;
+end;
+$$;
+
+revoke all on function public.tracce_segna_aggiornamento() from public, anon;
+grant execute on function public.tracce_segna_aggiornamento() to authenticated;
+
+drop trigger if exists trg_tracce_aggiornato on tracce;
+create trigger trg_tracce_aggiornato
+  before update on tracce
+  for each row execute function public.tracce_segna_aggiornamento();
 
 create policy "facilitatore gestisce lezioni" on lezioni
   for all using (is_facilitatore()) with check (is_facilitatore());

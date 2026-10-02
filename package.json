@@ -10,6 +10,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@breezystack/lamejs": "^1.2.7",
     "@fontsource/public-sans": "^5.3.0",
     "@fontsource/source-serif-4": "^5.3.0",
     "@supabase/supabase-js": "^2.45.4",
