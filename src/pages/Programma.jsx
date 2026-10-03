@@ -66,12 +66,12 @@ function eInformale(esercizio) {
 }
 
 function etichettaDurataMinuti(minuti, secondiTraccia) {
-  if (Number.isFinite(minuti) && minuti > 0) {
-    return minuti === 1 ? '1 minuto' : `${minuti} minuti`
-  }
-  if (Number.isFinite(secondiTraccia) && secondiTraccia > 0) {
+  if (Number.isFinite(secondiTraccia) && secondiTraccia >= 8) {
     const m = Math.max(1, Math.round(secondiTraccia / 60))
     return m === 1 ? '1 minuto' : `${m} minuti`
+  }
+  if (Number.isFinite(minuti) && minuti > 0) {
+    return minuti === 1 ? '1 minuto' : `${minuti} minuti`
   }
   return null
 }

@@ -444,7 +444,10 @@ export default function GeneraTraccia() {
     setOccupato('salva')
     try {
       const mp3 = new File([file.blob], `${nome}.mp3`, { type: 'audio/mpeg' })
-      await creaTraccia(mp3, { titolo: nome, descrizione })
+      const minuti = Number.isFinite(file.secondi) && file.secondi > 0
+        ? Math.max(1, Math.round(file.secondi / 60))
+        : undefined
+      await creaTraccia(mp3, { titolo: nome, descrizione, durataMinuti: minuti })
       setAvviso('Traccia salvata in libreria.')
     } catch (err) {
       setErrore(messaggioErroreTraccia(err))

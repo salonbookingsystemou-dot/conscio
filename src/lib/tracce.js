@@ -1,3 +1,4 @@
+import { durataMp3 } from './audioMp3.js'
 import { supabase } from './supabaseClient'
 
 export const AUDIO_MAX = 50 * 1024 * 1024
@@ -121,6 +122,16 @@ export function urlTracciaDi(riga, libreria = []) {
   const inLibreria = trovaTracciaDi(riga, libreria)
   if (inLibreria?.url) return inLibreria.url
   return riga?.traccia_audio || ''
+}
+
+async function minutiDalFile(file) {
+  try {
+    const sec = durataMp3(new Uint8Array(await file.arrayBuffer()))
+    if (sec >= 8) return Math.max(1, Math.round(sec / 60))
+  } catch {
+    /* wav o altro: si misura con il player del browser */
+  }
+  return durataFileAudio(file).catch(() => null)
 }
 
 export async function durataFileAudio(file) {
@@ -269,7 +280,7 @@ export async function creaTraccia(file, { titolo, descrizione, durataMinuti } = 
   if (erroreUpload) throw erroreUpload
   const { data: pub } = supabase.storage.from('tracce-audio').getPublicUrl(path)
   const minuti = durataMinuti
-    || await durataFileAudio(file).catch(() => null)
+    || await minutiDalFile(file)
   const riga = {
     id,
     titolo: (titolo || titoloDaNomeFile(file.name)).trim() || 'Traccia',
@@ -324,7 +335,7 @@ export async function sostituisciFileTraccia(traccia, file) {
   })
   if (erroreUpload) throw erroreUpload
   const { data: pub } = supabase.storage.from('tracce-audio').getPublicUrl(path)
-  const minuti = await durataFileAudio(file).catch(() => null)
+  const minuti = await minutiDalFile(file)
   const testo = String(traccia.descrizione || '').trim() || testoDaUrlAudio(traccia.url)
   const { error } = await supabase.from('tracce').update({
     storage_path: path,

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ascoltoCompletato, memorizzaAscolto, recuperaAscoltoSeManca, registraAscoltoCompleto } from '../lib/ascolto.js'
+import { durataNotaMp3 } from '../lib/audioMp3.js'
 import { testoDaUrlAudio, urlAudioSenzaTesto } from '../lib/tracce.js'
 import { assicuraTracciaOffline } from '../lib/cacheTracce.js'
 import {
@@ -77,7 +78,7 @@ function IconaStop() {
 export default function CardTracciaAudio({
   src,
   titolo = 'Body Scan',
-  etichettaDurata = '15 minuti',
+  etichettaDurata = '',
   descrizione,
   coloreAccento = ACCENTO_DEFAULT,
   sogliaCompletamento = 0.95,
@@ -97,6 +98,11 @@ export default function CardTracciaAudio({
   const onAscoltoRef = useRef(onAscolto)
   const onPersistenzaRef = useRef(onPersistenza)
   const durataNotaRef = useRef(0)
+  const durataFileRef = useRef(0)
+  const fileProntoRef = useRef(false)
+  const srcMisuratoRef = useRef('')
+  const applicaDurataRef = useRef(() => {})
+  const marcaRef = useRef(() => {})
   const contatoGiro = useRef(ascoltoCompletato(persistenzaKey))
   const accreditatoRef = useRef(0)
   const campanaRef = useRef(null)
@@ -170,6 +176,12 @@ export default function CardTracciaAudio({
     lastRef.current = 0
     posizioneRealeRef.current = 0
     durataNotaRef.current = 0
+    const url = urlAudioSenzaTesto(src)
+    if (srcMisuratoRef.current !== url) {
+      durataFileRef.current = 0
+      fileProntoRef.current = !url
+      srcMisuratoRef.current = ''
+    }
     contatoGiro.current = gia
     accreditatoRef.current = 0
     contaAscoltoRef.current = false
@@ -184,6 +196,7 @@ export default function CardTracciaAudio({
     }
     onCompletoRef.current?.(gia)
     onDurataRef.current?.(0)
+    if (durataFileRef.current >= 8) applicaDurataRef.current(durataFileRef.current)
     return () => {
       annullaAvvioRef.current = true
       campanaRef.current?.ferma()
@@ -191,21 +204,56 @@ export default function CardTracciaAudio({
     }
   }, [persistenzaKey, src])
 
-  function registraDurata(secondi) {
-    if (!Number.isFinite(secondi) || secondi <= 0) return
-    setDurata(secondi)
-    if (!anteprima && recuperaAscoltoSeManca(persistenzaKey, secondi)) {
-      onAscoltoRef.current?.()
+  useEffect(() => {
+    const url = urlAudioSenzaTesto(src)
+    if (!url) {
+      fileProntoRef.current = true
+      return undefined
     }
-    if (Math.abs(durataNotaRef.current - secondi) < 0.5) return
-    durataNotaRef.current = secondi
-    onDurataRef.current?.(secondi)
+    let attivo = true
+    durataNotaMp3(url).then(sec => {
+      if (!attivo) return
+      if (sec >= 8) {
+        durataFileRef.current = sec
+        srcMisuratoRef.current = url
+      }
+      fileProntoRef.current = true
+      applicaDurataRef.current(sec || audioRef.current?.duration || 0)
+      if (audioRef.current?.ended) marcaRef.current(durataFileRef.current || audioRef.current.duration, true)
+    }).catch(() => {
+      if (!attivo) return
+      fileProntoRef.current = true
+      applicaDurataRef.current(audioRef.current?.duration || 0)
+      if (audioRef.current?.ended) marcaRef.current(audioRef.current.duration, true)
+    })
+    return () => { attivo = false }
+  }, [src])
+
+  function scegliDurata(secondiElemento) {
+    const daFile = durataFileRef.current
+    const daEl = Number.isFinite(secondiElemento) && secondiElemento > 0 ? secondiElemento : 0
+    if (daFile >= 8 && (daEl < 8 || (daFile > daEl * 1.08 && daFile > daEl + 3))) return daFile
+    return daEl || (daFile >= 8 ? daFile : 0)
   }
 
+  function registraDurata(secondi) {
+    if (!fileProntoRef.current) return
+    const scelta = scegliDurata(secondi)
+    if (!(scelta > 0)) return
+    setDurata(scelta)
+    if (!anteprima && recuperaAscoltoSeManca(persistenzaKey, scelta)) {
+      onAscoltoRef.current?.()
+    }
+    if (Math.abs(durataNotaRef.current - scelta) < 0.5) return
+    durataNotaRef.current = scelta
+    onDurataRef.current?.(scelta)
+  }
+  applicaDurataRef.current = registraDurata
+
   function durataPerCredito(secondi) {
-    if (Number.isFinite(secondi) && secondi >= 8) return secondi
-    const d = audioRef.current?.duration
-    if (Number.isFinite(d) && d >= 8) return d
+    if (!fileProntoRef.current) return null
+    const scelta = scegliDurata(secondi)
+    if (scelta >= 8) return scelta
     const ascoltato = playedRef.current
     if (Number.isFinite(ascoltato) && ascoltato >= 8) return ascoltato
     return null
@@ -230,6 +278,7 @@ export default function CardTracciaAudio({
     }
     onCompletoRef.current?.(true)
   }
+  marcaRef.current = marca
 
   function onTimeUpdate(e) {
     if (ignoraEventiRef.current || !contaAscoltoRef.current) return
@@ -240,12 +289,13 @@ export default function CardTracciaAudio({
     if (el.paused && t < 0.15 && posizioneRealeRef.current >= 1) return
     if (Number.isFinite(t) && t >= 0.15) posizioneRealeRef.current = t
     setPosizione(t)
-    if (Number.isFinite(d) && d > 0) registraDurata(d)
-    if (!Number.isFinite(d) || d < 8) return
+    const affidabile = scegliDurata(d)
+    if (affidabile > 0) registraDurata(d)
+    if (!(affidabile >= 8)) return
     const delta = t - lastRef.current
     if (delta > 0 && delta < 1.5) playedRef.current += delta
     lastRef.current = t
-    if (playedRef.current >= d * soglia || contatoGiro.current) marca(d)
+    if (playedRef.current >= affidabile * soglia || contatoGiro.current) marca(affidabile)
   }
 
   function onSeeking(e) {
@@ -397,6 +447,7 @@ export default function CardTracciaAudio({
     return Math.min(100, Math.round((posizione / durata) * 100))
   }, [completo, inRiproduzione, posizione, durata])
 
+  const metaDurata = durata >= 8 ? formattaTempo(durata) : etichettaDurata
   const testoDescrizione = inCampana
     ? 'Campana di apertura… poi inizia la traccia.'
     : (String(descrizione || '').trim() || testoDaUrlAudio(src))
@@ -417,8 +468,7 @@ export default function CardTracciaAudio({
         <div className="card-traccia-titoli">
           <h3 className="card-traccia-titolo">{titolo}</h3>
           <p className="card-traccia-meta">
-            {etichettaDurata}
-            {' · '}
+            {metaDurata ? <>{metaDurata}{' · '}</> : null}
             {completo ? 'ascoltata' : 'traccia audio'}
           </p>
         </div>
@@ -436,6 +486,7 @@ export default function CardTracciaAudio({
         onSeeking={onSeeking}
         onEnded={onEnded}
         onLoadedMetadata={onLoadedMetadata}
+        onDurationChange={onLoadedMetadata}
         onPlay={() => {
           if (ignoraEventiRef.current || campanaRef.current) return
           setInRiproduzione(true)

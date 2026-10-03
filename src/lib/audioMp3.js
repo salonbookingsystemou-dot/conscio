@@ -39,6 +39,37 @@ function frameA(bytes, i) {
   return { bitrate, campioni, canali, lunghezza }
 }
 
+function leggiU32(bytes, offset) {
+  return ((bytes[offset] << 24) | (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3]) >>> 0
+}
+
+// Xing/Info/VBRI non è audio: dice quanti frame ha il file di origine.
+// Tenendolo nel file unito, il browser mostra la durata del primo paragrafo.
+function eIntestazioneDurata(frame) {
+  if (frame.length < 8) return false
+  const mono = ((frame[3] >> 6) & 3) === 3
+  const offset = 4 + (mono ? 17 : 32)
+  if (offset + 8 <= frame.length) {
+    const tag = String.fromCharCode(frame[offset], frame[offset + 1], frame[offset + 2], frame[offset + 3])
+    if (tag === 'Xing' || tag === 'Info') return true
+  }
+  return frame.length >= 40
+    && String.fromCharCode(frame[36], frame[37], frame[38], frame[39]) === 'VBRI'
+}
+
+function durataDichiarata(frame, campioni) {
+  const mono = ((frame[3] >> 6) & 3) === 3
+  const offset = 4 + (mono ? 17 : 32)
+  if (offset + 12 > frame.length) return null
+  const tag = String.fromCharCode(frame[offset], frame[offset + 1], frame[offset + 2], frame[offset + 3])
+  if (tag !== 'Xing' && tag !== 'Info') return null
+  const flags = leggiU32(frame, offset + 4)
+  if ((flags & 1) === 0) return null
+  const n = leggiU32(frame, offset + 8)
+  if (!n || !campioni) return null
+  return (n * CAMPIONI_PER_FRAME) / campioni
+}
+
 function estraiFrame(bytes) {
   const frames = []
   let i = saltaId3(bytes)
@@ -46,10 +77,86 @@ function estraiFrame(bytes) {
   while (i + 4 <= bytes.length) {
     const frame = frameA(bytes, i)
     if (!frame) break
-    frames.push(bytes.subarray(i, i + frame.lunghezza))
+    const slice = bytes.subarray(i, i + frame.lunghezza)
+    if (!eIntestazioneDurata(slice)) frames.push(slice)
     i += frame.lunghezza
   }
   return frames
+}
+
+// Durata vera da un MP3 già in memoria, oppure null se i metadati del browser bastano.
+// Se l'intestazione Xing copre solo il primo spezzone, si usa la dimensione del file.
+export function durataDaPrefisso(bytes, totale) {
+  if (!bytes?.length || !Number.isFinite(totale) || totale < 128) return null
+  if (bytes.length >= totale) return durataMp3(bytes)
+  const inizio = saltaId3(bytes)
+  let i = inizio
+  while (i < bytes.length - 4 && !frameA(bytes, i)) i += 1
+  let dichiarato = null
+  let bitrate = 0
+  let campioni = 0
+  let visti = 0
+  while (i + 4 <= bytes.length && visti < 8) {
+    const frame = frameA(bytes, i)
+    if (!frame) break
+    const slice = bytes.subarray(i, i + frame.lunghezza)
+    if (eIntestazioneDurata(slice)) {
+      dichiarato = dichiarato ?? durataDichiarata(slice, frame.campioni)
+    } else {
+      if (!bitrate) {
+        bitrate = frame.bitrate
+        campioni = frame.campioni
+      } else if (frame.bitrate !== bitrate) {
+        return null
+      }
+      visti += 1
+    }
+    i += frame.lunghezza
+  }
+  if (!bitrate || !campioni || visti < 2) return null
+  const daDimensione = (Math.max(0, totale - inizio) * 8) / bitrate
+  if (!(daDimensione >= 8)) return null
+  if (dichiarato > 0 && daDimensione > dichiarato * 1.08 && daDimensione > dichiarato + 3) {
+    return daDimensione
+  }
+  return null
+}
+
+async function durataDaCache(url) {
+  if (typeof caches === 'undefined') return null
+  const match = await caches.match(url)
+  if (!match) return null
+  const sec = durataMp3(new Uint8Array(await match.arrayBuffer()))
+  return sec >= 8 ? sec : null
+}
+
+export async function durataNotaMp3(url) {
+  if (!url) return null
+  try {
+    const inCache = await durataDaCache(url)
+    if (inCache) return inCache
+  } catch {
+    /* cache non disponibile */
+  }
+  try {
+    const head = await fetch(url, { method: 'HEAD', mode: 'cors', credentials: 'omit' })
+    const parziale = await fetch(url, {
+      headers: { Range: 'bytes=0-8191' },
+      mode: 'cors',
+      credentials: 'omit'
+    })
+    const bytes = new Uint8Array(await parziale.arrayBuffer())
+    if (!bytes.length) return null
+    const range = parziale.headers.get('content-range') || ''
+    const dalRange = Number(range.split('/')[1])
+    const totale = Number.isFinite(dalRange) && dalRange > 0
+      ? dalRange
+      : Number(head.headers.get('content-length'))
+    if (Number.isFinite(totale) && bytes.length >= totale) return durataMp3(bytes)
+    return durataDaPrefisso(bytes, totale)
+  } catch {
+    return null
+  }
 }
 
 function unisci(parti) {
@@ -110,7 +217,14 @@ export async function concatenaConPause(pezzi, pauseSecondi) {
   const primo = (() => {
     let i = saltaId3(parti[0])
     while (i < parti[0].length - 4 && !frameA(parti[0], i)) i += 1
-    return frameA(parti[0], i)
+    while (i + 4 <= parti[0].length) {
+      const frame = frameA(parti[0], i)
+      if (!frame) return null
+      const slice = parti[0].subarray(i, i + frame.lunghezza)
+      if (!eIntestazioneDurata(slice)) return frame
+      i += frame.lunghezza
+    }
+    return null
   })()
   if (!primo) throw new Error('MP3_NON_LETTO')
   const mono = primo.canali === 3

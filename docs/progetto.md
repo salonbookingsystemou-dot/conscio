@@ -51,6 +51,13 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 3/10/2026 · Durata della traccia nel player della settimana (da Cursor)
+Il player della settimana scriveva i minuti della pratica (per esempio 13) mentre il tempo in basso
+era quello del file (13:29, Meditazione da seduti). Ora etichetta e tempo usano la stessa durata del
+file, in minuti e secondi. Se un MP3 unito dichiara solo la lunghezza del primo spezzone, si usa la
+durata vera del file; le intestazioni Xing/Info non entrano più nei file nuovi.
+Nessuna modifica al database.
+
 ### 2/10/2026 · Mappa dell'interfaccia (da Claude Code)
 Nuovo `docs/interfaccia.md`: gusci partecipante e facilitatore, schermate con i blocchi che le compongono,
 catalogo dei componenti per famiglia, pattern ricorrenti, layout e checklist per re-design. Segnalati due
