@@ -82,6 +82,8 @@ export default function GeneraTraccia() {
   const abortRef = useRef(null)
   const ascoltoRef = useRef(null)
   const audioRef = useRef(null)
+  const campioneRef = useRef(null)
+  const velocitaRef = useRef(1)
   const fileUrlRef = useRef('')
 
   const modello = modelloDaId(modelloId)
@@ -130,6 +132,7 @@ export default function GeneraTraccia() {
     ascoltoRef.current = null
     audioRef.current?.pause()
     audioRef.current = null
+    campioneRef.current = null
     setInAscolto(null)
   }
 
@@ -403,7 +406,15 @@ export default function GeneraTraccia() {
     if (!voce?.anteprima) return
     fermaAscolto()
     const audio = new Audio(voce.anteprima)
+    impostaRitmoCampione(audio, velocitaRef.current)
+    audio.addEventListener('loadedmetadata', () => {
+      if (campioneRef.current === audio) impostaRitmoCampione(audio, velocitaRef.current)
+    })
+    audio.onended = () => {
+      if (campioneRef.current === audio) campioneRef.current = null
+    }
     audioRef.current = audio
+    campioneRef.current = audio
     audio.play().catch(() => setErrore('Non riesco a riprodurre il campione della voce.'))
   }
 
@@ -464,6 +475,14 @@ export default function GeneraTraccia() {
     } finally {
       setOccupato(null)
     }
+  }
+
+  function cambiaVelocita(valore) {
+    const prossima = velocitaDi(valore)
+    velocitaRef.current = prossima
+    setVelocita(prossima)
+    rilasciaFile()
+    if (campioneRef.current) impostaRitmoCampione(campioneRef.current, prossima)
   }
 
   const generaInCorso = occupato === 'tutti' || paragrafi.some(p => occupato === p.id)
@@ -574,10 +593,7 @@ export default function GeneraTraccia() {
             step={VELOCITA_PASSO}
             value={velocita}
             aria-valuetext={descrizioneVelocita(velocita)}
-            onChange={e => {
-              setVelocita(velocitaDi(e.target.value))
-              rilasciaFile()
-            }}
+            onChange={e => cambiaVelocita(e.target.value)}
           />
           <div className="genera-velocita-estremi" aria-hidden="true">
             <span>Più lenta</span>
@@ -586,7 +602,8 @@ export default function GeneraTraccia() {
         </div>
         <p className="genera-nota">
           {modello.nota} Le pause sono silenzio aggiunto qui e non consumano crediti.
-          La velocità entra nel file solo quando generi: i paragrafi già fatti restano com’erano finché non li rigeneri.
+          Il campione della voce si ascolta alla velocità scelta.
+          Nel file entra solo quando generi: i paragrafi già fatti restano com’erano finché non li rigeneri.
         </p>
         <div className="genera-strumenti">
           <div className="field genera-seed">
@@ -821,6 +838,13 @@ function vaRigenerato(paragrafo, modelloId, voceId, seed, velocita) {
   if (paragrafo.obsoleto) return true
   if ((paragrafo.velocita ?? 1) !== velocita) return true
   return (paragrafo.seed ?? null) !== semeDi(seed)
+}
+
+function impostaRitmoCampione(audio, valore) {
+  const ritmo = velocitaDi(valore)
+  audio.preservesPitch = true
+  audio.webkitPreservesPitch = true
+  audio.playbackRate = ritmo
 }
 
 function testoVelocita(valore) {
