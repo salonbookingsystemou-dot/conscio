@@ -110,7 +110,8 @@ function Informativa() {
           segnalazioni di problemi dell’app, solo se decidi di inviarne una: il testo che
           scrivi, la pagina, il tipo di browser, le dimensioni dello schermo e, se l’app si è
           interrotta, il messaggio tecnico dell’errore. Sono anonime (senza codice né email),
-          arrivano per email a chi gestisce l’app e non vengono salvate nel database.
+          arrivano per email a chi gestisce l’app e allo strumento che analizza il codice
+          per cercare la correzione. Non vengono salvate nel database.
         </li>
       </ul>
       <p>
@@ -127,7 +128,12 @@ function Informativa() {
         </li>
         <li>
           il fornitore di invio email, che riceve solo l’indirizzo e il testo del
-          messaggio per recapitarlo.
+          messaggio per recapitarlo;
+        </li>
+        <li>
+          lo strumento di analisi del codice (Cursor), solo per le segnalazioni di
+          problemi: riceve il testo anonimo, la pagina, il browser, lo schermo e
+          l’eventuale errore tecnico.
         </li>
       </ul>
       <p>
@@ -144,7 +150,7 @@ function Informativa() {
         del pilota. Se chiedi di uscire, non raccogliamo altri dati; quanto già
         raccolto in forma di codice può restare se serve a non spezzare lo studio,
         nei limiti di legge. Le segnalazioni di problemi restano nella casella email
-        solo il tempo necessario a risolverli.
+        e nella sessione di analisi solo il tempo necessario a risolverli.
       </p>
 
       <h3>6. I tuoi diritti</h3>

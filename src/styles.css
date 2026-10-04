@@ -2922,6 +2922,15 @@ a:not([class]):hover { color: var(--ink); }
   gap: 10px;
 }
 .storico-riga .tono-mini { justify-self: start; }
+@media (max-width: 640px) {
+  .storico-riga {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .storico-riga .tono-mini {
+    grid-column: 1 / -1;
+    margin-left: 0;
+  }
+}
 .storico-pista {
   height: 12px;
   border-radius: 6px;

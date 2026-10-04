@@ -107,7 +107,7 @@ Lo schema vive in `supabase/schema.sql` + ~45 `migrazione_*.sql` (l'ultimo file 
 
 | Funzione | Innesco | Fa | Servizi |
 |---|---|---|---|
-| `porta` | app (Entra, Iscrizione, recupero codice, Accedi, Segnala) | rate limit per IP, iscrizione, stato codice, invio codice | Resend |
+| `porta` | app (Entra, Iscrizione, recupero codice, Accedi, Segnala) | rate limit per IP, iscrizione, stato codice, invio codice, avvio analisi segnalazione | Resend, webhook Cursor |
 | `invia-comunicazione` | facilitatore | email ai destinatari del ciclo (o solo remoti) | Resend |
 | `invia-incoraggiamento-pratica` | trigger su INSERT `log_pratica` (`tipo='giorno'`) | email con giorno 1–56 + citazione della settimana | Resend |
 | `avvisa-segnalazione-checkin` | trigger su `checkin_settimanali` | avviso al facilitatore (solo codice e settimana) | Resend |
@@ -129,7 +129,7 @@ Condivisi in `functions/_shared/`: stile e firma email, testo di incoraggiamento
 ## 6. Deploy e configurazione
 
 - **Push su `main`** → `deploy.yml` → build Vite → GitHub Pages (dominio `conscio.mnesti.it`, `public/CNAME`). Chiavi anon in `.env.production` (pubbliche, protette da RLS).
-- **Edge Functions** distribuite a mano con `supabase functions deploy`; secret: `RESEND_API_KEY`, `RESEND_FROM`/`EMAIL_FROM`, `CRON_SECRET`, `ENCOURAGEMENT_SECRET`, `CHECKIN_WEBHOOK_SECRET`, `FACILITATORE_EMAIL`, `ELEVENLABS_API_KEY`.
+- **Edge Functions** distribuite a mano con `supabase functions deploy`; secret: `RESEND_API_KEY`, `RESEND_FROM`/`EMAIL_FROM`, `CRON_SECRET`, `ENCOURAGEMENT_SECRET`, `CHECKIN_WEBHOOK_SECRET`, `FACILITATORE_EMAIL`, `ELEVENLABS_API_KEY`, `CURSOR_AUTOFIX_WEBHOOK_URL`, `CURSOR_AUTOFIX_WEBHOOK_KEY`.
 - **Migrazioni SQL** applicate manualmente (SQL editor / MCP) e sempre versionate in `supabase/`.
 - **Strumenti:** Cursor e Claude Code sul repo; Claude su claude.ai per analisi, mockup e brief (`docs/brief_*.md`, `docs/mockup/`).
 

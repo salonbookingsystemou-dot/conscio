@@ -182,6 +182,18 @@ export function sommaMinutiAscoltati(codice) {
   return Math.max(0, Math.round(secondi / 60))
 }
 
+/**
+ * Secondi da accreditare in un intervallo di riproduzione.
+ * Un salto in avanti della testina conta solo il tempo davvero passato:
+ * su iPhone, a schermo spento, l’orologio del file avanza a scatti lunghi
+ * e va contato; un seek no.
+ */
+export function avanzaAscolto(ascoltati, deltaMedia, deltaOrologio) {
+  const base = Number.isFinite(ascoltati) && ascoltati > 0 ? ascoltati : 0
+  if (!(deltaMedia > 0) || !(deltaOrologio >= 0)) return base
+  return base + Math.min(deltaMedia, deltaOrologio + 0.75)
+}
+
 function minutiDaSecondi(secondi) {
   if (!Number.isFinite(secondi) || secondi <= 0) return null
   return Math.max(1, Math.round(secondi / 60))

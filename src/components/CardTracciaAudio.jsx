@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ascoltoCompletato, memorizzaAscolto, recuperaAscoltoSeManca, registraAscoltoCompleto } from '../lib/ascolto.js'
+import { ascoltoCompletato, avanzaAscolto, memorizzaAscolto, recuperaAscoltoSeManca, registraAscoltoCompleto } from '../lib/ascolto.js'
 import { durataNotaMp3 } from '../lib/audioMp3.js'
 import { testoDaUrlAudio, urlAudioSenzaTesto } from '../lib/tracce.js'
 import { assicuraTracciaOffline } from '../lib/cacheTracce.js'
@@ -111,6 +111,7 @@ export default function CardTracciaAudio({
   const contaAscoltoRef = useRef(false)
   const giaAscoltataRef = useRef(giaAscoltata)
   const posizioneRealeRef = useRef(0)
+  const wallRef = useRef(0)
   giaAscoltataRef.current = giaAscoltata
   onCompletoRef.current = onCompleto
   onDurataRef.current = onDurata
@@ -174,6 +175,7 @@ export default function CardTracciaAudio({
     setErrore(false)
     playedRef.current = 0
     lastRef.current = 0
+    wallRef.current = 0
     posizioneRealeRef.current = 0
     durataNotaRef.current = 0
     const url = urlAudioSenzaTesto(src)
@@ -291,16 +293,26 @@ export default function CardTracciaAudio({
     setPosizione(t)
     const affidabile = scegliDurata(d)
     if (affidabile > 0) registraDurata(d)
+    accreditaIntervallo(el, Number.isFinite(t) ? t : 0)
     if (!(affidabile >= 8)) return
-    const delta = t - lastRef.current
-    if (delta > 0 && delta < 1.5) playedRef.current += delta
+    if (playedRef.current >= affidabile * soglia || contatoGiro.current) marca(affidabile, el.ended)
+  }
+
+  function accreditaIntervallo(el, t) {
+    const now = performance.now()
+    const precedente = wallRef.current || now
+    const deltaOrologio = (now - precedente) / 1000
+    wallRef.current = now
+    const deltaMedia = t - lastRef.current
     lastRef.current = t
-    if (playedRef.current >= affidabile * soglia || contatoGiro.current) marca(affidabile)
+    if (!(deltaMedia > 0) || (el.paused && !el.ended)) return
+    playedRef.current = avanzaAscolto(playedRef.current, deltaMedia, deltaOrologio)
   }
 
   function onSeeking(e) {
     if (ignoraEventiRef.current || !contaAscoltoRef.current) return
     lastRef.current = e.currentTarget.currentTime
+    wallRef.current = performance.now()
   }
 
   function onEnded(e) {
@@ -308,10 +320,14 @@ export default function CardTracciaAudio({
     setInRiproduzione(false)
     const el = e.currentTarget
     const t = el.currentTime
-    if (Number.isFinite(t) && t >= 0.15) {
-      posizioneRealeRef.current = t
-      setPosizione(t)
+    const fine = Number.isFinite(t) && t >= 0.15
+      ? t
+      : (Number.isFinite(el.duration) ? el.duration : 0)
+    if (fine >= 0.15) {
+      posizioneRealeRef.current = fine
+      setPosizione(fine)
     }
+    accreditaIntervallo(el, fine)
     const d = durataPerCredito(el.duration)
     if (d != null && playedRef.current >= d * 0.9) marca(d, true)
   }
@@ -367,6 +383,7 @@ export default function CardTracciaAudio({
         el.volume = 1
         playedRef.current = 0
         lastRef.current = 0
+        wallRef.current = performance.now()
         posizioneRealeRef.current = 0
         ignoraEventiRef.current = false
       } else if (dallInizio && skipCampana) {
@@ -376,6 +393,7 @@ export default function CardTracciaAudio({
         riavvolgiSicuro(el)
         playedRef.current = 0
         lastRef.current = 0
+        wallRef.current = performance.now()
         posizioneRealeRef.current = 0
       }
       if (annullaAvvioRef.current) {
@@ -383,6 +401,8 @@ export default function CardTracciaAudio({
         return
       }
       contaAscoltoRef.current = true
+      wallRef.current = performance.now()
+      if (!dallInizio && Number.isFinite(el.currentTime)) lastRef.current = el.currentTime
       await avviaPlay(el)
       setInRiproduzione(true)
     } catch (err) {
@@ -430,6 +450,7 @@ export default function CardTracciaAudio({
     riavvolgiSicuro(el)
     lastRef.current = 0
     playedRef.current = 0
+    wallRef.current = 0
     posizioneRealeRef.current = 0
     setInRiproduzione(false)
     setPosizione(0)

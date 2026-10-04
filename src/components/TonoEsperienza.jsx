@@ -22,7 +22,7 @@ export default function TonoEsperienza({
               role="radio"
               aria-checked={on}
               className={`tono-scelta is-${t.id}${on ? ' is-on' : ''}`}
-              onClick={() => onChange(on ? '' : t.id)}
+              onClick={() => onChange(t.id)}
             >
               <TonoIcon id={t.id} />
               <span>{t.label}</span>

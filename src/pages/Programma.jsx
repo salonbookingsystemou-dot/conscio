@@ -147,6 +147,15 @@ function spuntatoNelGiorno(esercizio, data) {
   )
 }
 
+function valoriAnnotazione(annotazioni, data) {
+  const giorno = String(data).slice(0, 10)
+  const riga = (annotazioni || []).find(a => String(a.data).slice(0, 10) === giorno)
+  return {
+    note: String(riga?.note || ''),
+    tono: riga?.tono_dopo || riga?.tono_prima || ''
+  }
+}
+
 function AnnotazioniGiorno({
   codice,
   data,
@@ -154,8 +163,9 @@ function AnnotazioniGiorno({
   puoRegistrare,
   onSalvato
 }) {
-  const [note, setNote] = useState('')
-  const [tonoDopo, setTonoDopo] = useState('')
+  const iniziale = valoriAnnotazione(annotazioni, data)
+  const [note, setNote] = useState(iniziale.note)
+  const [tonoDopo, setTonoDopo] = useState(iniziale.tono)
   const [invio, setInvio] = useState(false)
   const [errore, setErrore] = useState(null)
   const delGiorno = (annotazioni || []).filter(a => String(a.data).slice(0, 10) === String(data).slice(0, 10))
@@ -636,6 +646,7 @@ export default function Programma() {
               )}
 
               <AnnotazioniGiorno
+                key={dataScelta}
                 codice={codice}
                 data={dataScelta}
                 annotazioni={corrente.annotazioni_giorno || []}

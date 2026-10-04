@@ -51,6 +51,22 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 4/10/2026 · Ascolto a schermo spento e tono del giorno (da Cursor)
+Due segnalazioni dallo stesso iPhone (3/10): la prima meditazione non risultava completata
+e il tono di giovedì non restava. L’accredito dell’ascolto scartava i salti oltre un secondo
+e mezzo, quelli che Safari fa a schermo spento: ora conta il tempo reale, non il seek.
+Un secondo salvataggio della nota senza tono cancellava il tono già scelto
+(`supabase/migrazione_tono_giorno_conserva.sql`); riaprendo il giorno la nota e il tono
+comparono di nuovo. Nello storico stretto il tono va a capo, così su un iPhone da 320px non esce dallo schermo.
+Nessun dato nuovo dei partecipanti.
+
+### 4/10/2026 · Segnalazione di un problema avvia l’analisi automatica (da Cursor)
+Dopo l’email al gestore, `porta` (`azione = segnala_problema`) invia la stessa segnalazione
+anonima al webhook dell’automazione Cursor, se i secret `CURSOR_AUTOFIX_WEBHOOK_URL` e
+`CURSOR_AUTOFIX_WEBHOOK_KEY` sono impostati. Senza i secret l’email resta l’unico canale.
+L’informativa dice che quel testo (pagina, browser, schermo, errore) arriva anche allo
+strumento di analisi. Nessun dato nuovo nel database: export e reset non cambiano.
+
 ### 3/10/2026 · Durata della traccia nel player della settimana (da Cursor)
 Il player della settimana scriveva i minuti della pratica (per esempio 13) mentre il tempo in basso
 era quello del file (13:29, Meditazione da seduti). Ora etichetta e tempo usano la stessa durata del
