@@ -2,11 +2,29 @@
 // Su iOS, fetch() di una navigazione dall’icona in home può fallire con
 // TypeError: Load failed. Se respondWith riceve quel rifiuto, Safari
 // mostra la pagina di errore e l’app non si apre.
+const RE_TRACCE_AUDIO = /\/storage\/v1\/object\/public\/tracce-audio\//i
+
 self.addEventListener('fetch', (event) => {
+  // In linea il tag <audio> manda Range. Se li prende Workbox, a file già in
+  // cache ogni frammento rilegge l’intero MP3. Su una traccia lunga il service
+  // worker si interrompe a metà e Chrome mostra l’errore di riproduzione.
+  // Senza respondWith il browser parla con Storage e tiene il Range.
+  // Offline non si entra qui: la route CacheFirst serve la copia già salvata.
+  if (frammentoTracciaInLinea(event.request)) {
+    if (event.stopImmediatePropagation) event.stopImmediatePropagation()
+    return
+  }
   if (event.request.mode !== 'navigate') return
   if (event.stopImmediatePropagation) event.stopImmediatePropagation()
   event.respondWith(apriNavigazione(event.request))
 })
+
+function frammentoTracciaInLinea(request) {
+  if (!request || request.method !== 'GET') return false
+  if (self.navigator.onLine === false) return false
+  if (!request.headers.has('range')) return false
+  return RE_TRACCE_AUDIO.test(request.url || '')
+}
 
 async function apriNavigazione(richiesta) {
   try {

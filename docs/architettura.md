@@ -48,7 +48,7 @@ flowchart LR
 - **Stack:** React 18, React Router 6 (`HashRouter`, per GitHub Pages), Vite 5, `vite-plugin-pwa` (Workbox), Recharts, `react-speech-recognition` (note vocali), `lamejs` (MP3 in browser), font Source Serif 4 + Public Sans.
 - **Provider** (`main.jsx`): `AuthProvider` (facilitatore) → `PartecipanteProvider` (codice, stato percorso, minuti ascolto) → `TonalitaProvider`.
 - **Codice partecipante** salvato in `localStorage`; nessuna sessione Auth per i partecipanti.
-- **Offline:** tracce da Storage in cache `CacheFirst` (con range requests, priming CORS in `lib/cacheTracce.js`); `sw-navigazione.js` gestisce la navigazione su iOS.
+- **Offline:** tracce da Storage in cache `CacheFirst` (priming CORS in `lib/cacheTracce.js`; i frammenti Range si servono dalla copia solo offline). In linea `sw-navigazione.js` lascia i Range al browser. Lo stesso file gestisce la navigazione su iOS.
 
 ### Route
 

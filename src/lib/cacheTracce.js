@@ -1,10 +1,9 @@
 // Garantisce che una traccia audio sia disponibile offline.
 //
-// I tag <audio> caricano l'audio con richieste Range (risposte 206) che il
-// service worker (CacheFirst) non salva come copia completa. Per far funzionare
-// la riproduzione offline serve una richiesta "piena" (GET senza Range → 200):
-// passando dal service worker, la copia integrale finisce nella cache
-// "tracce-audio" e da lì il RangeRequestsPlugin serve i frammenti anche offline.
+// I tag <audio> caricano l'audio con richieste Range (risposte 206). In linea
+// quelle richieste non passano dal service worker. Per l'ascolto offline serve
+// una copia intera (GET senza Range → 200): passa dal service worker, finisce
+// nella cache "tracce-audio-v2" e da lì, solo offline, si ritagliano i frammenti.
 
 import { urlAudioSenzaTesto } from './tracce.js'
 
@@ -51,8 +50,8 @@ export async function assicuraTracciaOffline(url) {
   try {
     if (await tracciaInCache(pulito)) return
     // Richiesta CORS "piena" (senza Range → 200): passa dal service worker, che
-    // salva la copia completa in cache. È da questa copia che il RangeRequestsPlugin
-    // serve i frammenti richiesti dal tag <audio>, anche offline.
+    // salva la copia completa in cache. Offline, da quella copia si servono i
+    // frammenti del tag <audio>. In linea i Range non passano di qui.
     const risposta = await fetch(pulito, { mode: 'cors', credentials: 'omit' })
     if (risposta && risposta.body) {
       const reader = risposta.body.getReader()
