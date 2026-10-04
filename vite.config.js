@@ -26,8 +26,10 @@ export default defineConfig({
             handler: 'CacheFirst',
             options: {
               cacheName: 'tracce-audio-v2',
-              // Necessario per le richieste Range (206) dei tag <audio>:
-              // serve i frammenti dalla copia completa in cache.
+              // Offline: le richieste Range (206) dei tag <audio> si servono
+              // dalla copia completa. In linea sw-navigazione.js non le
+              // intercetta: ritagliare qui l’intero MP3 a ogni frammento
+              // interrompe le tracce lunghe.
               rangeRequests: true,
               // SOLO 200: le richieste no-cors dell'<audio> danno risposte opaque
               // (status 0) che il RangeRequestsPlugin non può affettare e che

@@ -51,6 +51,14 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 4/10/2026 · Traccia lunga interrotta in riproduzione (da Cursor)
+Segnalazione anonima: la traccia sul dolore cronico si ferma con «Non è stato
+possibile riprodurre la traccia». In linea il service worker ritagliava ogni
+frammento Range rileggendo l’intero MP3 già in cache: su una traccia lunga il
+worker si interrompe a metà ascolto e Chrome chiude la riproduzione. Ora, con
+rete, quei frammenti vanno dritti allo storage; la copia in cache resta per
+l’ascolto offline. Nessun dato dei partecipanti.
+
 ### 4/10/2026 · Ascolto a schermo spento e tono del giorno (da Cursor)
 Due segnalazioni dallo stesso iPhone (3/10): la prima meditazione non risultava completata
 e il tono di giovedì non restava. L’accredito dell’ascolto scartava i salti oltre un secondo
