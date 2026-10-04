@@ -31,6 +31,19 @@ export function modelloDaId(id) {
   return MODELLI.find(m => m.id === id) || MODELLI[0]
 }
 
+// Moltiplicatore del parlato accettato da ElevenLabs (1 = ritmo della voce).
+export const VELOCITA_MIN = 0.7
+export const VELOCITA_MAX = 1.2
+export const VELOCITA_PASSO = 0.05
+
+export function velocitaDi(valore) {
+  const n = Number(valore)
+  if (!Number.isFinite(n)) return 1
+  const passi = Math.round(n / VELOCITA_PASSO)
+  const arrotondata = Math.round(passi * VELOCITA_PASSO * 100) / 100
+  return Math.min(VELOCITA_MAX, Math.max(VELOCITA_MIN, arrotondata))
+}
+
 export function dividiScript(testo) {
   return String(testo || '')
     .replace(/\r\n/g, '\n')
@@ -63,16 +76,17 @@ export function spezzaTesto(testo, max) {
   return pezzi
 }
 
-export function stimaGenerazione(paragrafi, modello) {
+export function stimaGenerazione(paragrafi, modello, velocita = 1) {
   const testi = (paragrafi || []).map(p => String(p.testo || '').trim()).filter(Boolean)
   const caratteri = testi.reduce((n, t) => n + t.length, 0)
   const pause = (paragrafi || []).slice(0, -1).reduce((n, p) => n + (Number(p.pausaDopo) || 0), 0)
   const crediti = Math.ceil(caratteri * (modello?.creditiPerCarattere || 1))
+  const ritmo = velocitaDi(velocita)
   return {
     caratteri,
     crediti,
     pauseSecondi: pause,
-    minutiVoce: caratteri / 1000,
+    minutiVoce: caratteri / 1000 / ritmo,
     minutiPause: pause / 60
   }
 }
@@ -180,13 +194,14 @@ export async function elencaVociJson(signal) {
   return Array.isArray(payload?.voci) ? payload.voci : []
 }
 
-export function generaPezzo({ testo, voceId, modello, precedenti, seed, signal }) {
+export function generaPezzo({ testo, voceId, modello, precedenti, seed, velocita, signal }) {
   return chiama({
     azione: 'paragrafo',
     testo,
     voceId,
     modello,
     precedenti: precedenti || [],
-    seed
+    seed,
+    velocita: velocitaDi(velocita)
   }, signal)
 }

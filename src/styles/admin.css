@@ -1235,6 +1235,45 @@
   font-size: var(--fs-small);
 }
 
+.genera-velocita-testa {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-8);
+}
+
+.genera-velocita-testa label {
+  margin-bottom: 0;
+}
+
+.genera-velocita-testa strong {
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.genera-velocita input[type="range"] {
+  width: 100%;
+  margin: var(--space-8) 0 var(--space-4);
+  accent-color: var(--moss);
+  cursor: pointer;
+}
+
+.genera-velocita input[type="range"]:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--moss) 40%, transparent);
+  outline-offset: 2px;
+}
+
+.genera-velocita-estremi {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-8);
+  font-size: var(--fs-caption);
+  color: var(--ink-soft);
+}
+
 .genera-strumenti {
   display: flex;
   flex-wrap: wrap;

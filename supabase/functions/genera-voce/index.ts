@@ -139,6 +139,14 @@ async function generaParagrafo(chiave: string, corpo: Record<string, unknown>) {
     ? seedGrezzo
     : (typeof seedGrezzo === 'string' && seedGrezzo.trim() !== '' ? Number(seedGrezzo) : NaN)
   const seed = Number.isInteger(seedNum) && seedNum >= 0 && seedNum <= 4294967295 ? seedNum : null
+  const velocitaLetta = leggiVelocita(corpo.velocita)
+  if (!velocitaLetta.ok) {
+    return json({
+      errore: 'VELOCITA_NON_VALIDA',
+      messaggio: 'La velocità del parlato va da 0,70 a 1,20.'
+    }, 400)
+  }
+  const velocita = velocitaLetta.valore
 
   const payload: Record<string, unknown> = {
     text: testo,
@@ -150,9 +158,12 @@ async function generaParagrafo(chiave: string, corpo: Record<string, unknown>) {
       stability: 0.62,
       similarity_boost: 0.8,
       style: 0,
-      use_speaker_boost: true
+      use_speaker_boost: true,
+      speed: velocita
     }
     if (precedenti.length) payload.previous_request_ids = precedenti
+  } else if (velocita !== 1) {
+    payload.voice_settings = { speed: velocita }
   }
   if (seed != null) payload.seed = seed
 
@@ -176,6 +187,15 @@ async function generaParagrafo(chiave: string, corpo: Record<string, unknown>) {
   })
 }
 
+function leggiVelocita(grezzo: unknown): { ok: true, valore: number } | { ok: false } {
+  if (grezzo == null || grezzo === '') return { ok: true, valore: 1 }
+  const n = typeof grezzo === 'number' ? grezzo : (typeof grezzo === 'string' ? Number(grezzo) : NaN)
+  if (!Number.isFinite(n)) return { ok: false }
+  const arrotondata = Math.round(n * 100) / 100
+  if (arrotondata < 0.7 || arrotondata > 1.2) return { ok: false }
+  return { ok: true, valore: arrotondata }
+}
+
 async function inviaConRipiego(chiave: string, url: string, payload: Record<string, unknown>) {
   const res = await invia(chiave, url, payload)
   if (res.ok || res.status !== 400) return res
@@ -195,12 +215,31 @@ async function inviaConRipiego(chiave: string, url: string, payload: Record<stri
     delete prossimo.language_code
     cambiato = true
   }
-  if (/voice_settings/.test(msg) && prossimo.voice_settings) {
-    delete prossimo.voice_settings
-    cambiato = true
+  const settings = payload.voice_settings
+  const settingsObj = settings && typeof settings === 'object'
+    ? settings as Record<string, unknown>
+    : null
+  const velocitaRichiesta = settingsObj && typeof settingsObj.speed === 'number'
+    ? settingsObj.speed
+    : null
+  // La velocità resta: se il modello la rifiuta, l'errore arriva al facilitatore.
+  if (/voice_settings/.test(msg) && settingsObj && !/\bspeed\b/.test(msg)) {
+    if (velocitaRichiesta == null) {
+      delete prossimo.voice_settings
+      cambiato = true
+    } else if (Object.keys(settingsObj).some(k => k !== 'speed')) {
+      prossimo.voice_settings = { speed: velocitaRichiesta }
+      cambiato = true
+    }
   }
-  if (!cambiato && (payload.seed != null || payload.previous_request_ids || payload.voice_settings || payload.language_code)) {
-    return invia(chiave, url, { text: payload.text, model_id: payload.model_id })
+  const haAltriCampi = payload.seed != null
+    || Boolean(payload.previous_request_ids)
+    || Boolean(payload.language_code)
+    || (settingsObj != null && Object.keys(settingsObj).some(k => k !== 'speed'))
+  if (!cambiato && haAltriCampi) {
+    const ridotto: Record<string, unknown> = { text: payload.text, model_id: payload.model_id }
+    if (velocitaRichiesta != null) ridotto.voice_settings = { speed: velocitaRichiesta }
+    return inviaConRipiego(chiave, url, ridotto)
   }
   if (!cambiato) {
     return new Response(testo, { status: 400, headers: { 'Content-Type': 'application/json' } })

@@ -51,6 +51,12 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 4/10/2026 · Velocità del parlato nel generatore (da Cursor)
+Sulla pagina `/genera` un cursore imposta la velocità del parlato, da 0,70 a 1,20
+(1,00 è il ritmo della voce). ElevenLabs la applica in generazione; i paragrafi già fatti
+restano com’erano finché non si rigenerano. Funzione `genera-voce` ridistribuita.
+Nessuna modifica al database e nessun dato nuovo dei partecipanti.
+
 ### 4/10/2026 · Ascolto a schermo spento e tono del giorno (da Cursor)
 Due segnalazioni dallo stesso iPhone (3/10): la prima meditazione non risultava completata
 e il tono di giovedì non restava. L’accredito dell’ascolto scartava i salti oltre un secondo

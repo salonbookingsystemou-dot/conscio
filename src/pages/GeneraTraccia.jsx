@@ -8,7 +8,11 @@ import {
   generaPezzo,
   modelloDaId,
   spezzaTesto,
-  stimaGenerazione
+  stimaGenerazione,
+  VELOCITA_MAX,
+  VELOCITA_MIN,
+  VELOCITA_PASSO,
+  velocitaDi
 } from '../lib/generaVoce'
 import { AUDIO_MAX, creaTraccia, messaggioErroreTraccia } from '../lib/tracce'
 
@@ -64,6 +68,7 @@ export default function GeneraTraccia() {
   const [voci, setVoci] = useState([])
   const [vociPronte, setVociPronte] = useState(false)
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1_000_000))
+  const [velocita, setVelocita] = useState(1)
   const [pausaPredefinita, setPausaPredefinita] = useState(10)
   const [script, setScript] = useState('')
   const [paragrafi, setParagrafi] = useState([])
@@ -81,10 +86,13 @@ export default function GeneraTraccia() {
 
   const modello = modelloDaId(modelloId)
   const voce = voci.find(v => v.id === voceId) || null
-  const stima = useMemo(() => stimaGenerazione(paragrafi, modello), [paragrafi, modello])
+  const stima = useMemo(
+    () => stimaGenerazione(paragrafi, modello, velocita),
+    [paragrafi, modello, velocita]
+  )
   const scriptDiverso = paragrafi.length > 0 && dividiScript(script).join('\n\n') !== firmaParagrafi(paragrafi)
   const pronti = paragrafi.filter(p => String(p.testo || '').trim() && compatibile(p, modelloId, voceId))
-  const daFare = paragrafi.filter(p => vaRigenerato(p, modelloId, voceId, seed))
+  const daFare = paragrafi.filter(p => vaRigenerato(p, modelloId, voceId, seed, velocita))
   const puoGenerareTutto = Boolean(voceId) && (scriptDiverso || daFare.length > 0)
   const italiane = voci.filter(v => v.italiana)
   const altre = voci.filter(v => !v.italiana)
@@ -197,6 +205,7 @@ export default function GeneraTraccia() {
         modello: modelloId,
         precedenti: modello.aggancia ? catena : [],
         seed,
+        velocita,
         signal
       })
       audioPezzi.push(risultato.audio)
@@ -223,6 +232,7 @@ export default function GeneraTraccia() {
           modello: modelloId,
           voceId,
           seed: semeDi(seed),
+          velocita,
           obsoleto: false
         }
       }
@@ -278,7 +288,7 @@ export default function GeneraTraccia() {
       setParagrafi(lista)
       setScript(firmaParagrafi(lista))
     }
-    const ids = lista.filter(p => vaRigenerato(p, modelloId, voceId, seed)).map(p => p.id)
+    const ids = lista.filter(p => vaRigenerato(p, modelloId, voceId, seed, velocita)).map(p => p.id)
     if (ids.length === 0) {
       rilasciaFile()
       return
@@ -463,7 +473,7 @@ export default function GeneraTraccia() {
       <header className="admin-page-head">
         <h1>Genera traccia</h1>
         <p>
-          Incolla lo script, scegli modello e voce, metti le pause tra i paragrafi.
+          Incolla lo script, scegli modello, voce e velocità del parlato, metti le pause tra i paragrafi.
           L’anteprima si ascolta qui; il file entra in libreria solo quando lo salvi.
         </p>
       </header>
@@ -551,7 +561,33 @@ export default function GeneraTraccia() {
             </select>
           </div>
         </div>
-        <p className="genera-nota">{modello.nota} Le pause sono silenzio aggiunto qui e non consumano crediti.</p>
+        <div className="field genera-velocita">
+          <div className="genera-velocita-testa">
+            <label htmlFor="genera-velocita">Velocità del parlato</label>
+            <strong>{testoVelocita(velocita)}</strong>
+          </div>
+          <input
+            id="genera-velocita"
+            type="range"
+            min={VELOCITA_MIN}
+            max={VELOCITA_MAX}
+            step={VELOCITA_PASSO}
+            value={velocita}
+            aria-valuetext={descrizioneVelocita(velocita)}
+            onChange={e => {
+              setVelocita(velocitaDi(e.target.value))
+              rilasciaFile()
+            }}
+          />
+          <div className="genera-velocita-estremi" aria-hidden="true">
+            <span>Più lenta</span>
+            <span>Più rapida</span>
+          </div>
+        </div>
+        <p className="genera-nota">
+          {modello.nota} Le pause sono silenzio aggiunto qui e non consumano crediti.
+          La velocità entra nel file solo quando generi: i paragrafi già fatti restano com’erano finché non li rigeneri.
+        </p>
         <div className="genera-strumenti">
           <div className="field genera-seed">
             <label htmlFor="genera-seed">Variazione</label>
@@ -614,6 +650,7 @@ export default function GeneraTraccia() {
           <ul className="genera-lista">
             {paragrafi.map((p, indice) => {
               const pronto = compatibile(p, modelloId, voceId)
+              const stessaVelocita = (p.velocita ?? 1) === velocita
               const attivo = inAscolto?.id === p.id
               return (
                 <li key={p.id} className={attivo ? 'is-attivo' : undefined}>
@@ -622,8 +659,9 @@ export default function GeneraTraccia() {
                       <p className="genera-kicker">Paragrafo {indice + 1}</p>
                       <p className="genera-meta">
                         {String(p.testo || '').trim().length} caratteri
-                        {pronto ? ' · pronto' : ''}
+                        {pronto && stessaVelocita ? ' · pronto' : ''}
                         {p.audio && !pronto ? ' · generato con un altro modello o un’altra voce' : ''}
+                        {pronto && !stessaVelocita ? ' · generato a un’altra velocità' : ''}
                         {p.obsoleto && pronto ? ' · la voce precedente è cambiata' : ''}
                         {attivo && inAscolto.pausa ? ` · pausa ${inAscolto.restanti}s` : ''}
                         {attivo && !inAscolto.pausa ? ' · in ascolto' : ''}
@@ -705,9 +743,10 @@ export default function GeneraTraccia() {
             <p>
               {stima.caratteri.toLocaleString('it-IT')} caratteri · circa {stima.crediti.toLocaleString('it-IT')} crediti
               {' '}· voce {formattaMinuti(stima.minutiVoce)} · pause {formattaMinuti(stima.minutiPause)}
+              {' '}· parlato {testoVelocita(velocita)}
             </p>
             <p className="genera-nota">
-              La stima della voce usa circa mille caratteri al minuto. La durata vera si sente nell’anteprima.
+              La stima della voce usa circa mille caratteri al minuto al ritmo normale, e segue la velocità scelta. La durata vera si sente nell’anteprima.
             </p>
             {avanzamento && (
               <p role="status">Paragrafo {avanzamento.fatto + 1} di {avanzamento.totale}</p>
@@ -776,11 +815,27 @@ export default function GeneraTraccia() {
   )
 }
 
-function vaRigenerato(paragrafo, modelloId, voceId, seed) {
+function vaRigenerato(paragrafo, modelloId, voceId, seed, velocita) {
   if (!String(paragrafo.testo || '').trim()) return false
   if (!compatibile(paragrafo, modelloId, voceId)) return true
   if (paragrafo.obsoleto) return true
+  if ((paragrafo.velocita ?? 1) !== velocita) return true
   return (paragrafo.seed ?? null) !== semeDi(seed)
+}
+
+function testoVelocita(valore) {
+  const n = velocitaDi(valore)
+  const numero = n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  if (n === 1) return `${numero} · normale`
+  return numero
+}
+
+function descrizioneVelocita(valore) {
+  const n = velocitaDi(valore)
+  const numero = n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  if (n === 1) return `${numero}, ritmo normale`
+  if (n < 1) return `${numero}, più lenta del ritmo normale`
+  return `${numero}, più rapida del ritmo normale`
 }
 
 function normalizzaPausa(valore) {
