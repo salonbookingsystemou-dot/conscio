@@ -51,6 +51,14 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 6/10/2026 · Eleven v4 nel generatore di voce (da Cursor)
+In `/genera` si può scegliere v4 (`eleven_v4`). Segue il percorso di Multilingual v2:
+stesse impostazioni di voce, aggancio con `previous_request_ids` e `next_text`.
+Il ramo senza aggancio resta solo per V3. La stima è un credito a carattere: sulla pagina
+prezzi v4 è a 0,08 $ per mille caratteri, come v2, e non indica un costo in crediti diverso.
+Multilingual v2 resta il modello predefinito. Funzione `genera-voce` ridistribuita.
+Nessuna modifica al database.
+
 ### 5/10/2026 · V3 tiene lo stesso registro tra i paragrafi (da Cursor)
 V3 non può agganciare una richiesta alla precedente, e ogni paragrafo ripartiva
 con un tono diverso. Ora la generazione usa il registro stabile. I paragrafi già

@@ -13,6 +13,7 @@ const cors = {
 
 const MODELLI = new Set([
   'eleven_multilingual_v2',
+  'eleven_v4',
   'eleven_v3',
   'eleven_flash_v2_5'
 ])

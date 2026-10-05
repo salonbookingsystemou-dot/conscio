@@ -10,6 +10,14 @@ export const MODELLI = [
     nota: 'La voce resta continua da un paragrafo all’altro. Un carattere, un credito.'
   },
   {
+    id: 'eleven_v4',
+    nome: 'v4',
+    creditiPerCarattere: 1,
+    aggancia: true,
+    max: 9000,
+    nota: 'Più espressivo, con la voce continua da un paragrafo all’altro. Accetta tag come [whispers]; per le pause usa i puntini, non <break>.'
+  },
+  {
     id: 'eleven_v3',
     nome: 'V3',
     creditiPerCarattere: 1,
