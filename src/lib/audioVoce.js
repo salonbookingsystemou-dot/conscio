@@ -1,13 +1,15 @@
 // Rifinisce il parlato di un paragrafo, in campioni già decodificati.
-// ElevenLabs chiude ogni generazione con un fade: qui la rampa si raddrizza
-// e il volume del parlato va allo stesso livello, così i paragrafi non saltano.
+// Il volume del corpo della frase va allo stesso livello. Il fade lungo di
+// ElevenLabs non si raddrizza (diventerebbe un sibilo in attacco e un taglio
+// in coda): al suo posto restano un attacco e una chiusura brevi.
 
 const OBIETTIVO = 10 ** (-18 / 20)
 const TETTO = 10 ** (-1 / 20)
 const BOOST_MAX = 10 ** (12 / 20)
-const FADE_MAX_GAIN = 10 ** (18 / 20)
 const HOP_S = 0.01
-const FADE_MAX_S = 0.5
+const ATTACCO_S = 0.07
+const CODA_S = 0.16
+const GUARDIA_S = 0.02
 
 function passaAlto(samples, sampleRate) {
   const rc = 1 / (2 * Math.PI * 20)
@@ -56,55 +58,42 @@ function livelloCorpo(env) {
   return somma / (i1 - i0)
 }
 
-function indiciFade(env, corpo, versoFine) {
-  const maxW = Math.min(
-    env.length,
-    Math.max(3, Math.round(FADE_MAX_S / HOP_S)),
-    Math.max(3, Math.floor(env.length * 0.35))
-  )
-  const ordine = []
-  for (let i = 0; i < maxW; i += 1) ordine.push(versoFine ? env.length - 1 - i : i)
-  let i = 0
-  while (i < ordine.length && env[ordine[i]] < corpo * 0.03) i += 1
-  const onset = i
-  let fine = i
-  while (fine < ordine.length && env[ordine[fine]] < corpo * 0.88) fine += 1
-  if (fine - onset < 3) return []
-  const primo = env[ordine[onset]]
-  const ultimo = env[ordine[Math.min(fine, ordine.length - 1)]]
-  if (ultimo < primo * 1.12) return []
-  return ordine.slice(onset, fine)
+function curva(t) {
+  const x = Math.min(1, Math.max(0, t))
+  return 0.5 - 0.5 * Math.cos(Math.PI * x)
 }
 
 function guadagni(samples, sampleRate) {
   const hop = Math.max(1, Math.round(sampleRate * HOP_S))
   const env = inviluppo(samples, hop)
   const corpo = livelloCorpo(env)
-  const perHop = new Float32Array(env.length).fill(1)
-  if (corpo > 1e-5) {
-    for (const versoFine of [false, true]) {
-      const indici = indiciFade(env, corpo, versoFine)
-      if (!indici.length) continue
-      const interno = versoFine
-        ? Math.min(...indici) - 1
-        : Math.max(...indici) + 1
-      const plateau = env[Math.max(0, Math.min(env.length - 1, interno))] || corpo
-      const riferimento = Math.max(plateau, corpo * 0.88)
-      for (const w of indici) {
-        const livello = Math.max(env[w], riferimento * 0.05)
-        perHop[w] = Math.min(FADE_MAX_GAIN, Math.max(1, riferimento / livello))
-      }
-    }
-  }
   const gain = new Float32Array(samples.length).fill(1)
-  for (let w = 0; w < perHop.length; w += 1) {
-    const da = w * hop
-    const a = Math.min(samples.length, da + hop)
-    const g0 = perHop[w]
-    const g1 = perHop[Math.min(perHop.length - 1, w + 1)]
-    for (let i = da; i < a; i += 1) {
-      const t = (i - da) / hop
-      gain[i] = g0 + (g1 - g0) * t
+  if (corpo > 1e-5 && env.length > 4) {
+    const margine = Math.min(
+      Math.round(0.6 / HOP_S),
+      Math.max(2, Math.floor(env.length * 0.3))
+    )
+    let arrivo = 0
+    while (arrivo < margine && env[arrivo] < corpo * 0.82) arrivo += 1
+    const attacco = Math.round(sampleRate * (arrivo > 1 ? ATTACCO_S : GUARDIA_S))
+    const fineAttacco = Math.min(samples.length, Math.max(hop, arrivo * hop))
+    const inizioAttacco = Math.max(0, fineAttacco - attacco)
+    for (let i = 0; i < inizioAttacco; i += 1) gain[i] = 0
+    for (let i = inizioAttacco; i < fineAttacco; i += 1) {
+      gain[i] = curva((i - inizioAttacco) / Math.max(1, fineAttacco - inizioAttacco))
+    }
+
+    let uscita = env.length - 1
+    const limite = env.length - 1 - margine
+    while (uscita > limite && env[uscita] < corpo * 0.82) uscita -= 1
+    const coda = Math.round(sampleRate * (uscita < env.length - 2 ? CODA_S : GUARDIA_S))
+    const inizioCoda = Math.min(samples.length, (uscita + 1) * hop)
+    if (inizioCoda > fineAttacco + hop) {
+      const fineCoda = Math.min(samples.length, inizioCoda + coda)
+      for (let i = inizioCoda; i < fineCoda; i += 1) {
+        gain[i] = curva(1 - (i - inizioCoda) / Math.max(1, fineCoda - inizioCoda))
+      }
+      for (let i = fineCoda; i < samples.length; i += 1) gain[i] = 0
     }
   }
   let globale = corpo > 1e-5 ? OBIETTIVO / corpo : 1
@@ -120,37 +109,6 @@ function limita(sample) {
   const eccesso = abs - TETTO
   const morbido = TETTO + (0.98 - TETTO) * Math.tanh(eccesso / (1 - TETTO))
   return segno * morbido
-}
-
-function tagliaSilenzio(canali, sampleRate) {
-  const n = canali[0].length
-  const margine = Math.round(sampleRate * 0.01)
-  const soglia = 0.002
-  let da = 0
-  let a = n
-  while (da < n && Math.abs(canali[0][da]) < soglia) da += 1
-  while (a > da && Math.abs(canali[0][a - 1]) < soglia) a -= 1
-  da = Math.max(0, da - margine)
-  a = Math.min(n, a + margine)
-  if (a - da < Math.round(sampleRate * 0.05)) return canali
-  return canali.map(ch => ch.subarray(da, a))
-}
-
-function rampaAnticlic(canali, sampleRate) {
-  const n = canali[0].length
-  const rampa = Math.round(sampleRate * 0.004)
-  if (n < rampa * 4) return canali
-  const bordo = Math.max(...canali.map(ch => Math.abs(ch[0])), ...canali.map(ch => Math.abs(ch[n - 1])))
-  if (bordo < 0.05) return canali
-  return canali.map(ch => {
-    const out = new Float32Array(ch)
-    for (let i = 0; i < rampa; i += 1) {
-      const t = i / rampa
-      out[i] *= t
-      out[n - 1 - i] *= t
-    }
-    return out
-  })
 }
 
 export function rifinisciCampioni(canali, sampleRate) {
@@ -170,5 +128,5 @@ export function rifinisciCampioni(canali, sampleRate) {
     for (let i = 0; i < n; i += 1) out[i] = limita(ch[i] * gain[i])
     return out
   })
-  return rampaAnticlic(tagliaSilenzio(amplificati, sampleRate), sampleRate)
+  return amplificati
 }

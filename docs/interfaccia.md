@@ -66,7 +66,7 @@ Fallback comune: senza codice in memoria le pagine mostrano `ChiediCodice`; dura
 | Percorso | `/percorso` | elenco cicli → 8 settimane |
 | Editor settimana | `/percorso/:id/settimana/:n` | lezione + esercizi formali/informali, `LibreriaTracce` (selettore traccia), dialoghi di modifica |
 | Libreria | `/libreria` | ricerca, griglia di `CardTracciaAudio`, azioni (ascolta, modifica, sostituisci, elimina), date creazione/modifica |
-| Genera | `/genera` | script → paragrafi, scelta modello/voce/velocità del parlato, volume allineato e fade tolti, pause, ascolto per paragrafo, salva in libreria |
+| Genera | `/genera` | script → paragrafi, scelta modello/voce/velocità del parlato, volume allineato, attacco e chiusura brevi, pause, ascolto per paragrafo, salva in libreria |
 | Avvisi | `/comunicazioni` | composizione comunicazione (ciclo / solo remoti), storico invii, card «Inattività · solo da remoto» |
 
 ## 3. Catalogo componenti (`src/components`)

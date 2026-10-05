@@ -51,6 +51,12 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 5/10/2026 · Attacco e chiusura morbidi (da Cursor)
+Il raddrizzamento del fade alzava il rumore in apertura, che diventava un sibilo,
+e lasciava la fine a volume pieno, quindi tagliata. Ora attacco e chiusura sono
+una rampa breve; il volume del parlato resta allineato tra i paragrafi.
+Nessuna modifica al database.
+
 ### 5/10/2026 · Volume uniforme e niente fade tra i paragrafi (da Cursor)
 Ogni paragrafo generato viene rifinito prima dell’ascolto e del file: si toglie il fade
 in apertura e in chiusura messo da ElevenLabs e il parlato va allo stesso volume,
