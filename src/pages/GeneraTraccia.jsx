@@ -78,6 +78,7 @@ export default function GeneraTraccia() {
   const [erroreVersione, setErroreVersione] = useState(0)
   const erroreNodo = useRef(null)
   const [avviso, setAvviso] = useState(null)
+  const [aggancioPerso, setAggancioPerso] = useState(false)
   const [occupato, setOccupato] = useState(null)
   const [avanzamento, setAvanzamento] = useState(null)
   const [inAscolto, setInAscolto] = useState(null)
@@ -212,14 +213,17 @@ export default function GeneraTraccia() {
     }
     const audioPezzi = []
     let requestId = ''
+    let agganciato = true
     const catena = precedenti.slice(-3)
-    for (const pezzo of pezzi) {
+    const dopo = String(lista[indice + 1]?.testo || '').trim()
+    for (let n = 0; n < pezzi.length; n += 1) {
       if (signal?.aborted) return null
       const risultato = await generaPezzo({
-        testo: pezzo,
+        testo: pezzi[n],
         voceId,
         modello: modelloId,
         precedenti: modello.aggancia ? catena : [],
+        successivo: modello.aggancia ? (pezzi[n + 1] || dopo) : '',
         seed,
         velocita,
         signal
@@ -231,6 +235,7 @@ export default function GeneraTraccia() {
         throw new Error('Non è stato possibile allineare il volume di questo paragrafo.')
       }
       audioPezzi.push(rifinito)
+      if (risultato.aggancioPerso) agganciato = false
       if (risultato.requestId) {
         catena.push(risultato.requestId)
         if (catena.length > 3) catena.shift()
@@ -240,6 +245,7 @@ export default function GeneraTraccia() {
     const audio = audioPezzi.length === 1
       ? audioPezzi[0]
       : await concatenaConPause(audioPezzi, [])
+    if (!agganciato) setAggancioPerso(true)
     return { audio, requestId }
   }
 
@@ -270,6 +276,7 @@ export default function GeneraTraccia() {
     rilasciaFile()
     setErrore(null)
     setAvviso(null)
+    setAggancioPerso(false)
     setOccupato(id)
     const controller = new AbortController()
     abortRef.current = controller
@@ -319,6 +326,7 @@ export default function GeneraTraccia() {
     rilasciaFile()
     setErrore(null)
     setAvviso(null)
+    setAggancioPerso(false)
     setOccupato('tutti')
     const controller = new AbortController()
     abortRef.current = controller
@@ -520,6 +528,11 @@ export default function GeneraTraccia() {
       {avviso && (
         <p className="disclaimer" role="status">
           {avviso} <Link to="/libreria">Apri la libreria</Link>
+        </p>
+      )}
+      {aggancioPerso && (
+        <p className="disclaimer" role="status">
+          ElevenLabs non ha accettato l’aggancio con i paragrafi vicini: in almeno un paragrafo il tono può cambiare. Rigeneralo per riprovare.
         </p>
       )}
 

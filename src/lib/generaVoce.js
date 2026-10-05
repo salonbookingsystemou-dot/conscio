@@ -148,7 +148,8 @@ async function chiama(corpo, signal) {
   }
   return {
     audio,
-    requestId: res.headers.get('x-request-id') || ''
+    requestId: res.headers.get('x-request-id') || '',
+    aggancioPerso: res.headers.get('x-aggancio-perso') === '1'
   }
 }
 
@@ -194,13 +195,14 @@ export async function elencaVociJson(signal) {
   return Array.isArray(payload?.voci) ? payload.voci : []
 }
 
-export function generaPezzo({ testo, voceId, modello, precedenti, seed, velocita, signal }) {
+export function generaPezzo({ testo, voceId, modello, precedenti, successivo, seed, velocita, signal }) {
   return chiama({
     azione: 'paragrafo',
     testo,
     voceId,
     modello,
     precedenti: precedenti || [],
+    successivo: successivo || '',
     seed,
     velocita: velocitaDi(velocita)
   }, signal)

@@ -8,7 +8,10 @@ const TETTO = 10 ** (-1 / 20)
 const BOOST_MAX = 10 ** (12 / 20)
 const HOP_S = 0.01
 const ATTACCO_S = 0.07
-const CODA_S = 0.03
+// Una voce da meditazione chiude piano: la coda dell'ultima vocale scende ben
+// sotto il livello del corpo. Soglia bassa e dissolvenza lunga per non tagliarla.
+const SOGLIA_FINE = 0.03
+const CODA_S = 0.18
 const GUARDIA_S = 0.02
 
 function passaAlto(samples, sampleRate) {
@@ -85,7 +88,7 @@ function guadagni(samples, sampleRate) {
 
     let fineParola = env.length - 1
     const limite = Math.max(0, env.length - 1 - margine)
-    while (fineParola > limite && env[fineParola] < corpo * 0.12) fineParola -= 1
+    while (fineParola > limite && env[fineParola] < corpo * SOGLIA_FINE) fineParola -= 1
     const coda = Math.round(sampleRate * (fineParola < env.length - 2 ? CODA_S : GUARDIA_S))
     const inizioCoda = Math.min(samples.length, (fineParola + 1) * hop)
     if (inizioCoda > fineAttacco + hop) {

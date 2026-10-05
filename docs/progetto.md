@@ -123,6 +123,15 @@ modello dati, funzioni con i loro inneschi, flussi chiave e deploy. Va aggiornat
 funzioni o servizi esterni. Corretto anche il README (base `./` e dominio `conscio.mnesti.it`).
 Nessuna modifica al codice né al database.
 
+### 5/10/2026 · Voce generata: coda, aggancio e accenti (da Claude Code)
+Tre correzioni a `/genera`. La rifinitura (`lib/audioVoce.js`) tagliava la coda dell'ultima parola:
+soglia di fine parlato dal 12% al 3% del livello del corpo, dissolvenza da 30 a 180 ms. Con
+Multilingual v2 e Flash ogni paragrafo riceve anche l'inizio del successivo (`next_text`), così non
+viene letto come la fine del testo; se ElevenLabs rifiuta l'aggancio la pagina lo segnala invece di
+proseguire in silenzio. Nuovo `_shared/pronuncia.ts`: parole a cui si forza l'accento tonico con
+l'accento grafico (es. «rilàssati»), da ampliare quando se ne sentono di sbagliate. V3 resta senza
+aggancio (limite di ElevenLabs). Nessuna modifica al database.
+
 ### 2/10/2026 · Data di modifica delle tracce (da Cursor)
 In libreria ogni traccia mostra creazione e modifica, con ora. Nuova colonna `tracce.aggiornato_il`
 (`supabase/migrazione_traccia_aggiornato_il.sql`): per le tracce già presenti coincide con la creazione;

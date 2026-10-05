@@ -3,11 +3,12 @@
 // Distribuisci: supabase functions deploy genera-voce
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { correggiPronuncia } from '../_shared/pronuncia.ts'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Expose-Headers': 'x-request-id'
+  'Access-Control-Expose-Headers': 'x-request-id, x-aggancio-perso'
 }
 
 const MODELLI = new Set([
@@ -124,7 +125,10 @@ async function elencaVoci(chiave: string) {
 }
 
 async function generaParagrafo(chiave: string, corpo: Record<string, unknown>) {
-  const testo = typeof corpo.testo === 'string' ? corpo.testo.trim() : ''
+  const testo = typeof corpo.testo === 'string' ? correggiPronuncia(corpo.testo.trim()) : ''
+  const successivo = typeof corpo.successivo === 'string'
+    ? inizioDi(correggiPronuncia(corpo.successivo.trim()), 400)
+    : ''
   const voceId = typeof corpo.voceId === 'string' ? corpo.voceId : ''
   const modello = typeof corpo.modello === 'string' ? corpo.modello : ''
   if (!testo) return json({ errore: 'TESTO_VUOTO', messaggio: 'Il paragrafo è vuoto.' }, 400)
@@ -178,11 +182,15 @@ async function generaParagrafo(chiave: string, corpo: Record<string, unknown>) {
       speed: velocita
     }
     if (precedenti.length) payload.previous_request_ids = precedenti
+    // Senza il seguito il modello legge ogni paragrafo come la fine del testo:
+    // cadenza conclusiva e ultima parola che sembra troncata.
+    if (successivo) payload.next_text = successivo
   }
   if (seed != null) payload.seed = seed
 
   const url = `https://api.elevenlabs.io/v1/text-to-speech/${voceId}?output_format=mp3_44100_128`
-  const res = await inviaConRipiego(chiave, url, payload)
+  const stato = { aggancioPerso: false }
+  const res = await inviaConRipiego(chiave, url, payload, stato)
   if (!res.ok) {
     const { body } = await leggiErrore(res)
     const status = res.status === 401 || res.status === 429 ? res.status : 502
@@ -196,7 +204,8 @@ async function generaParagrafo(chiave: string, corpo: Record<string, unknown>) {
     headers: {
       ...cors,
       'Content-Type': 'audio/mpeg',
-      'x-request-id': requestId
+      'x-request-id': requestId,
+      'x-aggancio-perso': stato.aggancioPerso ? '1' : '0'
     }
   })
 }
@@ -210,15 +219,30 @@ function leggiVelocita(grezzo: unknown): { ok: true, valore: number } | { ok: fa
   return { ok: true, valore: arrotondata }
 }
 
-async function inviaConRipiego(chiave: string, url: string, payload: Record<string, unknown>) {
+function inizioDi(testo: string, max: number) {
+  if (testo.length <= max) return testo
+  const taglio = testo.lastIndexOf(' ', max)
+  return testo.slice(0, taglio > max * 0.5 ? taglio : max)
+}
+
+type Stato = { aggancioPerso: boolean }
+
+async function inviaConRipiego(
+  chiave: string,
+  url: string,
+  payload: Record<string, unknown>,
+  stato: Stato
+): Promise<Response> {
   const res = await invia(chiave, url, payload)
   if (res.ok || res.status !== 400) return res
   const { testo, body } = await leggiErrore(res)
   const msg = `${testo} ${JSON.stringify(body || {})}`.toLowerCase()
   const prossimo: Record<string, unknown> = { ...payload }
   let cambiato = false
-  if (/previous_request|previous_text|next_text/.test(msg) && prossimo.previous_request_ids) {
+  if (/previous_request|previous_text|next_text/.test(msg) && (prossimo.previous_request_ids || prossimo.next_text)) {
     delete prossimo.previous_request_ids
+    delete prossimo.next_text
+    stato.aggancioPerso = true
     cambiato = true
   }
   if (/\bseed\b/.test(msg) && prossimo.seed != null) {
@@ -248,17 +272,19 @@ async function inviaConRipiego(chiave: string, url: string, payload: Record<stri
   }
   const haAltriCampi = payload.seed != null
     || Boolean(payload.previous_request_ids)
+    || Boolean(payload.next_text)
     || Boolean(payload.language_code)
     || (settingsObj != null && Object.keys(settingsObj).some(k => k !== 'speed'))
   if (!cambiato && haAltriCampi) {
     const ridotto: Record<string, unknown> = { text: payload.text, model_id: payload.model_id }
     if (velocitaRichiesta != null) ridotto.voice_settings = { speed: velocitaRichiesta }
-    return inviaConRipiego(chiave, url, ridotto)
+    if (payload.previous_request_ids || payload.next_text) stato.aggancioPerso = true
+    return inviaConRipiego(chiave, url, ridotto, stato)
   }
   if (!cambiato) {
     return new Response(testo, { status: 400, headers: { 'Content-Type': 'application/json' } })
   }
-  return inviaConRipiego(chiave, url, prossimo)
+  return inviaConRipiego(chiave, url, prossimo, stato)
 }
 
 function invia(chiave: string, url: string, payload: Record<string, unknown>) {
