@@ -35,6 +35,11 @@ function paragrafoVuoto(pausaDopo) {
   }
 }
 
+function vocePredefinita(lista) {
+  const dimitri = lista.find(v => v.nome.trim().toLowerCase() === 'dimitri grassi')
+  return (dimitri || lista.find(v => v.italiana) || lista[0])?.id || ''
+}
+
 function compatibile(paragrafo, modelloId, voceId) {
   return Boolean(
     paragrafo.audio
@@ -110,7 +115,7 @@ export default function GeneraTraccia() {
       .then(lista => {
         setVoci(lista)
         setVociPronte(true)
-        setVoceId(corrente => corrente || lista.find(v => v.italiana)?.id || lista[0]?.id || '')
+        setVoceId(corrente => corrente || vocePredefinita(lista))
       })
       .catch(err => {
         if (err?.name === 'AbortError') return

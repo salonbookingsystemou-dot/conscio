@@ -51,6 +51,10 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 6/10/2026 · Voce predefinita Dimitri Grassi (da Cursor)
+All’apertura di `/genera` la voce selezionata è Dimitri Grassi. Se non è nell’account,
+resta la prima voce italiana. Nessuna modifica al database.
+
 ### 6/10/2026 · Eleven v4 nel generatore di voce (da Cursor)
 In `/genera` si può scegliere v4 (`eleven_v4`). Segue il percorso di Multilingual v2:
 stesse impostazioni di voce, aggancio con `previous_request_ids` e `next_text`.
