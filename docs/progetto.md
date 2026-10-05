@@ -51,6 +51,11 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 5/10/2026 · L’ultima parola non viene coperta dalla chiusura (da Cursor)
+La rampa di chiusura partiva quando il volume era ancora alto, e le ultime lettere
+dell’ultima parola non si sentivano. Ora parte solo a parlato già finito.
+Nessuna modifica al database.
+
 ### 5/10/2026 · Attacco e chiusura morbidi (da Cursor)
 Il raddrizzamento del fade alzava il rumore in apertura, che diventava un sibilo,
 e lasciava la fine a volume pieno, quindi tagliata. Ora attacco e chiusura sono

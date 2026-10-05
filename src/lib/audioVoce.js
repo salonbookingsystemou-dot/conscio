@@ -1,14 +1,14 @@
 // Rifinisce il parlato di un paragrafo, in campioni già decodificati.
-// Il volume del corpo della frase va allo stesso livello. Il fade lungo di
-// ElevenLabs non si raddrizza (diventerebbe un sibilo in attacco e un taglio
-// in coda): al suo posto restano un attacco e una chiusura brevi.
+// Il volume del corpo della frase va allo stesso livello. In apertura il fade
+// lungo non si raddrizza. In chiusura la parola resta com’è: la rampa parte
+// solo quando il parlato è già sceso, così le ultime lettere si sentono.
 
 const OBIETTIVO = 10 ** (-18 / 20)
 const TETTO = 10 ** (-1 / 20)
 const BOOST_MAX = 10 ** (12 / 20)
 const HOP_S = 0.01
 const ATTACCO_S = 0.07
-const CODA_S = 0.16
+const CODA_S = 0.03
 const GUARDIA_S = 0.02
 
 function passaAlto(samples, sampleRate) {
@@ -83,11 +83,11 @@ function guadagni(samples, sampleRate) {
       gain[i] = curva((i - inizioAttacco) / Math.max(1, fineAttacco - inizioAttacco))
     }
 
-    let uscita = env.length - 1
-    const limite = env.length - 1 - margine
-    while (uscita > limite && env[uscita] < corpo * 0.82) uscita -= 1
-    const coda = Math.round(sampleRate * (uscita < env.length - 2 ? CODA_S : GUARDIA_S))
-    const inizioCoda = Math.min(samples.length, (uscita + 1) * hop)
+    let fineParola = env.length - 1
+    const limite = Math.max(0, env.length - 1 - margine)
+    while (fineParola > limite && env[fineParola] < corpo * 0.12) fineParola -= 1
+    const coda = Math.round(sampleRate * (fineParola < env.length - 2 ? CODA_S : GUARDIA_S))
+    const inizioCoda = Math.min(samples.length, (fineParola + 1) * hop)
     if (inizioCoda > fineAttacco + hop) {
       const fineCoda = Math.min(samples.length, inizioCoda + coda)
       for (let i = inizioCoda; i < fineCoda; i += 1) {

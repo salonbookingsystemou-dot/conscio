@@ -610,7 +610,7 @@ export default function GeneraTraccia() {
         <p className="genera-nota">
           {modello.nota} Le pause sono silenzio aggiunto qui e non consumano crediti.
           Il campione della voce si ascolta alla velocità scelta.
-          Ogni paragrafo esce col volume allineato, con un attacco e una chiusura brevi.
+          Ogni paragrafo esce col volume allineato. La chiusura non copre l’ultima parola.
           Nel file entra solo quando generi: i paragrafi già fatti restano com’erano finché non li rigeneri.
         </p>
         <div className="genera-strumenti">
