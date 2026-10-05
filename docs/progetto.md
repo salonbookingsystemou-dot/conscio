@@ -51,6 +51,14 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 5/10/2026 · Email dopo tre giorni senza ascolto (da Cursor)
+Ogni mattina, chi è dentro un percorso aperto e non ha una meditazione ascoltata per
+intero da tre giorni di fila riceve un’email. Il giorno in corso non conta. Una sola
+volta per pausa: se riprende e si ferma di nuovo, ne arriva un’altra.
+Tabella `promemoria_pausa` e funzione `candidati_pausa_pratica`
+(`supabase/migrazione_promemoria_pausa.sql`), edge function `promemoria-pausa`,
+cron GitHub alle 07:15 UTC. La data dell’invio entra in informativa, export e reset.
+
 ### 5/10/2026 · L’ultima parola non viene coperta dalla chiusura (da Cursor)
 La rampa di chiusura partiva quando il volume era ancora alto, e le ultime lettere
 dell’ultima parola non si sentivano. Ora parte solo a parlato già finito.

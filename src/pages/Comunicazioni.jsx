@@ -145,20 +145,33 @@ export default function Comunicazioni() {
   const [invioInattivita, setInvioInattivita] = useState(false)
   const [msgInattivita, setMsgInattivita] = useState(null)
   const [errInattivita, setErrInattivita] = useState(null)
+  const [pause, setPause] = useState([])
+  const [candidatiPausa, setCandidatiPausa] = useState([])
+  const [invioPausa, setInvioPausa] = useState(false)
+  const [msgPausa, setMsgPausa] = useState(null)
+  const [errPausa, setErrPausa] = useState(null)
+  const [errLetturaPausa, setErrLetturaPausa] = useState(null)
 
   async function carica() {
-    const [cicliRes, comRes, notRes, candRes, ritRes] = await Promise.all([
+    const [cicliRes, comRes, notRes, candRes, ritRes, pausaRes, candPausaRes] = await Promise.all([
       supabase.from('cicli').select('id, nome_ciclo, stato').order('data_inizio', { ascending: false }),
       supabase.from('comunicazioni').select('id, tipo, destinatari, oggetto, testo, data_invio, stato, ciclo_id, cicli(nome_ciclo)').order('data_invio', { ascending: false }),
       supabase.from('notifiche_inattivita').select('id, tipo, inviata_il, utenti(codice_partecipante)').order('inviata_il', { ascending: false }),
       supabase.rpc('candidati_inattivita_remoto'),
-      supabase.rpc('candidati_ritiro_inattivita')
+      supabase.rpc('candidati_ritiro_inattivita'),
+      supabase.from('promemoria_pausa').select('id, riferimento, inviata_il, utenti(codice_partecipante)').order('inviata_il', { ascending: false }),
+      supabase.rpc('candidati_pausa_pratica')
     ])
     setCicli(cicliRes.data || [])
     setLista(comRes.data || [])
     setInattivita(notRes.error ? [] : (notRes.data || []))
     setCandidati(candRes.error ? [] : (candRes.data || []))
     setRitiri(ritRes.error ? [] : (ritRes.data || []))
+    setPause(pausaRes.error ? [] : (pausaRes.data || []))
+    setCandidatiPausa(candPausaRes.error ? [] : (candPausaRes.data || []))
+    setErrLetturaPausa(pausaRes.error || candPausaRes.error
+      ? 'Non è stato possibile leggere le pause di pratica.'
+      : null)
     if (cicliRes.data?.[0] && !form.ciclo_id && !modificaId) {
       setForm(f => (f.ciclo_id ? f : { ...f, ciclo_id: cicliRes.data[0].id }))
     }
@@ -374,6 +387,29 @@ export default function Comunicazioni() {
     carica()
   }
 
+  async function eseguiPausa() {
+    setErrPausa(null)
+    setMsgPausa(null)
+    setInvioPausa(true)
+    const { data: esito, error: errFn } = await supabase.functions.invoke('promemoria-pausa', {
+      body: {}
+    })
+    if (errFn) {
+      setErrPausa('Il controllo non è partito. Riprova tra un momento.')
+    } else if (esito?.motivo === 'RESEND_NON_CONFIGURATO') {
+      setMsgPausa(`Trovate ${esito.n_previsti ?? 0} persone, ma manca il secret RESEND_API_KEY.`)
+    } else if (esito?.error === 'NON_AUTORIZZATO') {
+      setErrPausa('Non autorizzato a inviare i promemoria automatici.')
+    } else if (esito?.ok) {
+      const n = esito.n_inviate ?? 0
+      setMsgPausa(n === 0 ? 'Nessuna nuova email di pausa.' : `Inviate ${n} email di pausa.`)
+    } else {
+      setErrPausa(esito?.errore || 'L’invio delle email di pausa non è andato a buon fine.')
+    }
+    setInvioPausa(false)
+    carica()
+  }
+
   const daGestire = useMemo(() => lista.filter(eModificabile), [lista])
   const inviate = useMemo(() => lista.filter(c => !eModificabile(c)), [lista])
 
@@ -541,6 +577,44 @@ export default function Comunicazioni() {
                 {n.utenti?.codice_partecipante || '—'}
                 {' · '}
                 {ETICHETTE_INATTIVITA[n.tipo] || n.tipo}
+                {' · '}
+                {n.inviata_il ? new Date(n.inviata_il).toLocaleDateString('it-IT') : ''}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="card">
+        <h3>Pausa di pratica</h3>
+        <p className="disclaimer">
+          Se per tre giorni di fila non risulta una meditazione ascoltata per intero,
+          parte un’email. Vale per chi è dentro un percorso aperto. Il giorno in corso
+          non conta. Ogni pausa riceve una sola email; se la persona riprende e si
+          ferma di nuovo, ne arriva un’altra. Una copia con i soli codici arriva a
+          contact@wordpresschef.it.
+        </p>
+        {errLetturaPausa
+          ? <p className="campo-errore" role="alert">{errLetturaPausa}</p>
+          : (
+            <p className="hint">
+              {candidatiPausa.length === 0
+                ? 'Nessuna persona in attesa di questa email.'
+                : `${candidatiPausa.length} ${candidatiPausa.length === 1 ? 'persona in attesa' : 'persone in attesa'}.`}
+            </p>
+          )}
+        <div className="azioni">
+          <button className="btn" type="button" disabled={invioPausa} onClick={eseguiPausa}>
+            {invioPausa ? 'Controllo in corso…' : 'Controlla e invia ora'}
+          </button>
+        </div>
+        {msgPausa && <p>{msgPausa}</p>}
+        {errPausa && <p className="campo-errore" role="alert">{errPausa}</p>}
+        {pause.length > 0 && (
+          <ul className="hint">
+            {pause.map(n => (
+              <li key={n.id}>
+                {n.utenti?.codice_partecipante || '—'}
                 {' · '}
                 {n.inviata_il ? new Date(n.inviata_il).toLocaleDateString('it-IT') : ''}
               </li>

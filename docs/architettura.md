@@ -40,7 +40,7 @@ flowchart LR
   EF --> RS
   EF --> EL
   GH -->|"build → GitHub Pages"| Client
-  GH -->|"cron 07:00 / 07:30 UTC"| EF
+  GH -->|"cron 07:00 / 07:15 / 07:30 UTC"| EF
 ```
 
 ## 2. Frontend
@@ -86,6 +86,7 @@ erDiagram
   cicli ||--o{ comunicazioni : ""
   utenti ||--o{ notifiche_inattivita : ""
   utenti ||--o{ promemoria_questionari : ""
+  utenti ||--o{ promemoria_pausa : ""
   quotes ||--o{ quote_sent_log : ""
 ```
 
@@ -96,7 +97,7 @@ erDiagram
 | Contenuti | `tracce`, `lezioni`, `esercizi` |
 | Dati di pratica | `log_pratica`, `checkin_settimanali` |
 | Misure | `questionari`, `item`, `risposte` (PSS-10, FFMQ-I · T0–T3) |
-| Comunicazione | `comunicazioni`, `notifiche_inattivita`, `promemoria_questionari`, `quotes`, `quote_sent_log` |
+| Comunicazione | `comunicazioni`, `notifiche_inattivita`, `promemoria_questionari`, `promemoria_pausa`, `quotes`, `quote_sent_log` |
 | Sistema | `limiti_richieste` (tetti per IP hashato), `splash_sito`, `backfill_collegamenti_tracce` |
 
 **Accesso:** nessuna tabella è leggibile dal client anonimo. Il partecipante passa solo da RPC `security definer` con `p_codice` (es. `programma_del_partecipante`, `registra_ascolto_formale`, `salva_risposte_questionario`, `salva_checkin`, `esporta_dati_del_partecipante`, `resetta_dati_del_partecipante`). Il facilitatore (`is_facilitatore()`) legge tabelle via RLS e usa RPC pseudonime (`risposte_pseudonime`, `log_pratica_pseudonimi`, `segnalazioni_difficili_aperte`).
@@ -113,6 +114,7 @@ Lo schema vive in `supabase/schema.sql` + ~45 `migrazione_*.sql` (l'ultimo file 
 | `avvisa-segnalazione-checkin` | trigger su `checkin_settimanali` | avviso al facilitatore (solo codice e settimana) | Resend |
 | `notifica-inattivita` | cron GitHub 07:00 UTC / bottone facilitatore | avvisi e ritiro iscritti remoti inattivi (15+15 gg) | Resend |
 | `promemoria-questionari` | cron GitHub 07:30 UTC | promemoria T3 (apertura e −7 gg) | Resend |
+| `promemoria-pausa` | cron GitHub 07:15 UTC / bottone facilitatore | email a chi non ascolta una traccia da tre giorni di fila | Resend |
 | `genera-voce` | facilitatore (`/genera`) | sintesi vocale delle tracce | ElevenLabs |
 
 Condivisi in `functions/_shared/`: stile e firma email, testo di incoraggiamento, curiosità mindfulness.

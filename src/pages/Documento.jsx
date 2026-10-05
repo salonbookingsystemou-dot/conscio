@@ -105,6 +105,11 @@ function Informativa() {
           è facoltativo e richiede un consenso esplicito a parte, che chiediamo in app prima
           della prima compilazione;
         </li>
+        <li>
+          promemoria di pausa: se per tre giorni di fila non risulta una meditazione
+          ascoltata per intero, ti scriviamo. Conserviamo la data dell’invio e il giorno
+          a cui si riferisce, per non riscriverti per la stessa pausa;
+        </li>
         <li>eventuali materiali di documentazione social, solo con Modulo B;</li>
         <li>
           segnalazioni di problemi dell’app, solo se decidi di inviarne una: il testo che
@@ -229,7 +234,8 @@ function Diritti() {
       </ol>
       <p>
         Il file contiene email (se ancora presente), consensi, iscrizioni, item e
-        valori dei questionari, note di pratica, check-in settimanali. Non contiene dati di altri.
+        valori dei questionari, note di pratica, check-in settimanali e le date dei
+        promemoria di pausa. Non contiene dati di altri.
       </p>
 
       <h3>3. Correzione, limitazione, opposizione, revoca</h3>

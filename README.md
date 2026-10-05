@@ -109,6 +109,18 @@ Promemoria T3 all’apertura (fine + 28 giorni) e 7 giorni prima della chiusura:
 
 Ogni promemoria parte una sola volta per persona e percorso, e non a chi ha già compilato T3. Migrazione e deploy sono già fatti in produzione; il workflow parte dopo il push su `main`.
 
+## Pausa di pratica (tre giorni senza ascolto)
+
+Per chi è dentro un percorso aperto (ciclo di gruppo, oppure orologio personale da remoto), un controllo ogni mattina:
+
+- non risulta nessuna meditazione ascoltata per intero (`log_pratica.tipo = 'ascolto'`) nei tre giorni precedenti;
+- il giorno in corso non conta, perché si può ancora praticare;
+- una sola email per pausa. Se la persona riprende e poi si ferma di nuovo, ne arriva un’altra.
+
+L’oggetto è «Se senti di doverti fermare, lascia semplicemente che sia così». Una copia riassuntiva (solo codici) arriva a `contact@wordpresschef.it`.
+
+Migrazione e funzione sono già in produzione (5/10/2026). L’invio del mattino è il workflow `.github/workflows/promemoria-pausa.yml` (07:15 UTC) e parte dopo il push su `main`. Dalla pagina Avvisi il facilitatore può anche premere «Controlla e invia ora» nella card Pausa di pratica.
+
 ## Protezione accessi (porta)
 
 Entra, Iscrizione, recupero codice e Accedi facilitatore passano dall’edge function `porta` (tetto tentativi per IP hashato).
