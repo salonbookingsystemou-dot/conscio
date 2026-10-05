@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { concatenaConPause, durataMp3 } from '../lib/audioMp3'
+import { rifinisciMp3 } from '../lib/rifinisciVoce'
 import {
   MODELLI,
   dividiScript,
@@ -211,7 +212,13 @@ export default function GeneraTraccia() {
         velocita,
         signal
       })
-      audioPezzi.push(risultato.audio)
+      let rifinito
+      try {
+        rifinito = await rifinisciMp3(risultato.audio)
+      } catch {
+        throw new Error('Non è stato possibile allineare il volume di questo paragrafo.')
+      }
+      audioPezzi.push(rifinito)
       if (risultato.requestId) {
         catena.push(risultato.requestId)
         if (catena.length > 3) catena.shift()
@@ -603,6 +610,7 @@ export default function GeneraTraccia() {
         <p className="genera-nota">
           {modello.nota} Le pause sono silenzio aggiunto qui e non consumano crediti.
           Il campione della voce si ascolta alla velocità scelta.
+          Ogni paragrafo esce col volume allineato e senza fade in apertura e in chiusura.
           Nel file entra solo quando generi: i paragrafi già fatti restano com’erano finché non li rigeneri.
         </p>
         <div className="genera-strumenti">

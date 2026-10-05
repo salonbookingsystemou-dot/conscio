@@ -51,6 +51,12 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 5/10/2026 · Volume uniforme e niente fade tra i paragrafi (da Cursor)
+Ogni paragrafo generato viene rifinito prima dell’ascolto e del file: si toglie il fade
+in apertura e in chiusura messo da ElevenLabs e il parlato va allo stesso volume,
+così unendo i paragrafi non si sente un salto. Il parlato è ricodificato una volta
+(MP3 44,1 kHz, 192 kb/s). Nessuna modifica al database e nessun dato nuovo dei partecipanti.
+
 ### 4/10/2026 · Velocità del parlato nel generatore (da Cursor)
 Sulla pagina `/genera` un cursore imposta la velocità del parlato, da 0,70 a 1,20
 (1,00 è il ritmo della voce). ElevenLabs la applica in generazione; i paragrafi già fatti
