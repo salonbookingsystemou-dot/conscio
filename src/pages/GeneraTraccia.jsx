@@ -75,6 +75,8 @@ export default function GeneraTraccia() {
   const [paragrafi, setParagrafi] = useState([])
   const [confermaDividi, setConfermaDividi] = useState(false)
   const [errore, setErrore] = useState(null)
+  const [erroreVersione, setErroreVersione] = useState(0)
+  const erroreNodo = useRef(null)
   const [avviso, setAvviso] = useState(null)
   const [occupato, setOccupato] = useState(null)
   const [avanzamento, setAvanzamento] = useState(null)
@@ -111,10 +113,20 @@ export default function GeneraTraccia() {
       .catch(err => {
         if (err?.name === 'AbortError') return
         setVociPronte(true)
-        setErrore(err?.message || 'Non è stato possibile leggere le voci.')
+        mostraErrore(err?.message || 'Non è stato possibile leggere le voci.')
       })
     return () => controller.abort()
   }, [])
+
+  function mostraErrore(testo) {
+    setErrore(testo)
+    setErroreVersione(n => n + 1)
+  }
+
+  useEffect(() => {
+    if (!errore) return
+    erroreNodo.current?.scrollIntoView({ block: 'center' })
+  }, [errore, erroreVersione])
 
   useEffect(() => () => {
     ascoltoRef.current?.abort()
@@ -161,7 +173,7 @@ export default function GeneraTraccia() {
   function applicaDivisione() {
     const blocchi = dividiScript(script)
     if (blocchi.length === 0) {
-      setErrore('Incolla lo script. Una riga vuota separa i paragrafi.')
+      mostraErrore('Incolla lo script. Una riga vuota separa i paragrafi.')
       return
     }
     fermaAscolto()
@@ -265,7 +277,7 @@ export default function GeneraTraccia() {
       const risultato = await generaUno(paragrafi, id, controller.signal)
       if (risultato) setParagrafi(applicaGenerato(paragrafi, id, risultato))
     } catch (err) {
-      if (err?.name !== 'AbortError') setErrore(err?.message || 'Non è stato possibile generare l’audio.')
+      if (err?.name !== 'AbortError') mostraErrore(err?.message || 'Non è stato possibile generare l’audio.')
     } finally {
       if (abortRef.current === controller) abortRef.current = null
       setOccupato(null)
@@ -320,7 +332,7 @@ export default function GeneraTraccia() {
         setParagrafi(lista)
       }
     } catch (err) {
-      if (err?.name !== 'AbortError') setErrore(err?.message || 'Non è stato possibile generare l’audio.')
+      if (err?.name !== 'AbortError') mostraErrore(err?.message || 'Non è stato possibile generare l’audio.')
     } finally {
       setAvanzamento(null)
       if (abortRef.current === controller) abortRef.current = null
@@ -385,7 +397,7 @@ export default function GeneraTraccia() {
         const paragrafo = paragrafi[i]
         if (!String(paragrafo.testo || '').trim()) continue
         if (!compatibile(paragrafo, modelloId, voceId)) {
-          setErrore(`Il paragrafo ${i + 1} non è ancora generato con questo modello e questa voce.`)
+          mostraErrore(`Il paragrafo ${i + 1} non è ancora generato con questo modello e questa voce.`)
           return
         }
         setInAscolto({ id: paragrafo.id, pausa: false })
@@ -400,7 +412,7 @@ export default function GeneraTraccia() {
         }
       }
     } catch (err) {
-      if (err?.name !== 'AbortError') setErrore(err?.message || 'Non riesco a riprodurre l’anteprima.')
+      if (err?.name !== 'AbortError') mostraErrore(err?.message || 'Non riesco a riprodurre l’anteprima.')
     } finally {
       if (ascoltoRef.current === controller) {
         ascoltoRef.current = null
@@ -422,12 +434,12 @@ export default function GeneraTraccia() {
     }
     audioRef.current = audio
     campioneRef.current = audio
-    audio.play().catch(() => setErrore('Non riesco a riprodurre il campione della voce.'))
+    audio.play().catch(() => mostraErrore('Non riesco a riprodurre il campione della voce.'))
   }
 
   async function preparaFile() {
     if (daFare.length > 0) {
-      setErrore('Genera tutti i paragrafi con il modello e la voce scelti prima di preparare il file.')
+      mostraErrore('Genera tutti i paragrafi con il modello e la voce scelti prima di preparare il file.')
       return
     }
     fermaAscolto()
@@ -441,7 +453,7 @@ export default function GeneraTraccia() {
       )
       const blob = new Blob([bytes], { type: 'audio/mpeg' })
       if (blob.size > AUDIO_MAX) {
-        setErrore('Il file supera i 50 MB della libreria. Accorcia le pause o dividi lo script in due tracce.')
+        mostraErrore('Il file supera i 50 MB della libreria. Accorcia le pause o dividi lo script in due tracce.')
         return
       }
       rilasciaFile()
@@ -455,7 +467,7 @@ export default function GeneraTraccia() {
         obsoleti: conTesto.some(p => p.obsoleto)
       })
     } catch {
-      setErrore('Non è stato possibile unire i paragrafi in un unico file.')
+      mostraErrore('Non è stato possibile unire i paragrafi in un unico file.')
     } finally {
       setOccupato(null)
     }
@@ -465,7 +477,7 @@ export default function GeneraTraccia() {
     if (!file?.blob) return
     const nome = titolo.trim()
     if (!nome) {
-      setErrore('Scrivi il titolo con cui la traccia compare in libreria.')
+      mostraErrore('Scrivi il titolo con cui la traccia compare in libreria.')
       return
     }
     setErrore(null)
@@ -478,7 +490,7 @@ export default function GeneraTraccia() {
       await creaTraccia(mp3, { titolo: nome, descrizione, durataMinuti: minuti })
       setAvviso('Traccia salvata in libreria.')
     } catch (err) {
-      setErrore(messaggioErroreTraccia(err))
+      mostraErrore(messaggioErroreTraccia(err))
     } finally {
       setOccupato(null)
     }
@@ -504,7 +516,7 @@ export default function GeneraTraccia() {
         </p>
       </header>
 
-      {errore && <p className="avviso-errore" role="alert">{errore}</p>}
+      {errore && <p ref={erroreNodo} className="avviso-errore" role="alert">{errore}</p>}
       {avviso && (
         <p className="disclaimer" role="status">
           {avviso} <Link to="/libreria">Apri la libreria</Link>

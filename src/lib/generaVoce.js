@@ -15,7 +15,7 @@ export const MODELLI = [
     creditiPerCarattere: 1,
     aggancia: false,
     max: 4500,
-    nota: 'Più espressivo. Ogni paragrafo è una generazione a sé: tra uno e l’altro può sentirsi un salto. Un carattere, un credito.'
+    nota: 'Registro stabile, lo stesso da un paragrafo all’altro. Le pause restano silenzio aggiunto qui. Un carattere, un credito.'
   },
   {
     id: 'eleven_flash_v2_5',

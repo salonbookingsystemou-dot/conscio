@@ -51,6 +51,11 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 5/10/2026 · V3 tiene lo stesso registro tra i paragrafi (da Cursor)
+V3 non può agganciare una richiesta alla precedente, e ogni paragrafo ripartiva
+con un tono diverso. Ora la generazione usa il registro stabile. I paragrafi già
+fatti restano com’erano finché non si rigenerano. Funzione `genera-voce` ridistribuita.
+
 ### 5/10/2026 · Email dopo tre giorni senza ascolto (da Cursor)
 Ogni mattina, chi è dentro un percorso aperto e non ha una meditazione ascoltata per
 intero da tre giorni di fila riceve un’email. Il giorno in corso non conta. Una sola

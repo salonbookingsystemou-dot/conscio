@@ -23,6 +23,15 @@ function json(body: unknown, status = 200) {
   })
 }
 
+function messaggioQuota(message: unknown): string {
+  const testo = typeof message === 'string' ? message : ''
+  const trovato = testo.match(/quota of (\d+)\. You have (\d+) credits remaining/i)
+  if (!trovato) return 'Crediti ElevenLabs esauriti.'
+  const quota = Number(trovato[1]).toLocaleString('it-IT')
+  const restano = Number(trovato[2]).toLocaleString('it-IT')
+  return `Ne restano ${restano} su ${quota}. Il numero nell’account è la quota del periodo, già usata.`
+}
+
 function messaggioEleven(body: unknown, status: number) {
   if (body && typeof body === 'object') {
     const rec = body as {
@@ -33,7 +42,7 @@ function messaggioEleven(body: unknown, status: number) {
     if (typeof detail === 'string' && detail.trim()) return detail
     if (detail && typeof detail === 'object') {
       const stato = typeof detail.status === 'string' ? detail.status : ''
-      if (stato === 'quota_exceeded') return 'Crediti ElevenLabs esauriti.'
+      if (stato === 'quota_exceeded') return messaggioQuota(detail.message)
       if (stato === 'voice_not_found') return 'Questa voce non è nel tuo account ElevenLabs.'
       if (typeof detail.message === 'string' && detail.message.trim()) return detail.message
     }
@@ -153,7 +162,14 @@ async function generaParagrafo(chiave: string, corpo: Record<string, unknown>) {
     model_id: modello,
     language_code: 'it'
   }
-  if (modello !== 'eleven_v3') {
+  if (modello === 'eleven_v3') {
+    // V3 non accetta l’aggancio tra richieste: senza un registro fisso ogni
+    // paragrafo riparte con un tono diverso. 1 è il registro stabile.
+    payload.voice_settings = {
+      stability: 1,
+      speed: velocita
+    }
+  } else {
     payload.voice_settings = {
       stability: 0.62,
       similarity_boost: 0.8,
@@ -162,8 +178,6 @@ async function generaParagrafo(chiave: string, corpo: Record<string, unknown>) {
       speed: velocita
     }
     if (precedenti.length) payload.previous_request_ids = precedenti
-  } else if (velocita !== 1) {
-    payload.voice_settings = { speed: velocita }
   }
   if (seed != null) payload.seed = seed
 
