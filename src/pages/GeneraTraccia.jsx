@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { concatenaConPause, durataMp3 } from '../lib/audioMp3'
-import { rifinisciMp3 } from '../lib/rifinisciVoce'
+import { durataMp3 } from '../lib/audioMp3'
+import { rifinisciVoce, unisciPcm, wavDa } from '../lib/rifinisciVoce'
+import { preparaMp3 } from '../lib/tracciaFinale'
 import {
   MODELLI,
   dividiScript,
@@ -230,9 +231,9 @@ export default function GeneraTraccia() {
       })
       let rifinito
       try {
-        rifinito = await rifinisciMp3(risultato.audio)
+        rifinito = await rifinisciVoce(risultato.audio, risultato.formato)
       } catch {
-        throw new Error('Non è stato possibile allineare il volume di questo paragrafo.')
+        throw new Error('Non è stato possibile leggere l’audio di questo paragrafo.')
       }
       audioPezzi.push(rifinito)
       if (risultato.aggancioPerso) agganciato = false
@@ -244,7 +245,7 @@ export default function GeneraTraccia() {
     }
     const audio = audioPezzi.length === 1
       ? audioPezzi[0]
-      : await concatenaConPause(audioPezzi, [])
+      : unisciPcm(audioPezzi)
     if (!agganciato) setAggancioPerso(true)
     return { audio, requestId }
   }
@@ -352,9 +353,9 @@ export default function GeneraTraccia() {
     abortRef.current?.abort()
   }
 
-  function riproduci(bytes, signal) {
+  function riproduci(pcm, signal) {
     return new Promise((resolve, reject) => {
-      const url = URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' }))
+      const url = URL.createObjectURL(wavDa(pcm))
       const audio = new Audio(url)
       audioRef.current = audio
       let chiuso = false
@@ -455,10 +456,10 @@ export default function GeneraTraccia() {
     setOccupato('file')
     try {
       const conTesto = paragrafi.filter(p => String(p.testo || '').trim())
-      const bytes = await concatenaConPause(
-        conTesto.map(p => p.audio),
-        conTesto.map(p => normalizzaPausa(p.pausaDopo))
-      )
+      const bytes = await preparaMp3(conTesto.map(p => ({
+        pcm: p.audio,
+        pausaDopo: normalizzaPausa(p.pausaDopo)
+      })))
       const blob = new Blob([bytes], { type: 'audio/mpeg' })
       if (blob.size > AUDIO_MAX) {
         mostraErrore('Il file supera i 50 MB della libreria. Accorcia le pause o dividi lo script in due tracce.')

@@ -1,11 +1,9 @@
 // Rifinisce il parlato di un paragrafo, in campioni già decodificati.
-// Il volume del corpo della frase va allo stesso livello. In apertura il fade
-// lungo non si raddrizza. In chiusura la parola resta com’è: la rampa parte
-// solo quando il parlato è già sceso, così le ultime lettere si sentono.
+// Toglie solo il fade lungo in apertura e il rumore dopo l'ultima parola.
+// In chiusura la parola resta com’è: la rampa parte solo quando il parlato è
+// già sceso, così le ultime lettere si sentono. Il volume si regola sulla
+// traccia intera, non qui (lib/tracciaFinale.js).
 
-const OBIETTIVO = 10 ** (-18 / 20)
-const TETTO = 10 ** (-1 / 20)
-const BOOST_MAX = 10 ** (12 / 20)
 const HOP_S = 0.01
 const ATTACCO_S = 0.07
 // Una voce da meditazione chiude piano: la coda dell'ultima vocale scende ben
@@ -99,19 +97,7 @@ function guadagni(samples, sampleRate) {
       for (let i = fineCoda; i < samples.length; i += 1) gain[i] = 0
     }
   }
-  let globale = corpo > 1e-5 ? OBIETTIVO / corpo : 1
-  if (globale > BOOST_MAX) globale = BOOST_MAX
-  for (let i = 0; i < gain.length; i += 1) gain[i] *= globale
   return gain
-}
-
-function limita(sample) {
-  const abs = Math.abs(sample)
-  if (abs <= TETTO) return sample
-  const segno = sample < 0 ? -1 : 1
-  const eccesso = abs - TETTO
-  const morbido = TETTO + (0.98 - TETTO) * Math.tanh(eccesso / (1 - TETTO))
-  return segno * morbido
 }
 
 export function rifinisciCampioni(canali, sampleRate) {
@@ -128,7 +114,7 @@ export function rifinisciCampioni(canali, sampleRate) {
   const gain = guadagni(mono, sampleRate)
   const amplificati = puliti.map(ch => {
     const out = new Float32Array(n)
-    for (let i = 0; i < n; i += 1) out[i] = limita(ch[i] * gain[i])
+    for (let i = 0; i < n; i += 1) out[i] = ch[i] * gain[i]
     return out
   })
   return amplificati

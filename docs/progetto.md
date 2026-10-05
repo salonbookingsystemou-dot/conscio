@@ -123,6 +123,15 @@ modello dati, funzioni con i loro inneschi, flussi chiave e deploy. Va aggiornat
 funzioni o servizi esterni. Corretto anche il README (base `./` e dominio `conscio.mnesti.it`).
 Nessuna modifica al codice né al database.
 
+### 5/10/2026 · Voce generata: una sola compressione, mono, volume sulla traccia (da Claude Code)
+`genera-voce` chiede a ElevenLabs PCM non compresso (`pcm_44100`) e, se il piano non lo consente,
+ripiega su MP3 192 e poi 128; il formato ottenuto torna nell'header `x-formato`. I paragrafi restano
+in PCM mono e si ascoltano come WAV; il file della traccia si codifica una sola volta, alla fine, in
+MP3 mono 96 kbps (`lib/tracciaFinale.js`), pause comprese: niente più doppia compressione né giunture
+fra frame MP3. Il volume non si allinea più paragrafo per paragrafo: si misura la loudness della
+traccia intera (BS.1770) e la si porta a −18 LUFS, con tetto a −1 dBFS; un paragrafo si corregge da
+solo solo se si scosta più di 2 dB dal resto. I file nuovi pesano circa la metà.
+
 ### 5/10/2026 · Voce generata: coda, aggancio e accenti (da Claude Code)
 Tre correzioni a `/genera`. La rifinitura (`lib/audioVoce.js`) tagliava la coda dell'ultima parola:
 soglia di fine parlato dal 12% al 3% del livello del corpo, dissolvenza da 30 a 180 ms. Con

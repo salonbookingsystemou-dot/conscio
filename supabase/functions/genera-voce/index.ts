@@ -8,7 +8,7 @@ import { correggiPronuncia } from '../_shared/pronuncia.ts'
 const cors = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Expose-Headers': 'x-request-id, x-aggancio-perso'
+  'Access-Control-Expose-Headers': 'x-request-id, x-aggancio-perso, x-formato'
 }
 
 const MODELLI = new Set([
@@ -188,26 +188,58 @@ async function generaParagrafo(chiave: string, corpo: Record<string, unknown>) {
   }
   if (seed != null) payload.seed = seed
 
-  const url = `https://api.elevenlabs.io/v1/text-to-speech/${voceId}?output_format=mp3_44100_128`
   const stato = { aggancioPerso: false }
-  const res = await inviaConRipiego(chiave, url, payload, stato)
+  let formato = FORMATI[0]
+  let res: Response | null = null
+  for (const candidato of formatiDaProvare()) {
+    formato = candidato
+    const url = `https://api.elevenlabs.io/v1/text-to-speech/${voceId}?output_format=${candidato}`
+    const prova = await invia(chiave, url, payload)
+    if (prova.ok) {
+      res = prova
+      break
+    }
+    const { testo: erroreTesto, body } = await leggiErrore(prova)
+    const msg = `${erroreTesto} ${JSON.stringify(body || {})}`.toLowerCase()
+    if ((prova.status === 400 || prova.status === 403 || prova.status === 422) && /format|tier|subscription|plan/.test(msg)) {
+      formatoNonConsentito.add(candidato)
+      continue
+    }
+    res = prova.status === 400
+      ? await inviaConRipiego(chiave, url, payload, stato)
+      : new Response(erroreTesto, { status: prova.status, headers: { 'Content-Type': 'application/json' } })
+    break
+  }
+  if (!res) {
+    return json({ errore: 'ELEVENLABS', messaggio: 'Nessun formato audio disponibile con questo piano ElevenLabs.' }, 502)
+  }
   if (!res.ok) {
     const { body } = await leggiErrore(res)
     const status = res.status === 401 || res.status === 429 ? res.status : 502
     return json({ errore: 'ELEVENLABS', messaggio: messaggioEleven(body, res.status) }, status)
   }
 
-  const audio = await res.arrayBuffer()
   const requestId = res.headers.get('request-id') || ''
-  return new Response(audio, {
+  return new Response(res.body, {
     status: 200,
     headers: {
       ...cors,
-      'Content-Type': 'audio/mpeg',
+      'Content-Type': formato.startsWith('pcm_') ? 'audio/L16' : 'audio/mpeg',
+      'x-formato': formato,
       'x-request-id': requestId,
       'x-aggancio-perso': stato.aggancioPerso ? '1' : '0'
     }
   })
+}
+
+// Dal migliore al più comune. Il PCM evita una compressione: l'app codifica
+// l'MP3 una volta sola, sulla traccia intera. Alcuni piani non lo consentono.
+const FORMATI = ['pcm_44100', 'mp3_44100_192', 'mp3_44100_128']
+const formatoNonConsentito = new Set<string>()
+
+function formatiDaProvare() {
+  const restano = FORMATI.filter(f => !formatoNonConsentito.has(f))
+  return restano.length ? restano : [FORMATI[FORMATI.length - 1]]
 }
 
 function leggiVelocita(grezzo: unknown): { ok: true, valore: number } | { ok: false } {

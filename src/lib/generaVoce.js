@@ -149,7 +149,8 @@ async function chiama(corpo, signal) {
   return {
     audio,
     requestId: res.headers.get('x-request-id') || '',
-    aggancioPerso: res.headers.get('x-aggancio-perso') === '1'
+    aggancioPerso: res.headers.get('x-aggancio-perso') === '1',
+    formato: res.headers.get('x-formato') || 'mp3_44100_128'
   }
 }
 
