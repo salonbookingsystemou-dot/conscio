@@ -51,6 +51,20 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 6/10/2026 · Il grafico del player porta a un punto della traccia (da Cursor)
+In `CardTracciaAudio` le barre dell’avanzamento sono cliccabili: un clic porta l’ascolto in quel
+punto e, se la traccia era ferma, la fa partire da lì senza campana. Da tastiera le frecce spostano
+di 10 secondi, Inizio e Fine vanno agli estremi. Saltare in avanti non conta come ascolto: per
+l’accredito servono sempre il 90–95% di tempo ascoltato davvero. Prima di ogni avvio il player
+toglie il muto: una campana interrotta lasciava l’audio a volume zero e il salto partiva senza suono.
+Nessuna modifica al database.
+
+### 6/10/2026 · Paragrafi molto bassi riportati al volume della traccia (da Cursor)
+Nella «Scansione del corpo» del 6/10 alcuni paragrafi erano usciti da ElevenLabs molto più
+piano degli altri e restavano 7–10 dB sotto: il guadagno per paragrafo si fermava a +12 dB.
+Ora in `lib/tracciaFinale.js` può arrivare a +30 dB, così ogni paragrafo rientra entro 2 dB
+dal resto della traccia. Vale per i file preparati da qui in poi. Nessuna modifica al database.
+
 ### 6/10/2026 · Voce predefinita Dimitri Grassi (da Cursor)
 All’apertura di `/genera` la voce selezionata è Dimitri Grassi. Se non è nell’account,
 resta la prima voce italiana. Nessuna modifica al database.

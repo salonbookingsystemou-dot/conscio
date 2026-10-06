@@ -12,6 +12,9 @@ export const KBPS = 96
 const OBIETTIVO_LUFS = -18
 const SCARTO_MAX_DB = 2
 const BOOST_MAX_DB = 12
+// Un paragrafo di ElevenLabs può uscire anche 20 dB sotto il resto della
+// traccia: deve poter salire fin lì per non restare più basso degli altri.
+const BOOST_PARAGRAFO_MAX_DB = 30
 const TETTO = 10 ** (-1 / 20)
 const BLOCCO_MP3 = 1152
 
@@ -89,7 +92,7 @@ function guadagniPerParagrafo(pcmParagrafi) {
       if (scarto > SCARTO_MAX_DB) correzione = SCARTO_MAX_DB - scarto
       if (scarto < -SCARTO_MAX_DB) correzione = -SCARTO_MAX_DB - scarto
     }
-    return 10 ** (Math.min(BOOST_MAX_DB, globaleDb + correzione) / 20)
+    return 10 ** (Math.min(BOOST_PARAGRAFO_MAX_DB, globaleDb + correzione) / 20)
   })
 }
 

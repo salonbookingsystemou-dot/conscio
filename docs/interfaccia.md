@@ -78,7 +78,7 @@ Fallback comune: senza codice in memoria le pagine mostrano `ChiediCodice`; dura
 | Accesso e identità | `ChiediCodice`, `BoxCodicePrivacy`, `IdentitaCodice` |
 | Avvisi, consenso, privacy | `Disclaimer` (`.avvertenza`, chiudibile), `AvvisoDatiPseudonimi`, `.disclaimer` (classe) |
 | Modali e inviti | `DialogConferma` (`.dialogo`), `InvitoHome` (installazione PWA), `InvitoCheckin` (modale a ogni apertura finché manca il check-in) |
-| Audio e pratica | `CardTracciaAudio` (player, eyebrow, stato «ascoltata»), `GuidaMeditazione` (carosello di posture: `assets/guida/*.png`), `LibreriaTracce`, `CalendarioPratica`, `VoceLog` |
+| Audio e pratica | `CardTracciaAudio` (player, eyebrow, stato «ascoltata», barre cliccabili per saltare a un punto), `GuidaMeditazione` (carosello di posture: `assets/guida/*.png`), `LibreriaTracce`, `CalendarioPratica`, `VoceLog` |
 | Tono della giornata | `TonoEsperienza` (scelta), `TonoIcon` (faccina SVG), `TonoMini` (etichetta) |
 | Input | `CampoNota` (testo + dettatura), `ScalaLikert`, `SegnalaProblema` |
 | Dati e grafici | `SchedaPratica`, `StoricoGiornate`, `IndicatoreOrientamento`, `OreAscolto` |

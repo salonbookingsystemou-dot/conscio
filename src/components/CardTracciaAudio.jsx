@@ -403,6 +403,9 @@ export default function CardTracciaAudio({
       contaAscoltoRef.current = true
       wallRef.current = performance.now()
       if (!dallInizio && Number.isFinite(el.currentTime)) lastRef.current = el.currentTime
+      // Una campana interrotta lascia l’elemento muto dallo sblocco.
+      el.muted = false
+      el.volume = 1
       await avviaPlay(el)
       setInRiproduzione(true)
     } catch (err) {
@@ -460,6 +463,45 @@ export default function CardTracciaAudio({
   function toggleRiproduzione() {
     if (inRiproduzione || inCampana) pausa()
     else ascolta()
+  }
+
+  function vaiA(secondi) {
+    const el = audioRef.current
+    if (!el || inCampana || !(durata > 0)) return
+    const limite = Number.isFinite(el.duration) && el.duration > 0 ? Math.min(durata, el.duration) : durata
+    const t = Math.min(Math.max(0, secondi), Math.max(0, limite - 0.5))
+    try { el.currentTime = t } catch { /* metadati non pronti: lo riprende ascolta() */ }
+    posizioneRealeRef.current = t
+    lastRef.current = t
+    wallRef.current = performance.now()
+    setPosizione(t)
+    if (!inRiproduzione) ascolta()
+  }
+
+  function clicOnda(e) {
+    const barre = e.currentTarget.children
+    if (!barre.length) return
+    const box = e.currentTarget.getBoundingClientRect()
+    const sinistra = barre[0].getBoundingClientRect().left
+    const destra = Math.min(box.right, barre[barre.length - 1].getBoundingClientRect().right)
+    if (!(destra > sinistra)) return
+    const quota = Math.min(1, Math.max(0, (e.clientX - sinistra) / (destra - sinistra)))
+    vaiA(quota * durata)
+  }
+
+  function tastoOnda(e) {
+    const passo = 10
+    const tasti = {
+      ArrowRight: posizione + passo,
+      ArrowUp: posizione + passo,
+      ArrowLeft: posizione - passo,
+      ArrowDown: posizione - passo,
+      Home: 0,
+      End: durata
+    }
+    if (!(e.key in tasti)) return
+    e.preventDefault()
+    vaiA(tasti[e.key])
   }
 
   const avanzamento = useMemo(() => {
@@ -542,7 +584,16 @@ export default function CardTracciaAudio({
         </button>
         <div
           className="card-traccia-onda"
-          aria-hidden="true"
+          role="slider"
+          tabIndex={durata > 0 ? 0 : -1}
+          aria-label="Punto della traccia"
+          aria-valuemin={0}
+          aria-valuemax={Math.round(durata)}
+          aria-valuenow={Math.round(posizione)}
+          aria-valuetext={`${formattaTempo(posizione)} di ${formattaTempo(durata)}`}
+          aria-disabled={!(durata > 0) || inCampana}
+          onClick={clicOnda}
+          onKeyDown={tastoOnda}
         >
           {BARRE_ONDA.map((h, i) => {
             const sogliaBarra = ((i + 1) / BARRE_ONDA.length) * 100

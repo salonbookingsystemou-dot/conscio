@@ -5066,7 +5066,8 @@ body:has(.splash) {
   box-shadow: 0 0 0 8px color-mix(in srgb, var(--card-traccia-accento) 14%, transparent);
 }
 .card-traccia-play:focus-visible,
-.card-traccia-stop:focus-visible {
+.card-traccia-stop:focus-visible,
+.card-traccia-onda:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--card-traccia-accento) 45%, transparent);
   outline-offset: 3px;
 }
@@ -5098,6 +5099,16 @@ body:has(.splash) {
   align-items: flex-end;
   justify-content: flex-start;
   gap: 3px;
+  /* Area di tocco più alta delle barre, senza spostare il layout. */
+  padding-block: 8px;
+  margin-block: -8px;
+  box-sizing: content-box;
+  cursor: pointer;
+  touch-action: manipulation;
+  border-radius: var(--radius-pill);
+}
+.card-traccia-onda[aria-disabled='true'] {
+  cursor: default;
 }
 .card-traccia-barra {
   flex: 0 0 3px;
