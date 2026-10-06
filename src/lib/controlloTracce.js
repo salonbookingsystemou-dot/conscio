@@ -44,7 +44,7 @@ export async function leggiCiclo(cicloId) {
   const [risposta, tracce] = await Promise.all([
     supabase
       .from('lezioni')
-      .select('id, numero_settimana, tema, traccia_id, traccia_audio, esercizi(id, tipo, descrizione, traccia_id, traccia_audio, durata_minuti, ordine)')
+      .select('id, numero_settimana, tema, traccia_id, traccia_audio, esercizi(id, tipo, descrizione, traccia_id, traccia_audio, ordine)')
       .eq('ciclo_id', cicloId)
       .order('numero_settimana', { ascending: true }),
     elencaTracce()
@@ -101,18 +101,9 @@ export function controllaCollegamenti({ lezioni, tracce }) {
         esiti.push(esito('nota', 'Usa l’audio generale della settimana.'))
       }
       if (traccia) usate.add(traccia.id)
-      const minPratica = Number(e.durata_minuti)
-      const minTraccia = Number(traccia?.durata_minuti)
-      if (minPratica > 0 && minTraccia > 0) {
-        const scarto = Math.abs(minPratica - minTraccia)
-        if (scarto >= 3 && scarto / minTraccia > 0.25) {
-          esiti.push(esito('attenzione', `La pratica indica ${minuti(minPratica)}, la traccia ne dura ${minTraccia}.`))
-        }
-      }
       return {
         id: e.id,
         descrizione: String(e.descrizione || '').trim() || 'Pratica senza nome',
-        durataMinuti: minPratica > 0 ? minPratica : null,
         url: fonte ? urlAudioSenzaTesto(fonte.url) : '',
         urlCompleto: fonte?.url || '',
         traccia,

@@ -51,6 +51,16 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 6/10/2026 · Durata delle pratiche formali presa dalla traccia (da Cursor)
+Nell’editor della settimana il campo «Durata (minuti)» non c’è più: al salvataggio la pratica
+prende la durata della traccia collegata (`tracce.durata_minuti`, misurata dal file), e
+«Sostituisci file» in libreria la aggiorna su tutte le pratiche collegate. La colonna
+`esercizi.durata_minuti` resta, perché la leggono `programma_del_partecipante`, l’etichetta della
+card e il conteggio dei minuti formali del giorno. `migrazione_durata_pratiche_da_traccia.sql`
+(applicata) ha allineato le 9 pratiche esistenti; 8 sono cambiate, la più evidente «Meditazione
+sul dolore cronico» da 12 a 24 minuti. Gli ascolti già registrati non cambiano. Tolto da Controllo
+tracce il confronto fra durata della pratica e della traccia, ora sempre uguali.
+
 ### 6/10/2026 · Controllo tracce (da Cursor)
 Nuova pagina facilitatore `/controllo-tracce` (voce «Controllo» nel menu). Per il ciclo scelto
 verifica ogni pratica formale come la riceve il partecipante, con la stessa regola di

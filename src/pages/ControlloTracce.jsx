@@ -356,8 +356,7 @@ function RigaPratica({ pratica, stato, esiti, ascolto, occupato, onAscolta, onAn
   const traccia = pratica.traccia
   const meta = [
     traccia ? `Traccia «${traccia.titolo}»` : (pratica.url ? 'File fuori libreria' : null),
-    traccia?.durata_minuti ? `${traccia.durata_minuti} min in libreria` : null,
-    pratica.durataMinuti ? `${pratica.durataMinuti} min indicati nella pratica` : null
+    traccia?.durata_minuti ? `${traccia.durata_minuti} min` : null
   ].filter(Boolean).join(' · ')
   const misure = ascolto?.stato === 'fatto' ? ascolto.misure : null
   return (

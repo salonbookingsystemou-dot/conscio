@@ -56,7 +56,7 @@ export default function EditorSettimana() {
   const [tracce, setTracce] = useState([])
   const [scheda, setScheda] = useState('tema')
   const [tema, setTema] = useState({ titolo: '', sottotitolo: '', materiali: '' })
-  const [nuovaFormale, setNuovaFormale] = useState({ descrizione: '', durata_minuti: '', tracciaId: '' })
+  const [nuovaFormale, setNuovaFormale] = useState({ descrizione: '', tracciaId: '' })
   const [nuovaInformale, setNuovaInformale] = useState('')
   const [modifica, setModifica] = useState(null)
   const [daEliminare, setDaEliminare] = useState(null)
@@ -136,7 +136,7 @@ export default function EditorSettimana() {
     setDaEliminare(null)
     setOkMsg(null)
     setErrore(null)
-    setNuovaFormale({ descrizione: '', durata_minuti: '', tracciaId: '' })
+    setNuovaFormale({ descrizione: '', tracciaId: '' })
     setNuovaInformale('')
     carica()
   }, [cicloId, n])
@@ -182,10 +182,9 @@ export default function EditorSettimana() {
     const corrente = await assicuraLezione()
     if (!corrente) return
     const descrizione = nuovaFormale.descrizione.trim()
-    const durata = Number(nuovaFormale.durata_minuti)
     const traccia = tracce.find(t => t.id === nuovaFormale.tracciaId)
-    if (!descrizione || !traccia || !Number.isFinite(durata) || durata <= 0) {
-      setErrore('Nome, durata e traccia sono obbligatori.')
+    if (!descrizione || !traccia) {
+      setErrore('Nome e traccia sono obbligatori.')
       return
     }
     setInvio(true)
@@ -195,7 +194,7 @@ export default function EditorSettimana() {
       lezione_id: corrente.id,
       tipo: 'formale',
       descrizione,
-      durata_minuti: durata,
+      durata_minuti: traccia.durata_minuti || null,
       traccia_id: traccia.id,
       traccia_audio: traccia.url,
       ordine
@@ -205,7 +204,7 @@ export default function EditorSettimana() {
       setErrore('Non è stato possibile aggiungere la pratica formale.')
       return
     }
-    setNuovaFormale({ descrizione: '', durata_minuti: '', tracciaId: '' })
+    setNuovaFormale({ descrizione: '', tracciaId: '' })
     setOkMsg('Pratica formale aggiunta.')
     await carica()
   }
@@ -213,17 +212,16 @@ export default function EditorSettimana() {
   async function salvaFormale(ex) {
     if (!modifica || modifica.id !== ex.id) return
     const descrizione = modifica.descrizione.trim()
-    const durata = Number(modifica.durata_minuti)
     const traccia = tracce.find(t => t.id === modifica.tracciaId)
-    if (!descrizione || !traccia || !Number.isFinite(durata) || durata <= 0) {
-      setErrore('Nome, durata e traccia sono obbligatori.')
+    if (!descrizione || !traccia) {
+      setErrore('Nome e traccia sono obbligatori.')
       return
     }
     setInvio(true)
     setErrore(null)
     const { error } = await supabase.from('esercizi').update({
       descrizione,
-      durata_minuti: durata,
+      durata_minuti: traccia.durata_minuti || null,
       traccia_id: traccia.id,
       traccia_audio: traccia.url
     }).eq('id', ex.id)
@@ -408,7 +406,9 @@ export default function EditorSettimana() {
                       )}
                       {formali.map(ex => {
                         const inModifica = modifica?.id === ex.id
-                        const titoloTraccia = tracce.find(t => t.id === ex.traccia_id)?.titolo
+                        const traccia = tracce.find(t => t.id === ex.traccia_id)
+                        const titoloTraccia = traccia?.titolo
+                        const minuti = traccia?.durata_minuti || ex.durata_minuti
                         return (
                           <li key={ex.id} className="editor-riga">
                             {inModifica ? (
@@ -419,17 +419,6 @@ export default function EditorSettimana() {
                                     id={`formale-nome-${ex.id}`}
                                     value={modifica.descrizione}
                                     onChange={e => setModifica({ ...modifica, descrizione: e.target.value })}
-                                  />
-                                </div>
-                                <div className="field">
-                                  <label htmlFor={`formale-durata-${ex.id}`}>Durata (minuti)</label>
-                                  <input
-                                    id={`formale-durata-${ex.id}`}
-                                    type="number"
-                                    min="1"
-                                    max="180"
-                                    value={modifica.durata_minuti}
-                                    onChange={e => setModifica({ ...modifica, durata_minuti: e.target.value })}
                                   />
                                 </div>
                                 <div className="field">
@@ -456,9 +445,9 @@ export default function EditorSettimana() {
                                 <div className="editor-riga-testi">
                                   <strong>{ex.descrizione}</strong>
                                   <p>
-                                    {Number.isFinite(ex.durata_minuti) && ex.durata_minuti > 0
-                                      ? `${ex.durata_minuti} min`
-                                      : 'Durata non indicata'}
+                                    {Number.isFinite(minuti) && minuti > 0
+                                      ? `${minuti} min`
+                                      : 'Durata non ancora nota'}
                                     {titoloTraccia ? ` · ${titoloTraccia}` : ' · Senza traccia'}
                                   </p>
                                 </div>
@@ -471,7 +460,6 @@ export default function EditorSettimana() {
                                     onClick={() => setModifica({
                                       id: ex.id,
                                       descrizione: ex.descrizione || '',
-                                      durata_minuti: ex.durata_minuti || '',
                                       tracciaId: ex.traccia_id || ''
                                     })}
                                   >
@@ -504,19 +492,6 @@ export default function EditorSettimana() {
                           value={nuovaFormale.descrizione}
                           onChange={e => setNuovaFormale({ ...nuovaFormale, descrizione: e.target.value })}
                           placeholder="es. Body Scan"
-                        />
-                      </div>
-                      <div className="field">
-                        <label htmlFor="nuova-formale-durata">Durata (minuti)</label>
-                        <input
-                          id="nuova-formale-durata"
-                          type="number"
-                          min="1"
-                          max="180"
-                          required
-                          value={nuovaFormale.durata_minuti}
-                          onChange={e => setNuovaFormale({ ...nuovaFormale, durata_minuti: e.target.value })}
-                          placeholder="15"
                         />
                       </div>
                       <div className="field">

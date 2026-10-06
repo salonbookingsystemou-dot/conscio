@@ -342,6 +342,9 @@ export async function sostituisciFileTraccia(traccia, file) {
     durata_minuti: minuti || traccia.durata_minuti || null
   }).eq('id', traccia.id)
   if (error) throw error
+  if (minuti) {
+    await supabase.from('esercizi').update({ durata_minuti: minuti }).eq('traccia_id', traccia.id)
+  }
   await scriviUrlConTesto(traccia.id, pub.publicUrl, testo)
 }
 
