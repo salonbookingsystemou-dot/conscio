@@ -72,6 +72,7 @@ export default function AdminChrome({ children, ampio = false }) {
             <NavLink to="/percorso" onClick={chiudi}>Percorso</NavLink>
             <NavLink to="/libreria" end onClick={chiudi}>Libreria</NavLink>
             <NavLink to="/genera" onClick={chiudi}>Genera</NavLink>
+            <NavLink to="/controllo-tracce" onClick={chiudi}>Controllo</NavLink>
             <NavLink to="/comunicazioni" onClick={chiudi}>Avvisi</NavLink>
           </nav>
           <button

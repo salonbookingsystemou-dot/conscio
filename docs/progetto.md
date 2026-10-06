@@ -51,6 +51,31 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 6/10/2026 · Controllo tracce (da Cursor)
+Nuova pagina facilitatore `/controllo-tracce` (voce «Controllo» nel menu). Per il ciclo scelto
+verifica ogni pratica formale come la riceve il partecipante, con la stessa regola di
+`programma_del_partecipante` (traccia collegata → vecchio `traccia_audio` → audio della settimana):
+- **collegamenti**: pratica senza traccia, traccia collegata sparita, file fuori libreria, durata
+  della pratica molto diversa da quella della traccia;
+- **file** (automatico, richiesta `HEAD` + primi 64 KB): risponde, è audio, non è vuoto, MP3
+  leggibile, durata in libreria coerente con il file;
+- **ascolto tecnico** (su richiesta, per traccia o per tutte): scarica e decodifica il file a 16 kHz,
+  misura la loudness BS.1770 e segnala volume generale fuori misura, tratti di voce ≥ 8 dB sotto il
+  resto (da 10 s di voce in su «Da guardare», più corti o in chiusura solo nota), silenzio iniziale,
+  finale tagliato, silenzi lunghi, durata vera diversa da quella del file. «Ascolta da» apre il
+  player nel punto segnalato (nuova prop `inizio` di `CardTracciaAudio`).
+Sola lettura: nessuna modifica al database, nessun dato nuovo salvato, nessun dato dei partecipanti.
+Le copie scaricate per il controllo usano un parametro `controllo=` e vengono tolte dalla cache del
+service worker. Il calcolo a blocchi della loudness in `tracciaFinale.js` ora filtra in streaming
+(stessi valori di prima per il generatore, molta meno memoria). `AdminDialogo` spostato in `components/`.
+
+### 6/10/2026 · «Genera tutto» non lascia paragrafi in sospeso (da Cursor)
+Con i modelli che agganciano la voce (v2, v4), rigenerare un paragrafo segna come obsoleti quelli
+già pronti che lo seguono. «Genera tutto» sceglieva i paragrafi all’inizio e non rifaceva quelli
+diventati obsoleti durante il giro: a fine generazione «Ascolta tutto» e «Prepara il file» restavano
+disattivati. Ora scorre i paragrafi in ordine e rigenera anche quelli, nello stesso giro; il
+contatore «Paragrafo n di m» li include. Nessuna modifica al database.
+
 ### 6/10/2026 · Il grafico del player porta a un punto della traccia (da Cursor)
 In `CardTracciaAudio` le barre dell’avanzamento sono cliccabili: un clic porta l’ascolto in quel
 punto e, se la traccia era ferma, la fa partire da lì senza campana. Da tastiera le frecce spostano

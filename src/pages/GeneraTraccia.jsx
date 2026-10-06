@@ -323,11 +323,17 @@ export default function GeneraTraccia() {
       setParagrafi(lista)
       setScript(firmaParagrafi(lista))
     }
-    const ids = lista.filter(p => vaRigenerato(p, modelloId, voceId, seed, velocita)).map(p => p.id)
-    if (ids.length === 0) {
+    const daRigenerare = p => vaRigenerato(p, modelloId, voceId, seed, velocita)
+    const primo = lista.findIndex(daRigenerare)
+    if (primo < 0) {
       rilasciaFile()
       return
     }
+    // Con l’aggancio ogni paragrafo rigenerato rende obsoleti quelli già pronti
+    // che lo seguono: vanno rifatti nello stesso giro, non lasciati in sospeso.
+    const totale = lista.filter((p, i) => daRigenerare(p) || (
+      modello.aggancia && i > primo && p.audio && String(p.testo || '').trim()
+    )).length
     fermaAscolto()
     rilasciaFile()
     setErrore(null)
@@ -337,13 +343,17 @@ export default function GeneraTraccia() {
     const controller = new AbortController()
     abortRef.current = controller
     try {
-      for (let n = 0; n < ids.length; n += 1) {
+      let fatto = 0
+      for (let i = primo; i < lista.length; i += 1) {
         if (controller.signal.aborted) break
-        setAvanzamento({ fatto: n, totale: ids.length })
-        const risultato = await generaUno(lista, ids[n], controller.signal)
+        const id = lista[i].id
+        if (!daRigenerare(lista[i])) continue
+        setAvanzamento({ fatto, totale })
+        const risultato = await generaUno(lista, id, controller.signal)
         if (!risultato) break
-        lista = applicaGenerato(lista, ids[n], risultato)
+        lista = applicaGenerato(lista, id, risultato)
         setParagrafi(lista)
+        fatto += 1
       }
     } catch (err) {
       if (err?.name !== 'AbortError') mostraErrore(err?.message || 'Non è stato possibile generare l’audio.')

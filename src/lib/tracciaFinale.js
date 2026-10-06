@@ -39,35 +39,57 @@ function filtroK(fs) {
   return [shelf, passaAlto]
 }
 
-function applicaBiquad(x, { b, a }) {
-  const y = new Float32Array(x.length)
-  let x1 = 0; let x2 = 0; let y1 = 0; let y2 = 0
-  for (let i = 0; i < x.length; i += 1) {
-    const v = b[0] * x[i] + b[1] * x1 + b[2] * x2 - a[0] * y1 - a[1] * y2
-    x2 = x1; x1 = x[i]; y2 = y1; y1 = v
-    y[i] = v
+// Potenza media dei blocchi di 400 ms con passo di 100 ms, sommata sui canali.
+// Filtra un campione alla volta: una traccia lunga non va copiata in memoria.
+function potenzeBlocchi(canali, fs, scala = 1) {
+  const [shelf, pa] = filtroK(fs)
+  const [sb0, sb1, sb2] = shelf.b
+  const [sa1, sa2] = shelf.a
+  const [pa1, pa2] = pa.a
+  const passo = Math.round(fs * 0.1)
+  const decimi = []
+  for (const x of canali) {
+    let sx1 = 0; let sx2 = 0; let sy1 = 0; let sy2 = 0
+    let py1 = 0; let py2 = 0
+    let somma = 0; let n = 0; let j = 0
+    for (let i = 0; i < x.length; i += 1) {
+      const v = x[i] * scala
+      const s = sb0 * v + sb1 * sx1 + sb2 * sx2 - sa1 * sy1 - sa2 * sy2
+      const k = s - 2 * sy1 + sy2 - pa1 * py1 - pa2 * py2
+      sx2 = sx1; sx1 = v; sy2 = sy1; sy1 = s
+      py2 = py1; py1 = k
+      somma += k * k
+      n += 1
+      if (n === passo) {
+        decimi[j] = (decimi[j] || 0) + somma
+        j += 1
+        somma = 0
+        n = 0
+      }
+    }
   }
-  return y
-}
-
-// Potenza media dei blocchi di 400 ms con passo di 100 ms.
-function blocchi(pcm) {
-  const x = new Float32Array(pcm.length)
-  for (let i = 0; i < pcm.length; i += 1) x[i] = pcm[i] / 0x8000
-  const [shelf, pa] = filtroK(CAMPIONI)
-  const k = applicaBiquad(applicaBiquad(x, shelf), pa)
-  const lungo = Math.round(CAMPIONI * 0.4)
-  const passo = Math.round(CAMPIONI * 0.1)
-  const quad = new Float64Array(k.length + 1)
-  for (let i = 0; i < k.length; i += 1) quad[i + 1] = quad[i] + k[i] * k[i]
   const out = []
-  for (let da = 0; da + lungo <= k.length; da += passo) {
-    out.push((quad[da + lungo] - quad[da]) / lungo)
+  for (let j = 0; j + 3 < decimi.length; j += 1) {
+    out.push((decimi[j] + decimi[j + 1] + decimi[j + 2] + decimi[j + 3]) / (4 * passo))
   }
   return out
 }
 
+function blocchi(pcm) {
+  return potenzeBlocchi([pcm], CAMPIONI, 1 / 0x8000)
+}
+
 const daPotenza = z => -0.691 + 10 * Math.log10(z)
+
+// canali: Float32Array per canale (-1…1). Restituisce la loudness integrata e
+// quella di ogni blocco di 400 ms (uno ogni 100 ms), in LUFS.
+export function misuraLoudness(canali, fs) {
+  const potenze = potenzeBlocchi(canali, fs)
+  return {
+    integrata: integrata(potenze),
+    blocchi: potenze.map(z => (z > 0 ? daPotenza(z) : -Infinity))
+  }
+}
 
 function integrata(potenze) {
   const sopraAssoluta = potenze.filter(z => z > 0 && daPotenza(z) > -70)

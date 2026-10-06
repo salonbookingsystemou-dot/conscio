@@ -62,6 +62,7 @@ flowchart LR
 | `/dashboard` | `SoloFacilitatore` | tab Cicli · Questionari · Pratica · Sito |
 | `/percorso`, `/percorso/:cicloId/settimana/:n` | `SoloFacilitatore` | Percorso, EditorSettimana |
 | `/libreria`, `/genera` | `SoloFacilitatore` | Libreria tracce, GeneraTraccia (ElevenLabs) |
+| `/controllo-tracce` | `SoloFacilitatore` | ControlloTracce (collegamenti, file e ascolto tecnico delle tracce, `lib/controlloTracce.js`) |
 
 Due "chrome": partecipante (`Nav` + `BarraBassa` + `Footer`) e facilitatore (`AdminChrome`). Un solo design system (`tokens.css`).
 

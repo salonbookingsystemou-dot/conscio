@@ -88,7 +88,8 @@ export default function CardTracciaAudio({
   onDurata,
   onAscolto,
   onPersistenza,
-  anteprima = false
+  anteprima = false,
+  inizio = 0
 }) {
   const audioRef = useRef(null)
   const playedRef = useRef(0)
@@ -112,6 +113,8 @@ export default function CardTracciaAudio({
   const giaAscoltataRef = useRef(giaAscoltata)
   const posizioneRealeRef = useRef(0)
   const wallRef = useRef(0)
+  const inizioRef = useRef(inizio)
+  inizioRef.current = inizio
   giaAscoltataRef.current = giaAscoltata
   onCompletoRef.current = onCompleto
   onDurataRef.current = onDurata
@@ -199,6 +202,11 @@ export default function CardTracciaAudio({
     onCompletoRef.current?.(gia)
     onDurataRef.current?.(0)
     if (durataFileRef.current >= 8) applicaDurataRef.current(durataFileRef.current)
+    const partenza = Number(inizioRef.current)
+    if (partenza >= 1) {
+      posizioneRealeRef.current = partenza
+      setPosizione(partenza)
+    }
     return () => {
       annullaAvvioRef.current = true
       campanaRef.current?.ferma()

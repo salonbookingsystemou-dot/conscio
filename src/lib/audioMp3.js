@@ -122,6 +122,44 @@ export function durataDaPrefisso(bytes, totale) {
   return null
 }
 
+// Lunghezza del tag ID3 anche quando supera i byte letti (copertine incluse).
+export function lunghezzaId3(bytes) {
+  if (bytes?.length >= 10 && bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33) {
+    const size = ((bytes[6] & 0x7f) << 21)
+      | ((bytes[7] & 0x7f) << 14)
+      | ((bytes[8] & 0x7f) << 7)
+      | (bytes[9] & 0x7f)
+    return 10 + size + ((bytes[5] & 0x10) ? 10 : 0)
+  }
+  return 0
+}
+
+// Formato dall'inizio di un MP3 (MPEG-1 layer III): null se non si trovano due
+// frame di fila. `scarto` è la posizione nel file del primo byte di `bytes`.
+export function infoMp3(bytes, totale, scarto = 0) {
+  if (!bytes?.length) return null
+  for (let i = 0; i + 4 <= bytes.length; i += 1) {
+    const primo = frameA(bytes, i)
+    if (!primo || !frameA(bytes, i + primo.lunghezza)) continue
+    const slice = bytes.subarray(i, i + primo.lunghezza)
+    const intestazione = eIntestazioneDurata(slice)
+    const audio = intestazione ? frameA(bytes, i + primo.lunghezza) : primo
+    const tag = intestazione ? String.fromCharCode(...slice.subarray(4 + (primo.canali === 3 ? 17 : 32), 8 + (primo.canali === 3 ? 17 : 32))) : ''
+    const daDimensione = Number.isFinite(totale) && totale > 0
+      ? (Math.max(0, totale - scarto - i) * 8) / audio.bitrate
+      : null
+    return {
+      bitrate: audio.bitrate,
+      campioni: audio.campioni,
+      mono: audio.canali === 3,
+      vbr: tag === 'Xing' || (intestazione && tag !== 'Info'),
+      dichiarata: intestazione ? durataDichiarata(slice, primo.campioni) : null,
+      daDimensione
+    }
+  }
+  return null
+}
+
 async function durataDaCache(url) {
   if (typeof caches === 'undefined') return null
   const match = await caches.match(url)

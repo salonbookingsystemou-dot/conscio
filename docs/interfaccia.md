@@ -20,7 +20,7 @@ flowchart TB
     BB["BarraBassa · Settimana · Storico · Questionari · Avvisi"]
   end
   subgraph Fac["Guscio facilitatore · AdminChrome"]
-    TOP["testata · brand + ruolo, pillole: Cicli · Percorso · Libreria · Genera · Avvisi, Esci"] --> CONT2["contenuto (ampio su dashboard, editor, genera…)"]
+    TOP["testata · brand + ruolo, pillole: Cicli · Percorso · Libreria · Genera · Controllo · Avvisi, Esci"] --> CONT2["contenuto (ampio su dashboard, editor, genera…)"]
   end
   SPL["Splash (/) · senza guscio"]
 ```
@@ -67,6 +67,7 @@ Fallback comune: senza codice in memoria le pagine mostrano `ChiediCodice`; dura
 | Editor settimana | `/percorso/:id/settimana/:n` | lezione + esercizi formali/informali, `LibreriaTracce` (selettore traccia), dialoghi di modifica |
 | Libreria | `/libreria` | ricerca, griglia di `CardTracciaAudio`, azioni (ascolta, modifica, sostituisci, elimina), date creazione/modifica |
 | Genera | `/genera` | script → paragrafi, scelta modello/voce/velocità del parlato, volume allineato, ultima parola intera, pause, ascolto per paragrafo, salva in libreria |
+| Controllo tracce | `/controllo-tracce` | selettore ciclo, card numeriche (funzionano, da guardare, problemi, ascolto tecnico), una card per settimana con le pratiche formali: stato (`.controllo-stato`), esiti con «Ascolta da», ascolto e ascolto tecnico; tracce non usate |
 | Avvisi | `/comunicazioni` | composizione comunicazione (ciclo / solo remoti), storico invii, card «Inattività · solo da remoto», card «Pausa di pratica» |
 
 ## 3. Catalogo componenti (`src/components`)
@@ -83,12 +84,12 @@ Fallback comune: senza codice in memoria le pagine mostrano `ChiediCodice`; dura
 | Input | `CampoNota` (testo + dettatura), `ScalaLikert`, `SegnalaProblema` |
 | Dati e grafici | `SchedaPratica`, `StoricoGiornate`, `IndicatoreOrientamento`, `OreAscolto` |
 | Personalizzazione | `RuotaTonalita` (ruota l'accento e il fondo, vedi `lib/tonalita.js`) |
-| Admin | `AdminChrome`, `EditorSplash` |
+| Admin | `AdminChrome`, `AdminDialogo` (modale delle pagine facilitatore), `EditorSplash` |
 | Navigazione | `Nav`, `BarraBassa`, `Footer`, `PullToRefresh` |
 
 **Non usati oggi:** `GraficoAndamentoPratica.jsx`, `TracciaGuidata.jsx`. Prima di riprenderli verifica che seguano il design system, altrimenti eliminali.
 
-**Sottocomponenti locali** (definiti dentro la pagina, non riusabili così come sono): `Consenso`, `Cursore`, `GiaRegistrato` (Checkin); `TaskFormale`, `AnnotazioniGiorno`, `VuotoProgramma` (Programma); `EditorDialogo`, `SelettoreTraccia` (EditorSettimana); `AdminDialogo` e le icone `Icona*` (Libreria, Iscrizione). Se un secondo file ne ha bisogno, spostali in `components/`.
+**Sottocomponenti locali** (definiti dentro la pagina, non riusabili così come sono): `Consenso`, `Cursore`, `GiaRegistrato` (Checkin); `TaskFormale`, `AnnotazioniGiorno`, `VuotoProgramma` (Programma); `EditorDialogo`, `SelettoreTraccia` (EditorSettimana); le icone `Icona*` (Libreria, Iscrizione). Se un secondo file ne ha bisogno, spostali in `components/`.
 
 ## 4. Pattern ricorrenti
 

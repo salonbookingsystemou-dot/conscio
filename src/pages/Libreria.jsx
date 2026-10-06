@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import AdminDialogo from '../components/AdminDialogo.jsx'
 import CardTracciaAudio from '../components/CardTracciaAudio.jsx'
 import {
   collegamentiTracce,
@@ -543,33 +544,5 @@ export default function Libreria() {
         </AdminDialogo>
       )}
     </>
-  )
-}
-
-function AdminDialogo({ titolo, children, onChiudi, className }) {
-  const el = useRef(null)
-
-  useEffect(() => {
-    const dialog = el.current
-    if (!dialog) return
-    if (!dialog.open) dialog.showModal()
-  }, [])
-
-  return (
-    <dialog
-      ref={el}
-      className={['dialogo', className].filter(Boolean).join(' ')}
-      onClose={onChiudi}
-      onCancel={e => {
-        e.preventDefault()
-        onChiudi()
-      }}
-      onClick={e => {
-        if (e.target === el.current) onChiudi()
-      }}
-    >
-      <h2>{titolo}</h2>
-      {children}
-    </dialog>
   )
 }
