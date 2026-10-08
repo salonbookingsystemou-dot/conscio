@@ -111,12 +111,6 @@ export default function TracciaGuidata({
     })
   }, [])
 
-  // Scarica in background la traccia reale così è disponibile anche offline.
-  useEffect(() => {
-    if (anteprima || !src) return
-    assicuraTracciaOffline(urlAudioSenzaTesto(src))
-  }, [src, anteprima])
-
   useEffect(() => {
     const gia = ascoltoCompletato(persistenzaKey)
     setCompleto(gia)

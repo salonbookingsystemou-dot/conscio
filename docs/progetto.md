@@ -51,6 +51,13 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 8/10/2026 · Copia offline delle tracce solo al play (da Cursor)
+Supabase ha segnalato il superamento della quota di cached egress (lo Storage servito dal CDN).
+`CardTracciaAudio` e `TracciaGuidata` scaricavano per intero ogni traccia appena la card
+compariva nel programma, anche senza ascoltarla. Ora la copia completa per l’offline
+(`assicuraTracciaOffline`) parte solo quando si preme play: una traccia è disponibile offline
+dopo il primo ascolto online.
+
 ### 6/10/2026 · Durata delle pratiche formali presa dalla traccia (da Cursor)
 Nell’editor della settimana il campo «Durata (minuti)» non c’è più: al salvataggio la pratica
 prende la durata della traccia collegata (`tracce.durata_minuti`, misurata dal file), e

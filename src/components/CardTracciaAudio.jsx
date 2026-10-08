@@ -161,11 +161,6 @@ export default function CardTracciaAudio({
   }, [])
 
   useEffect(() => {
-    if (anteprima || !src) return
-    assicuraTracciaOffline(urlAudioSenzaTesto(src))
-  }, [src, anteprima])
-
-  useEffect(() => {
     // `giaAscoltata` diventa true a circa il 95%, quando il salvataggio aggiorna
     // il programma. Non è tra le dipendenze: altrimenti questo effetto mette in
     // pausa e riavvolge la traccia mentre gli ultimi minuti stanno ancora suonando.
