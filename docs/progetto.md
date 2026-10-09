@@ -56,8 +56,9 @@ Se chi segnala è entrato con il codice, `porta` salva la segnalazione collegata
 all’account (`supabase/migrazione_segnalazioni_problema.sql`) e non inoltra codice
 né email all’agente. Quando la correzione è giusta, l’agente unisce la pull request
 su `main` (il sito si pubblica da solo) e chiama `porta` con `azione = chiudi_segnalazione`.
-Partono due email: una a chi gestisce l’app e una all’email dell’iscrizione, con un
-breve riepilogo. Senza codice resta solo l’avviso al gestore. Il testo entra in
+Partono due email, a chi gestisce l’app e all’email dell’iscrizione: l’errore
+segnalato è stato corretto, e un ringraziamento per la segnalazione. Senza codice
+resta solo l’avviso al gestore. Il testo entra in
 informativa, export e reset.
 
 ### 9/10/2026 · Il calendario della settimana non sposta i giorni nel mese dopo (da Cursor)

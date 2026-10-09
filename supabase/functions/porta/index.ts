@@ -162,7 +162,9 @@ function testoChiusuraPartecipante(riepilogo: string): string {
   return [
     'Ciao,',
     '',
-    'abbiamo corretto un problema che hai segnalato nell’app Conscio.',
+    'grazie per la segnalazione.',
+    '',
+    'L’errore che hai segnalato è stato corretto.',
     '',
     riepilogo,
     '',
@@ -188,7 +190,9 @@ function testoChiusuraGestore(opts: {
         ? 'Email alla persona che ha segnalato: non riuscita. Il recapito c’è, l’invio no.'
         : 'Email alla persona che ha segnalato: nessun recapito (senza codice, oppure email già separata).'
   return [
-    'Correzione pubblicata per una segnalazione dell’app Conscio.',
+    'L’errore segnalato è stato corretto ed è già online.',
+    '',
+    'Grazie a chi ha segnalato.',
     '',
     `Pagina: ${opts.pagina || 'non indicata'}`,
     'Messaggio:',
@@ -671,7 +675,7 @@ Deno.serve(async (req) => {
       } else {
         const inviata = await inviaEmail({
           to: emailPartecipante,
-          oggetto: 'Abbiamo corretto un problema che hai segnalato',
+          oggetto: 'Grazie per la segnalazione: l’errore è stato corretto',
           testo: testoChiusuraPartecipante(riepilogo)
         })
         if (inviata) {
@@ -688,7 +692,7 @@ Deno.serve(async (req) => {
 
     const avvisoGestore = await inviaEmail({
       to: REPLY_TO,
-      oggetto: 'Correzione pubblicata — segnalazione Conscio',
+      oggetto: 'Errore corretto — grazie per la segnalazione',
       testo: testoChiusuraGestore({
         pagina: riga.pagina || '',
         messaggio: riga.messaggio || '',

@@ -39,7 +39,7 @@ export default function SegnalaProblema({ errore = '' }) {
         <p><strong>Grazie, segnalazione inviata.</strong></p>
         <p className="hint">
           {leggiCodice()
-            ? 'Se la correzione è pronta, ti scriviamo all’email dell’iscrizione.'
+            ? 'Se la correzione è pronta, ti scriviamo all’email dell’iscrizione per ringraziarti.'
             : 'La leggiamo e, se serve, correggiamo l’app nei prossimi aggiornamenti.'}
         </p>
       </div>
