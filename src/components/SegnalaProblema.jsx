@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { inviaSegnalazione } from '../lib/segnalazione.js'
+import { leggiCodice } from '../lib/supabaseClient.js'
 
 function testoErrore(err) {
   const codice = err?.code || err?.message
@@ -36,7 +37,11 @@ export default function SegnalaProblema({ errore = '' }) {
     return (
       <div className="segnala-ok" role="status">
         <p><strong>Grazie, segnalazione inviata.</strong></p>
-        <p className="hint">La leggiamo e, se serve, correggiamo l’app nei prossimi aggiornamenti.</p>
+        <p className="hint">
+          {leggiCodice()
+            ? 'Se la correzione è pronta, ti scriviamo all’email dell’iscrizione.'
+            : 'La leggiamo e, se serve, correggiamo l’app nei prossimi aggiornamenti.'}
+        </p>
       </div>
     )
   }
@@ -70,7 +75,8 @@ export default function SegnalaProblema({ errore = '' }) {
         />
       </div>
       <p className="hint">
-        La segnalazione è anonima: non alleghiamo il tuo codice né la tua email.
+        Se entri con il codice, ti scriviamo quando la correzione è online.
+        Chi analizza il problema non riceve né il codice né l’email.
         Insieme al testo inviamo la pagina, il tipo di browser e{' '}
         {errore
           ? 'le dimensioni dello schermo, più il messaggio tecnico dell’errore.'

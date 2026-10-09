@@ -99,7 +99,7 @@ erDiagram
 | Dati di pratica | `log_pratica`, `checkin_settimanali` |
 | Misure | `questionari`, `item`, `risposte` (PSS-10, FFMQ-I · T0–T3) |
 | Comunicazione | `comunicazioni`, `notifiche_inattivita`, `promemoria_questionari`, `promemoria_pausa`, `quotes`, `quote_sent_log` |
-| Sistema | `limiti_richieste` (tetti per IP hashato), `splash_sito`, `backfill_collegamenti_tracce` |
+| Sistema | `limiti_richieste` (tetti per IP hashato), `splash_sito`, `backfill_collegamenti_tracce`, `segnalazioni_problema` (testo collegato all’account, solo per l’avviso di chiusura; niente codice né email verso l’agente) |
 
 **Accesso:** nessuna tabella è leggibile dal client anonimo. Il partecipante passa solo da RPC `security definer` con `p_codice` (es. `programma_del_partecipante`, `registra_ascolto_formale`, `salva_risposte_questionario`, `salva_checkin`, `esporta_dati_del_partecipante`, `resetta_dati_del_partecipante`). Il facilitatore (`is_facilitatore()`) legge tabelle via RLS e usa RPC pseudonime (`risposte_pseudonime`, `log_pratica_pseudonimi`, `segnalazioni_difficili_aperte`).
 
@@ -109,7 +109,7 @@ Lo schema vive in `supabase/schema.sql` + ~45 `migrazione_*.sql` (l'ultimo file 
 
 | Funzione | Innesco | Fa | Servizi |
 |---|---|---|---|
-| `porta` | app (Entra, Iscrizione, recupero codice, Accedi, Segnala) | rate limit per IP, iscrizione, stato codice, invio codice, avvio analisi segnalazione | Resend, webhook Cursor |
+| `porta` | app (Entra, Iscrizione, recupero codice, Accedi, Segnala) e l’agente a fine correzione | rate limit per IP, iscrizione, stato codice, invio codice, avvio analisi segnalazione, chiusura con email a gestore e partecipante | Resend, webhook Cursor |
 | `invia-comunicazione` | facilitatore | email ai destinatari del ciclo (o solo remoti) | Resend |
 | `invia-incoraggiamento-pratica` | trigger su INSERT `log_pratica` (`tipo='giorno'`) | email con giorno 1–56 + citazione della settimana | Resend |
 | `avvisa-segnalazione-checkin` | trigger su `checkin_settimanali` | avviso al facilitatore (solo codice e settimana) | Resend |

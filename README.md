@@ -132,6 +132,11 @@ Entra, Iscrizione, recupero codice e Accedi facilitatore passano dall’edge fun
    Per l’analisi automatica delle segnalazioni, prima del deploy imposta i secret
    `CURSOR_AUTOFIX_WEBHOOK_URL` e `CURSOR_AUTOFIX_WEBHOOK_KEY` (indirizzo e chiave del
    webhook nell’automazione). Senza i due secret la segnalazione resta solo email.
+   Se chi segnala è entrato con il codice, la riga resta in `segnalazioni_problema`
+   (`supabase/migrazione_segnalazioni_problema.sql`, da eseguire nell’SQL editor).
+   A correzione pubblicata l’agente chiama `porta` con `chiudi_segnalazione`: parte
+   un’email a `contact@wordpresschef.it` e una all’email dell’iscrizione. Codice e
+   email non entrano nel webhook.
 3. Per inviare il codice all’iscrizione e al recupero, la funzione usa gli stessi secret Resend di `invia-comunicazione` (`RESEND_API_KEY`, opzionale `RESEND_FROM`). A ogni iscrizione parte anche un avviso a `contact@wordpresschef.it`.
 4. Opzionale in Auth (dashboard Supabase): protezione password compromesse e MFA sull’account facilitatore.
 

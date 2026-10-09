@@ -51,6 +51,15 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 9/10/2026 · La correzione di una segnalazione chiude il ciclo e avvisa (da Cursor)
+Se chi segnala è entrato con il codice, `porta` salva la segnalazione collegata
+all’account (`supabase/migrazione_segnalazioni_problema.sql`) e non inoltra codice
+né email all’agente. Quando la correzione è giusta, l’agente unisce la pull request
+su `main` (il sito si pubblica da solo) e chiama `porta` con `azione = chiudi_segnalazione`.
+Partono due email: una a chi gestisce l’app e una all’email dell’iscrizione, con un
+breve riepilogo. Senza codice resta solo l’avviso al gestore. Il testo entra in
+informativa, export e reset.
+
 ### 9/10/2026 · Il calendario della settimana non sposta i giorni nel mese dopo (da Cursor)
 Segnalazione anonima: il calendario riportava date non corrette. La riga che contiene
 il primo del mese (per esempio 29 settembre–5 ottobre) prendeva il nome solo del mese

@@ -77,8 +77,9 @@ function Informativa() {
           e f) GDPR — dimostrare i consensi e tenere l’applicazione utilizzabile.
         </li>
         <li>
-          <strong>Segnalazioni di problemi</strong> (facoltative e anonime): art. 6, par. 1,
-          lett. f) GDPR — legittimo interesse a correggere gli errori dell’app.
+          <strong>Segnalazioni di problemi</strong> (facoltative): art. 6, par. 1,
+          lett. f) GDPR — legittimo interesse a correggere gli errori dell’app e a
+          scriverti quando la correzione è online.
         </li>
       </ul>
       <p>
@@ -114,9 +115,11 @@ function Informativa() {
         <li>
           segnalazioni di problemi dell’app, solo se decidi di inviarne una: il testo che
           scrivi, la pagina, il tipo di browser, le dimensioni dello schermo e, se l’app si è
-          interrotta, il messaggio tecnico dell’errore. Sono anonime (senza codice né email),
-          arrivano per email a chi gestisce l’app e allo strumento che analizza il codice
-          per cercare la correzione. Non vengono salvate nel database.
+          interrotta, il messaggio tecnico dell’errore. Se in quel momento sei entrato con
+          il codice, teniamo il collegamento al tuo account solo per scriverti all’email
+          dell’iscrizione quando la correzione è online. Allo strumento che analizza il
+          codice arrivano solo il testo, la pagina, il browser, lo schermo e l’errore:
+          non il codice e non l’email.
         </li>
       </ul>
       <p>
@@ -155,7 +158,9 @@ function Informativa() {
         del pilota. Se chiedi di uscire, non raccogliamo altri dati; quanto già
         raccolto in forma di codice può restare se serve a non spezzare lo studio,
         nei limiti di legge. Le segnalazioni di problemi restano nella casella email
-        e nella sessione di analisi solo il tempo necessario a risolverli.
+        e nella sessione di analisi solo il tempo necessario a risolverli. Il testo
+        collegato al tuo account resta finché non azzeri i dati o ne chiedi la
+        cancellazione.
       </p>
 
       <h3>6. I tuoi diritti</h3>
@@ -234,8 +239,9 @@ function Diritti() {
       </ol>
       <p>
         Il file contiene email (se ancora presente), consensi, iscrizioni, item e
-        valori dei questionari, note di pratica, check-in settimanali e le date dei
-        promemoria di pausa. Non contiene dati di altri.
+        valori dei questionari, note di pratica, check-in settimanali, le date dei
+        promemoria di pausa e le segnalazioni di problemi collegate al codice.
+        Non contiene dati di altri.
       </p>
 
       <h3>3. Correzione, limitazione, opposizione, revoca</h3>

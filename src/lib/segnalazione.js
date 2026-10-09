@@ -1,7 +1,7 @@
 import { version } from '../../package.json'
-import { chiamaPorta } from './supabaseClient'
+import { chiamaPorta, leggiCodice } from './supabaseClient'
 
-/** Le segnalazioni sono anonime: il codice partecipante non deve mai partire. */
+/** Il codice, se c’è, va solo a porta: non entra nell’email né nell’agente. */
 export function senzaCodici(testo) {
   return String(testo || '').replace(/MBSR-[A-Z0-9]{4,12}/gi, '[codice rimosso]')
 }
@@ -25,11 +25,13 @@ function contesto() {
 }
 
 export async function inviaSegnalazione({ messaggio, errore, sitoWeb }) {
+  const codice = leggiCodice()
   return chiamaPorta({
     azione: 'segnala_problema',
     messaggio: senzaCodici(messaggio),
     errore: errore || '',
     sito_web: sitoWeb || '',
+    codice: codice || '',
     ...contesto()
   })
 }
