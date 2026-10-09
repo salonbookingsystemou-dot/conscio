@@ -51,6 +51,13 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 9/10/2026 · Il calendario della settimana non sposta i giorni nel mese dopo (da Cursor)
+Segnalazione anonima: il calendario riportava date non corrette. La riga che contiene
+il primo del mese (per esempio 29 settembre–5 ottobre) prendeva il nome solo del mese
+nuovo, quindi il 29 e il 30 sembravano di ottobre. Ora l’intestazione nomina entrambi
+i mesi. Martedì e mercoledì non sono più la stessa lettera «M»: le sigle sono
+lun, mar, mer, gio, ven, sab, dom. Nessuna modifica al database.
+
 ### 8/10/2026 · Copia offline delle tracce solo al play (da Cursor)
 Supabase ha segnalato il superamento della quota di cached egress (lo Storage servito dal CDN).
 `CardTracciaAudio` e `TracciaGuidata` scaricavano per intero ogni traccia appena la card

@@ -1,5 +1,5 @@
 const GIORNI = ['lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato', 'domenica']
-const GIORNI_CORTI = ['L', 'M', 'M', 'G', 'V', 'S', 'D']
+const GIORNI_CORTI = ['lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom']
 const MESI = [
   'gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno',
   'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'
@@ -48,6 +48,18 @@ export function etichettaGiorno(data) {
 
 export function etichettaMese(data) {
   return `${MESI[data.getMonth()]} ${data.getFullYear()}`
+}
+
+/** Mese della riga. Se i giorni attraversano il cambio mese, li nomina entrambi. */
+export function etichettaMesi(da, a) {
+  if (!da) return ''
+  const fine = a || da
+  const stessoMese = da.getFullYear() === fine.getFullYear() && da.getMonth() === fine.getMonth()
+  if (stessoMese) return etichettaMese(da)
+  if (da.getFullYear() === fine.getFullYear()) {
+    return `${MESI[da.getMonth()]} – ${etichettaMese(fine)}`
+  }
+  return `${etichettaMese(da)} – ${etichettaMese(fine)}`
 }
 
 export function minDate(...date) {

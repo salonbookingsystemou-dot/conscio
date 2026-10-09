@@ -3460,6 +3460,7 @@ button.cal-giorno:focus-visible {
   letter-spacing: 0.02em;
   color: var(--ink-soft);
   text-transform: uppercase;
+  white-space: nowrap;
 }
 .cal-giorno.is-fatto .cal-dow,
 .cal-giorno.is-oggi-fatto .cal-dow {

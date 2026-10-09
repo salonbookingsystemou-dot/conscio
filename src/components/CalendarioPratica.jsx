@@ -2,7 +2,7 @@ import {
   addDays,
   etichettaGiorno,
   etichettaGiornoCorto,
-  etichettaMese,
+  etichettaMesi,
   formatISODate,
   maxDate,
   minDate,
@@ -114,9 +114,8 @@ export default function CalendarioPratica({
           </p>
         )}
       </div>
-      {settimane.map((riga, i) => {
-        const primoDelMese = riga.find(c => c.data.getDate() === 1) || (i === 0 ? riga[0] : null)
-        const mese = primoDelMese ? etichettaMese(primoDelMese.data) : ''
+      {settimane.map(riga => {
+        const mese = etichettaMesi(riga[0].data, riga[riga.length - 1].data)
         const mostraMese = mese && mese !== meseCorrente
         if (mostraMese) meseCorrente = mese
         return (
