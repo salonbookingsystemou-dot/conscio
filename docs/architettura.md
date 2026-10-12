@@ -66,7 +66,7 @@ flowchart LR
 | `/libreria`, `/genera` | `SoloFacilitatore` | Libreria tracce, GeneraTraccia (ElevenLabs) |
 | `/controllo-tracce` | `SoloFacilitatore` | ControlloTracce (collegamenti, file e ascolto tecnico delle tracce, `lib/controlloTracce.js`) |
 
-Due "chrome": partecipante (`Nav` + `BarraBassa` + `Footer`) e facilitatore (`AdminChrome`). Un solo design system (`tokens.css`).
+Due "chrome": partecipante (`Nav` + `BarraBassa` + `Footer`) e facilitatore (`AdminChrome`). Un solo design system (`tokens.css`). La barra bassa non include Ascolta. L’indirizzo senza cancelletto `/ascolta` arriva da `public/ascolta/index.html` (e da `public/404.html` per lo slug): entrambi portano a `/#/ascolta`, senza codice.
 
 ### Moduli `src/lib` principali
 `supabaseClient` (client + `chiamaPorta`) · `auth` · `partecipante` · `ascolto` (credito ascolto al 90–95%) · `vetrina` (pagine pubbliche e scheda del facilitatore; in modalità vetrina il player non accredita la pratica) · `tracce` / `cacheTracce` / `riproduzioneAudio` · `checkin` · `scoring` (PSS-10, FFMQ-I) · `pratica` / `storico` (aderenza, giornate) · `generaVoce` + `audioMp3` · `tono` / `tonalita` / `colori`.

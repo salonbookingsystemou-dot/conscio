@@ -9,6 +9,13 @@ self.addEventListener('fetch', (event) => {
 })
 
 async function apriNavigazione(richiesta) {
+  const url = new URL(richiesta.url)
+  const percorso = url.pathname.replace(/\/+$/, '') || '/'
+  if (percorso === '/ascolta' || percorso.startsWith('/ascolta/')) {
+    const coda = percorso.slice('/ascolta'.length)
+    return Response.redirect(`${url.origin}/#/ascolta${coda}${url.search}`, 302)
+  }
+
   try {
     const rete = await fetch(richiesta.url, {
       credentials: 'same-origin',

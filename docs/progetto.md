@@ -51,6 +51,12 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 12/10/2026 · Ricerca Unsplash (da Cursor)
+La ricerca sfondi chiamava Unsplash con la chiave salvata sul server. Unsplash risponde 401: la chiave non è valida. Il messaggio in libreria ora lo dice, invece di «Unsplash non ha risposto».
+
+### 12/10/2026 · Ascolta fuori dalla barra, indirizzo pubblico (da Cursor)
+La voce Ascolta non è più nella barra bassa: resta nel menu in alto, e solo se la vetrina è accesa. L’indirizzo `https://conscio.mnesti.it/ascolta` (e `/ascolta/slug`) apre la pagina senza codice: una pagina statica e il service worker mandano al percorso dell’app. La route era già fuori da `SoloRegistrato`.
+
 ### 12/10/2026 · Vetrina Ascolta, le schermate (da Cursor)
 Pagine pubbliche `/ascolta` e `/ascolta/:slug`, con il guscio del partecipante anche per il facilitatore. In Libreria la modifica di una traccia ha la sezione Vetrina (slug, sfondo, autore, licenza, voce, tag, revisione, pubblicazione). Nel pannello Sito ci sono l’interruttore, i testi dell’invito, il calendario e i conteggi delle ultime quattro settimane. Il player in vetrina non accredita la pratica e non prepara la copia offline. L’interruttore resta spento.
 

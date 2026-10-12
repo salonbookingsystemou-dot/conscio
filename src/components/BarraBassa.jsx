@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../lib/auth.jsx'
 import { usePartecipante } from '../lib/partecipante.jsx'
-import useVetrinaAperta from '../lib/useVetrinaAperta.js'
 
 const VOCI = [
   { to: '/programma', label: 'Settimana' },
@@ -48,31 +47,17 @@ function IconaAvvisi() {
   )
 }
 
-function IconaAscolta() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="7.2" fill="none" stroke="currentColor" strokeWidth="1.4" />
-      <path d="M10.3 8.8v6.4l5-3.2-5-3.2z" fill="currentColor" />
-    </svg>
-  )
-}
-
 const ICONE = {
   '/questionari': IconaQuestionari,
   '/programma': IconaSettimana,
   '/pratica': IconaStorico,
-  '/comunicazioni': IconaAvvisi,
-  '/ascolta': IconaAscolta
+  '/comunicazioni': IconaAvvisi
 }
 
 export default function BarraBassa() {
   const { facilitatore } = useAuth()
-  const { codice, registrato, percorsoPronto } = usePartecipante()
-  const vetrinaAperta = useVetrinaAperta()
+  const { registrato, percorsoPronto } = usePartecipante()
   const visibile = facilitatore || (registrato && percorsoPronto)
-  const voci = codice && vetrinaAperta
-    ? [{ to: '/ascolta', label: 'Ascolta' }, ...VOCI]
-    : VOCI
 
   useEffect(() => {
     if (!visibile) return undefined
@@ -84,7 +69,7 @@ export default function BarraBassa() {
 
   return (
     <nav className="barra-bassa" aria-label="Sezioni principali">
-      {voci.map(({ to, label }) => {
+      {VOCI.map(({ to, label }) => {
         const IconaVoce = ICONE[to]
         return (
           <NavLink key={to} to={to} className="barra-bassa-voce">

@@ -75,7 +75,7 @@ export default function EditorVetrina() {
     <div className="card">
       <h3>Ascolta</h3>
       <p className="hint">
-        Pagina pubblica delle meditazioni. Non scrive la pratica di nessuno e non chiede il codice.
+        Pagina pubblica delle meditazioni. Elenca le tracce della libreria con la spunta «Disponibile per la vetrina», senza seguire i cicli.
       </p>
       <form onSubmit={salva}>
         <label className="vetrina-spunta">
@@ -86,7 +86,7 @@ export default function EditorVetrina() {
           />
           <span>Vetrina attiva</span>
         </label>
-        <p className="disclaimer">Da attivare a fine ciclo o se dichiarata nel protocollo dello studio.</p>
+        <p className="disclaimer">Accende la pagina. Le meditazioni sono quelle spuntate in libreria, non le pratiche del ciclo.</p>
 
         <div className="field">
           <label htmlFor="vetrina-cta-titolo">Titolo dell’invito</label>

@@ -113,8 +113,28 @@ async function cerca(corpo: Record<string, unknown>) {
   return cercaPexels(tipo, query, pagina(corpo.pagina))
 }
 
+function chiaveUnsplash(): string {
+  return (Deno.env.get('UNSPLASH_ACCESS_KEY') || '').trim().replace(/^Client-ID\s+/i, '')
+}
+
+async function messaggioUnsplash(res: Response): Promise<string> {
+  let dettaglio = ''
+  try {
+    const data = await res.json() as { errors?: unknown }
+    if (Array.isArray(data.errors)) {
+      dettaglio = data.errors.filter((e) => typeof e === 'string').join(' ').slice(0, 180)
+    }
+  } catch { /* corpo non json */ }
+  console.error('unsplash', res.status, dettaglio)
+  if (res.status === 401) {
+    return 'La chiave Unsplash non è valida. Nell’applicazione Unsplash copia Access Key, non Secret Key.'
+  }
+  if (dettaglio) return `Unsplash non ha risposto (${res.status}): ${dettaglio}`
+  return `Unsplash non ha risposto (${res.status}).`
+}
+
 async function cercaUnsplash(query: string, pag: number) {
-  const chiave = Deno.env.get('UNSPLASH_ACCESS_KEY') || ''
+  const chiave = chiaveUnsplash()
   if (!chiave) {
     return json({
       errore: 'CHIAVE_MANCANTE',
@@ -135,7 +155,7 @@ async function cercaUnsplash(query: string, pag: number) {
   if (res.status === 429) {
     return json({ errore: 'LIMITE', messaggio: 'Unsplash ha raggiunto il limite di ricerche. Riprova più tardi.' }, 429)
   }
-  if (!res.ok) return json({ errore: 'SERVIZIO', messaggio: 'Unsplash non ha risposto.' }, 502)
+  if (!res.ok) return json({ errore: 'SERVIZIO', messaggio: await messaggioUnsplash(res) }, 502)
 
   const data = await res.json() as { results?: Array<Record<string, unknown>> }
   const risultati = (data.results || []).map((foto) => {
@@ -284,7 +304,7 @@ async function scegliUnsplash(tipo: string, downloadLocation: string) {
   if (tipo !== 'foto') {
     return json({ errore: 'VIDEO_NON_DISPONIBILE', messaggio: 'Unsplash non ha video.' }, 400)
   }
-  const chiave = Deno.env.get('UNSPLASH_ACCESS_KEY') || ''
+  const chiave = chiaveUnsplash()
   if (!chiave) {
     return json({
       errore: 'CHIAVE_MANCANTE',

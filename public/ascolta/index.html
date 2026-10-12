@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ascolta</title>
+    <script>
+      var percorso = location.pathname.replace(/\/+$/, '') || '/'
+      var coda = percorso.slice('/ascolta'.length)
+      location.replace('/#/ascolta' + coda + location.search)
+    </script>
+  </head>
+  <body>
+    <p><a href="/#/ascolta">Apri Ascolta</a></p>
+  </body>
+</html>

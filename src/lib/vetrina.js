@@ -95,10 +95,9 @@ export function eventoVetrina(slug, evento) {
 }
 
 export function urlAscolta(slug) {
-  const base = import.meta.env.BASE_URL || '/'
-  const radice = base.endsWith('/') ? base : `${base}/`
-  if (typeof window === 'undefined') return `${radice}#/ascolta/${slug}`
-  return `${window.location.origin}${radice}#/ascolta/${slug}`
+  const pezzo = `ascolta/${slug}`
+  if (typeof window === 'undefined') return `/${pezzo}`
+  return new URL(`/${pezzo}`, window.location.origin).href
 }
 
 export function slugDaTitolo(titolo) {
@@ -247,9 +246,37 @@ export async function creaAutore(nome, link) {
 export async function leggiStatiVetrina() {
   const { data, error } = await supabase
     .from('tracce')
-    .select('id, pubblica, stato_revisione')
+    .select('id, pubblica, stato_revisione, slug')
   if (error) throw error
   return Object.fromEntries((data || []).map(riga => [riga.id, riga]))
+}
+
+async function slugLibero(base, id) {
+  const { data, error } = await supabase
+    .from('tracce')
+    .select('id')
+    .eq('slug', base)
+    .maybeSingle()
+  if (error) throw error
+  if (!data || data.id === id) return base
+  const suffisso = String(id).replace(/-/g, '').slice(0, 4)
+  return `${base}-${suffisso}`.slice(0, 80)
+}
+
+export async function impostaDisponibileVetrina(traccia, acceso) {
+  const patch = {
+    pubblica: Boolean(acceso),
+    aggiornato_il: new Date().toISOString()
+  }
+  if (acceso) {
+    const attuale = String(traccia.slug || '').replace(/-+$/, '')
+    const base = slugValido(attuale) ? attuale : slugDaTitolo(traccia.titolo)
+    if (!base) throw new Error('La traccia ha bisogno di un titolo.')
+    patch.slug = await slugLibero(base, traccia.id)
+  }
+  const { error } = await supabase.from('tracce').update(patch).eq('id', traccia.id)
+  if (error) throw error
+  return { pubblica: patch.pubblica, slug: patch.slug || traccia.slug || null }
 }
 
 const COLONNE_SCHEDA = [
@@ -296,7 +323,7 @@ export async function salvaSchedaVetrina(id, campi, tagIds) {
   }).eq('id', id)
   if (error) {
     if (error.code === '23505') throw new Error('Questo slug è già usato da un’altra traccia.')
-    if (error.code === '23514') throw new Error('Per pubblicare mancano ancora dei campi, oppure la licenza non è completa.')
+    if (error.code === '23514') throw new Error('Lo slug non è valido, oppure la licenza non è completa.')
     throw error
   }
   const { error: erroreCancella } = await supabase.from('tracce_tag').delete().eq('traccia_id', id)

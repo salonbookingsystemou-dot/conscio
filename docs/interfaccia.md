@@ -46,7 +46,7 @@ flowchart TB
 | Ascolta | `/ascolta` | elenco pubblico: meditazione della settimana, filtri, griglia, invito al percorso. Tre stati: caricamento, «La sezione non è ancora aperta», errore |
 | Meditazione | `/ascolta/:slug` | sfondo, player, scheda (testo, licenza, fonte, voce), condivisione, «Ascolta un’altra» |
 
-Le tavole di riferimento sono in `docs/mockup/ascolta-*.png`. La vetrina usa il guscio del partecipante anche se il facilitatore è entrato. Il link in nav compare solo con la vetrina accesa; in barra bassa solo con un codice attivo e la vetrina accesa.
+Le tavole di riferimento sono in `docs/mockup/ascolta-*.png`. La vetrina usa il guscio del partecipante anche se il facilitatore è entrato. Il link in nav compare solo con la vetrina accesa. La barra bassa non ha la voce Ascolta.
 
 ### Partecipante (dopo il codice)
 | Schermata | Route | Blocchi |

@@ -7,7 +7,6 @@ import {
   leggiSchedaVetrina,
   leggiTag,
   LICENZE,
-  mancaPerPubblicare,
   normalizzaSlug,
   salvaSchedaVetrina,
   slugDaTitolo,
@@ -156,17 +155,15 @@ const ModuloVetrina = forwardRef(function ModuloVetrina({ tracciaId, titolo, des
       if (!linkAccettabile(scheda.fonte_url) || !linkAccettabile(scheda.sfondo_autore_link)) {
         fallisci('Uno dei link non è un indirizzo valido.')
       }
+      const slug = String(scheda.slug || '').replace(/-+$/, '') || (scheda.pubblica ? slugDaTitolo(titolo) : '')
       const bozza = {
         ...scheda,
         descrizione,
-        slug: String(scheda.slug || '').replace(/-+$/, '')
+        slug,
+        pubblica: Boolean(scheda.pubblica)
       }
-      const manca = mancaPerPubblicare(bozza)
       try {
-        await salvaSchedaVetrina(tracciaId, {
-          ...bozza,
-          pubblica: manca.length === 0 && scheda.pubblica
-        }, scheda.tag_ids)
+        await salvaSchedaVetrina(tracciaId, bozza, scheda.tag_ids)
       } catch (err) {
         fallisci(err?.message || 'Non è stato possibile salvare la scheda della vetrina.')
       }
@@ -174,7 +171,6 @@ const ModuloVetrina = forwardRef(function ModuloVetrina({ tracciaId, titolo, des
   }))
 
   const revisioneCompleta = VOCI_REVISIONE.every(([chiave]) => scheda.revisione?.[chiave])
-  const manca = mancaPerPubblicare({ ...scheda, descrizione })
   const credito = scheda.sfondo_autore
     ? `${scheda.sfondo_tipo === 'video' ? 'Video' : 'Foto'} di ${scheda.sfondo_autore}`
     : ''
@@ -185,7 +181,7 @@ const ModuloVetrina = forwardRef(function ModuloVetrina({ tracciaId, titolo, des
     <section className="vetrina-scheda" aria-label="Vetrina">
       <h3>Vetrina</h3>
       <p className="hint">
-        Questi campi servono alla pagina pubblica. La traccia resta fuori finché non la pubblichi, e la pubblicazione chiede revisione, autore, licenza, voce e sfondo.
+        Questi campi descrivono la traccia nella pagina. La spunta qui sotto la mette nel player, anche senza sfondo o revisione, e vale per tutta la libreria.
       </p>
 
       <div className="field">
@@ -209,7 +205,7 @@ const ModuloVetrina = forwardRef(function ModuloVetrina({ tracciaId, titolo, des
         {scheda.sfondo_poster_url || scheda.sfondo_url ? (
           <img className="vetrina-anteprima" src={scheda.sfondo_poster_url || scheda.sfondo_url} alt="" />
         ) : (
-          <p className="hint">Nessuno sfondo. Senza, la traccia non si può pubblicare.</p>
+          <p className="hint">Facoltativo. Senza sfondo il player usa il colore dell’app.</p>
         )}
         {credito && <p className="hint">{credito}</p>}
         {scheda.sfondo_tipo === 'video' && (
@@ -375,21 +371,18 @@ const ModuloVetrina = forwardRef(function ModuloVetrina({ tracciaId, titolo, des
           value={scheda.in_evidenza_dal || ''}
           onChange={e => aggiorna('in_evidenza_dal', e.target.value)}
         />
-        <p className="hint">La meditazione della settimana è la più recente fra quelle con questa data già arrivata.</p>
+        <p className="hint">Facoltativo. Se c’è una data, quella traccia compare per prima.</p>
       </div>
 
       <label className="vetrina-spunta">
         <input
           type="checkbox"
-          checked={Boolean(scheda.pubblica) && manca.length === 0}
-          disabled={manca.length > 0}
+          checked={Boolean(scheda.pubblica)}
           onChange={e => aggiorna('pubblica', e.target.checked)}
         />
-        <span>Pubblica nella vetrina</span>
+        <span>Disponibile per la vetrina</span>
       </label>
-      {manca.length > 0 && (
-        <p className="campo-errore">Per pubblicare manca: {manca.join(', ')}.</p>
-      )}
+      <p className="hint">Entra nel player pubblico insieme alle altre tracce spuntate. Non segue il ciclo.</p>
       {errore && <p className="avviso-errore" role="alert">{errore}</p>}
 
       {scegli && (

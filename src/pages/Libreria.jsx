@@ -14,7 +14,7 @@ import {
   sostituisciFileTraccia,
   titoloDaNomeFile
 } from '../lib/tracce'
-import { leggiStatiVetrina } from '../lib/vetrina.js'
+import { impostaDisponibileVetrina, leggiStatiVetrina } from '../lib/vetrina.js'
 
 function etichettaCollegamento(voce) {
   const n = Number(voce?.numeroSettimana)
@@ -236,6 +236,27 @@ export default function Libreria() {
     }
   }
 
+  async function cambiaDisponibile(traccia, acceso) {
+    setOccupato(traccia.id)
+    setErrore(null)
+    try {
+      const stato = statiVetrina[traccia.id] || {}
+      const salvato = await impostaDisponibileVetrina({
+        id: traccia.id,
+        titolo: traccia.titolo,
+        slug: stato.slug
+      }, acceso)
+      setStatiVetrina(attuale => ({
+        ...attuale,
+        [traccia.id]: { ...stato, ...salvato }
+      }))
+    } catch (err) {
+      setErrore(err?.message || 'Non è stato possibile aggiornare la vetrina.')
+    } finally {
+      setOccupato(null)
+    }
+  }
+
   async function confermaElimina() {
     const traccia = dialogo?.traccia
     if (!traccia) return
@@ -310,7 +331,7 @@ export default function Libreria() {
             <option value="bozza">Bozza</option>
             <option value="in-revisione">In revisione</option>
             <option value="approvata">Approvata</option>
-            <option value="pubblica">In vetrina</option>
+            <option value="pubblica">Disponibili per la vetrina</option>
           </select>
         </div>
         <button type="button" className="btn" onClick={apriCarica}>
@@ -343,7 +364,6 @@ export default function Libreria() {
                     <p className="admin-riga-titolo">
                       <strong>{t.titolo}</strong>
                       {minuti && <span className="admin-riga-durata"> · {minuti}</span>}
-                      {statiVetrina[t.id]?.pubblica && <span className="badge">In vetrina</span>}
                       {!statiVetrina[t.id]?.pubblica && statiVetrina[t.id]?.stato_revisione === 'in-revisione' && (
                         <span className="badge">In revisione</span>
                       )}
@@ -361,6 +381,15 @@ export default function Libreria() {
                     {descrizione && (
                       <p className="admin-riga-descrizione">{descrizione}</p>
                     )}
+                    <label className="vetrina-spunta">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(statiVetrina[t.id]?.pubblica)}
+                        disabled={occupato === t.id || !t.url}
+                        onChange={e => cambiaDisponibile(t, e.target.checked)}
+                      />
+                      <span>Disponibile per la vetrina</span>
+                    </label>
                   </div>
                   <div className="admin-riga-azioni">
                     <button

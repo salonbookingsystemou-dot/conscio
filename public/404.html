@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pagina non trovata</title>
+    <script>
+      var percorso = location.pathname.replace(/\/+$/, '') || '/'
+      if (percorso === '/ascolta' || percorso.indexOf('/ascolta/') === 0) {
+        location.replace('/#/ascolta' + percorso.slice('/ascolta'.length) + location.search)
+      }
+    </script>
+  </head>
+  <body>
+    <p>Questa pagina non c’è. <a href="/">Torna all’inizio</a>.</p>
+  </body>
+</html>

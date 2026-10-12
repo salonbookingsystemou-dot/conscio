@@ -12,6 +12,18 @@ import './styles/tokens.css'
 import './styles.css'
 import './styles/admin.css'
 
+// GitHub Pages non ha la route /ascolta: se la pagina arriva qui lo stesso
+// (service worker o server di sviluppo), si entra dal percorso pubblico, senza codice.
+function portaAscoltaSulHash() {
+  const percorso = location.pathname.replace(/\/+$/, '') || '/'
+  if (percorso !== '/ascolta' && !percorso.startsWith('/ascolta/')) return false
+  const coda = percorso.slice('/ascolta'.length)
+  location.replace(`${location.origin}/#/ascolta${coda}${location.search}`)
+  return true
+}
+
+const ascoltaDaIndirizzo = portaAscoltaSulHash()
+
 avviaTonalita()
 // Rimuove la vecchia cache tracce che poteva contenere risposte opaque rotte.
 pulisciCacheTracceLegacy()
@@ -19,18 +31,20 @@ pulisciCacheTracceLegacy()
 // Usiamo HashRouter (non BrowserRouter) perché GitHub Pages serve file statici:
 // con le route "pulite" un refresh su /lezioni darebbe 404. HashRouter usa /#/lezioni
 // e funziona sempre, senza bisogno di configurazioni server aggiuntive.
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <ConfineErrori intero>
-      <HashRouter>
-        <AuthProvider>
-          <PartecipanteProvider>
-            <TonalitaProvider>
-              <App />
-            </TonalitaProvider>
-          </PartecipanteProvider>
-        </AuthProvider>
-      </HashRouter>
-    </ConfineErrori>
-  </React.StrictMode>
-)
+if (!ascoltaDaIndirizzo) {
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    <React.StrictMode>
+      <ConfineErrori intero>
+        <HashRouter>
+          <AuthProvider>
+            <PartecipanteProvider>
+              <TonalitaProvider>
+                <App />
+              </TonalitaProvider>
+            </PartecipanteProvider>
+          </AuthProvider>
+        </HashRouter>
+      </ConfineErrori>
+    </React.StrictMode>
+  )
+}
