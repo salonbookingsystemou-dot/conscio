@@ -51,6 +51,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 12/10/2026 · Video di sfondo su iPhone (da Cursor)
+Su iPhone il player di Ascolta mostrava solo la copertina al posto del video. Safari avvia da solo un video con traccia audio solo se è muto anche come attributo, e React imposta solo la proprietà; con il risparmio energetico l’avvio automatico è sempre rifiutato. Ora l’attributo è impostato, e se l’avvio viene rifiutato il video resta con il poster e riparte al primo tocco. Con «Riduci movimento» attivo resta la copertina, come previsto. Nessuna modifica al database.
+
 ### 12/10/2026 · Video come sfondo dal telefono (da Cursor)
 Su iPhone, scegliendo un video in «Scegli lo sfondo», il pulsante restava su «Preparazione…»: Safari non decodifica i fotogrammi di un video fuori dalla pagina e fermo, quindi l’anteprima non veniva mai estratta. Ora `preparaVideo` mette il video nascosto nella pagina, lo avvia senza audio e prende il fotogramma appena c’è; dopo 20 secondi senza esito mostra un errore invece di restare in attesa. Nessuna modifica al database.
 

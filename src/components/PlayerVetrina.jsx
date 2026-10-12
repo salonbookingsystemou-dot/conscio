@@ -70,9 +70,27 @@ function Sfondo({ sfondo = {}, conVideo = true }) {
 
   useEffect(() => {
     const el = videoRef.current
-    if (!el) return
-    const esito = el.play()
-    if (esito?.catch) esito.catch(() => setSoloPoster(true))
+    if (!el) return undefined
+    // iOS avvia da solo un video con traccia audio solo se è muto anche come
+    // attributo; React imposta soltanto la proprietà.
+    el.muted = true
+    el.defaultMuted = true
+    el.setAttribute('muted', '')
+    let attivo = true
+    const eventi = ['pointerdown', 'touchend', 'keydown']
+    // Con il risparmio energetico iOS rifiuta l'avvio automatico: si riprova
+    // al primo gesto, lasciando intanto il poster.
+    function riprova() {
+      eventi.forEach(nome => window.removeEventListener(nome, riprova, true))
+      if (attivo) el.play()?.catch?.(() => {})
+    }
+    el.play()?.catch?.(() => {
+      if (attivo) eventi.forEach(nome => window.addEventListener(nome, riprova, true))
+    })
+    return () => {
+      attivo = false
+      eventi.forEach(nome => window.removeEventListener(nome, riprova, true))
+    }
   }, [video, sfondo.url])
 
   return (
@@ -83,9 +101,10 @@ function Sfondo({ sfondo = {}, conVideo = true }) {
           src={sfondo.url}
           poster={sfondo.poster_url || undefined}
           muted
+          autoPlay
           loop
           playsInline
-          preload="metadata"
+          preload="auto"
           style={{ objectPosition: posizione }}
           onError={() => setSoloPoster(true)}
         />
