@@ -78,30 +78,65 @@ export function preparaVideo(file) {
     const video = document.createElement('video')
     video.preload = 'auto'
     video.muted = true
+    video.defaultMuted = true
     video.playsInline = true
-    const chiudi = () => URL.revokeObjectURL(url)
-    video.onerror = () => {
-      chiudi()
-      reject(new Error('Questo video non si legge nel browser.'))
+    video.setAttribute('muted', '')
+    video.setAttribute('playsinline', '')
+    // Safari su iPhone non decodifica fotogrammi di un video fuori dalla pagina
+    // e fermo: senza play e senza elemento nel DOM `seeked` non arriva mai.
+    Object.assign(video.style, {
+      position: 'fixed',
+      left: '-10px',
+      top: '0',
+      width: '2px',
+      height: '2px',
+      opacity: '0',
+      pointerEvents: 'none'
+    })
+    let finito = false
+    let catturando = false
+    const timer = window.setTimeout(() => {
+      fine(new Error('Non sono riuscito a leggere il video. Prova con un MP4 più corto o più leggero.'))
+    }, 20000)
+
+    function fine(errore, poster) {
+      if (finito) return
+      finito = true
+      window.clearTimeout(timer)
+      video.pause()
+      video.removeAttribute('src')
+      video.load()
+      video.remove()
+      URL.revokeObjectURL(url)
+      if (errore) reject(errore)
+      else resolve({ poster })
     }
+
+    async function cattura() {
+      if (finito || catturando || video.readyState < 2 || !video.videoWidth) return
+      catturando = true
+      try {
+        fine(null, await canvasDa(video, video.videoWidth, video.videoHeight))
+      } catch (err) {
+        fine(err)
+      }
+    }
+
+    video.onerror = () => fine(new Error('Questo video non si legge nel browser.'))
     video.onloadedmetadata = () => {
       if (!Number.isFinite(video.duration) || video.duration < 10 || video.duration > 60) {
-        chiudi()
-        reject(new Error('Il video deve durare fra 10 e 60 secondi.'))
+        fine(new Error('Il video deve durare fra 10 e 60 secondi.'))
         return
       }
-      video.currentTime = Math.min(1, video.duration / 2)
+      try { video.currentTime = Math.min(1, video.duration / 2) } catch { /* lo sposta il play */ }
+      const avvio = video.play()
+      if (avvio?.catch) avvio.catch(() => {})
     }
-    video.onseeked = async () => {
-      try {
-        const poster = await canvasDa(video, video.videoWidth, video.videoHeight)
-        chiudi()
-        resolve({ poster })
-      } catch (err) {
-        chiudi()
-        reject(err)
-      }
+    video.onseeked = cattura
+    video.ontimeupdate = () => {
+      if (video.currentTime > 0.2) cattura()
     }
+    document.body.appendChild(video)
     video.src = url
   })
 }

@@ -51,6 +51,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 12/10/2026 · Video come sfondo dal telefono (da Cursor)
+Su iPhone, scegliendo un video in «Scegli lo sfondo», il pulsante restava su «Preparazione…»: Safari non decodifica i fotogrammi di un video fuori dalla pagina e fermo, quindi l’anteprima non veniva mai estratta. Ora `preparaVideo` mette il video nascosto nella pagina, lo avvia senza audio e prende il fotogramma appena c’è; dopo 20 secondi senza esito mostra un errore invece di restare in attesa. Nessuna modifica al database.
+
 ### 12/10/2026 · Player di Ascolta a schermo intero (da Cursor)
 In `/ascolta` e `/ascolta/:slug` la card mostra solo sfondo, titolo, durata, autore, voce e un play rotondo, come nel mockup `docs/mockup/ascolta-player.png`. Il play apre il player a tutto schermo: sfondo pieno, etichette, barra con tempo trascorso e rimanente, ±15 secondi, «Sorprendimi», condivisione e «Informazioni», che apre dal basso la scheda della traccia con l’invito al percorso. Chiuso il player, l’ascolto continua e in basso resta una barra ridotta. Nuovo `PlayerVetrina.jsx`; la riproduzione resta in `CardTracciaAudio` (nuova prop `vista`), quindi accredito e offline non cambiano. Nessuna modifica al database.
 
