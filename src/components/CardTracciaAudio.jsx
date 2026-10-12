@@ -29,7 +29,7 @@ const BARRE_ONDA = [
   8, 20, 24, 11, 17, 27, 16, 10, 21, 18, 13, 24, 14, 8, 20, 25, 11, 17, 23, 13
 ]
 
-function formattaTempo(secondi) {
+export function formattaTempo(secondi) {
   if (!Number.isFinite(secondi) || secondi < 0) return '0:00'
   const m = Math.floor(secondi / 60)
   const s = Math.floor(secondi % 60)
@@ -91,7 +91,8 @@ export default function CardTracciaAudio({
   anteprima = false,
   inizio = 0,
   modalita = 'percorso',
-  onAvvio
+  onAvvio,
+  vista
 }) {
   const audioRef = useRef(null)
   const playedRef = useRef(0)
@@ -543,27 +544,7 @@ export default function CardTracciaAudio({
 
   const inPlay = inRiproduzione || inCampana
 
-  return (
-    <article
-      className="card-traccia"
-      style={{ '--card-traccia-accento': coloreAccento || ACCENTO_DEFAULT }}
-    >
-      <p className="card-traccia-eyebrow">Traccia guidata</p>
-      <header className="card-traccia-testa">
-        <span className="card-traccia-badge-icona" aria-hidden="true">
-          <IconaOnda />
-        </span>
-        <div className="card-traccia-titoli">
-          <h3 className="card-traccia-titolo">{titolo}</h3>
-          <p className="card-traccia-meta">
-            {metaDurata ? <>{metaDurata}{' · '}</> : null}
-            {modalita === 'vetrina' ? 'traccia audio' : (completo ? 'ascoltata' : 'traccia audio')}
-          </p>
-        </div>
-      </header>
-      {testoDescrizione ? (
-        <p className="card-traccia-descrizione">{testoDescrizione}</p>
-      ) : null}
+  const audio = (
       <audio
         ref={audioRef}
         className="player-audio-nativo"
@@ -590,6 +571,43 @@ export default function CardTracciaAudio({
       >
         Il browser non riproduce questa traccia.
       </audio>
+  )
+
+  if (vista) {
+    return vista({
+      audio,
+      inPlay,
+      inCampana,
+      posizione,
+      durata,
+      errore: errore ? messaggioErroreRiproduzione() : '',
+      alterna: toggleRiproduzione,
+      vaiA
+    })
+  }
+
+  return (
+    <article
+      className="card-traccia"
+      style={{ '--card-traccia-accento': coloreAccento || ACCENTO_DEFAULT }}
+    >
+      <p className="card-traccia-eyebrow">Traccia guidata</p>
+      <header className="card-traccia-testa">
+        <span className="card-traccia-badge-icona" aria-hidden="true">
+          <IconaOnda />
+        </span>
+        <div className="card-traccia-titoli">
+          <h3 className="card-traccia-titolo">{titolo}</h3>
+          <p className="card-traccia-meta">
+            {metaDurata ? <>{metaDurata}{' · '}</> : null}
+            {modalita === 'vetrina' ? 'traccia audio' : (completo ? 'ascoltata' : 'traccia audio')}
+          </p>
+        </div>
+      </header>
+      {testoDescrizione ? (
+        <p className="card-traccia-descrizione">{testoDescrizione}</p>
+      ) : null}
+      {audio}
       <div className="card-traccia-controlli" role="group" aria-label="Controlli traccia">
         <button
           type="button"

@@ -43,10 +43,10 @@ flowchart TB
 | I tuoi dati | `/dati` | `IdentitaCodice`, card Export e Reset, `DialogConferma` |
 | Segnala | `/segnala` | `SegnalaProblema` (con campo trappola anti-spam) |
 | Accedi | `/accedi` | login facilitatore (card + 2 campi) |
-| Ascolta | `/ascolta` | elenco pubblico: meditazione della settimana, filtri, griglia, invito al percorso. Tre stati: caricamento, «La sezione non è ancora aperta», errore |
-| Meditazione | `/ascolta/:slug` | sfondo, player, scheda (testo, licenza, fonte, voce), condivisione, «Ascolta un’altra» |
+| Ascolta | `/ascolta` | card della meditazione della settimana con play rotondo (`PlayerVetrina`), invito al percorso. Tre stati: caricamento, «La sezione non è ancora aperta», errore |
+| Meditazione | `/ascolta/:slug` | card con play (`PlayerVetrina`), scheda (testo, licenza, fonte, voce), condivisione, «Ascolta un’altra» |
 
-Le tavole di riferimento sono in `docs/mockup/ascolta-*.png`. La vetrina usa il guscio del partecipante anche se il facilitatore è entrato. Il link in nav compare solo con la vetrina accesa. La barra bassa non ha la voce Ascolta.
+Le tavole di riferimento sono in `docs/mockup/ascolta-*.png`. La vetrina usa il guscio del partecipante anche se il facilitatore è entrato. Nell’header di Ascolta resta solo il logo, senza menu. Il link in nav delle altre pagine compare solo con la vetrina accesa. La barra bassa non ha la voce Ascolta.
 
 ### Partecipante (dopo il codice)
 | Schermata | Route | Blocchi |
@@ -83,7 +83,7 @@ Fallback comune: senza codice in memoria le pagine mostrano `ChiediCodice`; dura
 | Accesso e identità | `ChiediCodice`, `BoxCodicePrivacy`, `IdentitaCodice` |
 | Avvisi, consenso, privacy | `Disclaimer` (`.avvertenza`, chiudibile), `AvvisoDatiPseudonimi`, `.disclaimer` (classe) |
 | Modali e inviti | `DialogConferma` (`.dialogo`), `InvitoHome` (installazione PWA), `InvitoCheckin` (modale a ogni apertura finché manca il check-in) |
-| Audio e pratica | `CardTracciaAudio` (player, eyebrow, stato «ascoltata», barre cliccabili per saltare a un punto; con `modalita="vetrina"` non segna l’ascolto e non prepara l’offline), `GuidaMeditazione` (carosello di posture: `assets/guida/*.png`), `LibreriaTracce`, `CalendarioPratica`, `VoceLog` |
+| Audio e pratica | `CardTracciaAudio` (player, eyebrow, stato «ascoltata», barre cliccabili per saltare a un punto; con `modalita="vetrina"` non segna l’ascolto e non prepara l’offline; con `vista` un altro componente disegna i controlli sulla stessa logica), `PlayerVetrina` (card, player a schermo intero, scheda Informazioni dal basso, barra ridotta quando è chiuso), `GuidaMeditazione` (carosello di posture: `assets/guida/*.png`), `LibreriaTracce`, `CalendarioPratica`, `VoceLog` |
 | Tono della giornata | `TonoEsperienza` (scelta), `TonoIcon` (faccina SVG), `TonoMini` (etichetta) |
 | Input | `CampoNota` (testo + dettatura), `ScalaLikert`, `SegnalaProblema` |
 | Dati e grafici | `SchedaPratica`, `StoricoGiornate`, `IndicatoreOrientamento`, `OreAscolto` |

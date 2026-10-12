@@ -51,6 +51,18 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 12/10/2026 · Player di Ascolta a schermo intero (da Cursor)
+In `/ascolta` e `/ascolta/:slug` la card mostra solo sfondo, titolo, durata, autore, voce e un play rotondo, come nel mockup `docs/mockup/ascolta-player.png`. Il play apre il player a tutto schermo: sfondo pieno, etichette, barra con tempo trascorso e rimanente, ±15 secondi, «Sorprendimi», condivisione e «Informazioni», che apre dal basso la scheda della traccia con l’invito al percorso. Chiuso il player, l’ascolto continua e in basso resta una barra ridotta. Nuovo `PlayerVetrina.jsx`; la riproduzione resta in `CardTracciaAudio` (nuova prop `vista`), quindi accredito e offline non cambiano. Nessuna modifica al database.
+
+### 12/10/2026 · Header di Ascolta solo con il logo (da Cursor)
+Sulle pagine `/ascolta` l’header non ha più il menu, il nome e le azioni a destra. Resta l’icona, che porta all’inizio.
+
+### 12/10/2026 · Pulsante nel box Il percorso (da Cursor)
+Il box «Il percorso» in Ascolta ha sempre il pulsante «Iscriviti al prossimo ciclo», anche quando non c’è un ciclo in reclutamento. Porta a `/iscrizione`.
+
+### 12/10/2026 · Ascolta senza l’elenco (da Cursor)
+Dalla pagina `/ascolta` è tolto il blocco «Tutte le meditazioni» (filtri e griglia). Restano la meditazione in evidenza, «Sorprendimi» e l’invito al percorso. La scheda di una singola traccia non cambia.
+
 ### 12/10/2026 · Ricerca Unsplash (da Cursor)
 La ricerca sfondi chiamava Unsplash con la chiave salvata sul server. Unsplash risponde 401: la chiave non è valida. Il messaggio in libreria ora lo dice, invece di «Unsplash non ha risposto».
 

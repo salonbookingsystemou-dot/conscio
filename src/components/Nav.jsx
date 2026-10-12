@@ -19,6 +19,7 @@ export default function Nav() {
     percorsoPronto
   } = usePartecipante()
   const { pathname } = useLocation()
+  const paginaAscolta = pathname === '/ascolta' || pathname.startsWith('/ascolta/')
   const [aperto, setAperto] = useState(false)
   const menuId = useId()
   const dentro = facilitatore || registrato
@@ -127,12 +128,13 @@ export default function Nav() {
   )
 
   return (
-    <header className={`topbar${aperto ? ' is-open' : ''}`}>
+    <header className={`topbar${aperto ? ' is-open' : ''}${paginaAscolta ? ' is-solo-logo' : ''}`}>
       <div className="topbar-riga">
         <Link to="/" className="brand" onClick={chiudi}>
-          <img className="brand-mark" src={iconaConscio} alt="" />
-          Percorso MBSR
+          <img className="brand-mark" src={iconaConscio} alt={paginaAscolta ? 'Percorso MBSR' : ''} />
+          {paginaAscolta ? null : 'Percorso MBSR'}
         </Link>
+        {paginaAscolta ? null : (
         <div className="topbar-azioni">
           {registrato && <OreAscolto minuti={minutiAscolto} />}
           <div className="nav-tonalita-desktop">
@@ -153,7 +155,10 @@ export default function Nav() {
             {aperto ? 'Chiudi' : 'Menu'}
           </button>
         </div>
+        )}
       </div>
+      {paginaAscolta ? null : (
+      <>
       {aperto && (
         <button
           type="button"
@@ -174,6 +179,8 @@ export default function Nav() {
           <RuotaTonalita variante="piena" />
         </div>
       </nav>
+      </>
+      )}
     </header>
   )
 }
