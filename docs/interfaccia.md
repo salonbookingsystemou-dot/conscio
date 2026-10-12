@@ -43,6 +43,10 @@ flowchart TB
 | I tuoi dati | `/dati` | `IdentitaCodice`, card Export e Reset, `DialogConferma` |
 | Segnala | `/segnala` | `SegnalaProblema` (con campo trappola anti-spam) |
 | Accedi | `/accedi` | login facilitatore (card + 2 campi) |
+| Ascolta | `/ascolta` | elenco pubblico: meditazione della settimana, filtri, griglia, invito al percorso. Tre stati: caricamento, «La sezione non è ancora aperta», errore |
+| Meditazione | `/ascolta/:slug` | sfondo, player, scheda (testo, licenza, fonte, voce), condivisione, «Ascolta un’altra» |
+
+Le tavole di riferimento sono in `docs/mockup/ascolta-*.png`. La vetrina usa il guscio del partecipante anche se il facilitatore è entrato. Il link in nav compare solo con la vetrina accesa; in barra bassa solo con un codice attivo e la vetrina accesa.
 
 ### Partecipante (dopo il codice)
 | Schermata | Route | Blocchi |
@@ -62,10 +66,10 @@ Fallback comune: senza codice in memoria le pagine mostrano `ChiediCodice`; dura
 | Dashboard · Cicli | `/dashboard` | card KPI (`.dash-kpi-card`), nuovo ciclo, tabella cicli con date/stato, iscrizioni con filtri (Idoneo, In presenza, Da remoto), segnalazioni difficili aperte |
 | Dashboard · Questionari | idem | grafici per strumento (Recharts `LineChart`), `BarraRange`, nota sull'uso dei dati |
 | Dashboard · Pratica | idem | `SchedaPratica`: quattro numeri, barre per giorno colorate per tono, mappa del percorso (scala minuti), tabella informali |
-| Dashboard · Sito | idem | `EditorSplash` |
+| Dashboard · Sito | idem | `EditorSplash`, `EditorVetrina` (interruttore, testi dell’invito, calendario, conteggi delle ultime quattro settimane) |
 | Percorso | `/percorso` | elenco cicli → 8 settimane |
 | Editor settimana | `/percorso/:id/settimana/:n` | lezione + esercizi formali/informali, `LibreriaTracce` (selettore traccia), dialoghi di modifica |
-| Libreria | `/libreria` | ricerca, griglia di `CardTracciaAudio`, azioni (ascolta, modifica, sostituisci, elimina), date creazione/modifica |
+| Libreria | `/libreria` | ricerca, filtro per stato in vetrina, azioni (ascolta, modifica, sostituisci, elimina), scheda Vetrina nel dialogo di modifica, date creazione/modifica |
 | Genera | `/genera` | script → paragrafi, scelta modello/voce/velocità del parlato, volume allineato, ultima parola intera, pause, ascolto per paragrafo, salva in libreria |
 | Controllo tracce | `/controllo-tracce` | selettore ciclo, card numeriche (funzionano, da guardare, problemi, ascolto tecnico), una card per settimana con le pratiche formali: stato (`.controllo-stato`), esiti con «Ascolta da», ascolto e ascolto tecnico; tracce non usate |
 | Avvisi | `/comunicazioni` | composizione comunicazione (ciclo / solo remoti), storico invii, card «Inattività · solo da remoto», card «Pausa di pratica» |
@@ -79,12 +83,12 @@ Fallback comune: senza codice in memoria le pagine mostrano `ChiediCodice`; dura
 | Accesso e identità | `ChiediCodice`, `BoxCodicePrivacy`, `IdentitaCodice` |
 | Avvisi, consenso, privacy | `Disclaimer` (`.avvertenza`, chiudibile), `AvvisoDatiPseudonimi`, `.disclaimer` (classe) |
 | Modali e inviti | `DialogConferma` (`.dialogo`), `InvitoHome` (installazione PWA), `InvitoCheckin` (modale a ogni apertura finché manca il check-in) |
-| Audio e pratica | `CardTracciaAudio` (player, eyebrow, stato «ascoltata», barre cliccabili per saltare a un punto), `GuidaMeditazione` (carosello di posture: `assets/guida/*.png`), `LibreriaTracce`, `CalendarioPratica`, `VoceLog` |
+| Audio e pratica | `CardTracciaAudio` (player, eyebrow, stato «ascoltata», barre cliccabili per saltare a un punto; con `modalita="vetrina"` non segna l’ascolto e non prepara l’offline), `GuidaMeditazione` (carosello di posture: `assets/guida/*.png`), `LibreriaTracce`, `CalendarioPratica`, `VoceLog` |
 | Tono della giornata | `TonoEsperienza` (scelta), `TonoIcon` (faccina SVG), `TonoMini` (etichetta) |
 | Input | `CampoNota` (testo + dettatura), `ScalaLikert`, `SegnalaProblema` |
 | Dati e grafici | `SchedaPratica`, `StoricoGiornate`, `IndicatoreOrientamento`, `OreAscolto` |
 | Personalizzazione | `RuotaTonalita` (ruota l'accento e il fondo, vedi `lib/tonalita.js`) |
-| Admin | `AdminChrome`, `AdminDialogo` (modale delle pagine facilitatore), `EditorSplash` |
+| Admin | `AdminChrome`, `AdminDialogo` (modale delle pagine facilitatore), `EditorSplash`, `EditorVetrina`, `ModuloVetrina`, `ScegliSfondo` |
 | Navigazione | `Nav`, `BarraBassa`, `Footer`, `PullToRefresh` |
 
 **Non usati oggi:** `GraficoAndamentoPratica.jsx`, `TracciaGuidata.jsx`. Prima di riprenderli verifica che seguano il design system, altrimenti eliminali.

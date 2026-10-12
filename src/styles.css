@@ -5251,3 +5251,197 @@ body:has(.splash) {
   cursor: pointer;
 }
 .checkin-consenso input { margin-top: 5px; flex: 0 0 auto; }
+
+.dialogo.is-vetrina {
+  width: min(40rem, calc(100% - var(--space-32)));
+  max-height: calc(100% - var(--space-32));
+  overflow: auto;
+}
+
+.ascolta {
+  padding-top: var(--space-28);
+}
+.ascolta-testa h1,
+.ascolta h2,
+.ascolta-invito h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: var(--lh-title);
+}
+.ascolta-testa h1 {
+  margin: 0 0 var(--space-8);
+  font-size: var(--fs-display);
+  line-height: var(--lh-display);
+}
+.ascolta-testa p,
+.ascolta-descrizione {
+  margin: 0;
+  white-space: pre-wrap;
+}
+.ascolta-torna {
+  margin: 0 0 var(--space-12);
+}
+.ascolta-filtri,
+.ascolta-condividi,
+.ascolta-azioni {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  margin: var(--space-16) 0;
+}
+.ascolta-griglia {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-16);
+}
+@media (min-width: 720px) {
+  .ascolta-griglia { grid-template-columns: 1fr 1fr; }
+}
+.ascolta-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  height: 100%;
+  color: var(--ink);
+  text-decoration: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.ascolta-card:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+.ascolta-card-media {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 4;
+  background: var(--accent);
+}
+.ascolta-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ascolta-card-media .badge {
+  position: absolute;
+  left: var(--space-12);
+  bottom: var(--space-12);
+  background: var(--surface);
+  color: var(--ink);
+}
+.ascolta-card-titolo,
+.ascolta-card-meta {
+  padding: 0 var(--space-14);
+}
+.ascolta-card-titolo {
+  font-family: var(--font-display);
+  font-size: var(--fs-item);
+  line-height: var(--lh-title);
+}
+.ascolta-card-meta {
+  color: var(--muted);
+  font-size: var(--fs-meta);
+}
+.ascolta-card-meta:last-child {
+  padding-bottom: var(--space-14);
+}
+.ascolta-palco {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  margin: 0 0 var(--space-20);
+  background: var(--accent);
+  color: var(--surface);
+}
+.ascolta-sfondo,
+.ascolta-velo {
+  position: absolute;
+  inset: 0;
+}
+.ascolta-sfondo img,
+.ascolta-sfondo video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ascolta-velo {
+  background: linear-gradient(
+    to top,
+    var(--ink) 0%,
+    color-mix(in srgb, var(--ink) 62%, transparent) 48%,
+    transparent 100%
+  );
+}
+.ascolta-palco-testo {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 28rem;
+  padding: var(--space-24);
+}
+.ascolta-palco h1,
+.ascolta-palco h2 {
+  margin: 0;
+  font-size: var(--fs-display);
+  line-height: var(--lh-display);
+  color: var(--surface);
+}
+.ascolta-sopracciglio {
+  margin: 0 0 var(--space-8);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--muted);
+}
+.ascolta-meta,
+.ascolta-credito {
+  margin: var(--space-8) 0 0;
+  font-size: var(--fs-meta);
+}
+.ascolta-palco .ascolta-sopracciglio,
+.ascolta-palco .ascolta-meta,
+.ascolta-palco .ascolta-credito,
+.ascolta-palco a {
+  color: var(--surface);
+}
+.ascolta-palco .card-traccia {
+  color: var(--ink);
+  margin-top: var(--space-16);
+}
+.ascolta-scheda-pubblica .ascolta-credito {
+  margin: 0;
+  color: inherit;
+}
+.ascolta-scheda-pubblica dl {
+  display: grid;
+  gap: var(--space-12);
+  margin: var(--space-16) 0;
+}
+.ascolta-scheda-pubblica dt {
+  font-size: var(--fs-eyebrow);
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+}
+.ascolta-scheda-pubblica dd {
+  margin: var(--space-4) 0 0;
+}
+.ascolta-invito h2 {
+  margin: 0 0 var(--space-8);
+  font-size: var(--fs-section);
+}
+.ascolta-invito p {
+  margin: 0 0 var(--space-16);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ascolta-sfondo video { display: none; }
+}

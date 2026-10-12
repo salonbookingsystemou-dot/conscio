@@ -29,6 +29,7 @@ import Footer from './components/Footer.jsx'
 import PullToRefresh from './components/PullToRefresh.jsx'
 import ConfineErrori from './components/ConfineErrori.jsx'
 import Segnala from './pages/Segnala.jsx'
+import Ascolta from './pages/Ascolta.jsx'
 
 function pagineAdminAmpie(pathname) {
   return pathname === '/dashboard'
@@ -45,7 +46,8 @@ export default function App() {
   const { facilitatore } = useAuth()
   const { pathname } = useLocation()
   const splash = pathname === '/'
-  const areaFacilitatore = Boolean(facilitatore) && !splash && pathname !== '/accedi'
+  const paginaAscolta = pathname === '/ascolta' || pathname.startsWith('/ascolta/')
+  const areaFacilitatore = Boolean(facilitatore) && !splash && pathname !== '/accedi' && !paginaAscolta
 
   const routes = (
       <ConfineErrori key={pathname}>
@@ -56,6 +58,8 @@ export default function App() {
           <Route path="/dati" element={<IMieiDati />} />
           <Route path="/entra" element={<Entra />} />
           <Route path="/segnala" element={<Segnala />} />
+          <Route path="/ascolta" element={<Ascolta />} />
+          <Route path="/ascolta/:slug" element={<Ascolta />} />
           <Route path="/onboarding" element={<SoloRegistrato><Onboarding /></SoloRegistrato>} />
           <Route path="/questionari" element={<SoloRegistrato><Questionari /></SoloRegistrato>} />
           <Route path="/pratica" element={<SoloPercorso><LogPratica /></SoloPercorso>} />

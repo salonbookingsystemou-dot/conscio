@@ -81,6 +81,14 @@ function Informativa() {
           lett. f) GDPR — legittimo interesse a correggere gli errori dell’app e a
           scriverti quando la correzione è online.
         </li>
+        <li>
+          <strong>Sezione pubblica Ascolta</strong>, quando è accesa: art. 6, par. 1,
+          lett. f) GDPR — interesse legittimo a contare, in forma aggregata e senza
+          identificativi, gli avvii, i completamenti, le condivisioni e i clic verso
+          il percorso. Non c’è account e non si usa il codice. L’indirizzo IP serve
+          solo al limite di richieste, come per il resto dell’app, e resta un hash
+          non collegato alla traccia.
+        </li>
       </ul>
       <p>
         Il percorso resta una pratica di meditazione sulla consapevolezza a scopo
@@ -121,6 +129,11 @@ function Informativa() {
           codice arrivano solo il testo, la pagina, il browser, lo schermo e l’errore:
           non il codice e non l’email.
         </li>
+        <li>
+          nella sezione pubblica Ascolta, se è accesa: nessun dato personale e nessun
+          cookie. Per ogni traccia e ogni giorno contiamo solo gli avvii, i
+          completamenti, i clic verso il percorso e le condivisioni.
+        </li>
       </ul>
       <p>
         Non chiediamo il nome. L’email non viene unita alle risposte dei questionari
@@ -143,6 +156,20 @@ function Informativa() {
           problemi: riceve il testo anonimo, la pagina, il browser, lo schermo e
           l’eventuale errore tecnico.
         </li>
+        <li>
+          Unsplash, solo se una meditazione pubblica usa una loro fotografia: il
+          browser carica l’immagine dai loro server. A loro arriva l’indirizzo IP
+          della richiesta, non il nome, l’email o il codice;
+        </li>
+        <li>
+          Pexels: la ricerca la fa il server, con la sessione di chi conduce il
+          percorso. Il file scelto viene copiato nel nostro archivio, e chi ascolta
+          non contatta Pexels;
+        </li>
+        <li>
+          ElevenLabs: genera la voce sintetica a partire dal testo scritto da chi
+          conduce il percorso. Non riceve dati dei partecipanti.
+        </li>
       </ul>
       <p>
         Se un fornitore tratta dati fuori dall’Unione europea, il trasferimento
@@ -160,7 +187,8 @@ function Informativa() {
         nei limiti di legge. Le segnalazioni di problemi restano nella casella email
         e nella sessione di analisi solo il tempo necessario a risolverli. Il testo
         collegato al tuo account resta finché non azzeri i dati o ne chiedi la
-        cancellazione.
+        cancellazione. I conteggi della sezione Ascolta restano come statistiche
+        del sito: non sono legati a una persona.
       </p>
 
       <h3>6. I tuoi diritti</h3>
@@ -419,7 +447,7 @@ export default function Documento() {
         <Corpo />
       </div>
       <p className="hint">
-        Testo del 2 settembre 2026, per il pilota. Un avvocato, un DPO o il
+        Testo del 12 ottobre 2026, per il pilota. Un avvocato, un DPO o il
         comitato etico di ateneo possono ancora rileggerlo; i contenuti operativi
         (titolare, basi, diritti, strumenti) sono quelli usati in applicazione.
       </p>

@@ -13,6 +13,7 @@ import { supabase } from '../lib/supabaseClient'
 import { punteggioFfmq, punteggioPss10 } from '../lib/scoring'
 import SchedaPratica from '../components/SchedaPratica.jsx'
 import EditorSplash from '../components/EditorSplash.jsx'
+import EditorVetrina from '../components/EditorVetrina.jsx'
 import DialogConferma from '../components/DialogConferma.jsx'
 import { EMAIL_CONTATTO, STRUMENTI } from '../lib/contatti.js'
 import { addDays, formatISODate, oggiLocaleISO, parseISODate } from '../lib/date.js'
@@ -1551,10 +1552,11 @@ export default function Dashboard() {
           <header className="dash-panel-testa">
             <div>
               <h2>Sito</h2>
-              <p className="lead">Frase di apertura e limiti d’uso dei dati.</p>
+              <p className="lead">Frase di apertura, vetrina Ascolta e limiti d’uso dei dati.</p>
             </div>
           </header>
           <EditorSplash />
+          <EditorVetrina />
           <div className="card">
             <h3>Uso dei dati e dei punteggi</h3>
             <p>

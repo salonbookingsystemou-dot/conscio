@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AdminDialogo from '../components/AdminDialogo.jsx'
 import CardTracciaAudio from '../components/CardTracciaAudio.jsx'
+import ModuloVetrina from '../components/ModuloVetrina.jsx'
 import {
   collegamentiTracce,
   creaTraccia,
@@ -13,6 +14,7 @@ import {
   sostituisciFileTraccia,
   titoloDaNomeFile
 } from '../lib/tracce'
+import { leggiStatiVetrina } from '../lib/vetrina.js'
 
 function etichettaCollegamento(voce) {
   const n = Number(voce?.numeroSettimana)
@@ -131,15 +133,23 @@ export default function Libreria() {
   const [dialogo, setDialogo] = useState(null)
   const [titoloForm, setTitoloForm] = useState('')
   const [descrizioneForm, setDescrizioneForm] = useState('')
+  const [statiVetrina, setStatiVetrina] = useState({})
+  const [filtroStato, setFiltroStato] = useState('tutti')
   const fileNuovo = useRef(null)
   const fileSostituisci = useRef(null)
   const daSostituire = useRef(null)
+  const vetrinaRef = useRef(null)
 
   async function carica() {
     try {
-      const [lista, mappa] = await Promise.all([elencaTracce(), collegamentiTracce()])
+      const [lista, mappa, stati] = await Promise.all([
+        elencaTracce(),
+        collegamentiTracce(),
+        leggiStatiVetrina().catch(() => ({}))
+      ])
       setTracce(lista)
       setCollegamenti(mappa)
+      setStatiVetrina(stati)
       setErrore(null)
     } catch {
       setErrore('Non è stato possibile leggere la libreria tracce.')
@@ -154,11 +164,16 @@ export default function Libreria() {
 
   const filtrate = useMemo(() => {
     const q = ricerca.trim().toLowerCase()
-    const base = q
-      ? tracce.filter(t => String(t.titolo || '').toLowerCase().includes(q))
-      : tracce
+    const base = tracce.filter(t => {
+      if (q && !String(t.titolo || '').toLowerCase().includes(q)) return false
+      if (filtroStato === 'tutti') return true
+      const stato = statiVetrina[t.id]
+      if (!stato) return false
+      if (filtroStato === 'pubblica') return Boolean(stato.pubblica)
+      return stato.stato_revisione === filtroStato
+    })
     return [...base].sort(perCreazione)
-  }, [tracce, ricerca])
+  }, [tracce, ricerca, filtroStato, statiVetrina])
 
   function apriCarica() {
     setErrore(null)
@@ -209,10 +224,13 @@ export default function Libreria() {
     setErrore(null)
     try {
       await rinominaTraccia(traccia.id, titoloForm, descrizioneForm)
+      await vetrinaRef.current?.salva()
       setDialogo(null)
       await carica()
     } catch (err) {
-      setErrore(messaggioErroreTraccia(err))
+      const testo = err?.message
+      const codiceNota = err?.code || testo === 'TITOLO_VUOTO' || testo === 'TESTO_NON_SALVATO'
+      setErrore(codiceNota ? messaggioErroreTraccia(err) : (testo || messaggioErroreTraccia(err)))
     } finally {
       setOccupato(null)
     }
@@ -281,6 +299,20 @@ export default function Libreria() {
           />
         </label>
         <Link to="/genera" className="btn btn-ghost">Genera</Link>
+        <div className="field vetrina-stato">
+          <label htmlFor="filtro-vetrina" className="visually-hidden">Stato in vetrina</label>
+          <select
+            id="filtro-vetrina"
+            value={filtroStato}
+            onChange={e => setFiltroStato(e.target.value)}
+          >
+            <option value="tutti">Tutti gli stati</option>
+            <option value="bozza">Bozza</option>
+            <option value="in-revisione">In revisione</option>
+            <option value="approvata">Approvata</option>
+            <option value="pubblica">In vetrina</option>
+          </select>
+        </div>
         <button type="button" className="btn" onClick={apriCarica}>
           <IconaPiu />
           Carica traccia
@@ -296,7 +328,7 @@ export default function Libreria() {
           <p className="card-vuota">
             {tracce.length === 0
               ? 'Nessuna traccia ancora. Carica il primo file per renderlo disponibile ovunque.'
-              : 'Nessuna traccia corrisponde alla ricerca.'}
+              : 'Nessuna traccia corrisponde alla ricerca o al filtro.'}
           </p>
         ) : (
           <ul className="admin-lista">
@@ -311,6 +343,13 @@ export default function Libreria() {
                     <p className="admin-riga-titolo">
                       <strong>{t.titolo}</strong>
                       {minuti && <span className="admin-riga-durata"> · {minuti}</span>}
+                      {statiVetrina[t.id]?.pubblica && <span className="badge">In vetrina</span>}
+                      {!statiVetrina[t.id]?.pubblica && statiVetrina[t.id]?.stato_revisione === 'in-revisione' && (
+                        <span className="badge">In revisione</span>
+                      )}
+                      {!statiVetrina[t.id]?.pubblica && statiVetrina[t.id]?.stato_revisione === 'approvata' && (
+                        <span className="badge">Approvata</span>
+                      )}
                     </p>
                     {(creata || modificata) && (
                       <p className="admin-riga-date">
@@ -464,6 +503,7 @@ export default function Libreria() {
       {dialogo?.tipo === 'modifica' && (
         <AdminDialogo
           titolo="Modifica traccia"
+          className="is-vetrina"
           onChiudi={() => occupato !== 'modifica' && setDialogo(null)}
         >
           <div className="field">
@@ -476,15 +516,22 @@ export default function Libreria() {
             />
           </div>
           <div className="field">
-            <label htmlFor="modifica-traccia-testo">Testo sotto il titolo nella card</label>
+            <label htmlFor="modifica-traccia-testo">Descrizione</label>
             <textarea
               id="modifica-traccia-testo"
               rows={3}
               value={descrizioneForm}
               onChange={e => setDescrizioneForm(e.target.value)}
-              placeholder="Facoltativo"
+              placeholder="Facoltativo nella card. Obbligatorio per la vetrina."
             />
+            <p className="hint">Nella card del percorso e, se la pubblichi, nella pagina Ascolta.</p>
           </div>
+          <ModuloVetrina
+            ref={vetrinaRef}
+            tracciaId={dialogo.traccia.id}
+            titolo={titoloForm}
+            descrizione={descrizioneForm}
+          />
           <div className="dialogo-azioni">
             <button
               type="button"

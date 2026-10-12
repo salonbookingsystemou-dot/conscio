@@ -1640,3 +1640,130 @@
     flex-direction: column;
   }
 }
+
+.admin-toolbar .vetrina-stato {
+  margin: 0;
+  flex: 0 1 14rem;
+}
+.admin-riga-titolo .badge {
+  margin-left: var(--space-8);
+}
+.vetrina-scheda {
+  margin-top: var(--space-8);
+  padding-top: var(--space-16);
+  border-top: 1px solid var(--border);
+}
+.vetrina-scheda h3,
+.vetrina-tag legend {
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+.vetrina-scheda h3 {
+  margin: 0 0 var(--space-8);
+  font-size: var(--fs-section);
+}
+.vetrina-fonti {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  margin-bottom: var(--space-16);
+}
+.vetrina-blocco {
+  margin-bottom: var(--space-16);
+}
+.vetrina-blocco > label.btn {
+  position: relative;
+}
+.vetrina-etichetta {
+  margin: 0 0 var(--space-8);
+  font-size: var(--fs-meta);
+  color: var(--muted);
+}
+.vetrina-anteprima {
+  display: block;
+  width: min(12rem, 100%);
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-12);
+  background: var(--accent);
+}
+.vetrina-spunta {
+  display: flex;
+  gap: var(--space-10);
+  align-items: flex-start;
+  margin: 0 0 var(--space-12);
+  cursor: pointer;
+}
+.vetrina-spunta input {
+  margin-top: 0.3em;
+  flex: 0 0 auto;
+}
+.vetrina-tag {
+  margin: 0 0 var(--space-16);
+  padding: 0;
+  border: 0;
+}
+.vetrina-tag legend {
+  font-size: var(--fs-item);
+  margin-bottom: var(--space-8);
+  padding: 0;
+}
+.vetrina-griglia-sfondi {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+  gap: var(--space-8);
+  margin-top: var(--space-16);
+}
+.vetrina-sfondo-scelta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: 0 0 var(--space-6);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-caption);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+}
+.vetrina-sfondo-scelta img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+}
+.vetrina-sfondo-scelta span {
+  padding: 0 var(--space-6);
+}
+.vetrina-sfondo-scelta.is-scelto {
+  border-color: var(--accent);
+}
+.vetrina-sfondo-scelta:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+.vetrina-calendario {
+  list-style: none;
+  margin: 0 0 var(--space-20);
+  padding: 0;
+}
+.vetrina-calendario li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-16);
+  align-items: baseline;
+  padding: var(--space-10) 0;
+  border-bottom: 1px solid var(--border);
+}
+.vetrina-calendario li > span:first-child {
+  flex: 1 1 9rem;
+  color: var(--muted);
+  font-size: var(--fs-meta);
+}
+.vetrina-calendario .hint {
+  margin: 0;
+}

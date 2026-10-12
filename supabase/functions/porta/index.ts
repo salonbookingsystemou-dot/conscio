@@ -718,6 +718,29 @@ Deno.serve(async (req) => {
     })
   }
 
+  // Contatori aggregati della vetrina. Nessun codice, nessun identificativo:
+  // l'IP entra solo nell'hash del tetto, come per le altre azioni.
+  if (azione === 'evento-vetrina') {
+    const blocco = await limita('evento_vetrina', chiaveIp, 120, 3600)
+    if (blocco) return blocco
+
+    const slug = typeof corpo.slug === 'string' ? corpo.slug.trim() : ''
+    const evento = typeof corpo.evento === 'string' ? corpo.evento : ''
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length > 80) {
+      return json({ error: 'SLUG_NON_VALIDO' }, 400)
+    }
+    if (!['avvio', 'completamento', 'cta', 'condivisione'].includes(evento)) {
+      return json({ error: 'EVENTO_NON_VALIDO' }, 400)
+    }
+
+    const { error } = await admin.rpc('registra_evento_vetrina', {
+      p_slug: slug,
+      p_evento: evento
+    })
+    if (error) return json({ error: 'ERRORE' }, 500)
+    return json({ ok: true })
+  }
+
   if (azione === 'prova_firma') {
     const blocco = await limita('prova_firma', chiaveIp, 3, 3600)
     if (blocco) return blocco

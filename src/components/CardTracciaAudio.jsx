@@ -89,7 +89,9 @@ export default function CardTracciaAudio({
   onAscolto,
   onPersistenza,
   anteprima = false,
-  inizio = 0
+  inizio = 0,
+  modalita = 'percorso',
+  onAvvio
 }) {
   const audioRef = useRef(null)
   const playedRef = useRef(0)
@@ -104,7 +106,13 @@ export default function CardTracciaAudio({
   const srcMisuratoRef = useRef('')
   const applicaDurataRef = useRef(() => {})
   const marcaRef = useRef(() => {})
-  const contatoGiro = useRef(ascoltoCompletato(persistenzaKey))
+  const vetrinaIniziale = modalita === 'vetrina'
+  const vetrinaRef = useRef(vetrinaIniziale)
+  const onAvvioRef = useRef(onAvvio)
+  const avviatoVetrina = useRef(false)
+  vetrinaRef.current = modalita === 'vetrina'
+  onAvvioRef.current = onAvvio
+  const contatoGiro = useRef(vetrinaIniziale ? false : ascoltoCompletato(persistenzaKey))
   const accreditatoRef = useRef(0)
   const campanaRef = useRef(null)
   const ignoraEventiRef = useRef(false)
@@ -122,7 +130,7 @@ export default function CardTracciaAudio({
   onPersistenzaRef.current = onPersistenza
 
   const [completo, setCompleto] = useState(
-    () => giaAscoltata || ascoltoCompletato(persistenzaKey)
+    () => !vetrinaIniziale && (giaAscoltata || ascoltoCompletato(persistenzaKey))
   )
   const [inRiproduzione, setInRiproduzione] = useState(false)
   const [posizione, setPosizione] = useState(0)
@@ -164,8 +172,9 @@ export default function CardTracciaAudio({
     // `giaAscoltata` diventa true a circa il 95%, quando il salvataggio aggiorna
     // il programma. Non è tra le dipendenze: altrimenti questo effetto mette in
     // pausa e riavvolge la traccia mentre gli ultimi minuti stanno ancora suonando.
-    const gia = giaAscoltataRef.current || ascoltoCompletato(persistenzaKey)
-    if (giaAscoltataRef.current && persistenzaKey) memorizzaAscolto(persistenzaKey)
+    const vetrina = vetrinaRef.current
+    const gia = vetrina ? false : (giaAscoltataRef.current || ascoltoCompletato(persistenzaKey))
+    if (!vetrina && giaAscoltataRef.current && persistenzaKey) memorizzaAscolto(persistenzaKey)
     setCompleto(gia)
     setInRiproduzione(false)
     setPosizione(0)
@@ -183,6 +192,7 @@ export default function CardTracciaAudio({
       srcMisuratoRef.current = ''
     }
     contatoGiro.current = gia
+    avviatoVetrina.current = false
     accreditatoRef.current = 0
     contaAscoltoRef.current = false
     annullaAvvioRef.current = true
@@ -246,7 +256,7 @@ export default function CardTracciaAudio({
     const scelta = scegliDurata(secondi)
     if (!(scelta > 0)) return
     setDurata(scelta)
-    if (!anteprima && recuperaAscoltoSeManca(persistenzaKey, scelta)) {
+    if (!anteprima && !vetrinaRef.current && recuperaAscoltoSeManca(persistenzaKey, scelta)) {
       onAscoltoRef.current?.()
     }
     if (Math.abs(durataNotaRef.current - scelta) < 0.5) return
@@ -270,6 +280,12 @@ export default function CardTracciaAudio({
     if (d == null) return
     const sogliaEffettiva = finito ? 0.9 : soglia
     if (playedRef.current < d * sogliaEffettiva) return
+    if (vetrinaRef.current) {
+      if (contatoGiro.current) return
+      contatoGiro.current = true
+      onCompletoRef.current?.(true)
+      return
+    }
     // «Ascoltata» in card solo a traccia finita. Il credito (90–95%) resta prima,
     // così le annotazioni si aprono, ma gli ultimi minuti continuano a suonare.
     if (finito) setCompleto(true)
@@ -349,9 +365,9 @@ export default function CardTracciaAudio({
       try { el.currentTime = ricordata } catch { /* metadati non pronti */ }
     }
     const dallInizio = el.currentTime < 0.15
-    const skipCampana = dallInizio && browserAudioRestrittivo()
+    const skipCampana = dallInizio && (browserAudioRestrittivo() || vetrinaRef.current)
     annullaAvvioRef.current = false
-    if (!anteprima) assicuraTracciaOffline(urlAudioSenzaTesto(src))
+    if (!anteprima && !vetrinaRef.current) assicuraTracciaOffline(urlAudioSenzaTesto(src))
     try {
       setErrore(false)
       if (dallInizio && !skipCampana) {
@@ -411,6 +427,10 @@ export default function CardTracciaAudio({
       el.volume = 1
       await avviaPlay(el)
       setInRiproduzione(true)
+      if (vetrinaRef.current && !avviatoVetrina.current) {
+        avviatoVetrina.current = true
+        onAvvioRef.current?.()
+      }
     } catch (err) {
       campanaRef.current?.ferma()
       campanaRef.current = null
@@ -516,7 +536,9 @@ export default function CardTracciaAudio({
   const metaDurata = durata >= 8 ? formattaTempo(durata) : etichettaDurata
   const testoDescrizione = inCampana
     ? 'Campana di apertura… poi inizia la traccia.'
-    : (String(descrizione || '').trim() || testoDaUrlAudio(src))
+    : (modalita === 'vetrina'
+      ? ''
+      : (String(descrizione || '').trim() || testoDaUrlAudio(src)))
   const srcAudio = urlAudioSenzaTesto(src)
 
   const inPlay = inRiproduzione || inCampana
@@ -535,7 +557,7 @@ export default function CardTracciaAudio({
           <h3 className="card-traccia-titolo">{titolo}</h3>
           <p className="card-traccia-meta">
             {metaDurata ? <>{metaDurata}{' · '}</> : null}
-            {completo ? 'ascoltata' : 'traccia audio'}
+            {modalita === 'vetrina' ? 'traccia audio' : (completo ? 'ascoltata' : 'traccia audio')}
           </p>
         </div>
       </header>

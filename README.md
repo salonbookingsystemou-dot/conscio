@@ -142,6 +142,8 @@ Entra, Iscrizione, recupero codice e Accedi facilitatore passano dall’edge fun
 
 Il recupero codice è “cieco”: l’app non mostra mai email↔codice; se l’email è in anagrafe e non ancora separata, Resend invia il codice. La risposta a schermo è sempre generica.
 
+La vetrina Ascolta aggiunge a `porta` l’azione `evento-vetrina` (conteggi aggregati, tetto 120 richieste all’ora per IP). Le pagine sono `/ascolta` e `/ascolta/:slug`. L’interruttore e i testi stanno nel pannello Sito della dashboard; la scheda di ogni traccia, in Libreria. L’interruttore nasce spento. Prima di ridistribuire `porta` esegui `supabase/migrazione_vetrina.sql` nell’SQL editor, poi `supabase functions deploy porta` e `supabase functions deploy cerca-sfondi`. Secret nuovi: `UNSPLASH_ACCESS_KEY`, `PEXELS_API_KEY`.
+
 Frontend e SQL/edge vanno aggiornati insieme: dopo il revoke, le RPC `stato_accesso_codice` e `iscrivi_partecipante` non sono più chiamabili con la chiave anon.
 
 ## Generazione tracce (ElevenLabs)

@@ -51,6 +51,12 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 12/10/2026 · Vetrina Ascolta, le schermate (da Cursor)
+Pagine pubbliche `/ascolta` e `/ascolta/:slug`, con il guscio del partecipante anche per il facilitatore. In Libreria la modifica di una traccia ha la sezione Vetrina (slug, sfondo, autore, licenza, voce, tag, revisione, pubblicazione). Nel pannello Sito ci sono l’interruttore, i testi dell’invito, il calendario e i conteggi delle ultime quattro settimane. Il player in vetrina non accredita la pratica e non prepara la copia offline. L’interruttore resta spento.
+
+### 12/10/2026 · Vetrina Ascolta, solo i dati (da Cursor)
+Migrazione `supabase/migrazione_vetrina.sql`: autori, tag, colonne di pubblicazione sulle tracce, contatori aggregati per traccia e giorno, impostazioni con la vetrina spenta. Le RPC pubbliche restituiscono tracce solo se l’interruttore è acceso. I conteggi passano da `porta` (`evento-vetrina`), con lo stesso tetto per IP hashato, e non entrano in `log_pratica`. Le funzioni del partecipante non sono state ridefinite. Gli sfondi Pexels si copiano nel bucket `sfondi-vetrina`; le foto Unsplash restano sui loro server. Le pagine e la sezione in Libreria non ci sono ancora: la vetrina va accesa a fine ciclo, o se è dichiarata nel protocollo, per non contaminare il pilota. I conteggi non sono dati di un partecipante, quindi export e reset non cambiano. L’informativa descrive la sezione, Unsplash, Pexels ed ElevenLabs.
+
 ### 9/10/2026 · La correzione di una segnalazione chiude il ciclo e avvisa (da Cursor)
 Se chi segnala è entrato con il codice, `porta` salva la segnalazione collegata
 all’account (`supabase/migrazione_segnalazioni_problema.sql`) e non inoltra codice

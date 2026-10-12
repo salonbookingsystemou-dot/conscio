@@ -6,6 +6,7 @@ import iconaConscio from '../assets/icona-conscio.png'
 import { apriInvitoHome, appGiaInHome } from '../lib/invitoHome.js'
 import RuotaTonalita from './RuotaTonalita.jsx'
 import OreAscolto from './OreAscolto.jsx'
+import useVetrinaAperta from '../lib/useVetrinaAperta.js'
 
 export default function Nav() {
   const { facilitatore, esci } = useAuth()
@@ -21,6 +22,7 @@ export default function Nav() {
   const [aperto, setAperto] = useState(false)
   const menuId = useId()
   const dentro = facilitatore || registrato
+  const vetrinaAperta = useVetrinaAperta()
 
   useEffect(() => {
     setAperto(false)
@@ -55,6 +57,10 @@ export default function Nav() {
     setAperto(false)
   }
 
+  const voceAscolta = vetrinaAperta
+    ? <NavLink to="/ascolta" onClick={chiudi}>Ascolta</NavLink>
+    : null
+
   const barraBassa = facilitatore || (registrato && percorsoPronto)
 
   const vociPrimarie = (facilitatore || (registrato && onboardingCompleto)) && (
@@ -74,6 +80,7 @@ export default function Nav() {
     <>
       {facilitatore ? (
         <>
+          {voceAscolta}
           <NavLink to="/dashboard" onClick={chiudi}>Cicli</NavLink>
           <NavLink to="/percorso" onClick={chiudi}>Percorso</NavLink>
           <NavLink to="/libreria" onClick={chiudi}>Libreria</NavLink>
@@ -83,6 +90,7 @@ export default function Nav() {
         </>
       ) : (
         <>
+          {voceAscolta}
           {!onboardingCompleto && (
             <NavLink to="/onboarding" onClick={chiudi}>Primo accesso</NavLink>
           )}
@@ -107,6 +115,7 @@ export default function Nav() {
     </>
   ) : (
     <>
+      {voceAscolta}
       <NavLink to="/iscrizione" onClick={chiudi}>Iscrizione</NavLink>
       <NavLink to="/entra" onClick={chiudi}>Entra</NavLink>
       <NavLink to="/segnala" onClick={chiudi}>Segnala un problema</NavLink>
