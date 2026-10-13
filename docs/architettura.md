@@ -145,7 +145,7 @@ Condivisi in `functions/_shared/`: stile e firma email, testo di incoraggiamento
 
 ## 6. Deploy e configurazione
 
-- **Push su `main`** → `deploy.yml` → build Vite → GitHub Pages (dominio `conscio.mnesti.it`, `public/CNAME`). Chiavi anon in `.env.production` (pubbliche, protette da RLS).
+- **Push su `main`** (e ogni mattina alle 05:45 UTC, o a mano) → `deploy.yml` → build Vite, poi `scripts/pagine-condivisione.mjs` scrive `dist/ascolta/<slug>/index.html` per ogni meditazione pubblica, con titolo e immagine per le anteprime dei link → GitHub Pages (dominio `conscio.mnesti.it`, `public/CNAME`). Chiavi anon in `.env.production` (pubbliche, protette da RLS).
 - **Edge Functions** distribuite a mano con `supabase functions deploy`; secret: `RESEND_API_KEY`, `RESEND_FROM`/`EMAIL_FROM`, `CRON_SECRET`, `ENCOURAGEMENT_SECRET`, `CHECKIN_WEBHOOK_SECRET`, `FACILITATORE_EMAIL`, `ELEVENLABS_API_KEY`, `CURSOR_AUTOFIX_WEBHOOK_URL`, `CURSOR_AUTOFIX_WEBHOOK_KEY`, `UNSPLASH_ACCESS_KEY`, `PEXELS_API_KEY`.
 - **Storage:** `tracce-audio` (pubblico, audio del percorso) e `sfondi-vetrina` (pubblico, foto fino a 10 MB e video fino a 50 MB; il tetto del bucket è 50 MB). Gli sfondi Unsplash restano sui loro server.
 - **Migrazioni SQL** applicate manualmente (SQL editor / MCP) e sempre versionate in `supabase/`.
@@ -153,4 +153,4 @@ Condivisi in `functions/_shared/`: stile e firma email, testo di incoraggiamento
 
 ## 7. Aperto (da `docs/progetto.md`)
 
-Non ancora implementati: pagine statiche di condivisione `/a/<slug>/` e import da YouTube, andamento del check-in (partecipante + scheda facilitatore, RPC `checkin_storico_del_partecipante` proposta), schermata «Il tuo andamento» nei questionari, consenso specifico per citazioni dei partecipanti. Le pagine `/ascolta` e la scheda nella scheda traccia e in `/admin/sito` ci sono; l’interruttore nasce spento.
+Non ancora implementati: import da YouTube, andamento del check-in (partecipante + scheda facilitatore, RPC `checkin_storico_del_partecipante` proposta), schermata «Il tuo andamento» nei questionari, consenso specifico per citazioni dei partecipanti. Le pagine `/ascolta` e la scheda nella scheda traccia e in `/admin/sito` ci sono; l’interruttore nasce spento.

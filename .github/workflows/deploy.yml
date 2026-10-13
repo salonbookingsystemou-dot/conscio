@@ -3,6 +3,11 @@ name: Deploy GitHub Pages
 on:
   push:
     branches: [main]
+  # Rigenera ogni mattina le pagine di condivisione di Ascolta (scripts/pagine-condivisione.mjs),
+  # così le meditazioni pubblicate dopo l'ultimo push hanno l'anteprima con titolo e immagine.
+  schedule:
+    - cron: '45 5 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: read
