@@ -176,9 +176,9 @@ export default function Ascolta() {
     const url = urlAscolta(voce.slug)
     try {
       if (!soloCopia && navigator.share) {
-        // WhatsApp e altre app ignorano `title`: il titolo va anche nel testo.
-        const testo = voce.descrizione ? `${voce.titolo}\n${voce.descrizione}` : voce.titolo
-        await navigator.share({ title: voce.titolo, text: testo, url })
+        // Solo il link: titolo e descrizione arrivano dalla card di anteprima,
+        // un `text` comparirebbe come secondo messaggio.
+        await navigator.share({ title: voce.titolo, url })
       } else {
         await navigator.clipboard.writeText(url)
         setAvviso('Link copiato.')
