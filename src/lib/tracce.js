@@ -154,6 +154,7 @@ export async function durataFileAudio(file) {
 }
 
 const COLONNE_TRACCIA = 'id, titolo, descrizione, url, storage_path, durata_minuti, creato_il, aggiornato_il'
+const COLONNE_TRACCIA_CON_FILE = `${COLONNE_TRACCIA}, file_aggiornato_il`
 const COLONNE_TRACCIA_SENZA_AGGIORNAMENTO = 'id, titolo, descrizione, url, storage_path, durata_minuti, creato_il'
 const COLONNE_TRACCIA_BASE = 'id, titolo, url, storage_path, durata_minuti, creato_il'
 
@@ -170,12 +171,23 @@ function colonnaDescrizioneMancante(error) {
   return /descrizione|42703|PGRST204/i.test(testoErrore(error))
 }
 
+// Data in cui il file è cambiato: un controllo più vecchio va rifatto.
+// Prima della migrazione controlli_tracce la colonna non c'è e si va avanti senza.
+function conDataFile(error) {
+  return colonnaAssente(error, 'file_aggiornato_il')
+}
+
 export async function elencaTracce() {
-  const prima = await supabase
+  let risposta = await supabase
     .from('tracce')
-    .select(COLONNE_TRACCIA)
+    .select(COLONNE_TRACCIA_CON_FILE)
     .order('titolo', { ascending: true })
-  let risposta = prima
+  if (risposta.error && conDataFile(risposta.error)) {
+    risposta = await supabase
+      .from('tracce')
+      .select(COLONNE_TRACCIA)
+      .order('titolo', { ascending: true })
+  }
   if (risposta.error && colonnaAssente(risposta.error, 'aggiornato_il')) {
     risposta = await supabase
       .from('tracce')
@@ -218,11 +230,11 @@ export async function collegamentiTracce() {
   const [{ data: esercizi, error: errE }, { data: lezioni, error: errL }] = await Promise.all([
     supabase
       .from('esercizi')
-      .select('id, descrizione, tipo, traccia_id, lezioni(numero_settimana, cicli(nome_ciclo))')
+      .select('id, descrizione, tipo, traccia_id, lezioni(numero_settimana, ciclo_id, cicli(nome_ciclo))')
       .not('traccia_id', 'is', null),
     supabase
       .from('lezioni')
-      .select('id, numero_settimana, tema, traccia_id, cicli(nome_ciclo)')
+      .select('id, numero_settimana, tema, traccia_id, ciclo_id, cicli(nome_ciclo)')
       .not('traccia_id', 'is', null)
   ])
   if (errE) throw errE
@@ -243,6 +255,7 @@ export async function collegamentiTracce() {
       esercizioId: e.id,
       descrizione: e.descrizione,
       numeroSettimana: lezione?.numero_settimana,
+      cicloId: lezione?.ciclo_id || null,
       cicloNome: ciclo?.nome_ciclo || ''
     })
   }
@@ -253,6 +266,7 @@ export async function collegamentiTracce() {
       lezioneId: l.id,
       descrizione: l.tema || 'audio della settimana',
       numeroSettimana: l.numero_settimana,
+      cicloId: l.ciclo_id || null,
       cicloNome: ciclo?.nome_ciclo || ''
     })
   }
@@ -281,15 +295,21 @@ export async function creaTraccia(file, { titolo, descrizione, durataMinuti } = 
   const { data: pub } = supabase.storage.from('tracce-audio').getPublicUrl(path)
   const minuti = durataMinuti
     || await minutiDalFile(file)
-  const riga = {
+  let riga = {
     id,
     titolo: (titolo || titoloDaNomeFile(file.name)).trim() || 'Traccia',
     descrizione: String(descrizione || '').trim() || null,
     url: pub.publicUrl,
     storage_path: path,
-    durata_minuti: minuti || null
+    durata_minuti: minuti || null,
+    file_aggiornato_il: new Date().toISOString()
   }
   let { data, error } = await supabase.from('tracce').insert(riga).select(COLONNE_TRACCIA).single()
+  if (error && conDataFile(error)) {
+    const { file_aggiornato_il: _senza, ...resto } = riga
+    riga = resto
+    ;({ data, error } = await supabase.from('tracce').insert(riga).select(COLONNE_TRACCIA).single())
+  }
   if (error && colonnaDescrizioneMancante(error)) {
     const { descrizione: _ignora, ...base } = riga
     const replica = await supabase.from('tracce').insert(base).select(COLONNE_TRACCIA_BASE).single()
@@ -337,10 +357,16 @@ export async function sostituisciFileTraccia(traccia, file) {
   const { data: pub } = supabase.storage.from('tracce-audio').getPublicUrl(path)
   const minuti = await minutiDalFile(file)
   const testo = String(traccia.descrizione || '').trim() || testoDaUrlAudio(traccia.url)
-  const { error } = await supabase.from('tracce').update({
+  const patch = {
     storage_path: path,
-    durata_minuti: minuti || traccia.durata_minuti || null
-  }).eq('id', traccia.id)
+    durata_minuti: minuti || traccia.durata_minuti || null,
+    file_aggiornato_il: new Date().toISOString()
+  }
+  let { error } = await supabase.from('tracce').update(patch).eq('id', traccia.id)
+  if (error && conDataFile(error)) {
+    const { file_aggiornato_il: _senza, ...resto } = patch
+    ;({ error } = await supabase.from('tracce').update(resto).eq('id', traccia.id))
+  }
   if (error) throw error
   if (minuti) {
     await supabase.from('esercizi').update({ durata_minuti: minuti }).eq('traccia_id', traccia.id)

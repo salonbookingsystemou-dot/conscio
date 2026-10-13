@@ -25,7 +25,7 @@ export default function Splash() {
   }, [])
 
   if (!authLoad && !caricamento) {
-    if (facilitatore) return <Navigate to="/dashboard" replace />
+    if (facilitatore) return <Navigate to="/admin/cicli" replace />
     if (registrato) {
       const dove = percorsoPronto
         ? '/programma'

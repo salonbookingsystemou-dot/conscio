@@ -6,20 +6,10 @@ import {
   etichettaDataBreve,
   fasciaMinuti,
   mediana,
-  numeriPratica,
-  periodoCiclo
+  numeriPratica
 } from '../lib/pratica.js'
 
 const TACCHE_PERCENTUALI = [0, 25, 50, 75, 100]
-
-/** Senza un ciclo aperto: quello in corso, altrimenti il più recente già iniziato. */
-function cicloPredefinito(cicli) {
-  const iniziati = cicli
-    .map(c => ({ c, periodo: periodoCiclo(c) }))
-    .filter(v => v.periodo && v.periodo.trascorsi > 0)
-    .sort((a, b) => b.periodo.inizio - a.periodo.inizio)
-  return (iniziati.find(v => v.periodo.inCorso) || iniziati[0])?.c || null
-}
 
 function etichettaGiorni(n) {
   return n === 1 ? '1 giorno' : `${n} giorni`
@@ -304,19 +294,12 @@ function descrizioneCiclo(dati) {
 }
 
 /**
- * `codiciPerCiclo`: id ciclo → codici degli iscritti. I codici servono solo a
- * raggruppare le righe del log: non compaiono in nessun punto della scheda.
+ * `codici`: codici degli iscritti al ciclo. Servono solo a raggruppare le
+ * righe del log: non compaiono in nessun punto della scheda.
  */
-export default function SchedaPratica({ ciclo: cicloAperto, cicli, codiciPerCiclo, log }) {
-  const ciclo = useMemo(() => cicloAperto || cicloPredefinito(cicli), [cicloAperto, cicli])
-  const dati = useMemo(
-    () => (ciclo ? datiPraticaCiclo(ciclo, codiciPerCiclo.get(ciclo.id) || [], log) : null),
-    [ciclo, codiciPerCiclo, log]
-  )
-  const numeri = useMemo(() => {
-    if (dati) return numeriPratica([dati])
-    return numeriPratica(cicli.map(c => datiPraticaCiclo(c, codiciPerCiclo.get(c.id) || [], log)))
-  }, [dati, cicli, codiciPerCiclo, log])
+export default function SchedaPratica({ ciclo, codici, log }) {
+  const dati = useMemo(() => datiPraticaCiclo(ciclo, codici, log), [ciclo, codici, log])
+  const numeri = useMemo(() => numeriPratica([dati]), [dati])
 
   const scorriGrafico = useRef(null)
   const scorriMappa = useRef(null)
@@ -340,24 +323,21 @@ export default function SchedaPratica({ ciclo: cicloAperto, cicli, codiciPerCicl
         <div>
           <h2>Pratica</h2>
           <p className="lead">
-            {dati ? `${ciclo.nome_ciclo} · ${descrizioneCiclo(dati)} ` : 'Tutti i cicli. '}
+            {`${descrizioneCiclo(dati)} `}
             Solo dati aggregati o senza identificativi: nessun codice e nessuna email in questa scheda.
           </p>
-          {dati && !cicloAperto && cicli.length > 1 && (
-            <p className="hint">Per vedere un altro ciclo, aprilo dalla scheda Cicli.</p>
-          )}
         </div>
       </header>
 
-      <Numeri numeri={numeri} giorniTrascorsi={dati ? dati.periodo?.trascorsi ?? 0 : null} />
+      <Numeri numeri={numeri} giorniTrascorsi={dati.periodo?.trascorsi ?? 0} />
 
-      {!dati ? (
+      {dati.settimane.length === 0 ? (
         <p className="hint">
-          {cicli.length > 0
-            ? 'I grafici giorno per giorno riguardano un ciclo alla volta: aprine uno dalla scheda Cicli.'
-            : 'Nessun ciclo ancora creato. I grafici compaiono quando apri un ciclo dalla scheda Cicli.'}
+          {dati.periodo
+            ? 'I grafici giorno per giorno compaiono quando il ciclo è iniziato.'
+            : 'Imposta la data di inizio del ciclo in Panoramica per vedere i grafici giorno per giorno.'}
         </p>
-      ) : dati.settimane.length > 0 && (
+      ) : (
         <>
           <Partecipazione dati={dati} scorriRef={scorriGrafico} onScroll={allinea(scorriGrafico, scorriMappa)} />
           <Mappa dati={dati} scorriRef={scorriMappa} onScroll={allinea(scorriMappa, scorriGrafico)} />

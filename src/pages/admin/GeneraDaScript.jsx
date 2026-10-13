@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { durataMp3 } from '../lib/audioMp3'
-import { rifinisciVoce, unisciPcm, wavDa } from '../lib/rifinisciVoce'
-import { preparaMp3 } from '../lib/tracciaFinale'
+import { durataMp3 } from '../../lib/audioMp3'
+import { rifinisciVoce, unisciPcm, wavDa } from '../../lib/rifinisciVoce'
+import { preparaMp3 } from '../../lib/tracciaFinale'
 import {
   MODELLI,
   dividiScript,
@@ -15,8 +14,8 @@ import {
   VELOCITA_MIN,
   VELOCITA_PASSO,
   velocitaDi
-} from '../lib/generaVoce'
-import { AUDIO_MAX, creaTraccia, messaggioErroreTraccia } from '../lib/tracce'
+} from '../../lib/generaVoce'
+import { AUDIO_MAX, creaTraccia, messaggioErroreTraccia, sostituisciFileTraccia } from '../../lib/tracce'
 
 function nuovoId() {
   return crypto.randomUUID()
@@ -67,8 +66,8 @@ function formattaMinuti(minuti) {
   return `${arrotondati} min`
 }
 
-export default function GeneraTraccia() {
-  const [titolo, setTitolo] = useState('')
+export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
+  const [titolo, setTitolo] = useState(sostituisci?.titolo || '')
   const [descrizione, setDescrizione] = useState('')
   const [modelloId, setModelloId] = useState(MODELLI[0].id)
   const [voceId, setVoceId] = useState('')
@@ -511,11 +510,13 @@ export default function GeneraTraccia() {
       const minuti = Number.isFinite(file.secondi) && file.secondi > 0
         ? Math.max(1, Math.round(file.secondi / 60))
         : undefined
-      await creaTraccia(mp3, { titolo: nome, descrizione, durataMinuti: minuti })
-      setAvviso('Traccia salvata in libreria.')
+      let traccia = sostituisci
+      if (sostituisci) await sostituisciFileTraccia(sostituisci, mp3)
+      else traccia = await creaTraccia(mp3, { titolo: nome, descrizione, durataMinuti: minuti })
+      setOccupato(null)
+      onSalvata?.(traccia)
     } catch (err) {
       mostraErrore(messaggioErroreTraccia(err))
-    } finally {
       setOccupato(null)
     }
   }
@@ -532,20 +533,13 @@ export default function GeneraTraccia() {
 
   return (
     <>
-      <header className="admin-page-head">
-        <h1>Genera traccia</h1>
-        <p>
-          Incolla lo script, scegli modello, voce e velocità del parlato, metti le pause tra i paragrafi.
-          L’anteprima si ascolta qui; il file entra in libreria solo quando lo salvi.
-        </p>
-      </header>
+      <p className="hint">
+        Incolla lo script, scegli modello, voce e velocità del parlato, metti le pause tra i paragrafi.
+        L’anteprima si ascolta qui; il file entra in libreria solo quando lo salvi.
+      </p>
 
       {errore && <p ref={erroreNodo} className="avviso-errore" role="alert">{errore}</p>}
-      {avviso && (
-        <p className="disclaimer" role="status">
-          {avviso} <Link to="/libreria">Apri la libreria</Link>
-        </p>
-      )}
+      {avviso && <p className="disclaimer" role="status">{avviso}</p>}
       {aggancioPerso && (
         <p className="disclaimer" role="status">
           ElevenLabs non ha accettato l’aggancio con i paragrafi vicini: in almeno un paragrafo il tono può cambiare. Rigeneralo per riprovare.
@@ -561,6 +555,7 @@ export default function GeneraTraccia() {
               value={titolo}
               onChange={e => setTitolo(e.target.value)}
               maxLength={140}
+              readOnly={Boolean(sostituisci)}
             />
           </div>
           <div className="field">
@@ -576,6 +571,7 @@ export default function GeneraTraccia() {
             />
           </div>
         </div>
+        {!sostituisci && (
         <div className="field">
           <label htmlFor="genera-card">Testo della card</label>
           <textarea
@@ -586,6 +582,7 @@ export default function GeneraTraccia() {
             placeholder="Quello che il partecipante legge sulla pratica. Non viene pronunciato."
           />
         </div>
+        )}
         <div className="genera-campi">
           <div className="field">
             <label htmlFor="genera-modello">Modello</label>
@@ -870,7 +867,7 @@ export default function GeneraTraccia() {
                   onClick={salva}
                   disabled={occupato === 'salva' || !titolo.trim()}
                 >
-                  {occupato === 'salva' ? 'Salvo…' : 'Salva in libreria'}
+                  {occupato === 'salva' ? 'Salvo…' : sostituisci ? 'Sostituisci il file' : 'Salva in libreria'}
                 </button>
               </div>
             )}

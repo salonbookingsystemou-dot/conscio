@@ -109,9 +109,9 @@ function VuotoProgramma({ ciclo, facilitatore }) {
       </p>
       {facilitatore ? (
         <div className="settimana-vuoto-azioni">
-          <Link className="btn btn-avanti" to="/percorso">Apri Percorso</Link>
+          <Link className="btn btn-avanti" to="/admin/cicli">Apri i cicli</Link>
           <p className="hint">
-            Da Percorso crei le settimane, le pratiche formali con audio e le informali.
+            Nel Programma di ogni ciclo crei le settimane, le pratiche formali con audio e le informali.
           </p>
         </div>
       ) : (

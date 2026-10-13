@@ -85,6 +85,8 @@ aggiungi una variante qui.
 | Card | `.card` | `.card.is-lista` (senza padding, per righe a filo bordo), `.card-vuota` (messaggio di card vuota o in caricamento) |
 | Campo di modulo | `.field` | — |
 | Modale | `.dialogo` (+ `.dialogo-azioni`) | `.dialogo.is-ascolto` (più larga, per l'anteprima di una traccia) |
+| Pannello laterale | `.pannello` (+ `.pannello-testa`, `.pannello-corpo`; componente `PannelloLaterale`, CSS in `styles/admin.css`) | — · per aprire la scheda di un elemento senza lasciare l'elenco: a destra largo 560px, pagina intera sotto 720px. Dentro, le sezioni sono `.dash-ciclo-sezione` |
+| Filtri a pillola | `.filtri-chip` con bottoni `.dash-tab` (`.is-on`, `aria-pressed`) | — |
 | Errore | `.avviso-errore` (riquadro sopra un modulo o un elenco), `.campo-errore` (riga sotto un campo) | — |
 | Nota informativa | `.disclaimer` | — |
 

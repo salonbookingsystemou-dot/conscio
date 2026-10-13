@@ -1,6 +1,8 @@
 // Controllo delle tracce delle pratiche formali, come le riceve il partecipante.
 // Tre livelli: collegamenti (database), file (indirizzo pubblico), ascolto
-// tecnico (file decodificato nel browser). Legge soltanto: non scrive nulla.
+// tecnico (file decodificato nel browser). Gli esiti di file e ascolto si
+// salvano in `controlli_tracce`; i collegamenti dipendono dal ciclo e si
+// calcolano ogni volta.
 
 import { infoMp3, lunghezzaId3 } from './audioMp3.js'
 import { supabase } from './supabaseClient'
@@ -362,4 +364,151 @@ export function analizzaCanali(canali, fs, { durataFile } = {}) {
 
 export function etichettaSettimana(numero) {
   return numero === 9 ? 'Intensiva' : `Settimana ${numero}`
+}
+
+// ── Esito salvato per traccia ───────────────────────────────────────────────
+
+export const ETICHETTE_STATO = {
+  ok: 'Funziona',
+  attenzione: 'Da guardare',
+  errore: 'Problema',
+  'non-controllata': 'Non controllata',
+  'da-ricontrollare': 'Da ricontrollare',
+  attesa: 'Verifico…'
+}
+
+const GRAVITA = ['errore', 'attenzione', 'da-ricontrollare', 'non-controllata', 'attesa', 'ok']
+
+export function gravita(stato) {
+  const i = GRAVITA.indexOf(stato)
+  return i < 0 ? GRAVITA.length : i
+}
+
+export function daGuardare(stato) {
+  return stato === 'errore' || stato === 'attenzione'
+}
+
+// Nel database ogni esito è { livello: 'file' | 'ascolto', stato, testo, da? };
+// nell'app `livello` resta la gravità, come in `peggiore()`, e il gruppo va in `gruppo`.
+function versoDb(e) {
+  return { livello: e.gruppo, stato: e.livello, testo: e.testo, ...(Number.isFinite(e.da) ? { da: e.da } : {}) }
+}
+
+function daDb(e) {
+  return { gruppo: e?.livello, livello: e?.stato, testo: e?.testo, ...(Number.isFinite(e?.da) ? { da: e.da } : {}) }
+}
+
+/** traccia_id → ultimo controllo. Senza la tabella (migrazione non applicata) lancia CONTROLLI_NON_DISPONIBILI. */
+export async function leggiControlli() {
+  const { data, error } = await supabase
+    .from('controlli_tracce')
+    .select('traccia_id, stato, esiti, misure, controllato_il')
+  if (error) {
+    const err = new Error('CONTROLLI_NON_DISPONIBILI')
+    err.cause = error
+    throw err
+  }
+  return new Map((data || []).map(r => [r.traccia_id, { ...r, esiti: (r.esiti || []).map(daDb) }]))
+}
+
+export async function salvaControllo(controllo) {
+  const { error } = await supabase.from('controlli_tracce').upsert({
+    traccia_id: controllo.traccia_id,
+    stato: controllo.stato,
+    esiti: controllo.esiti.map(versoDb),
+    misure: controllo.misure,
+    controllato_il: controllo.controllato_il
+  })
+  if (error) throw error
+}
+
+/** Stato dell'ultimo controllo, senza i collegamenti. */
+export function statoTraccia(traccia, controllo) {
+  if (!controllo) return 'non-controllata'
+  const file = Date.parse(traccia?.file_aggiornato_il || '')
+  if (Number.isFinite(file) && Date.parse(controllo.controllato_il) < file) return 'da-ricontrollare'
+  return controllo.stato
+}
+
+/** Peggiore fra lo stato salvato e i collegamenti del ciclo. */
+export function statoNelCiclo(statoSalvato, esitiCollegamenti) {
+  const collegamenti = peggiore(esitiCollegamenti)
+  return gravita(collegamenti) < gravita(statoSalvato) ? collegamenti : statoSalvato
+}
+
+export async function controllaFileTraccia(traccia) {
+  return controllaFile(urlAudioSenzaTesto(traccia.url), traccia)
+}
+
+/** File + ascolto tecnico di una traccia della libreria. `file` evita di rifare il primo livello. */
+export async function controllaTraccia(traccia, { segnale, file } = {}) {
+  const url = urlAudioSenzaTesto(traccia.url)
+  const primo = file || await controllaFile(url, traccia)
+  const esiti = primo.esiti.map(e => ({ ...e, gruppo: 'file' }))
+  let misure = {
+    durata: primo.info?.durata ?? null,
+    integrata: null,
+    tipo: primo.info?.tipo || null,
+    totale: Number.isFinite(primo.info?.totale) ? primo.info.totale : null
+  }
+  if (peggiore(esiti) !== 'errore') {
+    try {
+      const ascolto = await ascoltoTecnico(url, { durataFile: primo.info?.durata, segnale })
+      esiti.push(...ascolto.esiti.map(e => ({ ...e, gruppo: 'ascolto' })))
+      if (ascolto.misure) {
+        misure = {
+          ...misure,
+          durata: ascolto.misure.durata ?? misure.durata,
+          integrata: Number.isFinite(ascolto.misure.integrata) ? ascolto.misure.integrata : null
+        }
+      }
+    } catch (err) {
+      if (err?.name === 'AbortError') throw err
+      esiti.push(esito('attenzione', 'Non sono riuscito a scaricare tutto il file per ascoltarlo. Riprova.', { gruppo: 'ascolto' }))
+    }
+  }
+  return {
+    traccia_id: traccia.id,
+    stato: peggiore(esiti),
+    esiti,
+    misure,
+    controllato_il: new Date().toISOString()
+  }
+}
+
+/**
+ * Collegamenti di un ciclo divisi per traccia della libreria, più le pratiche
+ * che non hanno una traccia in libreria (nessun audio o file fuori libreria).
+ */
+export function collegamentiDelCiclo({ settimane }) {
+  const perTraccia = new Map()
+  const senzaLibreria = []
+  for (const s of settimane) {
+    for (const p of s.pratiche) {
+      const esiti = p.esiti.map(e => ({ ...e, gruppo: 'collegamenti', settimana: s.numero, pratica: p.descrizione }))
+      if (p.traccia) {
+        perTraccia.set(p.traccia.id, [...(perTraccia.get(p.traccia.id) || []), ...esiti])
+      } else {
+        senzaLibreria.push({ ...p, settimana: s.numero, esiti })
+      }
+    }
+  }
+  return { perTraccia, senzaLibreria }
+}
+
+/** Quante tracce e pratiche del ciclo sono da guardare. */
+export async function riepilogoCiclo(cicloId) {
+  const [letti, controlli] = await Promise.all([
+    leggiCiclo(cicloId),
+    leggiControlli().catch(() => new Map())
+  ])
+  const { perTraccia, senzaLibreria } = collegamentiDelCiclo(controllaCollegamenti(letti))
+  const perId = new Map(letti.tracce.map(t => [t.id, t]))
+  let tracce = 0
+  for (const [id, esiti] of perTraccia) {
+    const salvato = statoTraccia(perId.get(id), controlli.get(id))
+    if (daGuardare(statoNelCiclo(salvato, esiti))) tracce += 1
+  }
+  const pratiche = senzaLibreria.filter(p => daGuardare(peggiore(p.esiti))).length
+  return { tracce, pratiche }
 }

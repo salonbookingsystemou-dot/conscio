@@ -1,7 +1,7 @@
 # Conscio · mappa dell'interfaccia
 
 Inventario degli elementi grafici dell'app: gusci, schermate, componenti e pattern ricorrenti, con il
-file in cui vivono. Fotografia al 2/10/2026.
+file in cui vivono. Fotografia al 13/10/2026 (navigazione del facilitatore riorganizzata).
 
 **Da leggere prima di ogni re-design o integrazione**, insieme a:
 - `docs/design-system.md` → *come* appare (token, tipografia, classi base `.btn`, `.card`, `.field`, `.dialogo`…);
@@ -19,16 +19,17 @@ flowchart TB
     NAV["Nav · brand, OreAscolto, RuotaTonalita, menu"] --> CONT1[contenuto] --> FOOT[Footer]
     BB["BarraBassa · Settimana · Storico · Questionari · Avvisi"]
   end
-  subgraph Fac["Guscio facilitatore · AdminChrome"]
-    TOP["testata · brand + ruolo, pillole: Cicli · Percorso · Libreria · Genera · Controllo · Avvisi, Esci"] --> CONT2["contenuto (ampio su dashboard, editor, genera…)"]
+  subgraph Fac["Guscio facilitatore · AdminChrome (/admin/*)"]
+    TOP["testata · brand + ruolo, pillole: Cicli · Tracce · Comunicazioni · Sito, Esci"] --> CONT2["contenuto (PaginaAdmin: stretto o ampio per rotta)"]
+    BBF["BarraVoci su telefono · stesse 4 voci"]
   end
   SPL["Splash (/) · senza guscio"]
 ```
 
 | Guscio | File | Note |
 |---|---|---|
-| Partecipante | `Nav.jsx`, `BarraBassa.jsx`, `Footer.jsx` | `Nav` mostra voci diverse se c'è un codice attivo; `BarraBassa` è la navigazione principale su telefono |
-| Facilitatore | `AdminChrome.jsx` (+ `styles/admin.css`) | Attivo quando c'è la sessione facilitatore, tranne su `/` e `/accedi`; prop `ampio` per le pagine larghe |
+| Partecipante | `Nav.jsx`, `BarraBassa.jsx`, `Footer.jsx` | `Nav` mostra voci diverse se c'è un codice attivo; `BarraBassa` è la navigazione principale su telefono. Il facilitatore che apre una pagina pubblica o del partecipante vede questo guscio, con il solo link «Area facilitatore» |
+| Facilitatore | `AdminChrome.jsx` (+ `styles/admin.css`) | Solo sotto `/admin`. Regola: il menu dice su quale oggetto lavori (Cicli, Tracce, Comunicazioni, Sito), le schede dicono quale aspetto. Badge su Cicli = segnalazioni difficili aperte + iscrizioni in attesa di esito. Su telefono (≤ 800px) le pillole lasciano il posto a `BarraVoci` in basso; «Esci» resta in testata. La larghezza la sceglie la rotta con `PaginaAdmin ampia` |
 | Nessuno | `Splash.jsx` | Contenuto da `splash_sito`, modificabile dalla tab Sito |
 
 ## 2. Schermate e blocchi che le compongono
@@ -61,18 +62,23 @@ Le tavole di riferimento sono in `docs/mockup/ascolta-*.png`. La vetrina usa il 
 Fallback comune: senza codice in memoria le pagine mostrano `ChiediCodice`; durante il caricamento `StatoAttesa`.
 
 ### Facilitatore
+Tutto sotto `/admin`; le vecchie rotte (`/dashboard`, `/percorso…`, `/lezioni`, `/libreria`, `/genera`, `/controllo-tracce`, `/comunicazioni` per il facilitatore) sono solo redirect.
+
 | Schermata | Route | Blocchi |
 |---|---|---|
-| Dashboard · Cicli | `/dashboard` | card KPI (`.dash-kpi-card`), nuovo ciclo, tabella cicli con date/stato, iscrizioni con filtri (Idoneo, In presenza, Da remoto), segnalazioni difficili aperte |
-| Dashboard · Questionari | idem | grafici per strumento (Recharts `LineChart`), `BarraRange`, nota sull'uso dei dati |
-| Dashboard · Pratica | idem | `SchedaPratica`: quattro numeri, barre per giorno colorate per tono, mappa del percorso (scala minuti), tabella informali |
-| Dashboard · Sito | idem | `EditorSplash`, `EditorVetrina` (interruttore, testi dell’invito, calendario, conteggi delle ultime quattro settimane) |
-| Percorso | `/percorso` | elenco cicli → 8 settimane |
-| Editor settimana | `/percorso/:id/settimana/:n` | lezione + esercizi formali/informali, `LibreriaTracce` (selettore traccia), dialoghi di modifica |
-| Libreria | `/libreria` | ricerca, filtro per stato in vetrina, azioni (ascolta, modifica, sostituisci, elimina), scheda Vetrina nel dialogo di modifica, date creazione/modifica |
-| Genera | `/genera` | script → paragrafi, scelta modello/voce/velocità del parlato, volume allineato, ultima parola intera, pause, ascolto per paragrafo, salva in libreria |
-| Controllo tracce | `/controllo-tracce` | selettore ciclo, card numeriche (funzionano, da guardare, problemi, ascolto tecnico), una card per settimana con le pratiche formali: stato (`.controllo-stato`), esiti con «Ascolta da», ascolto e ascolto tecnico; tracce non usate |
-| Avvisi | `/comunicazioni` | composizione comunicazione (ciclo / solo remoti), storico invii, card «Inattività · solo da remoto», card «Pausa di pratica» |
+| Cicli (home) | `/admin/cicli` | «Da fare» (segnalazioni difficili con «Segna come gestita», iscrizioni in attesa per ciclo; «Niente da fare»), card KPI (`.dash-kpi-card`), tabella cicli con «Nuovo ciclo», «Percorsi individuali da remoto» (`RigaIscrizione`, `#remoti-liberi`), link «Questionari · tutti i cicli», esporta aggregati |
+| Spazio del ciclo | `/admin/cicli/:id/…` | testata fissa (`Ciclo.jsx`): «← Cicli», nome, stato, date, selettore che cambia ciclo tenendo la scheda; schede `.dash-tabs` legate alla rotta (`role="tablist"`, `aria-current`) |
+| · Panoramica | `…/panoramica` | numeri del ciclo, date e stato, posti in presenza, link incontro, «Zona delicata» (elimina con `DialogConferma`) |
+| · Iscritti | `…/iscritti` | filtri a pillola (`.filtri-chip`): tutte, in attesa di esito, idonei, in presenza, da remoto; righe `RigaIscrizione` (esito, modalità, ritiro) |
+| · Programma | `…/programma` | 9 card settimana (`.percorso-griglia`); avviso «N tracce da guardare» → `/admin/tracce?ciclo=…&filtro=da-guardare` |
+| · Settimana | `…/programma/settimana/:n` | `EditorSettimana`: lezione + esercizi, `SelettoreTraccia`, dialoghi di modifica |
+| · Pratica | `…/pratica` | `SchedaPratica` del ciclo: quattro numeri, barre per giorno colorate per tono, mappa del percorso, informali |
+| · Questionari | `…/questionari` | grafici per strumento (Recharts), `BarraRange`, sottoscale, interruttore «Tutti i cicli» (`?tutti=1`); solo aggregati e codici |
+| Tracce | `/admin/tracce` | ricerca, selettore «Usate in…» (`?ciclo=`), filtri Tutte · Da guardare · In vetrina · Non controllate (`?filtro=`), «Controlla tutte» / «Interrompi», «Nuova traccia». Riga: titolo, durata, date, spunta «In vetrina», stato del controllo (`.controllo-stato`: Funziona, Da guardare, Problema, Non controllata, Da ricontrollare), ascolta, apri scheda. Con un ciclo scelto: «Pratiche senza traccia in libreria» |
+| Scheda traccia | `/admin/tracce?traccia=<id>` | `PannelloLaterale` con `SchedaTraccia`: Ascolto, Contenuto, File (sostituisci · rigenera da script), Vetrina (`ModuloVetrina`), Dove è usata (link alle settimane), Controllo (esiti per livello, «Ascolta da», «Ricontrolla»), Elimina (`.btn-ghost.is-pericolo` → `DialogConferma`, blocco «Traccia ancora collegata») |
+| Nuova traccia | `/admin/tracce/nuova?modo=carica\|genera` | scelta Carica un file / Genera da script (`GeneraDaScript`); con `&sostituisci=<id>` rigenera il file di una traccia esistente. Al salvataggio torna alla scheda e il controllo parte da solo |
+| Comunicazioni | `/admin/comunicazioni` | composizione comunicazione (ciclo / solo remoti), programmate e inviate, card «Inattività · solo da remoto», card «Pausa di pratica» |
+| Sito | `/admin/sito` | «Apri Ascolta», `EditorSplash`, `EditorVetrina` (interruttore, testi dell’invito, calendario, conteggi), card «Uso dei dati e dei punteggi» |
 
 ## 3. Catalogo componenti (`src/components`)
 
@@ -88,17 +94,17 @@ Fallback comune: senza codice in memoria le pagine mostrano `ChiediCodice`; dura
 | Input | `CampoNota` (testo + dettatura), `ScalaLikert`, `SegnalaProblema` |
 | Dati e grafici | `SchedaPratica`, `StoricoGiornate`, `IndicatoreOrientamento`, `OreAscolto` |
 | Personalizzazione | `RuotaTonalita` (ruota l'accento e il fondo, vedi `lib/tonalita.js`) |
-| Admin | `AdminChrome`, `AdminDialogo` (modale delle pagine facilitatore), `EditorSplash`, `EditorVetrina`, `ModuloVetrina`, `ScegliSfondo` |
-| Navigazione | `Nav`, `BarraBassa`, `Footer`, `PullToRefresh` |
+| Admin | `AdminChrome` (+ `PaginaAdmin`), `AdminDialogo` (modale delle pagine facilitatore), `PannelloLaterale` (pannello a destra su schermo largo, pagina intera sotto 720px; `<dialog>` modale, Esc / «Chiudi» / clic fuori lo chiudono; oggi lo usa la scheda traccia), `RigaIscrizione` (una iscrizione con esito, modalità, ritiro; «Collega a un ciclo» per i percorsi liberi), `EditorSplash`, `EditorVetrina`, `ModuloVetrina`, `ScegliSfondo` |
+| Navigazione | `Nav`, `BarraBassa` (voci del partecipante), `BarraVoci` (la barra in basso vera e propria, con voci e badge passati come prop: la usano `BarraBassa` e `AdminChrome`), `Footer`, `PullToRefresh` |
 
 **Non usati oggi:** `GraficoAndamentoPratica.jsx`, `TracciaGuidata.jsx`. Prima di riprenderli verifica che seguano il design system, altrimenti eliminali.
 
-**Sottocomponenti locali** (definiti dentro la pagina, non riusabili così come sono): `Consenso`, `Cursore`, `GiaRegistrato` (Checkin); `TaskFormale`, `AnnotazioniGiorno`, `VuotoProgramma` (Programma); `EditorDialogo`, `SelettoreTraccia` (EditorSettimana); le icone `Icona*` (Libreria, Iscrizione). Se un secondo file ne ha bisogno, spostali in `components/`.
+**Sottocomponenti locali** (definiti dentro la pagina, non riusabili così come sono): `Consenso`, `Cursore`, `GiaRegistrato` (Checkin); `TaskFormale`, `AnnotazioniGiorno`, `VuotoProgramma` (Programma); `EditorDialogo` (EditorSettimana); `GraficoStrumento`, `BarraRange`, `SchedaCodice` (admin/ciclo/Questionari); `CaricaFile` (NuovaTraccia); le icone `Icona*` (Tracce, AdminChrome, Iscrizione). Se un secondo file ne ha bisogno, spostali in `components/`.
 
 ## 4. Pattern ricorrenti
 
 - **Flusso a passi**, una cosa alla volta: Questionari, Check-in, Iscrizione, Onboarding. Ogni passo è una card con titolo serif, testo e azioni in fondo (`.azioni`).
-- **Card numerica / card con titolo / tabella**: definite in `design-system.md`, usate da Dashboard, SchedaPratica e Storico.
+- **Card numerica / card con titolo / tabella**: definite in `design-system.md`, usate da Cicli, spazio del ciclo, SchedaPratica e Storico.
 - **Fallback a tre stati** in ogni pagina dati: attesa (`StatoAttesa`) → vuoto (`StatoVuoto` o `.card-vuota`) → errore (`.avviso-errore`).
 - **Conferme distruttive**: sempre `DialogConferma` con `.btn-pericolo`; il pulsante che la apre è `.btn-ghost.is-pericolo`.
 - **Linguaggio**: «pratica», «percorso», «programma»; mai termini clinici. Gli esiti dei questionari si mostrano come posizione su una scala, senza interpretazione.
@@ -108,7 +114,7 @@ Fallback comune: senza codice in memoria le pagine mostrano `ChiediCodice`; dura
 
 - Mobile first. Breakpoint usati in `styles.css`: 720px (il più frequente), 860px, 960px; `max-width: 640px` solo per eccezioni. `prefers-reduced-motion` è rispettato.
 - Partecipante: colonna singola in `.shell`; su telefono le voci principali passano in `BarraBassa` (fissa in basso) e `Nav` tiene solo le secondarie (classe `body.has-barra-bassa`).
-- Facilitatore: `AdminChrome` con contenuto stretto, o largo per dashboard, editor settimana, questionari, pratica, avvisi e genera (`pagineAdminAmpie` in `App.jsx`).
+- Facilitatore: `AdminChrome` sotto `/admin`; la larghezza la sceglie la rotta padre (`PaginaAdmin ampia` per cicli, tracce e comunicazioni, stretta per sito). Pillole in testata sopra 800px, `BarraVoci` sotto.
 - CSS: `styles/tokens.css` (valori), `styles.css` (componenti e pagine, ~5.200 righe, prefissi per pagina: `.dash-`, `.storico-`, `.checkin-`…), `styles/admin.css` (solo layout dell'area facilitatore).
 
 ## 6. Checklist per re-design e integrazioni

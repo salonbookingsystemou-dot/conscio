@@ -1,93 +1,112 @@
-import { useEffect, useId, useState } from 'react'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import iconaConscio from '../assets/icona-conscio.png'
 import { useAuth } from '../lib/auth.jsx'
+import { contaDaFare, osservaDaFare } from '../lib/cicli.js'
+import BarraVoci from './BarraVoci.jsx'
 
-export default function AdminChrome({ children, ampio = false }) {
-  const { esci } = useAuth()
+function IconaCicli() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="4.5" y="5.5" width="15" height="14" rx="2" fill="none" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M4.5 9.5h15M9 3.8v3.4M15 3.8v3.4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function IconaTracce() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M5 10v4M9 7v10M13 4.5v15M17 8v8M21 11v2" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function IconaComunicazioni() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3.5" y="6" width="17" height="12.5" rx="2" fill="none" stroke="currentColor" strokeWidth="1.4" />
+      <path d="m4 7 8 6 8-6" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function IconaSito() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M4 12h16M12 4c2.2 2.3 3.2 5 3.2 8s-1 5.7-3.2 8c-2.2-2.3-3.2-5-3.2-8s1-5.7 3.2-8z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function useDaFare() {
   const { pathname } = useLocation()
-  const [aperto, setAperto] = useState(false)
-  const menuId = useId()
+  const [numero, setNumero] = useState(0)
 
   useEffect(() => {
-    setAperto(false)
+    let vivo = true
+    const aggiorna = () => {
+      contaDaFare().then(n => { if (vivo) setNumero(n) }).catch(() => {})
+    }
+    aggiorna()
+    const smetti = osservaDaFare(aggiorna)
+    return () => {
+      vivo = false
+      smetti()
+    }
   }, [pathname])
 
-  useEffect(() => {
-    if (!aperto) return undefined
+  return numero
+}
 
-    function suTasto(e) {
-      if (e.key === 'Escape') setAperto(false)
-    }
+export default function AdminChrome() {
+  const { esci } = useAuth()
+  const daFare = useDaFare()
 
-    document.addEventListener('keydown', suTasto)
-    const precedente = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-
-    return () => {
-      document.removeEventListener('keydown', suTasto)
-      document.body.style.overflow = precedente
-    }
-  }, [aperto])
-
-  function chiudi() {
-    setAperto(false)
-  }
+  const voci = [
+    { to: '/admin/cicli', label: 'Cicli', Icona: IconaCicli, badge: daFare },
+    { to: '/admin/tracce', label: 'Tracce', Icona: IconaTracce },
+    { to: '/admin/comunicazioni', label: 'Comunicazioni', Icona: IconaComunicazioni },
+    { to: '/admin/sito', label: 'Sito', Icona: IconaSito }
+  ]
 
   return (
     <div className="admin-app">
-      <header className={`admin-top${aperto ? ' is-open' : ''}`}>
-        <div className="admin-top-riga">
-          <Link to="/dashboard" className="admin-brand" onClick={chiudi}>
-            <img className="brand-mark" src={iconaConscio} alt="" />
-            Percorso MBSR
-            <span className="admin-brand-ruolo">Admin</span>
-          </Link>
-          <button
-            type="button"
-            className="admin-toggle"
-            aria-expanded={aperto}
-            aria-controls={menuId}
-            onClick={() => setAperto(v => !v)}
-          >
-            <span className="admin-toggle-barre" aria-hidden="true">
-              <span />
-              <span />
-              <span />
-            </span>
-            {aperto ? 'Chiudi' : 'Menu'}
-          </button>
-        </div>
-        {aperto && (
-          <button
-            type="button"
-            className="admin-velo"
-            aria-label="Chiudi il menu"
-            onClick={chiudi}
-          />
-        )}
-        <div className="admin-top-destra" id={menuId}>
-          <nav className="admin-pills" aria-label="Area facilitatore">
-            <NavLink to="/dashboard" onClick={chiudi}>Cicli</NavLink>
-            <NavLink to="/percorso" onClick={chiudi}>Percorso</NavLink>
-            <NavLink to="/libreria" end onClick={chiudi}>Libreria</NavLink>
-            <NavLink to="/genera" onClick={chiudi}>Genera</NavLink>
-            <NavLink to="/controllo-tracce" onClick={chiudi}>Controllo</NavLink>
-            <NavLink to="/comunicazioni" onClick={chiudi}>Avvisi</NavLink>
-          </nav>
-          <button
-            type="button"
-            className="admin-esci"
-            onClick={() => {
-              chiudi()
-              esci()
-            }}
-          >
-            Esci
-          </button>
-        </div>
+      <header className="admin-top">
+        <Link to="/admin/cicli" className="admin-brand">
+          <img className="brand-mark" src={iconaConscio} alt="" />
+          Conscio
+          <span className="admin-brand-ruolo">Facilitatore</span>
+        </Link>
+        <nav className="admin-pills" aria-label="Area facilitatore">
+          {voci.map(v => (
+            <NavLink key={v.to} to={v.to}>
+              {v.label}
+              {v.badge > 0 && (
+                <>
+                  <span className="admin-conteggio" aria-hidden="true">{v.badge}</span>
+                  <span className="visually-hidden">, {v.badge} da fare</span>
+                </>
+              )}
+            </NavLink>
+          ))}
+        </nav>
+        <button type="button" className="admin-esci" onClick={esci}>Esci</button>
       </header>
-      <div className={`admin-main${ampio ? ' is-ampio' : ''}`}>{children}</div>
+      <main className="admin-main">
+        <Outlet />
+      </main>
+      <BarraVoci voci={voci} etichetta="Area facilitatore" className="is-facilitatore" />
+    </div>
+  )
+}
+
+/** Larghezza del contenuto, scelta per rotta. */
+export function PaginaAdmin({ ampia = false }) {
+  return (
+    <div className={`admin-pagina${ampia ? ' is-ampia' : ''}`}>
+      <Outlet />
     </div>
   )
 }

@@ -1,20 +1,15 @@
-import { Navigate, Routes, Route, useLocation } from 'react-router-dom'
+import { Navigate, Routes, Route, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import Nav from './components/Nav.jsx'
-import AdminChrome from './components/AdminChrome.jsx'
+import AdminChrome, { PaginaAdmin } from './components/AdminChrome.jsx'
 import SoloFacilitatore from './components/SoloFacilitatore.jsx'
 import { useAuth } from './lib/auth.jsx'
 import SoloRegistrato from './components/SoloRegistrato.jsx'
 import SoloPercorso from './components/SoloPercorso.jsx'
+import StatoAttesa from './components/StatoAttesa.jsx'
 import Splash from './pages/Splash.jsx'
 import Iscrizione from './pages/Iscrizione.jsx'
 import Entra from './pages/Entra.jsx'
 import Accedi from './pages/Accedi.jsx'
-import Dashboard from './pages/Dashboard.jsx'
-import Libreria from './pages/Libreria.jsx'
-import GeneraTraccia from './pages/GeneraTraccia.jsx'
-import ControlloTracce from './pages/ControlloTracce.jsx'
-import Percorso from './pages/Percorso.jsx'
-import EditorSettimana from './pages/EditorSettimana.jsx'
 import Questionari from './pages/Questionari.jsx'
 import LogPratica from './pages/LogPratica.jsx'
 import Comunicazioni from './pages/Comunicazioni.jsx'
@@ -30,27 +25,58 @@ import PullToRefresh from './components/PullToRefresh.jsx'
 import ConfineErrori from './components/ConfineErrori.jsx'
 import Segnala from './pages/Segnala.jsx'
 import Ascolta from './pages/Ascolta.jsx'
+import Cicli from './pages/admin/Cicli.jsx'
+import Ciclo from './pages/admin/Ciclo.jsx'
+import Panoramica from './pages/admin/ciclo/Panoramica.jsx'
+import Iscritti from './pages/admin/ciclo/Iscritti.jsx'
+import ProgrammaCiclo from './pages/admin/ciclo/Programma.jsx'
+import EditorSettimana from './pages/admin/ciclo/EditorSettimana.jsx'
+import PraticaCiclo from './pages/admin/ciclo/Pratica.jsx'
+import QuestionariCiclo from './pages/admin/ciclo/Questionari.jsx'
+import Tracce from './pages/admin/Tracce.jsx'
+import NuovaTraccia from './pages/admin/NuovaTraccia.jsx'
+import ComunicazioniFacilitatore from './pages/admin/Comunicazioni.jsx'
+import Sito from './pages/admin/Sito.jsx'
 
-function pagineAdminAmpie(pathname) {
-  return pathname === '/dashboard'
-    || pathname.includes('/settimana/')
-    || pathname === '/questionari'
-    || pathname === '/programma'
-    || pathname === '/pratica'
-    || pathname === '/comunicazioni'
-    || pathname === '/genera'
-    || pathname === '/controllo-tracce'
+function DaPercorso() {
+  const [search] = useSearchParams()
+  const ciclo = search.get('ciclo')
+  return <Navigate to={ciclo ? `/admin/cicli/${ciclo}/programma` : '/admin/cicli'} replace />
+}
+
+function DaPercorsoSettimana() {
+  const { cicloId, numero } = useParams()
+  return <Navigate to={`/admin/cicli/${cicloId}/programma/settimana/${numero}`} replace />
+}
+
+function DaControlloTracce() {
+  const [search] = useSearchParams()
+  const ciclo = search.get('ciclo')
+  const query = ciclo ? `?ciclo=${encodeURIComponent(ciclo)}&filtro=da-guardare` : '?filtro=da-guardare'
+  return <Navigate to={`/admin/tracce${query}`} replace />
+}
+
+// Stesso indirizzo, due pagine: il partecipante vede i suoi avvisi, il facilitatore va alle sue comunicazioni.
+function AvvisiOComunicazioni() {
+  const { facilitatore, caricamento } = useAuth()
+  if (caricamento) return <StatoAttesa />
+  if (facilitatore) return <Navigate to="/admin/comunicazioni" replace />
+  return <SoloPercorso><Comunicazioni /></SoloPercorso>
+}
+
+// Nello spazio del ciclo le schede non smontano il guscio: il confine si azzera solo cambiando area.
+function chiaveConfine(pathname) {
+  if (/^\/admin\/cicli\/[^/]+/.test(pathname)) return '/admin/cicli/:ciclo'
+  return pathname
 }
 
 export default function App() {
-  const { facilitatore } = useAuth()
   const { pathname } = useLocation()
   const splash = pathname === '/'
-  const paginaAscolta = pathname === '/ascolta' || pathname.startsWith('/ascolta/')
-  const areaFacilitatore = Boolean(facilitatore) && !splash && pathname !== '/accedi' && !paginaAscolta
+  const areaFacilitatore = pathname === '/admin' || pathname.startsWith('/admin/')
 
   const routes = (
-      <ConfineErrori key={pathname}>
+      <ConfineErrori key={chiaveConfine(pathname)}>
         <Routes>
           <Route path="/" element={<Splash />} />
           <Route path="/iscrizione" element={<Iscrizione />} />
@@ -65,35 +91,65 @@ export default function App() {
           <Route path="/pratica" element={<SoloPercorso><LogPratica /></SoloPercorso>} />
           <Route path="/programma" element={<SoloPercorso><Programma /></SoloPercorso>} />
           <Route path="/checkin" element={<SoloPercorso><Checkin /></SoloPercorso>} />
-          <Route path="/comunicazioni" element={<SoloPercorso><Comunicazioni /></SoloPercorso>} />
+          <Route path="/comunicazioni" element={<AvvisiOComunicazioni />} />
           <Route path="/accedi" element={<Accedi />} />
-          <Route path="/dashboard" element={<SoloFacilitatore><Dashboard /></SoloFacilitatore>} />
-          <Route path="/lezioni" element={<Navigate to="/percorso" replace />} />
-          <Route path="/libreria" element={<SoloFacilitatore><Libreria /></SoloFacilitatore>} />
-          <Route path="/genera" element={<SoloFacilitatore><GeneraTraccia /></SoloFacilitatore>} />
-          <Route path="/controllo-tracce" element={<SoloFacilitatore><ControlloTracce /></SoloFacilitatore>} />
-          <Route path="/percorso" element={<SoloFacilitatore><Percorso /></SoloFacilitatore>} />
-          <Route path="/percorso/:cicloId/settimana/:numero" element={<SoloFacilitatore><EditorSettimana /></SoloFacilitatore>} />
+
+          <Route path="/admin" element={<SoloFacilitatore><AdminChrome /></SoloFacilitatore>}>
+            <Route index element={<Navigate to="/admin/cicli" replace />} />
+            <Route element={<PaginaAdmin ampia />}>
+              <Route path="cicli" element={<Cicli />} />
+              <Route path="cicli/:cicloId" element={<Ciclo />}>
+                <Route index element={<Navigate to="panoramica" replace />} />
+                <Route path="panoramica" element={<Panoramica />} />
+                <Route path="iscritti" element={<Iscritti />} />
+                <Route path="programma" element={<ProgrammaCiclo />} />
+                <Route path="programma/settimana/:numero" element={<EditorSettimana />} />
+                <Route path="pratica" element={<PraticaCiclo />} />
+                <Route path="questionari" element={<QuestionariCiclo />} />
+              </Route>
+              <Route path="tracce" element={<Tracce />} />
+              <Route path="tracce/nuova" element={<NuovaTraccia />} />
+              <Route path="comunicazioni" element={<ComunicazioniFacilitatore />} />
+            </Route>
+            <Route element={<PaginaAdmin />}>
+              <Route path="sito" element={<Sito />} />
+            </Route>
+            <Route path="*" element={<Navigate to="/admin/cicli" replace />} />
+          </Route>
+
+          <Route path="/dashboard" element={<Navigate to="/admin/cicli" replace />} />
+          <Route path="/lezioni" element={<Navigate to="/admin/cicli" replace />} />
+          <Route path="/percorso" element={<DaPercorso />} />
+          <Route path="/percorso/:cicloId/settimana/:numero" element={<DaPercorsoSettimana />} />
+          <Route path="/libreria" element={<Navigate to="/admin/tracce" replace />} />
+          <Route path="/genera" element={<Navigate to="/admin/tracce/nuova?modo=genera" replace />} />
+          <Route path="/controllo-tracce" element={<DaControlloTracce />} />
         </Routes>
       </ConfineErrori>
   )
+
+  if (areaFacilitatore) {
+    return (
+      <>
+        <PullToRefresh />
+        <InvitoHome />
+        {routes}
+      </>
+    )
+  }
 
   return (
     <>
       <PullToRefresh />
       <InvitoHome />
-      {!splash && !areaFacilitatore && (
+      {!splash && (
         <>
           <Nav />
           <BarraBassa />
         </>
       )}
-      {areaFacilitatore ? (
-        <AdminChrome ampio={pagineAdminAmpie(pathname)}>{routes}</AdminChrome>
-      ) : (
-        <div className={splash ? undefined : 'shell'}>{routes}</div>
-      )}
-      {!areaFacilitatore && !splash && <Footer />}
+      <div className={splash ? undefined : 'shell'}>{routes}</div>
+      {!splash && <Footer />}
     </>
   )
 }

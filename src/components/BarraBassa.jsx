@@ -1,14 +1,5 @@
-import { useEffect } from 'react'
-import { NavLink } from 'react-router-dom'
-import { useAuth } from '../lib/auth.jsx'
 import { usePartecipante } from '../lib/partecipante.jsx'
-
-const VOCI = [
-  { to: '/programma', label: 'Settimana' },
-  { to: '/questionari', label: 'Questionari' },
-  { to: '/pratica', label: 'Storico' },
-  { to: '/comunicazioni', label: 'Avvisi' }
-]
+import BarraVoci from './BarraVoci.jsx'
 
 function IconaQuestionari() {
   return (
@@ -47,37 +38,15 @@ function IconaAvvisi() {
   )
 }
 
-const ICONE = {
-  '/questionari': IconaQuestionari,
-  '/programma': IconaSettimana,
-  '/pratica': IconaStorico,
-  '/comunicazioni': IconaAvvisi
-}
+const VOCI = [
+  { to: '/programma', label: 'Settimana', Icona: IconaSettimana },
+  { to: '/questionari', label: 'Questionari', Icona: IconaQuestionari },
+  { to: '/pratica', label: 'Storico', Icona: IconaStorico },
+  { to: '/comunicazioni', label: 'Avvisi', Icona: IconaAvvisi }
+]
 
 export default function BarraBassa() {
-  const { facilitatore } = useAuth()
   const { registrato, percorsoPronto } = usePartecipante()
-  const visibile = facilitatore || (registrato && percorsoPronto)
-
-  useEffect(() => {
-    if (!visibile) return undefined
-    document.body.classList.add('has-barra-bassa')
-    return () => document.body.classList.remove('has-barra-bassa')
-  }, [visibile])
-
-  if (!visibile) return null
-
-  return (
-    <nav className="barra-bassa" aria-label="Sezioni principali">
-      {VOCI.map(({ to, label }) => {
-        const IconaVoce = ICONE[to]
-        return (
-          <NavLink key={to} to={to} className="barra-bassa-voce">
-            <IconaVoce />
-            <span>{label}</span>
-          </NavLink>
-        )
-      })}
-    </nav>
-  )
+  if (!registrato || !percorsoPronto) return null
+  return <BarraVoci voci={VOCI} etichetta="Sezioni principali" />
 }

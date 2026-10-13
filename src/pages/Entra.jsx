@@ -46,7 +46,7 @@ export default function Entra() {
   }, [location.hash])
 
   if (authLoad || caricamento) return <StatoAttesa />
-  if (facilitatore) return <Navigate to="/dashboard" replace />
+  if (facilitatore) return <Navigate to="/admin/cicli" replace />
   if (registrato) return <Navigate to={destinazione} replace />
 
   async function handleSubmit(e) {

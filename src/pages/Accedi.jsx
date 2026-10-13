@@ -12,7 +12,7 @@ export default function Accedi() {
   const [invio, setInvio] = useState(false)
 
   if (caricamento) return <StatoAttesa />
-  if (facilitatore) return <Navigate to="/dashboard" replace />
+  if (facilitatore) return <Navigate to="/admin/cicli" replace />
 
   async function handleSubmit(e) {
     e.preventDefault()

@@ -1,0 +1,585 @@
+import { useEffect, useMemo, useState } from 'react'
+import { supabase } from '../../lib/supabaseClient'
+import DialogConferma from '../../components/DialogConferma.jsx'
+import StatoAttesa from '../../components/StatoAttesa.jsx'
+
+const TIPI = [
+  { id: 'reminder_t3', label: 'Promemoria T3 (follow-up)' },
+  { id: 'reminder_questionario', label: 'Promemoria questionari' },
+  { id: 'annuncio', label: 'Annuncio di percorso' },
+  { id: 'screening', label: 'Esito screening / prossimi passi' }
+]
+
+const DESTINATARI = [
+  { id: 'tutti', label: 'Tutti i partecipanti' },
+  { id: 'remoto', label: 'Utenti in remoto' }
+]
+
+const ETICHETTE_INATTIVITA = {
+  non_avviato: 'Onboarding non fatto',
+  onboarding_senza_ascolto: 'Onboarding senza pratiche'
+}
+
+function eModificabile(c) {
+  return c.stato === 'programmata' || c.stato === 'errore'
+}
+
+async function invocaInvio(body) {
+  const { data, error } = await supabase.functions.invoke('invia-comunicazione', { body })
+  if (data && typeof data === 'object') return { esito: data, errFn: null }
+  const risposta = error?.context
+  if (risposta && typeof risposta.json === 'function') {
+    try {
+      const parsed = await risposta.json()
+      if (parsed && typeof parsed === 'object') return { esito: parsed, errFn: null }
+    } catch {
+      /* corpo non json */
+    }
+  }
+  return { esito: null, errFn: error }
+}
+
+const DISCLAIMER_EMAIL = `Questo percorso è una pratica di consapevolezza (mindfulness) a scopo di ricerca e non sostituisce un percorso terapeutico o una presa in carico psicologica.`
+
+const MODELLI = {
+  reminder_t3: {
+    oggetto: 'Promemoria: questionari di follow-up (T3)',
+    testo: `Ciao,
+
+ti scriviamo per ricordarti i questionari di follow-up (T3) del percorso MBSR. È il momento più facile da dimenticare, e per il percorso è importante quanto gli altri.
+
+Compila i questionari con il tuo codice partecipante — mai il nome — dalla pagina Questionari dell’app.
+
+${DISCLAIMER_EMAIL}`
+  },
+  reminder_questionario: {
+    oggetto: 'Promemoria: questionari del percorso MBSR',
+    testo: `Ciao,
+
+è il momento di compilare i questionari del percorso (PSS-10 e FFMQ-I). Usa il tuo codice partecipante, non il nome.
+
+${DISCLAIMER_EMAIL}`
+  }
+}
+
+export default function Comunicazioni() {
+  const [cicli, setCicli] = useState([])
+  const [lista, setLista] = useState([])
+  const [form, setForm] = useState({
+    ciclo_id: '',
+    destinatari: 'tutti',
+    tipo: 'reminder_t3',
+    oggetto: MODELLI.reminder_t3.oggetto,
+    testo: MODELLI.reminder_t3.testo,
+    invia_ora: true
+  })
+  const [modificaId, setModificaId] = useState(null)
+  const [dialogo, setDialogo] = useState(null)
+  const [invio, setInvio] = useState(false)
+  const [messaggio, setMessaggio] = useState(null)
+  const [errore, setErrore] = useState(null)
+  const [inattivita, setInattivita] = useState([])
+  const [candidati, setCandidati] = useState([])
+  const [ritiri, setRitiri] = useState([])
+  const [invioInattivita, setInvioInattivita] = useState(false)
+  const [msgInattivita, setMsgInattivita] = useState(null)
+  const [errInattivita, setErrInattivita] = useState(null)
+  const [pause, setPause] = useState([])
+  const [candidatiPausa, setCandidatiPausa] = useState([])
+  const [invioPausa, setInvioPausa] = useState(false)
+  const [msgPausa, setMsgPausa] = useState(null)
+  const [errPausa, setErrPausa] = useState(null)
+  const [errLetturaPausa, setErrLetturaPausa] = useState(null)
+  const [caricato, setCaricato] = useState(false)
+  const [errLettura, setErrLettura] = useState(null)
+
+  async function carica() {
+    const [cicliRes, comRes, notRes, candRes, ritRes, pausaRes, candPausaRes] = await Promise.all([
+      supabase.from('cicli').select('id, nome_ciclo, stato').order('data_inizio', { ascending: false }),
+      supabase.from('comunicazioni').select('id, tipo, destinatari, oggetto, testo, data_invio, stato, ciclo_id, cicli(nome_ciclo)').order('data_invio', { ascending: false }),
+      supabase.from('notifiche_inattivita').select('id, tipo, inviata_il, utenti(codice_partecipante)').order('inviata_il', { ascending: false }),
+      supabase.rpc('candidati_inattivita_remoto'),
+      supabase.rpc('candidati_ritiro_inattivita'),
+      supabase.from('promemoria_pausa').select('id, riferimento, inviata_il, utenti(codice_partecipante)').order('inviata_il', { ascending: false }),
+      supabase.rpc('candidati_pausa_pratica')
+    ])
+    setCaricato(true)
+    setErrLettura(cicliRes.error || comRes.error
+      ? 'Non è stato possibile leggere i cicli o le comunicazioni. Ricarica la pagina.'
+      : null)
+    setCicli(cicliRes.data || [])
+    setLista(comRes.data || [])
+    setInattivita(notRes.error ? [] : (notRes.data || []))
+    setCandidati(candRes.error ? [] : (candRes.data || []))
+    setRitiri(ritRes.error ? [] : (ritRes.data || []))
+    setPause(pausaRes.error ? [] : (pausaRes.data || []))
+    setCandidatiPausa(candPausaRes.error ? [] : (candPausaRes.data || []))
+    setErrLetturaPausa(pausaRes.error || candPausaRes.error
+      ? 'Non è stato possibile leggere le pause di pratica.'
+      : null)
+    if (cicliRes.data?.[0] && !form.ciclo_id && !modificaId) {
+      setForm(f => (f.ciclo_id ? f : { ...f, ciclo_id: cicliRes.data[0].id }))
+    }
+  }
+
+  useEffect(() => {
+    carica()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  function cambiaTipo(tipo) {
+    const modello = MODELLI[tipo]
+    setForm(f => ({
+      ...f,
+      tipo,
+      oggetto: modello?.oggetto || '',
+      testo: modello?.testo || `${DISCLAIMER_EMAIL}`,
+      invia_ora: tipo === 'reminder_t3' ? true : f.invia_ora
+    }))
+  }
+
+  function iniziaModifica(c) {
+    if (!eModificabile(c)) return
+    setErrore(null)
+    setMessaggio(null)
+    setModificaId(c.id)
+    setForm({
+      ciclo_id: c.ciclo_id || '',
+      destinatari: c.destinatari === 'remoto' ? 'remoto' : 'tutti',
+      tipo: c.tipo || 'annuncio',
+      oggetto: c.oggetto || '',
+      testo: c.testo || '',
+      invia_ora: false
+    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function annullaModifica() {
+    setModificaId(null)
+    setForm(f => ({
+      ...f,
+      destinatari: 'tutti',
+      tipo: 'annuncio',
+      oggetto: '',
+      testo: '',
+      invia_ora: false
+    }))
+    setMessaggio(null)
+    setErrore(null)
+  }
+
+  function chiediElimina(c) {
+    if (!eModificabile(c)) return
+    setDialogo({
+      titolo: 'Cancellare questa comunicazione?',
+      testo: `«${c.oggetto || c.tipo}» verrà tolta dagli invii programmati. Non è ancora partita nessuna email.`,
+      etichetta: 'Cancella',
+      onOk: async () => {
+        setDialogo(null)
+        setErrore(null)
+        setMessaggio(null)
+        const { error } = await supabase
+          .from('comunicazioni')
+          .delete()
+          .eq('id', c.id)
+          .in('stato', ['programmata', 'errore'])
+        if (error) {
+          setErrore('Non è stato possibile cancellare la comunicazione.')
+          return
+        }
+        if (modificaId === c.id) annullaModifica()
+        setMessaggio('Comunicazione cancellata.')
+        carica()
+      }
+    })
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setErrore(null)
+    setMessaggio(null)
+    setInvio(true)
+
+    const campi = {
+      ciclo_id: form.ciclo_id,
+      tipo: form.tipo,
+      destinatari: form.destinatari,
+      oggetto: form.oggetto,
+      testo: form.testo,
+      stato: 'programmata',
+      data_invio: new Date().toISOString()
+    }
+
+    let data = null
+    if (modificaId) {
+      const { data: aggiornata, error } = await supabase
+        .from('comunicazioni')
+        .update(campi)
+        .eq('id', modificaId)
+        .in('stato', ['programmata', 'errore'])
+        .select('id')
+        .single()
+      if (error || !aggiornata) {
+        setErrore('Non è stato possibile aggiornare la comunicazione.')
+        setInvio(false)
+        return
+      }
+      data = aggiornata
+    } else {
+      const { data: creata, error } = await supabase
+        .from('comunicazioni')
+        .insert(campi)
+        .select('id')
+        .single()
+      if (error || !creata) {
+        setErrore('Non è stato possibile salvare la comunicazione.')
+        setInvio(false)
+        return
+      }
+      data = creata
+    }
+
+    if (!form.invia_ora) {
+      setMessaggio(modificaId
+        ? 'Modifiche salvate. L’email non è stata inviata.'
+        : 'Comunicazione salvata. Non è stata inviata nessuna email.')
+      setModificaId(null)
+      setInvio(false)
+      carica()
+      return
+    }
+
+    const { esito, errFn } = await invocaInvio({ comunicazione_id: data.id })
+
+    if (errFn) {
+      setErrore('Salvata, ma l’invio email non è partito. Usa «Invia ora» sulla comunicazione qui sotto.')
+    } else if (esito?.motivo === 'RESEND_NON_CONFIGURATO') {
+      setMessaggio(`Salvata come programmata. Destinatari trovati: ${esito.n_destinatari ?? 0}. Manca il secret RESEND_API_KEY.`)
+    } else if (esito?.motivo === 'DESTINATARI_NON_LEGGIBILI') {
+      setErrore('Salvata, ma non è stato possibile leggere i destinatari. Riprova tra un momento.')
+    } else if (esito?.motivo === 'NESSUN_DESTINATARIO') {
+      setErrore(form.destinatari === 'remoto'
+        ? 'Salvata, ma in questo ciclo non c’è nessuna email di partecipante in remoto.'
+        : 'Salvata, ma in questo ciclo non c’è nessuna email di partecipante.')
+    } else if (esito?.ok) {
+      setMessaggio(`Inviata a ${esito.n_destinatari} indirizzi.`)
+    } else {
+      setErrore(esito?.errore
+        ? `Salvata, ma Resend ha rifiutato l’invio: ${esito.errore}`
+        : 'Salvata, ma l’invio non è andato a buon fine.')
+    }
+
+    setModificaId(null)
+    setInvio(false)
+    carica()
+  }
+
+  async function inviaDiNuovo(id) {
+    setErrore(null)
+    setMessaggio(null)
+    setInvio(true)
+    const { esito, errFn } = await invocaInvio({ comunicazione_id: id })
+    if (errFn) setErrore('L’invio non è ripartito. Riprova tra un momento.')
+    else if (esito?.ok) setMessaggio(`Inviata a ${esito.n_destinatari} indirizzi.`)
+    else setErrore(esito?.errore || 'L’invio non è andato a buon fine.')
+    setInvio(false)
+    carica()
+  }
+
+  async function inviaProva() {
+    setErrore(null)
+    setMessaggio(null)
+    const oggetto = form.oggetto.trim()
+    const testo = form.testo.trim()
+    if (!oggetto || !testo) {
+      setErrore('Per la prova servono oggetto e testo della comunicazione.')
+      return
+    }
+    setInvio(true)
+    const { esito, errFn } = await invocaInvio({ prova: true, oggetto, testo })
+    if (errFn) setErrore('La prova non è partita. Riprova tra un momento.')
+    else if (esito?.motivo === 'TESTO_MANCANTE') setErrore('Per la prova servono oggetto e testo della comunicazione.')
+    else if (esito?.ok) setMessaggio('Prova inviata alla tua email di accesso. Controlla anche lo spam.')
+    else setErrore(esito?.errore || 'La prova non è andata a buon fine.')
+    setInvio(false)
+  }
+
+  async function eseguiInattivita() {
+    setErrInattivita(null)
+    setMsgInattivita(null)
+    setInvioInattivita(true)
+    const { data: esito, error: errFn } = await supabase.functions.invoke('notifica-inattivita', {
+      body: {}
+    })
+    if (errFn) {
+      setErrInattivita('Il controllo non è partito. Riprova tra un momento.')
+    } else if (esito?.motivo === 'RESEND_NON_CONFIGURATO') {
+      setMsgInattivita(`Trovati ${esito.n_previsti ?? 0} destinatari, ma manca il secret RESEND_API_KEY.`)
+    } else if (esito?.error === 'NON_AUTORIZZATO') {
+      setErrInattivita('Non autorizzato a inviare i promemoria automatici.')
+    } else if (esito?.ok) {
+      const n = esito.n_inviate ?? 0
+      const chiuse = esito.n_chiusure ?? 0
+      setMsgInattivita(
+        n === 0 && chiuse === 0
+          ? 'Nessun nuovo avviso né chiusura.'
+          : `Inviati ${n} avvisi di inattività${chiuse > 0 ? `, chiuse ${chiuse} ${chiuse === 1 ? 'iscrizione' : 'iscrizioni'}` : ''}.`
+      )
+    } else {
+      setErrInattivita(esito?.errore || 'L’invio dei promemoria non è andato a buon fine.')
+    }
+    setInvioInattivita(false)
+    carica()
+  }
+
+  async function eseguiPausa() {
+    setErrPausa(null)
+    setMsgPausa(null)
+    setInvioPausa(true)
+    const { data: esito, error: errFn } = await supabase.functions.invoke('promemoria-pausa', {
+      body: {}
+    })
+    if (errFn) {
+      setErrPausa('Il controllo non è partito. Riprova tra un momento.')
+    } else if (esito?.motivo === 'RESEND_NON_CONFIGURATO') {
+      setMsgPausa(`Trovate ${esito.n_previsti ?? 0} persone, ma manca il secret RESEND_API_KEY.`)
+    } else if (esito?.error === 'NON_AUTORIZZATO') {
+      setErrPausa('Non autorizzato a inviare i promemoria automatici.')
+    } else if (esito?.ok) {
+      const n = esito.n_inviate ?? 0
+      setMsgPausa(n === 0 ? 'Nessuna nuova email di pausa.' : `Inviate ${n} email di pausa.`)
+    } else {
+      setErrPausa(esito?.errore || 'L’invio delle email di pausa non è andato a buon fine.')
+    }
+    setInvioPausa(false)
+    carica()
+  }
+
+  const daGestire = useMemo(() => lista.filter(eModificabile), [lista])
+  const inviate = useMemo(() => lista.filter(c => !eModificabile(c)), [lista])
+
+  if (!caricato) return <StatoAttesa etichetta="Carico le comunicazioni…" />
+
+  return (
+    <div>
+      <header className="admin-page-head">
+        <h1>Comunicazioni</h1>
+      </header>
+      {errLettura && <p className="avviso-errore" role="alert">{errLettura}</p>}
+      <p className="disclaimer">
+        Promemoria e annunci ai partecipanti di un ciclo. Il reminder T3 è in cima: è il momento
+        più a rischio di essere dimenticato. Ogni testo include il disclaimer sul percorso.
+        L’email serve solo al contatto operativo, non viene unita alle risposte dei questionari.
+      </p>
+
+      <div className="card">
+        <h3>{modificaId ? 'Modifica comunicazione' : 'Nuova comunicazione'}</h3>
+        <form onSubmit={handleSubmit}>
+          <div className="field">
+            <label>Ciclo</label>
+            <select required value={form.ciclo_id} onChange={e => setForm({ ...form, ciclo_id: e.target.value })}>
+              <option value="">Seleziona un ciclo</option>
+              {cicli.map(c => <option key={c.id} value={c.id}>{c.nome_ciclo}</option>)}
+            </select>
+          </div>
+          <div className="field">
+            <label>Destinatari</label>
+            <select value={form.destinatari} onChange={e => setForm({ ...form, destinatari: e.target.value })}>
+              {DESTINATARI.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
+            </select>
+          </div>
+          {form.destinatari === 'remoto' && (
+            <p className="disclaimer">
+              L’email arriva solo a chi segue questo ciclo da remoto.
+            </p>
+          )}
+          <div className="field">
+            <label>Tipo</label>
+            <select value={form.tipo} onChange={e => cambiaTipo(e.target.value)}>
+              {TIPI.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+            </select>
+          </div>
+          {form.tipo === 'reminder_t3' && (
+            <p className="disclaimer">
+              T3 è il follow-up a distanza. Questo promemoria è prioritario rispetto agli altri.
+            </p>
+          )}
+          <div className="field">
+            <label>Oggetto</label>
+            <input required value={form.oggetto} onChange={e => setForm({ ...form, oggetto: e.target.value })} />
+          </div>
+          <div className="field">
+            <label>Testo</label>
+            <textarea required rows="8" value={form.testo} onChange={e => setForm({ ...form, testo: e.target.value })} />
+          </div>
+          <div className="field">
+            <label>
+              <input
+                type="checkbox"
+                checked={form.invia_ora}
+                onChange={e => setForm({ ...form, invia_ora: e.target.checked })}
+              /> Invia ora via email (Resend)
+            </label>
+          </div>
+          <div className="azioni">
+            <button className="btn" type="submit" disabled={invio || !form.ciclo_id}>
+              {invio
+                ? 'Invio in corso…'
+                : form.invia_ora
+                  ? 'Salva e invia'
+                  : modificaId
+                    ? 'Salva modifiche'
+                    : 'Salva come programmata'}
+            </button>
+            <button className="btn btn-ghost" type="button" disabled={invio} onClick={inviaProva}>
+              Invia una prova a me
+            </button>
+            {modificaId && (
+              <button className="btn btn-ghost" type="button" disabled={invio} onClick={annullaModifica}>
+                Annulla modifica
+              </button>
+            )}
+          </div>
+          {messaggio && <p>{messaggio}</p>}
+          {errore && <p className="campo-errore" role="alert">{errore}</p>}
+        </form>
+      </div>
+
+      {daGestire.map(c => (
+        <div className="card" key={c.id}>
+          <h3>
+            {c.oggetto || c.tipo}{' '}
+            <span className="badge">{c.stato}</span>
+            {c.destinatari === 'remoto' && <span className="badge">remoto</span>}
+            {c.tipo === 'reminder_t3' && <span className="badge">T3</span>}
+          </h3>
+          <p>{c.cicli?.nome_ciclo} — {new Date(c.data_invio).toLocaleDateString('it-IT')}</p>
+          <div className="azioni">
+            <button className="btn btn-ghost" type="button" disabled={invio} onClick={() => inviaDiNuovo(c.id)}>
+              Invia ora
+            </button>
+            <button className="btn btn-ghost" type="button" disabled={invio} onClick={() => iniziaModifica(c)}>
+              Modifica
+            </button>
+            <button className="btn btn-ghost is-pericolo" type="button" disabled={invio} onClick={() => chiediElimina(c)}>
+              Cancella
+            </button>
+          </div>
+        </div>
+      ))}
+
+      {inviate.length > 0 && (
+        <div className="card">
+          <h3>Comunicazioni inviate</h3>
+          <ul className="com-log">
+            {inviate.map(c => (
+              <li key={c.id}>
+                <span className="com-log-oggetto">{c.oggetto || c.tipo}</span>
+                <span className="com-log-meta">
+                  {c.cicli?.nome_ciclo || '—'}
+                  {' · '}
+                  {c.data_invio ? new Date(c.data_invio).toLocaleDateString('it-IT') : ''}
+                  {c.destinatari === 'remoto' ? ' · remoto' : ''}
+                  {c.tipo === 'reminder_t3' ? ' · T3' : ''}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {lista.length === 0 && <p>Nessuna comunicazione ancora registrata.</p>}
+
+      <div className="card">
+        <h3>Inattività · solo da remoto</h3>
+        <p className="disclaimer">
+          Dopo 15 giorni parte un’email: se non ha fatto l’onboarding, o se dopo
+          l’onboarding non ha ancora iniziato le pratiche. Se l’inattività continua
+          per altri 15 giorni, l’account viene chiuso: potrà iscriversi di nuovo
+          quando sarà pronto. Ogni avviso si invia una sola volta. Una copia
+          arriva anche a contact@wordpresschef.it.
+        </p>
+        <p className="hint">
+          {candidati.length === 0 && ritiri.length === 0
+            ? 'Nessun iscritto remoto in attesa di avviso o chiusura.'
+            : [
+                candidati.length > 0
+                  ? `${candidati.length} ${candidati.length === 1 ? 'persona in attesa' : 'persone in attesa'} di avviso`
+                  : null,
+                ritiri.length > 0
+                  ? `${ritiri.length} ${ritiri.length === 1 ? 'account in chiusura' : 'account in chiusura'}`
+                  : null
+              ].filter(Boolean).join(' · ')}
+        </p>
+        <div className="azioni">
+          <button className="btn" type="button" disabled={invioInattivita} onClick={eseguiInattivita}>
+            {invioInattivita ? 'Controllo in corso…' : 'Controlla e invia ora'}
+          </button>
+        </div>
+        {msgInattivita && <p>{msgInattivita}</p>}
+        {errInattivita && <p className="campo-errore" role="alert">{errInattivita}</p>}
+        {inattivita.length > 0 && (
+          <ul className="hint">
+            {inattivita.map(n => (
+              <li key={n.id}>
+                {n.utenti?.codice_partecipante || '—'}
+                {' · '}
+                {ETICHETTE_INATTIVITA[n.tipo] || n.tipo}
+                {' · '}
+                {n.inviata_il ? new Date(n.inviata_il).toLocaleDateString('it-IT') : ''}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="card">
+        <h3>Pausa di pratica</h3>
+        <p className="disclaimer">
+          Se per tre giorni di fila non risulta una meditazione ascoltata per intero,
+          parte un’email. Vale per chi è dentro un percorso aperto. Il giorno in corso
+          non conta. Ogni pausa riceve una sola email; se la persona riprende e si
+          ferma di nuovo, ne arriva un’altra. Una copia con i soli codici arriva a
+          contact@wordpresschef.it.
+        </p>
+        {errLetturaPausa
+          ? <p className="campo-errore" role="alert">{errLetturaPausa}</p>
+          : (
+            <p className="hint">
+              {candidatiPausa.length === 0
+                ? 'Nessuna persona in attesa di questa email.'
+                : `${candidatiPausa.length} ${candidatiPausa.length === 1 ? 'persona in attesa' : 'persone in attesa'}.`}
+            </p>
+          )}
+        <div className="azioni">
+          <button className="btn" type="button" disabled={invioPausa} onClick={eseguiPausa}>
+            {invioPausa ? 'Controllo in corso…' : 'Controlla e invia ora'}
+          </button>
+        </div>
+        {msgPausa && <p>{msgPausa}</p>}
+        {errPausa && <p className="campo-errore" role="alert">{errPausa}</p>}
+        {pause.length > 0 && (
+          <ul className="hint">
+            {pause.map(n => (
+              <li key={n.id}>
+                {n.utenti?.codice_partecipante || '—'}
+                {' · '}
+                {n.inviata_il ? new Date(n.inviata_il).toLocaleDateString('it-IT') : ''}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <DialogConferma
+        aperto={!!dialogo}
+        titolo={dialogo?.titolo || ''}
+        confermaEtichetta={dialogo?.etichetta || 'Conferma'}
+        pericolo
+        onConferma={() => dialogo?.onOk?.()}
+        onAnnulla={() => setDialogo(null)}
+      >
+        {dialogo?.testo}
+      </DialogConferma>
+    </div>
+  )
+}

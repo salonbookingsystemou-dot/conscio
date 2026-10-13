@@ -9,7 +9,7 @@ import OreAscolto from './OreAscolto.jsx'
 import useVetrinaAperta from '../lib/useVetrinaAperta.js'
 
 export default function Nav() {
-  const { facilitatore, esci } = useAuth()
+  const { facilitatore } = useAuth()
   const {
     codice,
     registrato,
@@ -22,7 +22,6 @@ export default function Nav() {
   const paginaAscolta = pathname === '/ascolta' || pathname.startsWith('/ascolta/')
   const [aperto, setAperto] = useState(false)
   const menuId = useId()
-  const dentro = facilitatore || registrato
   const vetrinaAperta = useVetrinaAperta()
 
   useEffect(() => {
@@ -62,9 +61,9 @@ export default function Nav() {
     ? <NavLink to="/ascolta" onClick={chiudi}>Ascolta</NavLink>
     : null
 
-  const barraBassa = facilitatore || (registrato && percorsoPronto)
+  const barraBassa = registrato && percorsoPronto
 
-  const vociPrimarie = (facilitatore || (registrato && onboardingCompleto)) && (
+  const vociPrimarie = registrato && onboardingCompleto && (
     <>
       <NavLink className="nav-primaria" to="/questionari" onClick={chiudi}>Questionari</NavLink>
       {barraBassa && (
@@ -77,42 +76,33 @@ export default function Nav() {
     </>
   )
 
-  const voci = dentro ? (
+  const voci = facilitatore ? (
     <>
-      {facilitatore ? (
-        <>
-          {voceAscolta}
-          <NavLink to="/dashboard" onClick={chiudi}>Cicli</NavLink>
-          <NavLink to="/percorso" onClick={chiudi}>Percorso</NavLink>
-          <NavLink to="/libreria" onClick={chiudi}>Libreria</NavLink>
-          <NavLink to="/genera" onClick={chiudi}>Genera</NavLink>
-          <NavLink to="/comunicazioni" onClick={chiudi}>Avvisi</NavLink>
-          <button type="button" onClick={() => { chiudi(); esci() }}>Esci</button>
-        </>
-      ) : (
-        <>
-          {voceAscolta}
-          {!onboardingCompleto && (
-            <NavLink to="/onboarding" onClick={chiudi}>Primo accesso</NavLink>
-          )}
-          {vociPrimarie}
-          <span className="nav-sep nav-sep-dopo-primarie" aria-hidden="true" />
-          {!appGiaInHome() && (
-            <button
-              type="button"
-              onClick={() => {
-                chiudi()
-                apriInvitoHome()
-              }}
-            >
-              Installa app
-            </button>
-          )}
-          <NavLink to="/dati" onClick={chiudi}>I tuoi dati</NavLink>
-          <NavLink to="/segnala" onClick={chiudi}>Segnala un problema</NavLink>
-          <button type="button" onClick={() => { chiudi(); esciPartecipante() }}>Esci</button>
-        </>
+      {voceAscolta}
+      <NavLink to="/admin/cicli" onClick={chiudi}>Area facilitatore</NavLink>
+    </>
+  ) : registrato ? (
+    <>
+      {voceAscolta}
+      {!onboardingCompleto && (
+        <NavLink to="/onboarding" onClick={chiudi}>Primo accesso</NavLink>
       )}
+      {vociPrimarie}
+      <span className="nav-sep nav-sep-dopo-primarie" aria-hidden="true" />
+      {!appGiaInHome() && (
+        <button
+          type="button"
+          onClick={() => {
+            chiudi()
+            apriInvitoHome()
+          }}
+        >
+          Installa app
+        </button>
+      )}
+      <NavLink to="/dati" onClick={chiudi}>I tuoi dati</NavLink>
+      <NavLink to="/segnala" onClick={chiudi}>Segnala un problema</NavLink>
+      <button type="button" onClick={() => { chiudi(); esciPartecipante() }}>Esci</button>
     </>
   ) : (
     <>

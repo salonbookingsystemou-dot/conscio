@@ -1977,6 +1977,7 @@ a:not([class]):hover { color: var(--ink); }
   align-items: center;
   gap: 10px 12px;
 }
+.dash-ciclo-titolo h1,
 .dash-ciclo-titolo h2 {
   margin: 0;
 }
@@ -2034,6 +2035,7 @@ a:not([class]):hover { color: var(--ink); }
 .dash-ciclo-sezione-testa {
   margin-bottom: 14px;
 }
+.dash-ciclo-sezione-testa h2,
 .dash-ciclo-sezione-testa h3 {
   margin: 0 0 4px;
   display: flex;

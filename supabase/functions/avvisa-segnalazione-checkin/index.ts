@@ -13,7 +13,7 @@ const cors = {
 }
 
 const REPLY_TO = 'contact@wordpresschef.it'
-const LINK_ADMIN = 'https://conscio.mnesti.it/#/dashboard'
+const LINK_ADMIN = 'https://conscio.mnesti.it/#/admin/cicli'
 
 type CheckinRecord = {
   id?: string

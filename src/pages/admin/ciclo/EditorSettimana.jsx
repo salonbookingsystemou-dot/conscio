@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { supabase } from '../lib/supabaseClient'
-import { SelettoreTraccia } from '../components/LibreriaTracce.jsx'
-import { elencaTracce } from '../lib/tracce'
+import { supabase } from '../../../lib/supabaseClient'
+import { SelettoreTraccia } from '../../../components/LibreriaTracce.jsx'
+import { elencaTracce } from '../../../lib/tracce'
 
 const NUMERI_SETTIMANA = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 const SCHEDE = [
@@ -49,7 +49,6 @@ function IconaCestino() {
 export default function EditorSettimana() {
   const { cicloId, numero } = useParams()
   const n = Number(numero)
-  const [ciclo, setCiclo] = useState(null)
   const [lezioni, setLezioni] = useState([])
   const [lezione, setLezione] = useState(null)
   const [esercizi, setEsercizi] = useState([])
@@ -75,21 +74,15 @@ export default function EditorSettimana() {
   async function carica() {
     if (!cicloId || !Number.isFinite(n)) return
     setErrore(null)
-    const [{ data: cicloRiga, error: errCiclo }, { data: elenco, error: errElenco }, { data: tracceLista, error: errTracce }] = await Promise.all([
-      supabase.from('cicli').select('id, nome_ciclo').eq('id', cicloId).maybeSingle(),
+    const [{ data: elenco, error: errElenco }, { data: tracceLista, error: errTracce }] = await Promise.all([
       supabase.from('lezioni').select('id, numero_settimana, tema').eq('ciclo_id', cicloId).order('numero_settimana'),
       elencaTracce().then(lista => ({ data: lista, error: null })).catch(error => ({ data: [], error }))
     ])
-    if (errCiclo) {
-      setErrore('Non è stato possibile leggere il ciclo.')
-      return
-    }
     if (errElenco) {
       setErrore('Non è stato possibile leggere le settimane.')
       return
     }
     if (errTracce) setErrore('Non è stato possibile leggere la libreria tracce.')
-    setCiclo(cicloRiga)
     setLezioni(elenco || [])
     setTracce(tracceLista || [])
 
@@ -300,16 +293,13 @@ export default function EditorSettimana() {
   }
 
   const etichetta = etichettaSettimana(n)
-  const nomeCiclo = ciclo?.nome_ciclo || 'Ciclo'
-  const indietro = cicloId ? `/percorso?ciclo=${cicloId}` : '/percorso'
+  const indietro = `/admin/cicli/${cicloId}/programma`
 
   return (
     <>
       <div className="editor-settimana">
-        <nav className="editor-breadcrumb" aria-label="Percorso">
-          <Link to={indietro}>Percorso</Link>
-          <span aria-hidden="true"> / </span>
-          <span>{nomeCiclo}</span>
+        <nav className="editor-breadcrumb" aria-label="Programma">
+          <Link to={indietro}>Programma</Link>
           <span aria-hidden="true"> / </span>
           <span>{etichetta}</span>
         </nav>
@@ -323,7 +313,7 @@ export default function EditorSettimana() {
               return (
                 <Link
                   key={num}
-                  to={`/percorso/${cicloId}/settimana/${num}`}
+                  to={`/admin/cicli/${cicloId}/programma/settimana/${num}`}
                   className={`editor-settimane-voce${aperta ? ' is-on' : ''}${pronta ? '' : ' is-vuota'}`}
                   aria-current={aperta ? 'page' : undefined}
                 >

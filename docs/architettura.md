@@ -1,6 +1,6 @@
 # Conscio · architettura dell'app
 
-Fotografia della struttura al 2/10/2026 (commit `b110be0`, ramo `main`), aggiornata il 12/10/2026 per la vetrina Ascolta.
+Fotografia della struttura al 2/10/2026 (commit `b110be0`, ramo `main`), aggiornata il 12/10/2026 per la vetrina Ascolta e il 13/10/2026 per la navigazione del facilitatore sotto `/admin`.
 Complementare a `docs/progetto.md` (decisioni e registro) e `docs/design-system.md` (stile).
 
 ## 1. Vista d'insieme
@@ -59,17 +59,21 @@ flowchart LR
 | `/` | — | Splash |
 | `/iscrizione`, `/entra`, `/segnala`, `/dati`, `/documenti/:slug`, `/ascolta`, `/ascolta/:slug` | pubbliche | Iscrizione, Entra, Segnala, IMieiDati, Documento (informative), Ascolta |
 | `/onboarding`, `/questionari` | `SoloRegistrato` | Onboarding, Questionari (T0–T3) |
-| `/programma`, `/pratica`, `/checkin`, `/comunicazioni` | `SoloPercorso` | Programma (tracce, informali, note), LogPratica (storico), Checkin, Comunicazioni |
-| `/accedi` | — | login facilitatore |
-| `/dashboard` | `SoloFacilitatore` | tab Cicli · Questionari · Pratica · Sito |
-| `/percorso`, `/percorso/:cicloId/settimana/:n` | `SoloFacilitatore` | Percorso, EditorSettimana |
-| `/libreria`, `/genera` | `SoloFacilitatore` | Libreria tracce, GeneraTraccia (ElevenLabs) |
-| `/controllo-tracce` | `SoloFacilitatore` | ControlloTracce (collegamenti, file e ascolto tecnico delle tracce, `lib/controlloTracce.js`) |
+| `/programma`, `/pratica`, `/checkin`, `/comunicazioni` | `SoloPercorso` | Programma (tracce, informali, note), LogPratica (storico), Checkin, Avvisi (`Comunicazioni.jsx`, solo partecipante) |
+| `/accedi` | — | login facilitatore → `/admin/cicli` |
+| `/admin/cicli` | `SoloFacilitatore` | `pages/admin/Cicli.jsx`: da fare, KPI, cicli, percorsi da remoto |
+| `/admin/cicli/:cicloId/{panoramica,iscritti,programma,pratica,questionari}` | idem | `pages/admin/Ciclo.jsx` (testata + schede) e `pages/admin/ciclo/*`; i dati del ciclo vengono da `useCiclo(cicloId)` |
+| `/admin/cicli/:cicloId/programma/settimana/:numero` | idem | `pages/admin/ciclo/EditorSettimana.jsx` |
+| `/admin/tracce` (`?traccia=`, `?ciclo=`, `?filtro=da-guardare\|vetrina\|non-controllate`) | idem | `pages/admin/Tracce.jsx` + `SchedaTraccia.jsx` nel `PannelloLaterale`; controlli con `useControlliTracce` |
+| `/admin/tracce/nuova?modo=carica\|genera[&sostituisci=<id>]` | idem | `pages/admin/NuovaTraccia.jsx`, `GeneraDaScript.jsx` (ElevenLabs) |
+| `/admin/comunicazioni`, `/admin/sito` | idem | `pages/admin/Comunicazioni.jsx`, `pages/admin/Sito.jsx` |
 
-Due "chrome": partecipante (`Nav` + `BarraBassa` + `Footer`) e facilitatore (`AdminChrome`). Un solo design system (`tokens.css`). La barra bassa non include Ascolta. L’indirizzo senza cancelletto `/ascolta` arriva da `public/ascolta/index.html` (e da `public/404.html` per lo slug): entrambi portano a `/#/ascolta`, senza codice.
+Redirect delle vecchie rotte: `/dashboard`, `/lezioni` → `/admin/cicli`; `/percorso?ciclo=X` → `/admin/cicli/X/programma`; `/percorso/:id/settimana/:n` → `…/programma/settimana/:n`; `/libreria` → `/admin/tracce`; `/genera` → `/admin/tracce/nuova?modo=genera`; `/controllo-tracce?ciclo=X` → `/admin/tracce?ciclo=X&filtro=da-guardare`; `/comunicazioni` → `/admin/comunicazioni` solo per il facilitatore.
+
+Due "chrome": partecipante (`Nav` + `BarraBassa` + `Footer`) e facilitatore (`AdminChrome`, solo sotto `/admin`; su telefono `BarraVoci`, la stessa barra del partecipante con le quattro voci del facilitatore). Un solo design system (`tokens.css`). La barra bassa non include Ascolta. L’indirizzo senza cancelletto `/ascolta` arriva da `public/ascolta/index.html` (e da `public/404.html` per lo slug): entrambi portano a `/#/ascolta`, senza codice.
 
 ### Moduli `src/lib` principali
-`supabaseClient` (client + `chiamaPorta`) · `auth` · `partecipante` · `ascolto` (credito ascolto al 90–95%) · `vetrina` (pagine pubbliche e scheda del facilitatore; in modalità vetrina il player non accredita la pratica) · `tracce` / `cacheTracce` / `riproduzioneAudio` · `checkin` · `scoring` (PSS-10, FFMQ-I) · `pratica` / `storico` (aderenza, giornate) · `generaVoce` + `audioMp3` · `tono` / `tonalita` / `colori`.
+`supabaseClient` (client + `chiamaPorta`) · `auth` · `partecipante` · `ascolto` (credito ascolto al 90–95%) · `vetrina` (pagine pubbliche e scheda del facilitatore; in modalità vetrina il player non accredita la pratica) · `tracce` / `cacheTracce` / `riproduzioneAudio` · `controlloTracce` + `useControlliTracce` (collegamenti, file, ascolto tecnico; esiti salvati) · `cicli` + `useCiclo` (cicli, iscrizioni, KPI, azioni sulle iscrizioni, badge «da fare») · `checkin` · `scoring` (PSS-10, FFMQ-I) · `pratica` / `storico` (aderenza, giornate) · `generaVoce` + `audioMp3` · `tono` / `tonalita` / `colori`.
 
 ## 3. Modello dati (Postgres)
 
@@ -85,6 +89,7 @@ erDiagram
   tracce ||--o{ tracce_tag : ""
   tag ||--o{ tracce_tag : ""
   tracce ||--o{ statistiche_vetrina : "contatori per giorno"
+  tracce ||--o| controlli_tracce : "ultimo controllo"
   utenti ||--o{ log_pratica : "ascolto / giorno / informale"
   utenti ||--o{ risposte : "per timepoint"
   questionari ||--o{ item : ""
@@ -101,7 +106,7 @@ erDiagram
 |---|---|
 | Identità e consensi | `utenti` (codice, email operativa, ruolo, `consenso_modulo_a`, `consenso_modulo_b`, `consenso_checkin_il`) |
 | Organizzazione | `cicli`, `iscrizioni` (screening, modalità `presenza`/`remoto`) |
-| Contenuti | `tracce`, `lezioni`, `esercizi`, `autori`, `tag`, `tracce_tag` |
+| Contenuti | `tracce` (con `file_aggiornato_il`, data dell’ultimo file caricato), `lezioni`, `esercizi`, `autori`, `tag`, `tracce_tag`, `controlli_tracce` (ultimo controllo di file e ascolto tecnico per traccia: stato, esiti, misure, `controllato_il`; solo facilitatore. «Da ricontrollare» quando `controllato_il < file_aggiornato_il`; i collegamenti dipendono dal ciclo e non si salvano) |
 | Dati di pratica | `log_pratica`, `checkin_settimanali` |
 | Misure | `questionari`, `item`, `risposte` (PSS-10, FFMQ-I · T0–T3) |
 | Comunicazione | `comunicazioni`, `notifiche_inattivita`, `promemoria_questionari`, `promemoria_pausa`, `quotes`, `quote_sent_log` |
@@ -120,11 +125,11 @@ Lo schema vive in `supabase/schema.sql` + ~45 `migrazione_*.sql` (l'ultimo file 
 | `porta` | app (Entra, Iscrizione, recupero codice, Accedi, Segnala, conteggi Ascolta) e l’agente a fine correzione | rate limit per IP, iscrizione, stato codice, invio codice, avvio analisi segnalazione, chiusura con email a gestore e partecipante, `evento-vetrina` | Resend, webhook Cursor |
 | `invia-comunicazione` | facilitatore | email ai destinatari del ciclo (o solo remoti) | Resend |
 | `invia-incoraggiamento-pratica` | trigger su INSERT `log_pratica` (`tipo='giorno'`) | email con giorno 1–56 + citazione della settimana | Resend |
-| `avvisa-segnalazione-checkin` | trigger su `checkin_settimanali` | avviso al facilitatore (solo codice e settimana) | Resend |
+| `avvisa-segnalazione-checkin` | trigger su `checkin_settimanali` | avviso al facilitatore (solo codice e settimana), con link a `#/admin/cicli` | Resend |
 | `notifica-inattivita` | cron GitHub 07:00 UTC / bottone facilitatore | avvisi e ritiro iscritti remoti inattivi (15+15 gg) | Resend |
 | `promemoria-questionari` | cron GitHub 07:30 UTC | promemoria T3 (apertura e −7 gg) | Resend |
 | `promemoria-pausa` | cron GitHub 07:15 UTC / bottone facilitatore | email a chi non ascolta una traccia da tre giorni di fila | Resend |
-| `genera-voce` | facilitatore (`/genera`) | sintesi vocale delle tracce | ElevenLabs |
+| `genera-voce` | facilitatore (`/admin/tracce/nuova?modo=genera`) | sintesi vocale delle tracce | ElevenLabs |
 | `cerca-sfondi` | facilitatore | ricerca foto Unsplash e foto/video Pexels; alla scelta, download Unsplash e copia del file Pexels nel bucket | Unsplash, Pexels |
 
 Condivisi in `functions/_shared/`: stile e firma email, testo di incoraggiamento, curiosità mindfulness.
@@ -148,4 +153,4 @@ Condivisi in `functions/_shared/`: stile e firma email, testo di incoraggiamento
 
 ## 7. Aperto (da `docs/progetto.md`)
 
-Non ancora implementati: pagine statiche di condivisione `/a/<slug>/` e import da YouTube, andamento del check-in (partecipante + scheda facilitatore, RPC `checkin_storico_del_partecipante` proposta), schermata «Il tuo andamento» nei questionari, consenso specifico per citazioni dei partecipanti. Le pagine `/ascolta` e la scheda in Libreria e nel pannello Sito ci sono; l’interruttore nasce spento.
+Non ancora implementati: pagine statiche di condivisione `/a/<slug>/` e import da YouTube, andamento del check-in (partecipante + scheda facilitatore, RPC `checkin_storico_del_partecipante` proposta), schermata «Il tuo andamento» nei questionari, consenso specifico per citazioni dei partecipanti. Le pagine `/ascolta` e la scheda nella scheda traccia e in `/admin/sito` ci sono; l’interruttore nasce spento.
