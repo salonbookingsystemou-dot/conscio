@@ -51,6 +51,13 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 13/10/2026 · Brief: nuova navigazione del facilitatore (da Claude Code)
+Deciso con Dimitri, istruzioni in `docs/brief_navigazione_facilitatore.md`. Non ancora implementato.
+Menu a 4 voci (Cicli · Tracce · Comunicazioni · Sito) sotto `/admin`, schede solo dentro il ciclo
+(Panoramica · Iscritti · Programma · Pratica · Questionari), tracce gestite da un'interfaccia sola
+(creazione, modifica, controllo). Proposta una tabella `controlli_tracce` per salvare l'esito del controllo
+(`supabase/migrazione_controllo_tracce.sql`, da creare): nessun dato dei partecipanti.
+
 ### 12/10/2026 · Video di sfondo su iPhone (da Cursor)
 Su iPhone il player di Ascolta mostrava solo la copertina al posto del video. Safari avvia da solo un video con traccia audio solo se è muto anche come attributo, e React imposta solo la proprietà; con il risparmio energetico l’avvio automatico è sempre rifiutato. Ora l’attributo è impostato, e se l’avvio viene rifiutato il video resta con il poster e riparte al primo tocco. Con «Riduci movimento» attivo resta la copertina, come previsto. Nessuna modifica al database.
 
