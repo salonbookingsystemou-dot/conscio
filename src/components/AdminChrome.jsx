@@ -1,43 +1,20 @@
-import { useEffect, useState } from 'react'
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
-import iconaConscio from '../assets/icona-conscio.png'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth.jsx'
 import { contaDaFare, osservaDaFare } from '../lib/cicli.js'
+import { SEZIONI, percorsoSezione, sezioneDa } from '../lib/sezioniAdmin.js'
+import useClasseFinestra from '../lib/useClasseFinestra.js'
 import BarraVoci from './BarraVoci.jsx'
+import ConfineErrori from './ConfineErrori.jsx'
+import { GuscioContext } from './admin/gusci.js'
+import { ICONE_SEZIONE, IconaPiu } from './admin/IconeAdmin.jsx'
+import RailNavigazione from './admin/RailNavigazione.jsx'
+import { SnackbarProvider } from './admin/Snackbar.jsx'
 
-function IconaCicli() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="4.5" y="5.5" width="15" height="14" rx="2" fill="none" stroke="currentColor" strokeWidth="1.4" />
-      <path d="M4.5 9.5h15M9 3.8v3.4M15 3.8v3.4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function IconaTracce() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M5 10v4M9 7v10M13 4.5v15M17 8v8M21 11v2" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function IconaComunicazioni() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="3.5" y="6" width="17" height="12.5" rx="2" fill="none" stroke="currentColor" strokeWidth="1.4" />
-      <path d="m4 7 8 6 8-6" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function IconaSito() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="1.4" />
-      <path d="M4 12h16M12 4c2.2 2.3 3.2 5 3.2 8s-1 5.7-3.2 8c-2.2-2.3-3.2-5-3.2-8s1-5.7 3.2-8z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-    </svg>
-  )
+// Nello spazio del ciclo le schede non smontano la pagina: il confine si azzera solo cambiando pagina.
+function chiaveConfine(pathname) {
+  if (/^\/admin\/cicli\/[^/]+/.test(pathname)) return '/admin/cicli/:ciclo'
+  return pathname
 }
 
 function useDaFare() {
@@ -60,53 +37,56 @@ function useDaFare() {
   return numero
 }
 
+/**
+ * Guscio dell'area facilitatore: rail a sinistra da 600px (esteso da 1200px),
+ * barra in basso e FAB sotto i 600px. La testata è della pagina (PaginaAdmin).
+ */
 export default function AdminChrome() {
   const { esci } = useAuth()
+  const { pathname } = useLocation()
+  const classe = useClasseFinestra()
   const daFare = useDaFare()
+  const attiva = sezioneDa(pathname)
+  const badge = { cicli: daFare }
+  const compatta = classe === 'compatta'
+  const azione = attiva?.azione || null
 
-  const voci = [
-    { to: '/admin/cicli', label: 'Cicli', Icona: IconaCicli, badge: daFare },
-    { to: '/admin/tracce', label: 'Tracce', Icona: IconaTracce },
-    { to: '/admin/comunicazioni', label: 'Comunicazioni', Icona: IconaComunicazioni },
-    { to: '/admin/sito', label: 'Sito', Icona: IconaSito }
-  ]
+  const voci = SEZIONI.map(s => ({
+    to: percorsoSezione(s),
+    label: s.etichetta,
+    Icona: ICONE_SEZIONE[s.icona],
+    badge: badge[s.id]
+  }))
+
+  const guscio = useMemo(() => ({ classe, esci }), [classe, esci])
 
   return (
-    <div className="admin-app">
-      <header className="admin-top">
-        <Link to="/admin/cicli" className="admin-brand">
-          <img className="brand-mark" src={iconaConscio} alt="" />
-          Conscio
-          <span className="admin-brand-ruolo">Facilitatore</span>
-        </Link>
-        <nav className="admin-pills" aria-label="Area facilitatore">
-          {voci.map(v => (
-            <NavLink key={v.to} to={v.to}>
-              {v.label}
-              {v.badge > 0 && (
-                <>
-                  <span className="admin-conteggio" aria-hidden="true">{v.badge}</span>
-                  <span className="visually-hidden">, {v.badge} da fare</span>
-                </>
-              )}
-            </NavLink>
-          ))}
-        </nav>
-        <button type="button" className="admin-esci" onClick={esci}>Esci</button>
-      </header>
-      <main className="admin-main">
-        <Outlet />
-      </main>
-      <BarraVoci voci={voci} etichetta="Area facilitatore" className="is-facilitatore" />
-    </div>
-  )
-}
-
-/** Larghezza del contenuto, scelta per rotta. */
-export function PaginaAdmin({ ampia = false }) {
-  return (
-    <div className={`admin-pagina${ampia ? ' is-ampia' : ''}`}>
-      <Outlet />
-    </div>
+    <GuscioContext.Provider value={guscio}>
+      <SnackbarProvider>
+        <div className={`admin-app is-${classe}${compatta && azione ? ' has-fab' : ''}`}>
+          {!compatta && (
+            <RailNavigazione
+              sezioni={SEZIONI}
+              attiva={attiva}
+              badge={badge}
+              esteso={classe === 'ampia'}
+              onEsci={esci}
+            />
+          )}
+          <main className="admin-main">
+            <ConfineErrori key={chiaveConfine(pathname)}>
+              <Outlet />
+            </ConfineErrori>
+          </main>
+          {compatta && azione && (
+            <Link to={azione.a} className="fab is-galleggiante">
+              <IconaPiu />
+              <span>{azione.etichetta}</span>
+            </Link>
+          )}
+          {compatta && <BarraVoci voci={voci} etichetta="Area facilitatore" className="is-facilitatore" />}
+        </div>
+      </SnackbarProvider>
+    </GuscioContext.Provider>
   )
 }

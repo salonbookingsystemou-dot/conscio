@@ -1,6 +1,6 @@
 import { Navigate, Routes, Route, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import Nav from './components/Nav.jsx'
-import AdminChrome, { PaginaAdmin } from './components/AdminChrome.jsx'
+import AdminChrome from './components/AdminChrome.jsx'
 import SoloFacilitatore from './components/SoloFacilitatore.jsx'
 import { useAuth } from './lib/auth.jsx'
 import SoloRegistrato from './components/SoloRegistrato.jsx'
@@ -64,9 +64,9 @@ function AvvisiOComunicazioni() {
   return <SoloPercorso><Comunicazioni /></SoloPercorso>
 }
 
-// Nello spazio del ciclo le schede non smontano il guscio: il confine si azzera solo cambiando area.
+// Il guscio del facilitatore resta montato fra le pagine: il confine per pagina sta in AdminChrome.
 function chiaveConfine(pathname) {
-  if (/^\/admin\/cicli\/[^/]+/.test(pathname)) return '/admin/cicli/:ciclo'
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) return '/admin'
   return pathname
 }
 
@@ -96,24 +96,20 @@ export default function App() {
 
           <Route path="/admin" element={<SoloFacilitatore><AdminChrome /></SoloFacilitatore>}>
             <Route index element={<Navigate to="/admin/cicli" replace />} />
-            <Route element={<PaginaAdmin ampia />}>
-              <Route path="cicli" element={<Cicli />} />
-              <Route path="cicli/:cicloId" element={<Ciclo />}>
-                <Route index element={<Navigate to="panoramica" replace />} />
-                <Route path="panoramica" element={<Panoramica />} />
-                <Route path="iscritti" element={<Iscritti />} />
-                <Route path="programma" element={<ProgrammaCiclo />} />
-                <Route path="programma/settimana/:numero" element={<EditorSettimana />} />
-                <Route path="pratica" element={<PraticaCiclo />} />
-                <Route path="questionari" element={<QuestionariCiclo />} />
-              </Route>
-              <Route path="tracce" element={<Tracce />} />
-              <Route path="tracce/nuova" element={<NuovaTraccia />} />
-              <Route path="comunicazioni" element={<ComunicazioniFacilitatore />} />
+            <Route path="cicli" element={<Cicli />} />
+            <Route path="cicli/:cicloId" element={<Ciclo />}>
+              <Route index element={<Navigate to="panoramica" replace />} />
+              <Route path="panoramica" element={<Panoramica />} />
+              <Route path="iscritti" element={<Iscritti />} />
+              <Route path="programma" element={<ProgrammaCiclo />} />
+              <Route path="programma/settimana/:numero" element={<EditorSettimana />} />
+              <Route path="pratica" element={<PraticaCiclo />} />
+              <Route path="questionari" element={<QuestionariCiclo />} />
             </Route>
-            <Route element={<PaginaAdmin />}>
-              <Route path="sito" element={<Sito />} />
-            </Route>
+            <Route path="tracce" element={<Tracce />} />
+            <Route path="tracce/nuova" element={<NuovaTraccia />} />
+            <Route path="comunicazioni" element={<ComunicazioniFacilitatore />} />
+            <Route path="sito" element={<Sito />} />
             <Route path="*" element={<Navigate to="/admin/cicli" replace />} />
           </Route>
 

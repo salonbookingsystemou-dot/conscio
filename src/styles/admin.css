@@ -1,42 +1,151 @@
+/* Guscio del facilitatore (components/AdminChrome.jsx).
+   Classi di finestra M3: compatta < 600 · media 600–839 · espansa 840–1199 · ampia ≥ 1200
+   (--bp-media, --bp-espansa, --bp-ampia). La classe arriva da useClasseFinestra su .admin-app. */
 .admin-app {
+  --indicatore-attivo: var(--accent-soft);
   min-height: 100vh;
-  min-height: 100dvb;
+  min-height: 100dvh;
+  display: flex;
+  align-items: stretch;
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-body);
   font-size: var(--fs-body);
-  line-height: 1.5;
+  line-height: var(--lh-body);
 }
 
-.admin-top {
+.admin-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.admin-app.is-compatta .admin-main {
+  padding-bottom: calc(var(--barra-bassa-h) + env(safe-area-inset-bottom, 0px) + var(--space-16));
+}
+
+.admin-app.is-compatta.has-fab .admin-main {
+  padding-bottom: calc(var(--barra-bassa-h) + env(safe-area-inset-bottom, 0px) + 56px + var(--space-32) + var(--space-16));
+}
+
+.icona-admin {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.admin-app.is-compatta .icon-btn {
+  width: 44px;
+  height: 44px;
+}
+
+/* FAB: azione principale della sezione */
+.fab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-12);
+  height: 56px;
+  padding: 0 var(--space-22) 0 var(--space-18);
+  border-radius: var(--radius-lg);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-radius 150ms ease-out;
+}
+
+.fab:hover {
+  color: var(--on-accent);
+}
+
+.fab:active {
+  border-radius: var(--radius-md);
+}
+
+.fab.is-galleggiante {
+  position: fixed;
+  z-index: 45;
+  right: max(var(--space-16), env(safe-area-inset-right, 0px));
+  bottom: calc(var(--barra-bassa-h) + env(safe-area-inset-bottom, 0px) + var(--space-16));
+  gap: var(--space-10);
+  padding: 0 var(--space-20) 0 var(--space-16);
+  box-shadow: var(--shadow-float);
+}
+
+/* Rail di navigazione (components/admin/RailNavigazione.jsx) */
+.rail {
   position: sticky;
   top: 0;
-  z-index: 40;
+  flex: 0 0 auto;
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-16);
-  flex-wrap: wrap;
-  padding: var(--space-20) var(--space-24);
-  padding-left: max(var(--space-24), env(safe-area-inset-left, 0px));
-  padding-right: max(var(--space-24), env(safe-area-inset-right, 0px));
-  border-bottom: 1px solid var(--border-soft);
-  background: var(--bg);
+  flex-direction: column;
+  background: var(--surface-rail);
 }
 
-.admin-brand {
-  display: flex;
+.rail.is-esteso {
+  width: var(--rail-esteso);
+  gap: var(--space-4);
+  padding: var(--space-24) var(--space-12) var(--space-20);
+  padding-left: max(var(--space-12), env(safe-area-inset-left, 0px));
+}
+
+.rail.is-compatto {
+  width: var(--rail-compatto);
   align-items: center;
-  gap: 10px;
-  min-width: 0;
+  gap: var(--space-12);
+  padding: var(--space-20) 0;
+  padding-left: env(safe-area-inset-left, 0px);
+}
+
+.rail-marchio {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  color: var(--ink);
   text-decoration: none;
-  color: inherit;
-  font-family: var(--font-display);
-  font-size: var(--fs-item);
-  white-space: nowrap;
 }
 
-.admin-brand-ruolo {
+.rail.is-esteso .rail-marchio {
+  padding: 0 var(--space-16) var(--space-20);
+}
+
+.rail.is-compatto .rail-marchio {
+  align-items: center;
+  padding-bottom: var(--space-8);
+}
+
+.rail-marchio-nome {
+  font-family: var(--font-display);
+  font-size: 26px;
+  line-height: 1;
+}
+
+.rail-marchio-ruolo {
   font-size: var(--fs-eyebrow);
   font-weight: 600;
   letter-spacing: var(--ls-eyebrow);
@@ -44,73 +153,367 @@
   color: var(--muted);
 }
 
-.admin-pills {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-4);
-  border-radius: var(--radius-pill);
-  background: var(--accent-soft);
+/* Anche senza azione (Sito) lo spazio resta: le voci non saltano. */
+.rail-azione {
+  min-height: 56px;
 }
 
-.admin-pills a {
-  display: inline-flex;
+.rail.is-esteso .rail-azione {
+  padding: 0 var(--space-4) var(--space-20);
+}
+
+.rail.is-compatto .rail-azione {
+  width: 56px;
+  margin-bottom: var(--space-12);
+}
+
+.rail.is-compatto .fab {
+  width: 56px;
+  padding: 0;
+  justify-content: center;
+}
+
+.rail-voci {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rail.is-compatto .rail-voci {
+  gap: var(--space-12);
+}
+
+.rail-voce {
+  display: flex;
   align-items: center;
-  gap: var(--space-6);
-  padding: var(--space-8) var(--space-16);
+  gap: var(--space-12);
+  width: 100%;
+  height: 56px;
+  padding: 0 var(--space-16);
+  border: 0;
   border-radius: var(--radius-pill);
-  color: var(--accent);
+  background: transparent;
+  color: var(--ink-2);
+  font-family: var(--font-body);
+  font-size: var(--fs-small);
+  font-weight: 500;
   text-decoration: none;
-  font-size: var(--fs-meta);
+  cursor: pointer;
+}
+
+.rail-voce:hover {
+  color: var(--ink);
+}
+
+.rail-voce[aria-current='page'] {
+  color: var(--ink);
   font-weight: 600;
 }
 
-.admin-pills a.active,
-.admin-pills a[aria-current='page'] {
-  background: var(--surface);
-  color: var(--ink);
-  box-shadow: var(--shadow-hover);
+.rail.is-esteso .rail-voce[aria-current='page'] {
+  background-color: var(--indicatore-attivo);
 }
 
-.admin-conteggio {
-  min-width: 20px;
-  padding: 0 var(--space-6);
+.rail-indicatore {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rail-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  margin-left: auto;
+  padding: 0 7px;
   border-radius: var(--radius-pill);
-  background: var(--accent);
+  background: var(--danger);
   color: var(--on-accent);
   font-size: var(--fs-caption);
-  line-height: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.rail.is-compatto .rail-voce {
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-4);
+  height: auto;
+  padding: var(--space-6) 0;
+  border-radius: 0;
+  font-size: var(--fs-caption);
   text-align: center;
 }
 
-.admin-esci {
-  border: 0;
-  padding: var(--space-8) var(--space-10);
+.rail.is-compatto .rail-indicatore {
+  width: 56px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+}
+
+.rail.is-compatto .rail-voce[aria-current='page'] .rail-indicatore {
+  background-color: var(--indicatore-attivo);
+}
+
+.rail.is-compatto .rail-badge {
+  position: absolute;
+  top: -2px;
+  right: 6px;
+  min-width: 18px;
+  height: 18px;
+  margin: 0;
+  padding: 0 5px;
+  font-size: var(--fs-eyebrow);
+}
+
+.rail-esci {
+  margin-top: auto;
+}
+
+/* Barra in basso del facilitatore: variante di BarraVoci (la variante del partecipante sta in styles.css) */
+.barra-bassa.is-facilitatore {
+  display: flex;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  gap: 0;
+  min-height: 0;
+  height: calc(var(--barra-bassa-h) + env(safe-area-inset-bottom, 0px));
+  padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+  border-top: 0;
+  background: var(--surface-rail);
+  box-shadow: none;
+}
+
+.barra-bassa.is-facilitatore .barra-bassa-voce {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-4);
+  min-width: 0;
+  min-height: 0;
+  padding: var(--space-12) 0 var(--space-14);
+  border-radius: 0;
   background: transparent;
-  color: var(--muted);
+  color: var(--ink-2);
+  font-size: var(--fs-caption);
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.barra-bassa.is-facilitatore .barra-bassa-voce[aria-current='page'] {
+  background: transparent;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.barra-bassa.is-facilitatore .barra-bassa-icona {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+}
+
+.barra-bassa.is-facilitatore .barra-bassa-voce[aria-current='page'] .barra-bassa-icona {
+  background-color: var(--indicatore-attivo);
+}
+
+.barra-bassa.is-facilitatore .barra-bassa-voce svg {
+  width: 24px;
+  height: 24px;
+}
+
+.barra-bassa.is-facilitatore .barra-bassa-badge {
+  top: -2px;
+  right: 12px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: var(--danger);
+  color: var(--on-accent);
+  font-size: var(--fs-eyebrow);
+  font-weight: 700;
+  line-height: 18px;
+}
+
+/* Snackbar (components/admin/Snackbar.jsx): in basso al centro dell'area contenuto */
+.snackbar-zona {
+  position: fixed;
+  z-index: 60;
+  left: 0;
+  right: 0;
+  bottom: var(--space-24);
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--space-16);
+  pointer-events: none;
+}
+
+.admin-app.is-media + .snackbar-zona,
+.admin-app.is-espansa + .snackbar-zona {
+  left: var(--rail-compatto);
+}
+
+.admin-app.is-ampia + .snackbar-zona {
+  left: var(--rail-esteso);
+}
+
+.admin-app.is-compatta + .snackbar-zona {
+  bottom: calc(var(--barra-bassa-h) + env(safe-area-inset-bottom, 0px) + var(--space-16));
+}
+
+.admin-app.is-compatta.has-fab + .snackbar-zona {
+  bottom: calc(var(--barra-bassa-h) + env(safe-area-inset-bottom, 0px) + 56px + var(--space-32));
+}
+
+.snackbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-height: 48px;
+  max-width: 600px;
+  padding: var(--space-6) var(--space-6) var(--space-6) var(--space-18);
+  border-radius: var(--radius-sm);
+  background: var(--inverse-surface);
+  color: var(--inverse-on-surface);
+  font-size: var(--fs-small);
+  box-shadow: var(--shadow-float);
+  pointer-events: auto;
+  animation: snackbar-entra 200ms ease-out;
+}
+
+.snackbar-testo {
+  flex: 1 1 auto;
+  padding: var(--space-8) var(--space-16) var(--space-8) 0;
+}
+
+.snackbar-annulla {
+  min-height: 40px;
+  padding: 0 var(--space-12);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--inverse-accent);
   font: inherit;
-  font-size: var(--fs-meta);
   font-weight: 600;
   cursor: pointer;
 }
 
-.admin-esci:hover {
-  color: var(--ink);
+.snackbar-chiudi {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--inverse-on-surface);
+  cursor: pointer;
 }
 
-.admin-main {
-  padding: var(--space-32) var(--space-24) var(--space-36);
-  padding-left: max(var(--space-24), env(safe-area-inset-left, 0px));
-  padding-right: max(var(--space-24), env(safe-area-inset-right, 0px));
+.snackbar-chiudi .icona-admin {
+  width: 20px;
+  height: 20px;
 }
 
-.admin-pagina {
-  width: min(760px, 100%);
-  margin: 0 auto;
+.snackbar :focus-visible {
+  outline: 2px solid var(--inverse-accent);
+  outline-offset: 2px;
 }
 
-.admin-pagina.is-ampia {
-  width: min(1080px, 100%);
+@keyframes snackbar-entra {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .snackbar {
+    animation: none;
+  }
+
+  .fab {
+    transition: none;
+  }
+}
+
+/* Livelli di stato (M3): velo del colore del testo al passaggio e alla pressione, anello di focus.
+   Nell'area facilitatore niente ombre né cambi di fondo al passaggio. */
+.admin-app :is(.btn, .chip, .icon-btn, .fab, .rail-voce, .pagina-indietro, .pagina-scheda, .menu-azioni-voce, .riga-cliccabile, .admin-icon-btn):hover:not(:disabled) {
+  background-image: linear-gradient(
+    color-mix(in srgb, currentColor calc(var(--state-hover) * 100%), transparent),
+    color-mix(in srgb, currentColor calc(var(--state-hover) * 100%), transparent)
+  );
+  box-shadow: none;
+}
+
+.admin-app :is(.btn, .chip, .icon-btn, .fab, .rail-voce, .pagina-indietro, .pagina-scheda, .menu-azioni-voce, .riga-cliccabile, .admin-icon-btn):active:not(:disabled) {
+  background-image: linear-gradient(
+    color-mix(in srgb, currentColor calc(var(--state-press) * 100%), transparent),
+    color-mix(in srgb, currentColor calc(var(--state-press) * 100%), transparent)
+  );
+}
+
+.admin-app :is(.btn, .chip, .icon-btn, .fab, .rail-voce, .pagina-indietro, .pagina-scheda, .menu-azioni-voce, .riga-cliccabile, .admin-icon-btn, .barra-bassa-voce, .rail-marchio):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.menu-azioni-voce:focus-visible {
+  outline-offset: -2px;
+}
+
+/* Nelle voci a colonna il velo sta sull'indicatore, non su tutta la voce. */
+.admin-app .rail.is-compatto .rail-voce:hover {
+  background-image: none;
+}
+
+.admin-app .rail.is-compatto .rail-voce:hover .rail-indicatore,
+.admin-app .barra-bassa.is-facilitatore .barra-bassa-voce:hover .barra-bassa-icona {
+  background-image: linear-gradient(
+    color-mix(in srgb, currentColor calc(var(--state-hover) * 100%), transparent),
+    color-mix(in srgb, currentColor calc(var(--state-hover) * 100%), transparent)
+  );
+}
+
+.admin-app .btn:hover:not(:disabled) {
+  background-color: var(--primary);
+}
+
+.admin-app .btn-tonal:hover:not(:disabled) {
+  background-color: var(--primary-container);
+}
+
+.admin-app :is(.btn-ghost, .btn-text):hover:not(:disabled) {
+  background-color: transparent;
+}
+
+.admin-app .btn-pericolo:hover:not(:disabled) {
+  background-color: var(--danger);
+}
+
+.admin-app .btn-ghost.is-pericolo:hover:not(:disabled) {
+  background-color: transparent;
+}
+
+.admin-app .fab:hover {
+  background-color: var(--accent);
 }
 
 .admin-page-head {
@@ -598,39 +1001,6 @@
   color: var(--ink);
   font-family: var(--font-body);
   font-size: var(--fs-body);
-}
-
-@media (max-width: 800px) {
-  .admin-top {
-    padding: calc(var(--space-10) + env(safe-area-inset-top, 0px)) max(var(--space-16), env(safe-area-inset-right, 0px)) var(--space-10) max(var(--space-16), env(safe-area-inset-left, 0px));
-  }
-
-  .admin-brand {
-    font-size: var(--fs-body);
-  }
-
-  .admin-brand .brand-mark {
-    width: 26px;
-    height: 26px;
-  }
-
-  .admin-pills {
-    display: none;
-  }
-
-  .admin-esci {
-    min-height: 48px;
-  }
-
-  body.has-barra-bassa .admin-main {
-    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
-  }
-}
-
-@media (min-width: 801px) {
-  .barra-bassa.is-facilitatore {
-    display: none;
-  }
 }
 
 @media (max-width: 640px) {
