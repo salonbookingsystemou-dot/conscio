@@ -54,6 +54,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 14/10/2026 · Comunicazioni: nessuna email parte senza conferma (da Claude Code)
+In Comunicazioni «Invia ora via email» era già spuntato (e si rispuntava scegliendo il T3): un clic su «Salva e invia» mandava l’email a tutto il ciclo. Ora la spunta parte vuota, e ogni invio passa da `DialogConferma` con oggetto e destinatari («a tutti i partecipanti di …» / «a chi segue … da remoto»): salva e invia, «Invia ora» su una programmata, «Controlla e invia ora» di inattività e pausa di pratica (con quante persone sono in attesa e quanti account verranno chiusi). Il rosso del dialogo resta solo per «Cancella». Come chiede la sez. 4bis del brief di navigazione. Nessuna modifica al database né alle funzioni. Il nuovo layout elenco–dettaglio della pagina è un passo successivo.
+
 ### 14/10/2026 · Email al passaggio sul codice nelle segnalazioni difficili (da Claude Code)
 In «Da fare», passando sopra il codice di una segnalazione difficile compare l'email della persona, come già in Iscritti e nei percorsi da remoto: serve a contattarla. È un'eccezione alla regola «email mai unita ai check-in», decisa da Dimitri e annotata nelle regole sui dati. L'email viene dalle iscrizioni già lette dalla pagina: nessuna RPC nuova; dopo `separa_email_cicli_conclusi` compare «Nessuna email registrata». Aggiornata la nota sulla privacy in fondo a Cicli. Nessuna modifica al database.
 

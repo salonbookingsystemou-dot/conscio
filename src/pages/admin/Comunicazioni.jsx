@@ -72,7 +72,7 @@ export default function Comunicazioni() {
     tipo: 'reminder_t3',
     oggetto: MODELLI.reminder_t3.oggetto,
     testo: MODELLI.reminder_t3.testo,
-    invia_ora: true
+    invia_ora: false
   })
   const [modificaId, setModificaId] = useState(null)
   const [dialogo, setDialogo] = useState(null)
@@ -136,8 +136,7 @@ export default function Comunicazioni() {
       ...f,
       tipo,
       oggetto: modello?.oggetto || '',
-      testo: modello?.testo || `${DISCLAIMER_EMAIL}`,
-      invia_ora: tipo === 'reminder_t3' ? true : f.invia_ora
+      testo: modello?.testo || `${DISCLAIMER_EMAIL}`
     }))
   }
 
@@ -177,6 +176,7 @@ export default function Comunicazioni() {
       titolo: 'Cancellare questa comunicazione?',
       testo: `«${c.oggetto || c.tipo}» verrà tolta dagli invii programmati. Non è ancora partita nessuna email.`,
       etichetta: 'Cancella',
+      pericolo: true,
       onOk: async () => {
         setDialogo(null)
         setErrore(null)
@@ -197,8 +197,32 @@ export default function Comunicazioni() {
     })
   }
 
-  async function handleSubmit(e) {
+  // Inviare un'email è un effetto fuori dall'app: sempre con conferma (brief navigazione, sez. 4bis).
+  function testoDestinatari(cicloId, destinatari) {
+    const ciclo = cicli.find(c => c.id === cicloId)?.nome_ciclo || 'questo ciclo'
+    return destinatari === 'remoto'
+      ? `a chi segue ${ciclo} da remoto`
+      : `a tutti i partecipanti di ${ciclo}`
+  }
+
+  function handleSubmit(e) {
     e.preventDefault()
+    if (!form.invia_ora) {
+      salva()
+      return
+    }
+    setDialogo({
+      titolo: 'Inviare l’email adesso?',
+      testo: `«${form.oggetto.trim() || 'Comunicazione'}» parte subito ${testoDestinatari(form.ciclo_id, form.destinatari)}. Un’email inviata non si può ritirare.`,
+      etichetta: 'Salva e invia',
+      onOk: () => {
+        setDialogo(null)
+        salva()
+      }
+    })
+  }
+
+  async function salva() {
     setErrore(null)
     setMessaggio(null)
     setInvio(true)
@@ -277,6 +301,18 @@ export default function Comunicazioni() {
     carica()
   }
 
+  function chiediInvio(c) {
+    setDialogo({
+      titolo: 'Inviare l’email adesso?',
+      testo: `«${c.oggetto || c.tipo}» parte subito ${testoDestinatari(c.ciclo_id, c.destinatari)}. Un’email inviata non si può ritirare.`,
+      etichetta: 'Invia ora',
+      onOk: () => {
+        setDialogo(null)
+        inviaDiNuovo(c.id)
+      }
+    })
+  }
+
   async function inviaDiNuovo(id) {
     setErrore(null)
     setMessaggio(null)
@@ -305,6 +341,42 @@ export default function Comunicazioni() {
     else if (esito?.ok) setMessaggio('Prova inviata alla tua email di accesso. Controlla anche lo spam.')
     else setErrore(esito?.errore || 'La prova non è andata a buon fine.')
     setInvio(false)
+  }
+
+  function chiediInattivita() {
+    const parti = [
+      candidati.length > 0
+        ? `${candidati.length} ${candidati.length === 1 ? 'persona riceve' : 'persone ricevono'} l’avviso di inattività`
+        : null,
+      ritiri.length > 0
+        ? `${ritiri.length} ${ritiri.length === 1 ? 'account viene chiuso' : 'account vengono chiusi'}, con l’email di chiusura`
+        : null
+    ].filter(Boolean)
+    setDialogo({
+      titolo: 'Controllare e inviare adesso?',
+      testo: parti.length
+        ? `Con i dati di adesso: ${parti.join('; ')}. Il controllo rilegge la situazione al momento dell’invio.`
+        : 'Adesso nessuno risulta in attesa: il controllo rilegge la situazione e invia solo se trova qualcuno.',
+      etichetta: 'Controlla e invia',
+      onOk: () => {
+        setDialogo(null)
+        eseguiInattivita()
+      }
+    })
+  }
+
+  function chiediPausa() {
+    setDialogo({
+      titolo: 'Controllare e inviare adesso?',
+      testo: candidatiPausa.length
+        ? `Con i dati di adesso ${candidatiPausa.length === 1 ? 'una persona riceve' : `${candidatiPausa.length} persone ricevono`} l’email sulla pausa di pratica. Il controllo rilegge la situazione al momento dell’invio.`
+        : 'Adesso nessuno risulta in attesa: il controllo rilegge la situazione e invia solo se trova qualcuno.',
+      etichetta: 'Controlla e invia',
+      onOk: () => {
+        setDialogo(null)
+        eseguiPausa()
+      }
+    })
   }
 
   async function eseguiInattivita() {
@@ -471,7 +543,7 @@ export default function Comunicazioni() {
             </h3>
             <p>{c.cicli?.nome_ciclo} — {new Date(c.data_invio).toLocaleDateString('it-IT')}</p>
             <div className="azioni">
-              <button className="btn btn-ghost" type="button" disabled={invio} onClick={() => inviaDiNuovo(c.id)}>
+              <button className="btn btn-ghost" type="button" disabled={invio} onClick={() => chiediInvio(c)}>
                 Invia ora
               </button>
               <button className="btn btn-ghost" type="button" disabled={invio} onClick={() => iniziaModifica(c)}>
@@ -527,7 +599,7 @@ export default function Comunicazioni() {
                 ].filter(Boolean).join(' · ')}
           </p>
           <div className="azioni">
-            <button className="btn" type="button" disabled={invioInattivita} onClick={eseguiInattivita}>
+            <button className="btn" type="button" disabled={invioInattivita} onClick={chiediInattivita}>
               {invioInattivita ? 'Controllo in corso…' : 'Controlla e invia ora'}
             </button>
           </div>
@@ -567,7 +639,7 @@ export default function Comunicazioni() {
               </p>
             )}
           <div className="azioni">
-            <button className="btn" type="button" disabled={invioPausa} onClick={eseguiPausa}>
+            <button className="btn" type="button" disabled={invioPausa} onClick={chiediPausa}>
               {invioPausa ? 'Controllo in corso…' : 'Controlla e invia ora'}
             </button>
           </div>
@@ -590,7 +662,7 @@ export default function Comunicazioni() {
           aperto={!!dialogo}
           titolo={dialogo?.titolo || ''}
           confermaEtichetta={dialogo?.etichetta || 'Conferma'}
-          pericolo
+          pericolo={Boolean(dialogo?.pericolo)}
           onConferma={() => dialogo?.onOk?.()}
           onAnnulla={() => setDialogo(null)}
         >
