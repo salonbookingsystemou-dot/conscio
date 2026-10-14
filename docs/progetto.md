@@ -54,6 +54,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 14/10/2026 · Comunicazioni con elenco e dettaglio (da Claude Code)
+La pagina era una colonna di card con il modulo sempre aperto in cima e le email automatiche in fondo. Ora segue il layout elenco–dettaglio del framework, come Tracce: a sinistra l'elenco con chip (Tutte, Da inviare, Inviate, Automatiche) e tre gruppi, ogni riga con stato; a destra il dettaglio della voce aperta (`?voce=`). Il modulo si apre solo da «Nuova comunicazione» nel rail o aprendo una comunicazione da inviare; le inviate si rileggono per intero e si possono riusare come base; «Inattività · da remoto» e «Pausa di pratica» hanno regola, persone in attesa, controllo manuale e storico. Gli esiti vanno nella snackbar, gli errori restano nel dettaglio; ogni invio chiede conferma. Tolti «(Resend)» e l'indirizzo scritto a mano (ora `EMAIL_CONTATTO`), etichette collegate ai campi. Stesse funzioni e stessi dati: nessuna modifica al database né alle funzioni.
+
 ### 14/10/2026 · Comunicazioni: nessuna email parte senza conferma (da Claude Code)
 In Comunicazioni «Invia ora via email» era già spuntato (e si rispuntava scegliendo il T3): un clic su «Salva e invia» mandava l’email a tutto il ciclo. Ora la spunta parte vuota, e ogni invio passa da `DialogConferma` con oggetto e destinatari («a tutti i partecipanti di …» / «a chi segue … da remoto»): salva e invia, «Invia ora» su una programmata, «Controlla e invia ora» di inattività e pausa di pratica (con quante persone sono in attesa e quanti account verranno chiusi). Il rosso del dialogo resta solo per «Cancella». Come chiede la sez. 4bis del brief di navigazione. Nessuna modifica al database né alle funzioni. Il nuovo layout elenco–dettaglio della pagina è un passo successivo.
 

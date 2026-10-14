@@ -2641,3 +2641,180 @@
 .problema-esito p {
   margin: 0;
 }
+
+/* Elenchi del layout elenco–dettaglio con gruppi e righe selezionabili (Comunicazioni) */
+.elenco-strumenti {
+  padding: var(--space-16) var(--space-16) var(--space-12);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.elenco-strumenti .filtri-chip {
+  margin: 0;
+}
+
+.elenco-gruppo + .elenco-gruppo {
+  border-top: 1px solid var(--border);
+}
+
+.elenco-gruppo-titolo {
+  margin: 0;
+  padding: var(--space-16) var(--space-20) var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--fs-eyebrow);
+  font-weight: 600;
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.elenco-gruppo .card-vuota {
+  padding: var(--space-6) var(--space-20) var(--space-16);
+}
+
+.elenco-righe {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.riga-elenco {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  width: 100%;
+  padding: var(--space-14) var(--space-16) var(--space-14) var(--space-20);
+  border: 0;
+  border-top: 1px solid var(--border-soft);
+  background-color: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.riga-elenco[aria-current='true'] {
+  background-color: var(--surface-muted);
+}
+
+.riga-elenco:focus-visible {
+  outline-offset: -2px;
+}
+
+.riga-elenco-testi {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.riga-elenco-titolo {
+  font-size: var(--fs-body);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.riga-elenco[aria-current='true'] .riga-elenco-titolo {
+  font-weight: 600;
+}
+
+.riga-elenco-meta {
+  font-size: var(--fs-meta);
+  color: var(--muted);
+}
+
+.riga-elenco .controllo-stato {
+  flex-shrink: 0;
+}
+
+/* Dettaglio di una comunicazione */
+.com-modulo,
+.com-dettaglio {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+}
+
+.com-modulo .field,
+.com-dettaglio > p {
+  margin: 0;
+}
+
+.com-modulo .field .hint {
+  margin: var(--space-6) 0 0;
+}
+
+.com-invia-ora {
+  margin: 0;
+}
+
+.com-zona-pericolo {
+  padding-top: var(--space-14);
+  border-top: 1px solid var(--border-soft);
+}
+
+.com-dati {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-12) var(--space-24);
+  margin: 0;
+}
+
+.com-dati dt {
+  font-size: var(--fs-meta);
+  color: var(--muted);
+}
+
+.com-dati dd {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-small);
+}
+
+.com-testo {
+  padding: var(--space-16) var(--space-18);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  font-size: var(--fs-small);
+  line-height: var(--lh-body);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.com-sezione {
+  padding-top: var(--space-14);
+  border-top: 1px solid var(--border-soft);
+}
+
+.com-sezione h3 {
+  margin: 0 0 var(--space-8);
+  font-family: var(--font-body);
+  font-size: var(--fs-eyebrow);
+  font-weight: 600;
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.com-storico {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-small);
+}
+
+.com-storico li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-12);
+  padding: var(--space-8) 0;
+  border-top: 1px solid var(--border-soft);
+}
+
+.com-storico li:first-child {
+  border-top: 0;
+}
+
+.com-storico-codice {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
