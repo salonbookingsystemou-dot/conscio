@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import PlayerVetrina, { Credito } from '../components/PlayerVetrina.jsx'
+import PlayerVetrina, { Credito, IconaCaso } from '../components/PlayerVetrina.jsx'
 import StatoAttesa from '../components/StatoAttesa.jsx'
 import StatoVuoto from '../components/StatoVuoto.jsx'
 import {
@@ -251,7 +251,10 @@ export default function Ascolta() {
           </header>
           {audioEvidenza?.audio_url && player(audioEvidenza, true)}
           {elenco.length > 1 && (
-            <button type="button" className="btn btn-tonal" onClick={sorprendi}>Sorprendimi</button>
+            <button type="button" className="btn btn-tonal ascolta-sorprendi" onClick={sorprendi}>
+              <IconaCaso />
+              Sorprendimi
+            </button>
           )}
           {elenco.length === 0 && (
             <StatoVuoto titolo="Non ci sono ancora meditazioni pubblicate" />

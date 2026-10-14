@@ -153,7 +153,7 @@ const IconaCondividi = () => (
     <path d="M7.5 10.5H6.5a1.5 1.5 0 0 0-1.5 1.5v7A1.5 1.5 0 0 0 6.5 20.5h11a1.5 1.5 0 0 0 1.5-1.5v-7a1.5 1.5 0 0 0-1.5-1.5h-1" />
   </Icona>
 )
-const IconaCaso = () => (
+export const IconaCaso = () => (
   <Icona>
     <path d="M16.5 4.5h3v3M4.5 19.5 19.5 4.5M19.5 16.5v3h-3M14.5 14.5l5 5M4.5 4.5l5 5" />
   </Icona>

@@ -5216,6 +5216,17 @@ body:has(.splash) {
   gap: var(--space-8);
   margin: var(--space-16) 0;
 }
+.ascolta-sorprendi {
+  width: 100%;
+  min-height: 52px;
+  margin-bottom: var(--space-20);
+  border-radius: var(--radius-lg);
+  font-size: var(--fs-body);
+}
+.ascolta-sorprendi svg {
+  width: 22px;
+  height: 22px;
+}
 .ascolta-griglia {
   list-style: none;
   margin: 0;
