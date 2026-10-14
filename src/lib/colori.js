@@ -17,7 +17,9 @@ export const COLORI = {
   accentSoft: '#E8ECE3',
   moss: '#4B6B57',
   ochre: '#A8763E',
-  ochreSoft: '#F2E8DA'
+  ochreSoft: '#F2E8DA',
+  surfaceRail: '#EEE8D9',
+  inverseAccent: '#C9D9C4'
 }
 
 export const COLORI_TONO = {

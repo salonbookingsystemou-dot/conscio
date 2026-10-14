@@ -14,6 +14,7 @@ const RUOTABILI = [
   ['--ochre', COLORI.ochre],
   ['--ochre-soft', COLORI.ochreSoft],
   ['--bg', COLORI.bg],
+  ['--surface-rail', COLORI.surfaceRail],
   ['--surface-muted', COLORI.surfaceMuted],
   ['--track', COLORI.track],
   ['--ink', COLORI.ink],

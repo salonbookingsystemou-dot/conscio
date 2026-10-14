@@ -18,6 +18,11 @@
   --surface-muted: #F7F3EA;
   --track: #F3EFE4;
   --fill-empty: #EFEADC;
+  /* Area facilitatore (Material 3: surface-container e inverse-surface) */
+  --surface-rail: #EEE8D9;            /* rail e barra in basso del facilitatore */
+  --inverse-surface: var(--ink);      /* fondo della snackbar */
+  --inverse-on-surface: var(--bg);    /* testo della snackbar */
+  --inverse-accent: #C9D9C4;          /* «Annulla» sulla snackbar (contrasto AA su --ink) */
 
   /* Testo. --faint solo per segnaposto e decorazioni: sul fondo non raggiunge 4.5:1. */
   --ink: #262419;
@@ -112,8 +117,26 @@
   --radius-md: 12px;
   --radius-tile: 14px;
   --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-xl: 28px;      /* pannelli di dettaglio e di supporto, modali, foglio dal basso */
   --radius-pill: 999px;
+
+  /* Livelli di stato (Material 3): opacità del velo currentColor su ciò che si preme */
+  --state-hover: 0.08;
+  --state-focus: 0.10;
+  --state-press: 0.10;
+
+  /* Classi di finestra (Material 3). Nelle @media vanno scritte come valori letterali:
+     le custom property non valgono lì. Per ora solo nell'area facilitatore. */
+  --bp-media: 600px;      /* da qui rail compatto */
+  --bp-espansa: 840px;    /* da qui due pannelli */
+  --bp-ampia: 1200px;     /* da qui rail esteso */
+
+  /* Misure del guscio del facilitatore */
+  --rail-esteso: 248px;
+  --rail-compatto: 88px;
+  --barra-bassa-h: 80px;
+  --pannello-elenco: 420px;
+  --pannello-supporto: 380px;
 
   /* Ombre e velo delle modali */
   --shadow-hover: 0 8px 18px -12px rgba(38, 36, 25, 0.25);
