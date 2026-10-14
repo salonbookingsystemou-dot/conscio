@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import CardTracciaAudio, { formattaTempo } from './CardTracciaAudio.jsx'
 import { etichettaVoce } from '../lib/vetrina.js'
@@ -230,6 +230,48 @@ function Avanzamento({ posizione, durata, vaiA }) {
   )
 }
 
+// Descrizione nel player (docs/mockup/ascolta-player.png): chiusa mostra
+// tre righe e «Leggi tutto» solo se il testo è più lungo; aperta diventa
+// un riquadro che scorre, così i comandi restano dove sono.
+function Descrizione({ testo, aperta, onAlterna }) {
+  const id = useId()
+  const ref = useRef(null)
+  const [lunga, setLunga] = useState(false)
+
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el || aperta) return undefined
+    const misura = () => setLunga(el.scrollHeight > el.clientHeight + 1)
+    misura()
+    window.addEventListener('resize', misura)
+    return () => window.removeEventListener('resize', misura)
+  }, [testo, aperta])
+
+  return (
+    <div className="ascolta-player-descrizione">
+      <div
+        id={id}
+        ref={ref}
+        className={aperta ? 'ascolta-player-descrizione-testo is-aperta' : 'ascolta-player-descrizione-testo'}
+        tabIndex={aperta ? 0 : undefined}
+      >
+        {testo}
+      </div>
+      {(lunga || aperta) && (
+        <button
+          type="button"
+          className="ascolta-player-leggi"
+          aria-expanded={aperta}
+          aria-controls={id}
+          onClick={onAlterna}
+        >
+          {aperta ? 'Mostra meno' : 'Leggi tutto'}
+        </button>
+      )}
+    </div>
+  )
+}
+
 export default function PlayerVetrina({
   traccia,
   inEvidenza = false,
@@ -242,6 +284,8 @@ export default function PlayerVetrina({
 }) {
   const [aperto, setAperto] = useState(false)
   const [info, setInfo] = useState(false)
+  const [descrAperta, setDescrAperta] = useState(false)
+  const descrizione = String(traccia.descrizione || '').trim()
   const playRef = useRef(null)
   const chiudiRef = useRef(null)
   const chiudiInfoRef = useRef(null)
@@ -279,8 +323,11 @@ export default function PlayerVetrina({
     return () => window.removeEventListener('keydown', tasto)
   }, [aperto, info])
 
+  useEffect(() => { setDescrAperta(false) }, [traccia.slug])
+
   function chiudi() {
     setInfo(false)
+    setDescrAperta(false)
     setAperto(false)
     window.requestAnimationFrame(() => playRef.current?.focus())
   }
@@ -349,7 +396,10 @@ export default function PlayerVetrina({
         {aperto && createPortal(
           <div className="ascolta-player" role="dialog" aria-modal="true" aria-labelledby={idTitolo}>
             <Sfondo sfondo={sfondo} />
-            <div className="ascolta-player-corpo" aria-hidden={info || undefined}>
+            <div
+              className={descrAperta ? 'ascolta-player-corpo is-descrizione-aperta' : 'ascolta-player-corpo'}
+              aria-hidden={info || undefined}
+            >
               <div className="ascolta-player-testa">
                 <button
                   ref={chiudiRef}
@@ -376,7 +426,7 @@ export default function PlayerVetrina({
               </div>
 
               <div className="ascolta-player-fondo">
-                {(etichette.length > 0 || minuti) && (
+                {!descrAperta && (etichette.length > 0 || minuti) && (
                   <ul className="ascolta-player-etichette">
                     {etichette.map(testo => <li key={testo}>{testo}</li>)}
                     {minuti && <li>{minuti}</li>}
@@ -387,6 +437,13 @@ export default function PlayerVetrina({
                   <p className="ascolta-player-meta">
                     {[autore && `Testo di ${autore}`, voce].filter(Boolean).join(' · ')}
                   </p>
+                )}
+                {descrizione && (
+                  <Descrizione
+                    testo={descrizione}
+                    aperta={descrAperta}
+                    onAlterna={() => setDescrAperta(v => !v)}
+                  />
                 )}
                 <Avanzamento posizione={posizione} durata={durata} vaiA={stato.vaiA} />
                 <p className="ascolta-player-tempi">
@@ -425,7 +482,7 @@ export default function PlayerVetrina({
                     ) : <span />}
                     {informazioni && (
                       <button type="button" className="ascolta-player-testo" onClick={() => setInfo(true)}>
-                        <IconaInfo /> Informazioni
+                        <IconaInfo /> Crediti e licenza
                       </button>
                     )}
                   </div>
@@ -448,14 +505,14 @@ export default function PlayerVetrina({
                   <span className="ascolta-foglio-maniglia" aria-hidden="true" />
                   <header className="ascolta-foglio-testa">
                     <div>
-                      <p className="ascolta-sopracciglio">Informazioni</p>
+                      <p className="ascolta-sopracciglio">Crediti e licenza</p>
                       <h2 id={idInfo}>{traccia.titolo}</h2>
                     </div>
                     <button
                       ref={chiudiInfoRef}
                       type="button"
                       className="ascolta-foglio-chiudi"
-                      aria-label="Chiudi le informazioni"
+                      aria-label="Chiudi crediti e licenza"
                       onClick={() => setInfo(false)}
                     >
                       <IconaChiudi />
