@@ -51,6 +51,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 14/10/2026 · «Sostituisci il file» di una traccia non dava più errore (da Claude Code)
+Sostituendo il file di una traccia (anche da «Rigenera da script») compariva «Non è stato possibile aggiornare la libreria tracce.». Storage rifiutava il caricamento: il file si sovrascrive con un upsert, che richiede anche il permesso di lettura, e sul bucket `tracce-audio` il facilitatore poteva caricare, aggiornare ed eliminare ma non leggere. Nuova policy SELECT solo per il facilitatore (`supabase/migrazione_storage_tracce_lettura.sql`, applicata). Il bucket resta pubblico: gli ascolti non cambiano. Nessun dato dei partecipanti.
+
 ### 14/10/2026 · Framework di layout del facilitatore, fase 1 (da Claude Code)
 Implementato `docs/brief_framework_fase1.md` (regole in `docs/framework_layout_facilitatore.md`, mockup in `docs/mockup/framework-facilitatore/`). Le rotte sotto `/admin` c'erano già (13/10): questa fase cambia il guscio e l'impaginazione.
 - **Guscio**: niente più testata con le pillole. Da 600px un rail a sinistra (compatto con icona ed etichetta; esteso da 1200px) con marchio, azione principale della sezione come FAB («Nuovo ciclo», «Nuova traccia», «Nuova comunicazione»; Sito non ne ha), le quattro voci con il badge su Cicli ed «Esci». Sotto 600px la barra in basso (`BarraVoci` in variante facilitatore, quella del partecipante non cambia), il FAB sopra ed «Esci» nel menu ⋯ della pagina.
