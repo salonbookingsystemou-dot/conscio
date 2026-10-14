@@ -51,6 +51,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 14/10/2026 · Descrizione della traccia nel player di Ascolta (da Claude Code)
+Il player a schermo intero mostra la descrizione sotto titolo e autore, prima della barra di avanzamento. Chiusa si vedono tre righe; «Leggi tutto» compare solo se il testo è più lungo e apre un riquadro scuro che scorre, così i comandi restano al loro posto; a descrizione aperta le etichette spariscono e il velo sullo sfondo si scurisce. Il pulsante «Informazioni» diventa «Crediti e licenza» e la sua scheda non ripete la descrizione (la pagina `/ascolta/:slug` la mostra ancora nella scheda). Riferimento: canvas «Conscio · Player Ascolta». Nessuna modifica al database né ai dati raccolti.
+
 ### 13/10/2026 · Anteprima dei link di Ascolta con titolo e immagine (da Cursor)
 Condividendo una meditazione, l’anteprima su WhatsApp, Telegram e social non aveva né immagine né titolo: `conscio.mnesti.it/ascolta/<slug>` non esisteva come file, GitHub Pages rispondeva con `404.html` e le anteprime non eseguono il JavaScript che porta all’app. Ora, dopo la build, `scripts/pagine-condivisione.mjs` legge `vetrina_elenco` con la chiave anon e scrive `dist/ascolta/<slug>/index.html` con `og:title`, `og:description` e `og:image` (la copertina dello sfondo, mai il video), più il rimando a `/#/ascolta/<slug>`. Se Supabase non risponde la build prosegue e resta il rimando di `404.html`. `deploy.yml` gira anche ogni mattina alle 05:45 UTC (e a mano), così una meditazione pubblicata dopo l’ultimo push ha l’anteprima entro il giorno dopo. Da telefono si condivide solo il link: titolo e descrizione arrivano dalla card di anteprima (un testo in più compariva come secondo messaggio). Nessuna modifica al database né ai dati raccolti.
 

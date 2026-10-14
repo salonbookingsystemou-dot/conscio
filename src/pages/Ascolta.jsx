@@ -40,12 +40,12 @@ function Invito({ impostazioni, slug }) {
   )
 }
 
-function Scheda({ traccia, onCondiviso, avviso }) {
+function Scheda({ traccia, onCondiviso, avviso, conDescrizione = true }) {
   const licenza = etichettaLicenza(traccia.licenza)
   const voce = etichettaVoce(traccia.voce)
   return (
     <section className="ascolta-scheda-pubblica">
-      {traccia.descrizione && <p className="ascolta-descrizione">{traccia.descrizione}</p>}
+      {conDescrizione && traccia.descrizione && <p className="ascolta-descrizione">{traccia.descrizione}</p>}
       <dl>
         {traccia.autore?.nome && (
           <div>
@@ -209,7 +209,7 @@ export default function Ascolta() {
         avviso={avviso}
         informazioni={(
           <>
-            <Scheda traccia={voce} onCondiviso={condividiVoce} avviso={avviso} />
+            <Scheda traccia={voce} onCondiviso={condividiVoce} avviso={avviso} conDescrizione={false} />
             <Invito impostazioni={impostazioni} slug={voce.slug} />
           </>
         )}
