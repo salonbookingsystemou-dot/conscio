@@ -1,4 +1,5 @@
 import { durataMp3 } from './audioMp3.js'
+import { eliminaBozzeVoce } from './scriptTraccia.js'
 import { supabase } from './supabaseClient'
 
 export const AUDIO_MAX = 50 * 1024 * 1024
@@ -390,6 +391,7 @@ export async function eliminaTraccia(traccia) {
   const { error } = await supabase.from('tracce').delete().eq('id', traccia.id)
   if (error?.code === '23503') throw erroreTracciaInUso(usi)
   if (error) throw error
+  await eliminaBozzeVoce(traccia.id)
 }
 
 export function messaggioErroreTraccia(err) {

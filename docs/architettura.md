@@ -1,6 +1,6 @@
 # Conscio · architettura dell'app
 
-Fotografia della struttura al 2/10/2026 (commit `b110be0`, ramo `main`), aggiornata il 12/10/2026 per la vetrina Ascolta e il 13/10/2026 per la navigazione del facilitatore sotto `/admin`.
+Fotografia della struttura al 2/10/2026 (commit `b110be0`, ramo `main`), aggiornata il 12/10/2026 per la vetrina Ascolta, il 13/10/2026 per la navigazione del facilitatore sotto `/admin` e il 14/10/2026 per lo script salvato sulle tracce.
 Complementare a `docs/progetto.md` (decisioni e registro) e `docs/design-system.md` (stile).
 
 ## 1. Vista d'insieme
@@ -16,7 +16,7 @@ flowchart LR
   subgraph Supabase["Supabase · region EU"]
     RPC["RPC security definer<br/>(p_codice)"]
     DB[("Postgres + RLS")]
-    ST[("Storage<br/>tracce-audio, sfondi-vetrina")]
+    ST[("Storage<br/>tracce-audio, bozze-voce, sfondi-vetrina")]
     AUTH["Auth (solo facilitatore)"]
     EF["Edge Functions"]
     TR["Trigger DB → webhook"]
@@ -65,7 +65,7 @@ flowchart LR
 | `/admin/cicli/:cicloId/{panoramica,iscritti,programma,pratica,questionari}` | idem | `pages/admin/Ciclo.jsx` (testata + schede) e `pages/admin/ciclo/*`; i dati del ciclo vengono da `useCiclo(cicloId)` |
 | `/admin/cicli/:cicloId/programma/settimana/:numero` | idem | `pages/admin/ciclo/EditorSettimana.jsx` |
 | `/admin/tracce` (`?traccia=`, `?ciclo=`, `?filtro=da-guardare\|vetrina\|non-controllate`) | idem | `pages/admin/Tracce.jsx` + `SchedaTraccia.jsx` nel `PannelloLaterale`; controlli con `useControlliTracce` |
-| `/admin/tracce/nuova?modo=carica\|genera[&sostituisci=<id>]` | idem | `pages/admin/NuovaTraccia.jsx`, `GeneraDaScript.jsx` (ElevenLabs) |
+| `/admin/tracce/nuova?modo=carica\|genera[&sostituisci=<id>]` | idem | `pages/admin/NuovaTraccia.jsx`, `GeneraDaScript.jsx` (ElevenLabs). Con `sostituisci` riapre `tracce.generazione` e l’audio dei paragrafi in `bozze-voce` |
 | `/admin/comunicazioni`, `/admin/sito` | idem | `pages/admin/Comunicazioni.jsx`, `pages/admin/Sito.jsx` |
 
 Redirect delle vecchie rotte: `/dashboard`, `/lezioni` → `/admin/cicli`; `/percorso?ciclo=X` → `/admin/cicli/X/programma`; `/percorso/:id/settimana/:n` → `…/programma/settimana/:n`; `/libreria` → `/admin/tracce`; `/genera` → `/admin/tracce/nuova?modo=genera`; `/controllo-tracce?ciclo=X` → `/admin/tracce?ciclo=X&filtro=da-guardare`; `/comunicazioni` → `/admin/comunicazioni` solo per il facilitatore.
@@ -106,7 +106,7 @@ erDiagram
 |---|---|
 | Identità e consensi | `utenti` (codice, email operativa, ruolo, `consenso_modulo_a`, `consenso_modulo_b`, `consenso_checkin_il`) |
 | Organizzazione | `cicli`, `iscrizioni` (screening, modalità `presenza`/`remoto`) |
-| Contenuti | `tracce` (con `file_aggiornato_il`, data dell’ultimo file caricato), `lezioni`, `esercizi`, `autori`, `tag`, `tracce_tag`, `controlli_tracce` (ultimo controllo di file e ascolto tecnico per traccia: stato, esiti, misure, `controllato_il`; solo facilitatore. «Da ricontrollare» quando `controllato_il < file_aggiornato_il`; i collegamenti dipendono dal ciclo e non si salvano) |
+| Contenuti | `tracce` (con `file_aggiornato_il`, data dell’ultimo file caricato, e `generazione`, la ricetta dello script: modello, voce, paragrafi; l’audio dei paragrafi sta nel bucket `bozze-voce`), `lezioni`, `esercizi`, `autori`, `tag`, `tracce_tag`, `controlli_tracce` (ultimo controllo di file e ascolto tecnico per traccia: stato, esiti, misure, `controllato_il`; solo facilitatore. «Da ricontrollare» quando `controllato_il < file_aggiornato_il`; i collegamenti dipendono dal ciclo e non si salvano) |
 | Dati di pratica | `log_pratica`, `checkin_settimanali` |
 | Misure | `questionari`, `item`, `risposte` (PSS-10, FFMQ-I · T0–T3) |
 | Comunicazione | `comunicazioni`, `notifiche_inattivita`, `promemoria_questionari`, `promemoria_pausa`, `quotes`, `quote_sent_log` |
@@ -147,7 +147,7 @@ Condivisi in `functions/_shared/`: stile e firma email, testo di incoraggiamento
 
 - **Push su `main`** (e ogni mattina alle 05:45 UTC, o a mano) → `deploy.yml` → build Vite, poi `scripts/pagine-condivisione.mjs` scrive `dist/ascolta/<slug>/index.html` per ogni meditazione pubblica, con titolo e immagine per le anteprime dei link → GitHub Pages (dominio `conscio.mnesti.it`, `public/CNAME`). Chiavi anon in `.env.production` (pubbliche, protette da RLS).
 - **Edge Functions** distribuite a mano con `supabase functions deploy`; secret: `RESEND_API_KEY`, `RESEND_FROM`/`EMAIL_FROM`, `CRON_SECRET`, `ENCOURAGEMENT_SECRET`, `CHECKIN_WEBHOOK_SECRET`, `FACILITATORE_EMAIL`, `ELEVENLABS_API_KEY`, `CURSOR_AUTOFIX_WEBHOOK_URL`, `CURSOR_AUTOFIX_WEBHOOK_KEY`, `UNSPLASH_ACCESS_KEY`, `PEXELS_API_KEY`.
-- **Storage:** `tracce-audio` (pubblico, audio del percorso) e `sfondi-vetrina` (pubblico, foto fino a 10 MB e video fino a 50 MB; il tetto del bucket è 50 MB). Gli sfondi Unsplash restano sui loro server.
+- **Storage:** `tracce-audio` (pubblico, audio del percorso), `bozze-voce` (privato, solo facilitatore: audio dei paragrafi per rigenerare una traccia, fino a 50 MB a paragrafo) e `sfondi-vetrina` (pubblico, foto fino a 10 MB e video fino a 50 MB; il tetto del bucket è 50 MB). Gli sfondi Unsplash restano sui loro server.
 - **Migrazioni SQL** applicate manualmente (SQL editor / MCP) e sempre versionate in `supabase/`.
 - **Strumenti:** Cursor e Claude Code sul repo; Claude su claude.ai per analisi, mockup e brief (`docs/brief_*.md`, `docs/mockup/`).
 

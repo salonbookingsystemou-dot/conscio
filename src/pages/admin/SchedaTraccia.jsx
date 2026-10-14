@@ -9,6 +9,7 @@ import {
   etichettaSettimana,
   formattaTempo
 } from '../../lib/controlloTracce.js'
+import { leggiScriptTraccia } from '../../lib/scriptTraccia.js'
 import {
   eliminaTraccia,
   leggiTestoCard,
@@ -77,6 +78,7 @@ export default function SchedaTraccia({
   const [messaggio, setMessaggio] = useState(null)
   const [errore, setErrore] = useState(null)
   const [dialogo, setDialogo] = useState(null)
+  const [scriptInfo, setScriptInfo] = useState(null)
   const vetrinaRef = useRef(null)
   const fileRef = useRef(null)
   const ascoltoRef = useRef(null)
@@ -91,6 +93,14 @@ export default function SchedaTraccia({
     leggiTestoCard(traccia).then(testo => {
       if (vivo && testo) setDescrizione(testo)
     })
+    setScriptInfo(null)
+    leggiScriptTraccia(traccia.id)
+      .then(esito => {
+        if (!vivo) return
+        if (!esito.disponibile) setScriptInfo(false)
+        else setScriptInfo(esito.ricetta ? esito.ricetta.paragrafi.length : 0)
+      })
+      .catch(() => { if (vivo) setScriptInfo(false) })
     return () => { vivo = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [traccia.id])
@@ -241,6 +251,18 @@ export default function SchedaTraccia({
           </Link>
         </div>
         <p className="hint">Titolo, testo, vetrina e collegamenti restano: cambia solo l’audio.</p>
+        {scriptInfo === 0 && (
+          <p className="hint">
+            Non c’è ancora uno script salvato. Se la generi da qui, testo, pause e paragrafi già fatti restano sulla traccia.
+          </p>
+        )}
+        {scriptInfo > 0 && (
+          <p className="hint">
+            C’è lo script di questa generazione
+            {scriptInfo === 1 ? ' (1 paragrafo)' : ` (${scriptInfo} paragrafi)`}.
+            Puoi cambiarlo e rigenerare solo i paragrafi toccati.
+          </p>
+        )}
         <input
           ref={fileRef}
           type="file"

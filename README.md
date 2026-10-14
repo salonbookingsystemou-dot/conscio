@@ -148,7 +148,7 @@ Frontend e SQL/edge vanno aggiornati insieme: dopo il revoke, le RPC `stato_acce
 
 ## Generazione tracce (ElevenLabs)
 
-Dalla pagina **Genera** il facilitatore incolla uno script, sceglie modello e voce, mette le pause tra i paragrafi e salva l’MP3 in libreria. Lo script non viene scritto nel database.
+Dalla pagina **Genera** il facilitatore incolla uno script, sceglie modello e voce, mette le pause tra i paragrafi e salva l’MP3 in libreria. Con il file si salva anche lo script (`tracce.generazione` e bucket privato `bozze-voce`), così una traccia già fatta si riapre, si modifica e si rigenerano solo i paragrafi cambiati. Serve `supabase/migrazione_script_traccia.sql`.
 
 1. Imposta il secret `ELEVENLABS_API_KEY` (Dashboard Supabase → Edge Functions → Secrets).
 2. Distribuisci: `supabase functions deploy genera-voce`.

@@ -111,8 +111,8 @@ export default function NuovaTraccia() {
           <h1>{titoloPagina}</h1>
           <p className="lead">
             {idSostituisci
-              ? 'Il nuovo audio sostituisce il file della traccia. Titolo, testo, vetrina e collegamenti restano.'
-              : 'Quando la salvi, la traccia si apre nella libreria e il controllo parte da solo.'}
+              ? 'Il nuovo audio sostituisce il file della traccia. Titolo, testo, vetrina e collegamenti restano. Se lo script è già salvato, lo ritrovi qui.'
+              : 'Quando la salvi, la traccia si apre nella libreria e il controllo parte da solo. Lo script resta sulla traccia.'}
           </p>
         </div>
       </header>

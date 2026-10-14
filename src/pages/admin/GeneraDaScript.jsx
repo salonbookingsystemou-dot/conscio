@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import StatoAttesa from '../../components/StatoAttesa.jsx'
 import { durataMp3 } from '../../lib/audioMp3'
 import { rifinisciVoce, unisciPcm, wavDa } from '../../lib/rifinisciVoce'
 import { preparaMp3 } from '../../lib/tracciaFinale'
@@ -15,6 +16,7 @@ import {
   VELOCITA_PASSO,
   velocitaDi
 } from '../../lib/generaVoce'
+import { caricaAudioParagrafi, leggiScriptTraccia, salvaScriptTraccia } from '../../lib/scriptTraccia'
 import { AUDIO_MAX, creaTraccia, messaggioErroreTraccia, sostituisciFileTraccia } from '../../lib/tracce'
 
 function nuovoId() {
@@ -88,6 +90,10 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
   const [avanzamento, setAvanzamento] = useState(null)
   const [inAscolto, setInAscolto] = useState(null)
   const [file, setFile] = useState(null)
+  const [recupero, setRecupero] = useState(sostituisci?.id ? 'carico' : 'pronto')
+  const [scriptSalvato, setScriptSalvato] = useState(false)
+  const [scrittura, setScrittura] = useState(null)
+  const creataRef = useRef(sostituisci)
   const abortRef = useRef(null)
   const ascoltoRef = useRef(null)
   const audioRef = useRef(null)
@@ -123,6 +129,48 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
       })
     return () => controller.abort()
   }, [])
+
+  useEffect(() => {
+    if (!sostituisci?.id) return undefined
+    let vivo = true
+    leggiScriptTraccia(sostituisci.id)
+      .then(async (esito) => {
+        if (!vivo) return null
+        if (!esito.disponibile || !esito.ricetta) return { ricetta: null, paragrafi: null }
+        const paragrafiCaricati = await caricaAudioParagrafi(sostituisci.id, esito.ricetta.paragrafi)
+        return { ricetta: esito.ricetta, paragrafi: paragrafiCaricati }
+      })
+      .then((esito) => {
+        if (!vivo || !esito) return
+        if (!esito.ricetta) {
+          setScriptSalvato(false)
+          setRecupero('pronto')
+          return
+        }
+        const { ricetta, paragrafi: caricati } = esito
+        setModelloId(ricetta.modello)
+        if (ricetta.voceId) setVoceId(ricetta.voceId)
+        setSeed(ricetta.variazione == null ? '' : ricetta.variazione)
+        setVelocita(ricetta.velocita)
+        velocitaRef.current = ricetta.velocita
+        setPausaPredefinita(ricetta.pausaPredefinita)
+        setParagrafi(caricati)
+        setScript(firmaParagrafi(caricati))
+        setScriptSalvato(true)
+        setRecupero('pronto')
+        const mancanti = caricati.filter(p => p.audioMancante).length
+        if (mancanti > 0) {
+          const quanti = mancanti === 1
+            ? 'Non ho recuperato l’audio di un paragrafo: va rigenerato.'
+            : `Non ho recuperato l’audio di ${mancanti} paragrafi: vanno rigenerati.`
+          setAvviso(`${quanti} Gli altri sono pronti. Se è solo la rete, ricarica la pagina prima di generare tutto.`)
+        }
+      })
+      .catch(() => {
+        if (vivo) setRecupero('errore')
+      })
+    return () => { vivo = false }
+  }, [sostituisci?.id])
 
   function mostraErrore(testo) {
     setErrore(testo)
@@ -165,7 +213,19 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
     rilasciaFile()
     const prossima = paragrafi.map((p, i) => {
       if (p.id === id) {
-        return { ...p, testo, audio: null, requestId: '', modello: '', voceId: '', obsoleto: false, seed: null }
+        return {
+          ...p,
+          testo,
+          audio: null,
+          requestId: '',
+          modello: '',
+          voceId: '',
+          obsoleto: false,
+          seed: null,
+          audioSalvato: false,
+          audioFormato: null,
+          audioMancante: false
+        }
       }
       if (modello.aggancia && indice >= 0 && i > indice && p.audio) {
         return { ...p, obsoleto: true }
@@ -266,7 +326,10 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
           voceId,
           seed: semeDi(seed),
           velocita,
-          obsoleto: false
+          obsoleto: false,
+          audioSalvato: false,
+          audioFormato: null,
+          audioMancante: false
         }
       }
       if (modello.aggancia && indice >= 0 && i > indice && p.audio) {
@@ -496,6 +559,52 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
     }
   }
 
+  function statoScript() {
+    return {
+      modelloId,
+      voceId,
+      velocita,
+      variazione: seed,
+      pausaPredefinita,
+      paragrafi
+    }
+  }
+
+  function segnaAudioTenuto(esito) {
+    const saltati = new Set(esito?.omessi || [])
+    const formato = esito?.formato || 'gzip'
+    setParagrafi(lista => lista.map(p => {
+      if (!p.audio || saltati.has(p.id)) return p
+      return {
+        ...p,
+        audioSalvato: true,
+        audioFormato: p.audioSalvato ? (p.audioFormato || formato) : formato,
+        audioMancante: false
+      }
+    }))
+  }
+
+  async function salvaSoloScript() {
+    const traccia = creataRef.current
+    if (!traccia?.id) return
+    setErrore(null)
+    setAvviso(null)
+    setOccupato('script')
+    try {
+      const esito = await salvaScriptTraccia(traccia.id, statoScript(), setScrittura)
+      segnaAudioTenuto(esito)
+      setScriptSalvato(true)
+      setAvviso(esito.omessi.length
+        ? messaggioOmessi(esito.omessi.length, false)
+        : 'Script salvato. Il file in libreria è ancora quello di prima.')
+    } catch (err) {
+      mostraErrore(messaggioScript(err, false))
+    } finally {
+      setScrittura(null)
+      setOccupato(null)
+    }
+  }
+
   async function salva() {
     if (!file?.blob) return
     const nome = titolo.trim()
@@ -504,19 +613,34 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
       return
     }
     setErrore(null)
+    setAvviso(null)
     setOccupato('salva')
+    let fileSalvato = false
     try {
       const mp3 = new File([file.blob], `${nome}.mp3`, { type: 'audio/mpeg' })
       const minuti = Number.isFinite(file.secondi) && file.secondi > 0
         ? Math.max(1, Math.round(file.secondi / 60))
         : undefined
-      let traccia = sostituisci
-      if (sostituisci) await sostituisciFileTraccia(sostituisci, mp3)
-      else traccia = await creaTraccia(mp3, { titolo: nome, descrizione, durataMinuti: minuti })
+      let traccia = creataRef.current
+      if (traccia?.id) await sostituisciFileTraccia(traccia, mp3)
+      else {
+        traccia = await creaTraccia(mp3, { titolo: nome, descrizione, durataMinuti: minuti })
+        creataRef.current = traccia
+      }
+      fileSalvato = true
+      const esito = await salvaScriptTraccia(traccia.id, statoScript(), setScrittura)
+      segnaAudioTenuto(esito)
+      setScriptSalvato(true)
       setOccupato(null)
+      setScrittura(null)
+      if (esito.omessi.length) {
+        setAvviso(messaggioOmessi(esito.omessi.length, true))
+        return
+      }
       onSalvata?.(traccia)
     } catch (err) {
-      mostraErrore(messaggioErroreTraccia(err))
+      mostraErrore(fileSalvato ? messaggioScript(err, true) : messaggioErroreTraccia(err))
+      setScrittura(null)
       setOccupato(null)
     }
   }
@@ -530,13 +654,27 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
   }
 
   const generaInCorso = occupato === 'tutti' || paragrafi.some(p => occupato === p.id)
+  const introduzione = !sostituisci
+    ? 'Incolla lo script, scegli modello, voce e velocità del parlato, metti le pause tra i paragrafi. L’anteprima si ascolta qui; il file entra in libreria solo quando lo salvi. Lo script resta sulla traccia, così puoi rivederlo.'
+    : scriptSalvato
+      ? 'Testo, pause, voce e paragrafi già generati sono quelli salvati. Cambia una frase e rigenera solo i paragrafi segnati: se il modello aggancia la voce, si rifanno anche i successivi.'
+      : 'Questa traccia non ha uno script salvato. Incollalo e generalo: al salvataggio restano sulla traccia il testo, le pause e i paragrafi già fatti.'
+
+  if (recupero === 'carico') {
+    return <StatoAttesa etichetta="Recupero lo script e i paragrafi già generati…" />
+  }
+
+  if (recupero === 'errore') {
+    return (
+      <p className="avviso-errore" role="alert">
+        Non sono riuscito a leggere lo script salvato. Ricarica la pagina prima di modificare, così non viene sovrascritto.
+      </p>
+    )
+  }
 
   return (
     <>
-      <p className="hint">
-        Incolla lo script, scegli modello, voce e velocità del parlato, metti le pause tra i paragrafi.
-        L’anteprima si ascolta qui; il file entra in libreria solo quando lo salvi.
-      </p>
+      <p className="hint">{introduzione}</p>
 
       {errore && <p ref={erroreNodo} className="avviso-errore" role="alert">{errore}</p>}
       {avviso && <p className="disclaimer" role="status">{avviso}</p>}
@@ -814,6 +952,13 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
             {avanzamento && (
               <p role="status">Paragrafo {avanzamento.fatto + 1} di {avanzamento.totale}</p>
             )}
+            {scrittura?.totale > 0 && (
+              <p role="status">
+                {scrittura.fatto < scrittura.totale
+                  ? `Salvo l’audio del paragrafo ${scrittura.fatto + 1} di ${scrittura.totale}`
+                  : 'Salvo lo script…'}
+              </p>
+            )}
             <div className="azioni">
               {generaInCorso ? (
                 <button type="button" className="btn btn-ghost" onClick={interrompi}>Interrompi</button>
@@ -847,7 +992,22 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
               >
                 {occupato === 'file' ? 'Preparo il file…' : 'Prepara il file'}
               </button>
+              {sostituisci && (
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={salvaSoloScript}
+                  disabled={Boolean(occupato)}
+                >
+                  {occupato === 'script' ? 'Salvo lo script…' : 'Salva lo script'}
+                </button>
+              )}
             </div>
+            {sostituisci && (
+              <p className="genera-nota">
+                «Salva lo script» tiene testo, pause e paragrafi già generati, senza cambiare il file che ascoltano i partecipanti.
+              </p>
+            )}
             {file && (
               <div className="genera-file">
                 {file.obsoleti && (
@@ -869,6 +1029,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
                 >
                   {occupato === 'salva' ? 'Salvo…' : sostituisci ? 'Sostituisci il file' : 'Salva in libreria'}
                 </button>
+                <p className="genera-nota">Con il file si salva anche lo script.</p>
               </div>
             )}
           </div>
@@ -876,6 +1037,24 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
       )}
     </>
   )
+}
+
+function messaggioScript(err, fileSalvato) {
+  if (err?.message === 'GENERAZIONE_ASSENTE') {
+    return fileSalvato
+      ? 'Il file è in libreria, ma lo script non è stato salvato: manca l’aggiornamento del database. Quando c’è, salva di nuovo da questa pagina.'
+      : 'Lo script non è stato salvato: manca l’aggiornamento del database.'
+  }
+  if (err?.message === 'SCRIPT_VUOTO') return 'Non c’è testo da salvare.'
+  if (fileSalvato) return 'Il file è in libreria, ma lo script non è stato salvato. Riprova tra un attimo.'
+  return 'Lo script non è stato salvato. Riprova tra un attimo.'
+}
+
+function messaggioOmessi(quanti, fileSalvato) {
+  const quali = quanti === 1
+    ? 'Un paragrafo era troppo lungo per tenere l’audio: la prossima volta va rigenerato.'
+    : `${quanti} paragrafi erano troppo lunghi per tenere l’audio: la prossima volta vanno rigenerati.`
+  return fileSalvato ? `File e script salvati. ${quali}` : `Script salvato. ${quali}`
 }
 
 function vaRigenerato(paragrafo, modelloId, voceId, seed, velocita) {

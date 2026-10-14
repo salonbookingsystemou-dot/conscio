@@ -51,6 +51,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 14/10/2026 · Lo script della traccia resta salvato (da Cursor)
+Generando una traccia, testo, pause, modello, voce, velocità, variazione e l’audio di ogni paragrafo restano sulla traccia. «Rigenera da script» riapre quella bozza: si cambia una frase e si rigenerano solo i paragrafi toccati (se il modello aggancia la voce, anche i successivi). «Salva lo script» tiene la bozza senza sostituire il file che ascoltano i partecipanti. L’audio dei paragrafi sta nel bucket privato `bozze-voce`, solo per il facilitatore: non entra nella cache delle tracce e non è un dato dei partecipanti (niente informativa, export o reset). `supabase/migrazione_script_traccia.sql` è applicata. Le tracce già in libreria non hanno uno script finché non si generano di nuovo da questa pagina.
+
 ### 14/10/2026 · Descrizione della traccia nel player di Ascolta (da Claude Code)
 Il player a schermo intero mostra la descrizione sotto titolo e autore, prima della barra di avanzamento. Chiusa si vedono tre righe; «Leggi tutto» compare solo se il testo è più lungo e apre un riquadro scuro che scorre, così i comandi restano al loro posto; a descrizione aperta le etichette spariscono e il velo sullo sfondo si scurisce. Il pulsante «Informazioni» diventa «Crediti e licenza» e la sua scheda non ripete la descrizione (la pagina `/ascolta/:slug` la mostra ancora nella scheda). Riferimento: canvas «Conscio · Player Ascolta». Nessuna modifica al database né ai dati raccolti.
 
