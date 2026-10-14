@@ -51,6 +51,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 14/10/2026 · Dopo «Sostituisci il file» si sente la versione nuova (da Claude Code)
+Rigenerando una traccia, il player continuava a suonare il file vecchio. Il file nuovo prende lo stesso percorso in Storage, quindi lo stesso indirizzo, e il service worker (CacheFirst, 120 giorni) serviva la copia già salvata: al facilitatore e a chi l'aveva già ascoltata. Ora `sostituisciFileTraccia` salva l'indirizzo con `?v=<istante del caricamento>`, e lo stesso indirizzo passa a pratiche e lezioni collegate: ogni versione del file ha un indirizzo suo. L'unica traccia già sostituita con l'indirizzo vecchio («Tre minuti per riprendere fiato», 14/10) è stata corretta a mano nel database, con `file_aggiornato_il` all'ora del caricamento. Nessuna modifica allo schema né ai dati dei partecipanti.
+
 ### 14/10/2026 · «Sostituisci il file» di una traccia non dava più errore (da Claude Code)
 Sostituendo il file di una traccia (anche da «Rigenera da script») compariva «Non è stato possibile aggiornare la libreria tracce.». Storage rifiutava il caricamento: il file si sovrascrive con un upsert, che richiede anche il permesso di lettura, e sul bucket `tracce-audio` il facilitatore poteva caricare, aggiornare ed eliminare ma non leggere. Nuova policy SELECT solo per il facilitatore (`supabase/migrazione_storage_tracce_lettura.sql`, applicata). Il bucket resta pubblico: gli ascolti non cambiano. Nessun dato dei partecipanti.
 Applicata anche `supabase/migrazione_controllo_tracce.sql` del 13/10, rimasta in sospeso: gli esiti del controllo tracce ora sopravvivono al ricaricamento e compare «Da ricontrollare». Le date di modifica delle 16 tracce non sono cambiate.

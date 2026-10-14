@@ -81,7 +81,7 @@ async function sincronizzaUrlCollegamenti(tracciaId, urlVecchio, urlNuovo) {
   ])
 }
 
-async function scriviUrlConTesto(tracciaId, urlCorrente, testo) {
+async function scriviUrlConTesto(tracciaId, urlCorrente, testo, urlPrecedente = urlCorrente) {
   const urlNuovo = urlConTestoCard(urlCorrente, testo)
   const patch = {
     url: urlNuovo,
@@ -93,7 +93,7 @@ async function scriviUrlConTesto(tracciaId, urlCorrente, testo) {
     error = replica.error
   }
   if (error) throw error
-  await sincronizzaUrlCollegamenti(tracciaId, urlCorrente, urlNuovo)
+  await sincronizzaUrlCollegamenti(tracciaId, urlPrecedente, urlNuovo)
   return urlNuovo
 }
 
@@ -372,7 +372,10 @@ export async function sostituisciFileTraccia(traccia, file) {
   if (minuti) {
     await supabase.from('esercizi').update({ durata_minuti: minuti }).eq('traccia_id', traccia.id)
   }
-  await scriviUrlConTesto(traccia.id, pub.publicUrl, testo)
+  // Il file nuovo sta allo stesso percorso: senza un indirizzo nuovo il service worker
+  // (CacheFirst, 120 giorni) e il CDN continuerebbero a servire la copia vecchia.
+  const versionato = `${pub.publicUrl}?v=${Date.now()}`
+  await scriviUrlConTesto(traccia.id, versionato, testo, traccia.url)
 }
 
 function erroreTracciaInUso(collegamenti) {
