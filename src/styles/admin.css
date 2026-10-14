@@ -2578,3 +2578,23 @@
   background: transparent;
   text-align: center;
 }
+
+/* Segnalazioni di problemi in «Da fare» (pages/admin/Cicli.jsx) */
+.dash-segnalazione.is-problema .dash-segnalazione-meta .controllo-stato {
+  flex-shrink: 0;
+}
+
+.problema-esito {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-8);
+  padding: var(--space-12) var(--space-14);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  font-size: var(--fs-small);
+}
+
+.problema-esito p {
+  margin: 0;
+}

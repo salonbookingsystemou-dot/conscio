@@ -67,7 +67,7 @@ Tutto sotto `/admin`; le vecchie rotte (`/dashboard`, `/percorso…`, `/lezioni`
 
 | Schermata | Route | Blocchi |
 |---|---|---|
-| Cicli (home) | `/admin/cicli` (`?nuovo=1` apre il modulo «Nuovo ciclo», dal rail) | flusso. Barra: «Esporta dati aggregati». «Da fare» (segnalazioni difficili con «Segna come gestita» → snackbar, iscrizioni in attesa per ciclo; «Niente da fare»), card KPI (`.dash-kpi-card`), tabella cicli, «Percorsi individuali da remoto» (`RigaIscrizione`, `#remoti-liberi`), link «Questionari · tutti i cicli» |
+| Cicli (home) | `/admin/cicli` (`?nuovo=1` apre il modulo «Nuovo ciclo», dal rail) | flusso. Barra: «Esporta dati aggregati». «Da fare» (segnalazioni difficili con «Segna come gestita» → snackbar; segnalazioni di problemi dell’app con stato In lavorazione / Risolta / Non risolta, esito dell’agente e link alla pull request, «Archivia» → snackbar con «Annulla»; iscrizioni in attesa per ciclo; «Niente da fare»), card KPI (`.dash-kpi-card`), tabella cicli, «Percorsi individuali da remoto» (`RigaIscrizione`, `#remoti-liberi`), link «Questionari · tutti i cicli» |
 | Spazio del ciclo | `/admin/cicli/:id/…` | barra della pagina (`Ciclo.jsx`): «← Cicli», nome, stato, date, selettore che cambia ciclo tenendo la scheda (contesto); schede `.pagina-scheda` legate alla rotta (`role="tablist"`, `aria-current`) |
 | · Panoramica | `…/panoramica` | numeri del ciclo, date e stato, posti in presenza, link incontro, «Zona delicata» (elimina con `DialogConferma`) |
 | · Iscritti | `…/iscritti` | filtri a pillola (`.filtri-chip`): tutte, in attesa di esito, idonei, in presenza, da remoto; righe `RigaIscrizione` (esito, modalità, ritiro) |

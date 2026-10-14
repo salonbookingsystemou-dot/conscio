@@ -51,6 +51,12 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 14/10/2026 · Esito delle segnalazioni di problemi in «Da fare» (da Claude Code)
+Ogni segnalazione di un problema dell’app compare in «Da fare» su Cicli, e nel badge, finché il facilitatore non la archivia (snackbar con «Annulla»). Per ognuna: stato (In lavorazione, Risolta, Non risolta), testo, pagina, data e, quando l’agente l’ha chiusa, cosa è stato corretto o perché non è risolta, con il link alla pull request. Mai codice né email.
+- **Agente**: le istruzioni che `porta` manda a Cursor ora chiedono di chiudere **sempre**: `esito: "risolta"` con riepilogo e `pr_url` dopo aver unito la correzione, `esito: "non_risolta"` con il motivo se non corregge. Senza `esito` vale «risolta», come prima. Con «non risolta» parte solo l’email al gestore, nessuna a chi ha segnalato. `porta` ridistribuita.
+- **Database**: `supabase/migrazione_esito_segnalazioni.sql` (applicata): colonne `esito`, `pr_url`, `archiviata_il`; RPC `segnalazioni_problema_da_vedere` e `archivia_segnalazione_problema`, solo facilitatore. Esito e link entrano in `esporta_dati_del_partecipante` (stessa categoria di dati, informativa invariata); il reset cancella già la riga.
+- La tabella era vuota: dal 9/10 non sono arrivate segnalazioni. Le istruzioni nuove valgono per le prossime; l’automazione in Cursor deve solo seguire il testo che riceve.
+
 ### 14/10/2026 · Velocità del parlato solo dove ElevenLabs la applica (da Claude Code)
 Prova sulla stessa frase, stesso seed, velocità 0,70 e 1,20: Multilingual v2 passa da 14,3 a 8,2 secondi, v4 resta a 9,28 in entrambi i casi, V3 cambia a caso (10,5–11,5 s) senza seguire la velocità. Coerente con la documentazione di v4 (solo stabilità e somiglianza; niente speed né style). Ora, con v4 o V3 scelti, il cursore della velocità in «Genera da script» è disattivato con una nota (per il ritmo: punteggiatura e pause), il campione della voce si ascolta al ritmo normale, la stima non segue il cursore e i paragrafi non risultano «generati a un’altra velocità». `genera-voce` non manda più speed a V3, e a v4 manda solo stabilità e somiglianza; per v2 e Flash non cambia nulla. Funzione ridistribuita (versione 16, verifica JWT come prima). Nessuna modifica al database.
 

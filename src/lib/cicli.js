@@ -254,7 +254,7 @@ export function esportaAggregati({ ciclo, kpi, punteggi, logN }) {
  * Letture dell'area facilitatore. Ogni voce può mancare senza bloccare le
  * altre: `errori` dice quali non sono arrivate.
  */
-export async function leggiDatiCicli({ notifiche = false, segnalazioni = false } = {}) {
+export async function leggiDatiCicli({ notifiche = false, segnalazioni = false, problemi = false } = {}) {
   const richieste = [
     supabase.from('cicli').select(COLONNE_CICLO).order('data_inizio', { ascending: false }),
     supabase.from('iscrizioni').select(COLONNE_ISCRIZIONE),
@@ -263,7 +263,8 @@ export async function leggiDatiCicli({ notifiche = false, segnalazioni = false }
     notifiche
       ? supabase.from('notifiche_inattivita').select('tipo, inviata_il, utenti(codice_partecipante)')
       : Promise.resolve({ data: [] }),
-    segnalazioni ? supabase.rpc('segnalazioni_difficili_aperte') : Promise.resolve({ data: [] })
+    segnalazioni ? supabase.rpc('segnalazioni_difficili_aperte') : Promise.resolve({ data: [] }),
+    problemi ? supabase.rpc('segnalazioni_problema_da_vedere') : Promise.resolve({ data: [] })
   ]
   const risultati = await Promise.allSettled(richieste)
   const errori = new Set()
@@ -282,22 +283,49 @@ export async function leggiDatiCicli({ notifiche = false, segnalazioni = false }
     log: dato(3, 'log'),
     notifiche: dato(4, 'notifiche'),
     segnalazioni: dato(5, 'segnalazioni'),
+    problemi: dato(6, 'problemi'),
     errori
   }
 }
 
-// ── Da fare: segnalazioni aperte + iscrizioni in attesa (badge del menu) ─────
+// ── Da fare: segnalazioni aperte, segnalazioni di problemi non archiviate,
+// iscrizioni in attesa (badge del menu) ──────────────────────────────────────
 
 const EVENTO_DA_FARE = 'conscio:da-fare'
 
 export async function contaDaFare() {
-  const [seg, iscr] = await Promise.all([
+  const [seg, iscr, prob] = await Promise.all([
     supabase.rpc('segnalazioni_difficili_aperte'),
-    supabase.from('iscrizioni').select('esito_screening, utenti(stato_screening)')
+    supabase.from('iscrizioni').select('esito_screening, utenti(stato_screening)'),
+    supabase.rpc('segnalazioni_problema_da_vedere')
   ])
   const segnalazioni = seg.error ? 0 : (seg.data || []).length
   const attesa = iscr.error ? 0 : (iscr.data || []).filter(inAttesaDiEsito).length
-  return segnalazioni + attesa
+  const problemi = prob.error ? 0 : (prob.data || []).length
+  return segnalazioni + attesa + problemi
+}
+
+// ── Segnalazioni di problemi dell'app (agente Cursor) ───────────────────────
+
+export const ESITO_PROBLEMA = {
+  aperta: { etichetta: 'In lavorazione', tono: 'attesa' },
+  risolta: { etichetta: 'Risolta', tono: 'ok' },
+  non_risolta: { etichetta: 'Non risolta', tono: 'attenzione' }
+}
+
+export function esitoProblema(segnalazione) {
+  if (!segnalazione?.chiusa_il) return 'aperta'
+  return segnalazione.esito === 'non_risolta' ? 'non_risolta' : 'risolta'
+}
+
+/** Archivia (o, con false, rimette in «Da fare») una segnalazione di problema. Ritorna un messaggio d'errore o null. */
+export async function archiviaProblema(id, archivia = true) {
+  const { error } = await supabase.rpc('archivia_segnalazione_problema', { p_id: id, p_archivia: archivia })
+  if (error) return archivia
+    ? 'Non è stato possibile archiviare la segnalazione.'
+    : 'Non è stato possibile rimettere la segnalazione in «Da fare».'
+  avvisaDaFare()
+  return null
 }
 
 export function avvisaDaFare() {

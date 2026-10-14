@@ -6,12 +6,15 @@ import PaginaAdmin from '../../components/admin/PaginaAdmin.jsx'
 import { useSnackbar } from '../../components/admin/Snackbar.jsx'
 import RigaIscrizione from '../../components/RigaIscrizione.jsx'
 import {
+  ESITO_PROBLEMA,
+  archiviaProblema,
   assegnaACiclo,
   avvisaDaFare,
   calcolaKpi,
   dialogoRitiro,
   eIdoneo,
   eRemoto,
+  esitoProblema,
   esportaAggregati,
   etichettaAvanzamento,
   etichettaPeriodo,
@@ -41,7 +44,7 @@ export default function Cicli() {
   async function carica() {
     try {
       await supabase.rpc('separa_email_cicli_conclusi')
-      const letti = await leggiDatiCicli({ notifiche: true, segnalazioni: true })
+      const letti = await leggiDatiCicli({ notifiche: true, segnalazioni: true, problemi: true })
       setDati(letti)
       if (letti.errori.has('cicli')) setErrore('Non è stato possibile caricare i cicli.')
     } catch {
@@ -55,6 +58,7 @@ export default function Cicli() {
   const iscrizioni = dati?.iscrizioni || []
   const punteggi = dati?.punteggi || []
   const segnalazioni = dati?.segnalazioni || []
+  const problemi = dati?.problemi || []
 
   const kpi = useMemo(() => calcolaKpi(iscrizioni, cicli, punteggi), [iscrizioni, cicli, punteggi])
   const sessioni = useMemo(() => contaSessioni(dati?.log || []), [dati])
@@ -132,6 +136,26 @@ export default function Cicli() {
     mostra({ testo: 'Segnalazione segnata come gestita' })
   }
 
+  async function archivia(problema) {
+    setErrore(null)
+    setGestendo(problema.id)
+    const messaggio = await archiviaProblema(problema.id)
+    setGestendo(null)
+    if (messaggio) {
+      setErrore(messaggio)
+      return
+    }
+    setDati(d => ({ ...d, problemi: d.problemi.filter(p => p.id !== problema.id) }))
+    mostra({
+      testo: 'Segnalazione archiviata',
+      annulla: async () => {
+        const errore = await archiviaProblema(problema.id, false)
+        if (errore) setErrore(errore)
+        else carica()
+      }
+    })
+  }
+
   async function esegui(azione) {
     setErrore(null)
     const messaggio = await azione()
@@ -149,7 +173,7 @@ export default function Cicli() {
     })
   }
 
-  const niente = segnalazioni.length === 0 && attesePerCiclo.length === 0
+  const niente = segnalazioni.length === 0 && attesePerCiclo.length === 0 && problemi.length === 0
 
   return (
     <PaginaAdmin
@@ -216,13 +240,19 @@ export default function Cicli() {
               <h2 id="da-fare-titolo">
                 Da fare
                 {!niente && (
-                  <span className="dash-ciclo-conteggio">{segnalazioni.length + kpi.inAttesa}</span>
+                  <span className="dash-ciclo-conteggio">{segnalazioni.length + kpi.inAttesa + problemi.length}</span>
                 )}
               </h2>
               {segnalazioni.length > 0 && (
                 <p className="hint">
                   Segnalazioni dal check-in settimanale: la persona ha vissuto un momento difficile durante la pratica.
                   Contattala, poi segna la segnalazione come gestita. La nota resta solo qui.
+                </p>
+              )}
+              {problemi.length > 0 && (
+                <p className="hint">
+                  Segnalazioni di problemi dell’app, anonime: l’agente le esamina e scrive qui se le ha risolte.
+                  Archiviale quando le hai lette.
                 </p>
               )}
             </div>
@@ -259,6 +289,50 @@ export default function Cicli() {
                       onClick={() => segnaGestita(s.checkin_id)}
                     >
                       {gestendo === s.checkin_id ? 'Salvataggio…' : 'Segna come gestita'}
+                    </button>
+                  </li>
+                )
+              })}
+              {problemi.map(p => {
+                const esito = esitoProblema(p)
+                const info = ESITO_PROBLEMA[esito]
+                return (
+                  <li key={p.id} className="dash-segnalazione is-problema">
+                    <div className="dash-segnalazione-testi">
+                      <div className="dash-segnalazione-meta">
+                        <span className={`controllo-stato is-${info.tono}`}>
+                          <span className="controllo-stato-punto" aria-hidden="true" />
+                          {info.etichetta}
+                        </span>
+                        <span>Problema dell’app</span>
+                        {p.pagina && <span>· {p.pagina}</span>}
+                        {p.creata_il && <span>· {new Date(p.creata_il).toLocaleDateString('it-IT')}</span>}
+                      </div>
+                      <p className="dash-segnalazione-nota">{p.messaggio}</p>
+                      {esito === 'aperta' ? (
+                        <p className="hint">L’agente non ha ancora chiuso la segnalazione.</p>
+                      ) : (
+                        <div className="problema-esito">
+                          <p>
+                            <strong>{esito === 'risolta' ? 'Cosa è stato corretto' : 'Perché non è risolta'}</strong>
+                            {p.chiusa_il && <span className="hint"> · {new Date(p.chiusa_il).toLocaleDateString('it-IT')}</span>}
+                          </p>
+                          <p>{p.riepilogo}</p>
+                          {p.pr_url && (
+                            <a href={p.pr_url} target="_blank" rel="noopener noreferrer">
+                              Apri la pull request
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      disabled={gestendo === p.id}
+                      onClick={() => archivia(p)}
+                    >
+                      {gestendo === p.id ? 'Salvataggio…' : 'Archivia'}
                     </button>
                   </li>
                 )
