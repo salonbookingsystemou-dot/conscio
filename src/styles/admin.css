@@ -2572,11 +2572,54 @@
   grid-column: 1 / -1;
 }
 
-.pannello-dettaglio.is-vuoto .stato-vuoto {
-  margin: 0;
-  border: 0;
-  background: transparent;
+.pannello-dettaglio.is-vuoto {
+  min-height: 420px;
+  border-style: dashed;
+  border-color: var(--border-dashed);
+  background: color-mix(in srgb, var(--surface) 55%, var(--bg));
+}
+
+.pannello-vuoto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-8);
+  max-width: 340px;
+  margin: 0 auto;
+  padding: var(--space-32) var(--space-24);
   text-align: center;
+}
+
+.pannello-vuoto-icona {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: var(--space-8);
+  border-radius: var(--radius-pill);
+  background: var(--accent-indicatore);
+  color: var(--accent);
+}
+
+.pannello-vuoto-icona .icona-admin {
+  width: 28px;
+  height: 28px;
+}
+
+.pannello-vuoto-titolo {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-section);
+  line-height: var(--lh-title);
+  color: var(--ink);
+}
+
+.pannello-vuoto-testo {
+  margin: 0;
+  font-size: var(--fs-small);
+  line-height: var(--lh-body);
+  color: var(--muted);
 }
 
 /* Segnalazioni di problemi in «Da fare» (pages/admin/Cicli.jsx) */

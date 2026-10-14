@@ -5,6 +5,7 @@ import CardTracciaAudio from '../../components/CardTracciaAudio.jsx'
 import PaginaAdmin from '../../components/admin/PaginaAdmin.jsx'
 import { ElencoPannello, PannelloDettaglio } from '../../components/admin/Pannelli.jsx'
 import SplitButton from '../../components/admin/SplitButton.jsx'
+import { IconaTracce } from '../../components/admin/IconeAdmin.jsx'
 import StatoVuoto from '../../components/StatoVuoto.jsx'
 import {
   collegamentiDelCiclo,
@@ -416,6 +417,8 @@ export default function Tracce() {
         sopratitolo="Traccia"
         titolo={aperta?.titolo}
         vuoto="Scegli una traccia"
+        vuotoTesto="Aprila dall’elenco per ascoltarla, cambiarne titolo e testo, sostituire il file, metterla in vetrina o controllarla."
+        vuotoIcona={IconaTracce}
       >
         {aperta && (
           <SchedaTraccia

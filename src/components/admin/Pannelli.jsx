@@ -1,6 +1,5 @@
 import { useEffect, useId, useRef } from 'react'
 import { dueColonne } from '../../lib/useClasseFinestra.js'
-import StatoVuoto from '../StatoVuoto.jsx'
 import { useGuscio } from './gusci.js'
 import { IconaChiudi } from './IconeAdmin.jsx'
 
@@ -13,7 +12,16 @@ export function ElencoPannello({ children, etichetta }) {
  * Dettaglio dell'elemento scelto nel layout elenco–dettaglio. Da 840px sta a destra
  * dell'elenco; sotto prende la pagina e titolo e «←» passano nella barra della pagina.
  */
-export function PannelloDettaglio({ aperto, onChiudi, titolo, sopratitolo, vuoto = 'Scegli un elemento', children }) {
+export function PannelloDettaglio({
+  aperto,
+  onChiudi,
+  titolo,
+  sopratitolo,
+  vuoto = 'Scegli un elemento',
+  vuotoTesto,
+  vuotoIcona: IconaVuoto,
+  children
+}) {
   const { classe } = useGuscio()
   const affiancato = dueColonne(classe)
   const intestazione = useRef(null)
@@ -38,7 +46,15 @@ export function PannelloDettaglio({ aperto, onChiudi, titolo, sopratitolo, vuoto
   if (!aperto) {
     return (
       <section className="pannello-dettaglio is-vuoto" aria-label="Dettaglio">
-        <StatoVuoto titolo={vuoto} />
+        <div className="pannello-vuoto" role="status">
+          {IconaVuoto && (
+            <span className="pannello-vuoto-icona" aria-hidden="true">
+              <IconaVuoto />
+            </span>
+          )}
+          <p className="pannello-vuoto-titolo">{vuoto}</p>
+          {vuotoTesto && <p className="pannello-vuoto-testo">{vuotoTesto}</p>}
+        </div>
       </section>
     )
   }
