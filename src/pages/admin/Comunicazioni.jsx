@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabaseClient'
 import DialogConferma from '../../components/DialogConferma.jsx'
-import StatoAttesa from '../../components/StatoAttesa.jsx'
+import PaginaAdmin from '../../components/admin/PaginaAdmin.jsx'
 
 const TIPI = [
   { id: 'reminder_t3', label: 'Promemoria T3 (follow-up)' },
@@ -92,6 +93,8 @@ export default function Comunicazioni() {
   const [errLetturaPausa, setErrLetturaPausa] = useState(null)
   const [caricato, setCaricato] = useState(false)
   const [errLettura, setErrLettura] = useState(null)
+  const [search, setSearch] = useSearchParams()
+  const modulo = useRef(null)
 
   async function carica() {
     const [cicliRes, comRes, notRes, candRes, ritRes, pausaRes, candPausaRes] = await Promise.all([
@@ -355,231 +358,245 @@ export default function Comunicazioni() {
     carica()
   }
 
+  // «Nuova comunicazione» è l'azione principale del guscio: ?nuova=1 porta al modulo vuoto.
+  useEffect(() => {
+    if (!caricato || search.get('nuova') !== '1') return
+    if (modificaId) annullaModifica()
+    modulo.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    modulo.current?.querySelector('select, input, textarea')?.focus({ preventScroll: true })
+    const prossima = new URLSearchParams(search)
+    prossima.delete('nuova')
+    setSearch(prossima, { replace: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [caricato, search])
+
   const daGestire = useMemo(() => lista.filter(eModificabile), [lista])
   const inviate = useMemo(() => lista.filter(c => !eModificabile(c)), [lista])
 
-  if (!caricato) return <StatoAttesa etichetta="Carico le comunicazioni…" />
-
   return (
-    <div>
-      <header className="admin-page-head">
-        <h1>Comunicazioni</h1>
-      </header>
-      {errLettura && <p className="avviso-errore" role="alert">{errLettura}</p>}
-      <p className="disclaimer">
-        Promemoria e annunci ai partecipanti di un ciclo. Il reminder T3 è in cima: è il momento
-        più a rischio di essere dimenticato. Ogni testo include il disclaimer sul percorso.
-        L’email serve solo al contatto operativo, non viene unita alle risposte dei questionari.
-      </p>
+    <PaginaAdmin
+      titolo="Comunicazioni"
+      meta="Promemoria e annunci ai partecipanti di un ciclo."
+      stato={caricato ? undefined : 'attesa'}
+      statoTesto="Carico le comunicazioni…"
+    >
+      <div className="colonna-testo">
+        {errLettura && <p className="avviso-errore" role="alert">{errLettura}</p>}
+        <p className="disclaimer">
+          Promemoria e annunci ai partecipanti di un ciclo. Il reminder T3 è in cima: è il momento
+          più a rischio di essere dimenticato. Ogni testo include il disclaimer sul percorso.
+          L’email serve solo al contatto operativo, non viene unita alle risposte dei questionari.
+        </p>
 
-      <div className="card">
-        <h3>{modificaId ? 'Modifica comunicazione' : 'Nuova comunicazione'}</h3>
-        <form onSubmit={handleSubmit}>
-          <div className="field">
-            <label>Ciclo</label>
-            <select required value={form.ciclo_id} onChange={e => setForm({ ...form, ciclo_id: e.target.value })}>
-              <option value="">Seleziona un ciclo</option>
-              {cicli.map(c => <option key={c.id} value={c.id}>{c.nome_ciclo}</option>)}
-            </select>
-          </div>
-          <div className="field">
-            <label>Destinatari</label>
-            <select value={form.destinatari} onChange={e => setForm({ ...form, destinatari: e.target.value })}>
-              {DESTINATARI.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
-            </select>
-          </div>
-          {form.destinatari === 'remoto' && (
-            <p className="disclaimer">
-              L’email arriva solo a chi segue questo ciclo da remoto.
-            </p>
-          )}
-          <div className="field">
-            <label>Tipo</label>
-            <select value={form.tipo} onChange={e => cambiaTipo(e.target.value)}>
-              {TIPI.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
-            </select>
-          </div>
-          {form.tipo === 'reminder_t3' && (
-            <p className="disclaimer">
-              T3 è il follow-up a distanza. Questo promemoria è prioritario rispetto agli altri.
-            </p>
-          )}
-          <div className="field">
-            <label>Oggetto</label>
-            <input required value={form.oggetto} onChange={e => setForm({ ...form, oggetto: e.target.value })} />
-          </div>
-          <div className="field">
-            <label>Testo</label>
-            <textarea required rows="8" value={form.testo} onChange={e => setForm({ ...form, testo: e.target.value })} />
-          </div>
-          <div className="field">
-            <label>
-              <input
-                type="checkbox"
-                checked={form.invia_ora}
-                onChange={e => setForm({ ...form, invia_ora: e.target.checked })}
-              /> Invia ora via email (Resend)
-            </label>
-          </div>
-          <div className="azioni">
-            <button className="btn" type="submit" disabled={invio || !form.ciclo_id}>
-              {invio
-                ? 'Invio in corso…'
-                : form.invia_ora
-                  ? 'Salva e invia'
-                  : modificaId
-                    ? 'Salva modifiche'
-                    : 'Salva come programmata'}
-            </button>
-            <button className="btn btn-ghost" type="button" disabled={invio} onClick={inviaProva}>
-              Invia una prova a me
-            </button>
-            {modificaId && (
-              <button className="btn btn-ghost" type="button" disabled={invio} onClick={annullaModifica}>
-                Annulla modifica
-              </button>
+        <div className="card" ref={modulo}>
+          <h3>{modificaId ? 'Modifica comunicazione' : 'Nuova comunicazione'}</h3>
+          <form onSubmit={handleSubmit}>
+            <div className="field">
+              <label>Ciclo</label>
+              <select required value={form.ciclo_id} onChange={e => setForm({ ...form, ciclo_id: e.target.value })}>
+                <option value="">Seleziona un ciclo</option>
+                {cicli.map(c => <option key={c.id} value={c.id}>{c.nome_ciclo}</option>)}
+              </select>
+            </div>
+            <div className="field">
+              <label>Destinatari</label>
+              <select value={form.destinatari} onChange={e => setForm({ ...form, destinatari: e.target.value })}>
+                {DESTINATARI.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
+              </select>
+            </div>
+            {form.destinatari === 'remoto' && (
+              <p className="disclaimer">
+                L’email arriva solo a chi segue questo ciclo da remoto.
+              </p>
             )}
-          </div>
-          {messaggio && <p>{messaggio}</p>}
-          {errore && <p className="campo-errore" role="alert">{errore}</p>}
-        </form>
-      </div>
-
-      {daGestire.map(c => (
-        <div className="card" key={c.id}>
-          <h3>
-            {c.oggetto || c.tipo}{' '}
-            <span className="badge">{c.stato}</span>
-            {c.destinatari === 'remoto' && <span className="badge">remoto</span>}
-            {c.tipo === 'reminder_t3' && <span className="badge">T3</span>}
-          </h3>
-          <p>{c.cicli?.nome_ciclo} — {new Date(c.data_invio).toLocaleDateString('it-IT')}</p>
-          <div className="azioni">
-            <button className="btn btn-ghost" type="button" disabled={invio} onClick={() => inviaDiNuovo(c.id)}>
-              Invia ora
-            </button>
-            <button className="btn btn-ghost" type="button" disabled={invio} onClick={() => iniziaModifica(c)}>
-              Modifica
-            </button>
-            <button className="btn btn-ghost is-pericolo" type="button" disabled={invio} onClick={() => chiediElimina(c)}>
-              Cancella
-            </button>
-          </div>
+            <div className="field">
+              <label>Tipo</label>
+              <select value={form.tipo} onChange={e => cambiaTipo(e.target.value)}>
+                {TIPI.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+              </select>
+            </div>
+            {form.tipo === 'reminder_t3' && (
+              <p className="disclaimer">
+                T3 è il follow-up a distanza. Questo promemoria è prioritario rispetto agli altri.
+              </p>
+            )}
+            <div className="field">
+              <label>Oggetto</label>
+              <input required value={form.oggetto} onChange={e => setForm({ ...form, oggetto: e.target.value })} />
+            </div>
+            <div className="field">
+              <label>Testo</label>
+              <textarea required rows="8" value={form.testo} onChange={e => setForm({ ...form, testo: e.target.value })} />
+            </div>
+            <div className="field">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={form.invia_ora}
+                  onChange={e => setForm({ ...form, invia_ora: e.target.checked })}
+                /> Invia ora via email (Resend)
+              </label>
+            </div>
+            <div className="azioni">
+              <button className="btn" type="submit" disabled={invio || !form.ciclo_id}>
+                {invio
+                  ? 'Invio in corso…'
+                  : form.invia_ora
+                    ? 'Salva e invia'
+                    : modificaId
+                      ? 'Salva modifiche'
+                      : 'Salva come programmata'}
+              </button>
+              <button className="btn btn-ghost" type="button" disabled={invio} onClick={inviaProva}>
+                Invia una prova a me
+              </button>
+              {modificaId && (
+                <button className="btn btn-ghost" type="button" disabled={invio} onClick={annullaModifica}>
+                  Annulla modifica
+                </button>
+              )}
+            </div>
+            {messaggio && <p>{messaggio}</p>}
+            {errore && <p className="campo-errore" role="alert">{errore}</p>}
+          </form>
         </div>
-      ))}
 
-      {inviate.length > 0 && (
+        {daGestire.map(c => (
+          <div className="card" key={c.id}>
+            <h3>
+              {c.oggetto || c.tipo}{' '}
+              <span className="badge">{c.stato}</span>
+              {c.destinatari === 'remoto' && <span className="badge">remoto</span>}
+              {c.tipo === 'reminder_t3' && <span className="badge">T3</span>}
+            </h3>
+            <p>{c.cicli?.nome_ciclo} — {new Date(c.data_invio).toLocaleDateString('it-IT')}</p>
+            <div className="azioni">
+              <button className="btn btn-ghost" type="button" disabled={invio} onClick={() => inviaDiNuovo(c.id)}>
+                Invia ora
+              </button>
+              <button className="btn btn-ghost" type="button" disabled={invio} onClick={() => iniziaModifica(c)}>
+                Modifica
+              </button>
+              <button className="btn btn-ghost is-pericolo" type="button" disabled={invio} onClick={() => chiediElimina(c)}>
+                Cancella
+              </button>
+            </div>
+          </div>
+        ))}
+
+        {inviate.length > 0 && (
+          <div className="card">
+            <h3>Comunicazioni inviate</h3>
+            <ul className="com-log">
+              {inviate.map(c => (
+                <li key={c.id}>
+                  <span className="com-log-oggetto">{c.oggetto || c.tipo}</span>
+                  <span className="com-log-meta">
+                    {c.cicli?.nome_ciclo || '—'}
+                    {' · '}
+                    {c.data_invio ? new Date(c.data_invio).toLocaleDateString('it-IT') : ''}
+                    {c.destinatari === 'remoto' ? ' · remoto' : ''}
+                    {c.tipo === 'reminder_t3' ? ' · T3' : ''}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {lista.length === 0 && <p>Nessuna comunicazione ancora registrata.</p>}
+
         <div className="card">
-          <h3>Comunicazioni inviate</h3>
-          <ul className="com-log">
-            {inviate.map(c => (
-              <li key={c.id}>
-                <span className="com-log-oggetto">{c.oggetto || c.tipo}</span>
-                <span className="com-log-meta">
-                  {c.cicli?.nome_ciclo || '—'}
+          <h3>Inattività · solo da remoto</h3>
+          <p className="disclaimer">
+            Dopo 15 giorni parte un’email: se non ha fatto l’onboarding, o se dopo
+            l’onboarding non ha ancora iniziato le pratiche. Se l’inattività continua
+            per altri 15 giorni, l’account viene chiuso: potrà iscriversi di nuovo
+            quando sarà pronto. Ogni avviso si invia una sola volta. Una copia
+            arriva anche a contact@wordpresschef.it.
+          </p>
+          <p className="hint">
+            {candidati.length === 0 && ritiri.length === 0
+              ? 'Nessun iscritto remoto in attesa di avviso o chiusura.'
+              : [
+                  candidati.length > 0
+                    ? `${candidati.length} ${candidati.length === 1 ? 'persona in attesa' : 'persone in attesa'} di avviso`
+                    : null,
+                  ritiri.length > 0
+                    ? `${ritiri.length} ${ritiri.length === 1 ? 'account in chiusura' : 'account in chiusura'}`
+                    : null
+                ].filter(Boolean).join(' · ')}
+          </p>
+          <div className="azioni">
+            <button className="btn" type="button" disabled={invioInattivita} onClick={eseguiInattivita}>
+              {invioInattivita ? 'Controllo in corso…' : 'Controlla e invia ora'}
+            </button>
+          </div>
+          {msgInattivita && <p>{msgInattivita}</p>}
+          {errInattivita && <p className="campo-errore" role="alert">{errInattivita}</p>}
+          {inattivita.length > 0 && (
+            <ul className="hint">
+              {inattivita.map(n => (
+                <li key={n.id}>
+                  {n.utenti?.codice_partecipante || '—'}
                   {' · '}
-                  {c.data_invio ? new Date(c.data_invio).toLocaleDateString('it-IT') : ''}
-                  {c.destinatari === 'remoto' ? ' · remoto' : ''}
-                  {c.tipo === 'reminder_t3' ? ' · T3' : ''}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {lista.length === 0 && <p>Nessuna comunicazione ancora registrata.</p>}
-
-      <div className="card">
-        <h3>Inattività · solo da remoto</h3>
-        <p className="disclaimer">
-          Dopo 15 giorni parte un’email: se non ha fatto l’onboarding, o se dopo
-          l’onboarding non ha ancora iniziato le pratiche. Se l’inattività continua
-          per altri 15 giorni, l’account viene chiuso: potrà iscriversi di nuovo
-          quando sarà pronto. Ogni avviso si invia una sola volta. Una copia
-          arriva anche a contact@wordpresschef.it.
-        </p>
-        <p className="hint">
-          {candidati.length === 0 && ritiri.length === 0
-            ? 'Nessun iscritto remoto in attesa di avviso o chiusura.'
-            : [
-                candidati.length > 0
-                  ? `${candidati.length} ${candidati.length === 1 ? 'persona in attesa' : 'persone in attesa'} di avviso`
-                  : null,
-                ritiri.length > 0
-                  ? `${ritiri.length} ${ritiri.length === 1 ? 'account in chiusura' : 'account in chiusura'}`
-                  : null
-              ].filter(Boolean).join(' · ')}
-        </p>
-        <div className="azioni">
-          <button className="btn" type="button" disabled={invioInattivita} onClick={eseguiInattivita}>
-            {invioInattivita ? 'Controllo in corso…' : 'Controlla e invia ora'}
-          </button>
-        </div>
-        {msgInattivita && <p>{msgInattivita}</p>}
-        {errInattivita && <p className="campo-errore" role="alert">{errInattivita}</p>}
-        {inattivita.length > 0 && (
-          <ul className="hint">
-            {inattivita.map(n => (
-              <li key={n.id}>
-                {n.utenti?.codice_partecipante || '—'}
-                {' · '}
-                {ETICHETTE_INATTIVITA[n.tipo] || n.tipo}
-                {' · '}
-                {n.inviata_il ? new Date(n.inviata_il).toLocaleDateString('it-IT') : ''}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      <div className="card">
-        <h3>Pausa di pratica</h3>
-        <p className="disclaimer">
-          Se per tre giorni di fila non risulta una meditazione ascoltata per intero,
-          parte un’email. Vale per chi è dentro un percorso aperto. Il giorno in corso
-          non conta. Ogni pausa riceve una sola email; se la persona riprende e si
-          ferma di nuovo, ne arriva un’altra. Una copia con i soli codici arriva a
-          contact@wordpresschef.it.
-        </p>
-        {errLetturaPausa
-          ? <p className="campo-errore" role="alert">{errLetturaPausa}</p>
-          : (
-            <p className="hint">
-              {candidatiPausa.length === 0
-                ? 'Nessuna persona in attesa di questa email.'
-                : `${candidatiPausa.length} ${candidatiPausa.length === 1 ? 'persona in attesa' : 'persone in attesa'}.`}
-            </p>
+                  {ETICHETTE_INATTIVITA[n.tipo] || n.tipo}
+                  {' · '}
+                  {n.inviata_il ? new Date(n.inviata_il).toLocaleDateString('it-IT') : ''}
+                </li>
+              ))}
+            </ul>
           )}
-        <div className="azioni">
-          <button className="btn" type="button" disabled={invioPausa} onClick={eseguiPausa}>
-            {invioPausa ? 'Controllo in corso…' : 'Controlla e invia ora'}
-          </button>
         </div>
-        {msgPausa && <p>{msgPausa}</p>}
-        {errPausa && <p className="campo-errore" role="alert">{errPausa}</p>}
-        {pause.length > 0 && (
-          <ul className="hint">
-            {pause.map(n => (
-              <li key={n.id}>
-                {n.utenti?.codice_partecipante || '—'}
-                {' · '}
-                {n.inviata_il ? new Date(n.inviata_il).toLocaleDateString('it-IT') : ''}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
 
-      <DialogConferma
-        aperto={!!dialogo}
-        titolo={dialogo?.titolo || ''}
-        confermaEtichetta={dialogo?.etichetta || 'Conferma'}
-        pericolo
-        onConferma={() => dialogo?.onOk?.()}
-        onAnnulla={() => setDialogo(null)}
-      >
-        {dialogo?.testo}
-      </DialogConferma>
-    </div>
+        <div className="card">
+          <h3>Pausa di pratica</h3>
+          <p className="disclaimer">
+            Se per tre giorni di fila non risulta una meditazione ascoltata per intero,
+            parte un’email. Vale per chi è dentro un percorso aperto. Il giorno in corso
+            non conta. Ogni pausa riceve una sola email; se la persona riprende e si
+            ferma di nuovo, ne arriva un’altra. Una copia con i soli codici arriva a
+            contact@wordpresschef.it.
+          </p>
+          {errLetturaPausa
+            ? <p className="campo-errore" role="alert">{errLetturaPausa}</p>
+            : (
+              <p className="hint">
+                {candidatiPausa.length === 0
+                  ? 'Nessuna persona in attesa di questa email.'
+                  : `${candidatiPausa.length} ${candidatiPausa.length === 1 ? 'persona in attesa' : 'persone in attesa'}.`}
+              </p>
+            )}
+          <div className="azioni">
+            <button className="btn" type="button" disabled={invioPausa} onClick={eseguiPausa}>
+              {invioPausa ? 'Controllo in corso…' : 'Controlla e invia ora'}
+            </button>
+          </div>
+          {msgPausa && <p>{msgPausa}</p>}
+          {errPausa && <p className="campo-errore" role="alert">{errPausa}</p>}
+          {pause.length > 0 && (
+            <ul className="hint">
+              {pause.map(n => (
+                <li key={n.id}>
+                  {n.utenti?.codice_partecipante || '—'}
+                  {' · '}
+                  {n.inviata_il ? new Date(n.inviata_il).toLocaleDateString('it-IT') : ''}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <DialogConferma
+          aperto={!!dialogo}
+          titolo={dialogo?.titolo || ''}
+          confermaEtichetta={dialogo?.etichetta || 'Conferma'}
+          pericolo
+          onConferma={() => dialogo?.onOk?.()}
+          onAnnulla={() => setDialogo(null)}
+        >
+          {dialogo?.testo}
+        </DialogConferma>
+      </div>
+    </PaginaAdmin>
   )
 }

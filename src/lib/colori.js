@@ -15,6 +15,7 @@ export const COLORI = {
   accent: '#3F5443',
   accentHover: '#2F3F33',
   accentSoft: '#E8ECE3',
+  accentIndicatore: '#DDE5D8',
   moss: '#4B6B57',
   ochre: '#A8763E',
   ochreSoft: '#F2E8DA',

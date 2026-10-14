@@ -72,7 +72,7 @@ export default function Iscritti() {
               <button
                 key={f.id}
                 type="button"
-                className={`dash-tab${filtro === f.id ? ' is-on' : ''}`}
+                className="chip"
                 aria-pressed={filtro === f.id}
                 onClick={() => setFiltro(f.id)}
               >

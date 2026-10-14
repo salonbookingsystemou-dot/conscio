@@ -2,7 +2,7 @@
    Classi di finestra M3: compatta < 600 · media 600–839 · espansa 840–1199 · ampia ≥ 1200
    (--bp-media, --bp-espansa, --bp-ampia). La classe arriva da useClasseFinestra su .admin-app. */
 .admin-app {
-  --indicatore-attivo: var(--accent-soft);
+  --indicatore-attivo: var(--accent-indicatore);
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
@@ -516,30 +516,474 @@
   background-color: var(--accent);
 }
 
-.admin-page-head {
-  margin-bottom: var(--space-24);
+/* Pagina del facilitatore (components/admin/PaginaAdmin.jsx): barra della pagina, schede, corpo */
+.pagina-admin {
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
 }
 
-.admin-page-head h1 {
+.pagina-barra {
+  padding: var(--space-32) var(--space-40) var(--space-24);
+}
+
+.admin-app.is-media .pagina-barra {
+  padding: var(--space-24) var(--space-24) var(--space-16);
+}
+
+.admin-app.is-compatta .pagina-barra {
+  padding: calc(var(--space-16) + env(safe-area-inset-top, 0px)) max(var(--space-8), env(safe-area-inset-right, 0px)) var(--space-8) max(var(--space-20), env(safe-area-inset-left, 0px));
+}
+
+.pagina-barra-sopra {
+  margin: 0 0 var(--space-4) calc(-1 * var(--space-10));
+}
+
+.pagina-indietro {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  min-height: 44px;
+  padding: 0 var(--space-14) 0 var(--space-10);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--fs-small);
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.pagina-indietro:hover {
+  color: var(--ink);
+}
+
+.pagina-indietro .icona-admin {
+  width: 20px;
+  height: 20px;
+}
+
+.pagina-indietro.is-icona {
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-left: calc(-1 * var(--space-12));
+  padding: 0;
+  color: var(--ink-2);
+}
+
+.pagina-indietro.is-icona .icona-admin {
+  width: 24px;
+  height: 24px;
+}
+
+.pagina-barra-riga {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-12) var(--space-16);
+}
+
+.admin-app.is-compatta .pagina-barra-riga {
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.pagina-barra-testi {
+  flex: 1 1 16rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.pagina-titolo {
   margin: 0;
   font-family: var(--font-display);
   font-weight: 400;
   font-size: var(--fs-display);
   line-height: var(--lh-display);
   color: var(--ink);
+  overflow-wrap: anywhere;
 }
 
-.admin-page-head p {
-  margin: var(--space-10) 0 0;
+.pagina-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4) var(--space-8);
+  font-size: var(--fs-small);
   color: var(--muted);
-  font-size: var(--fs-body);
 }
 
-.admin-toolbar {
+.pagina-barra-azioni {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-8);
+}
+
+/* Su telefono contesto e azione secondaria vanno sotto il titolo; il menu ⋯ resta accanto. */
+.admin-app.is-compatta .pagina-barra-testi {
+  flex: 1 1 0;
+}
+
+.admin-app.is-compatta .pagina-barra-azioni {
+  order: 3;
+  flex: 1 0 100%;
+  justify-content: flex-start;
+  padding-top: var(--space-8);
+}
+
+.pagina-contesto .selettore-ciclo {
+  margin: 0;
+}
+
+/* Schede: una rotta ciascuna */
+.pagina-schede {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  padding: 0 var(--space-24);
+  border-bottom: 1px solid var(--border);
+}
+
+.pagina-schede::-webkit-scrollbar {
+  display: none;
+}
+
+.admin-app.is-media .pagina-schede {
+  padding: 0 var(--space-8);
+}
+
+.admin-app.is-compatta .pagina-schede {
+  padding: 0 max(var(--space-4), env(safe-area-inset-left, 0px));
+}
+
+.pagina-scheda {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 var(--space-16);
+  border-bottom: 3px solid transparent;
+  color: var(--ink-2);
+  font-size: var(--fs-small);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.pagina-scheda:hover {
+  color: var(--ink);
+}
+
+.pagina-scheda.is-on {
+  border-bottom-color: var(--accent);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.pagina-scheda:focus-visible {
+  outline-offset: -2px;
+}
+
+/* Corpo */
+.pagina-corpo {
+  padding: 0 var(--space-40) var(--space-40);
+}
+
+.admin-app.is-media .pagina-corpo {
+  padding: 0 var(--space-24) var(--space-32);
+}
+
+.admin-app.is-compatta .pagina-corpo {
+  padding: 0 max(var(--space-16), env(safe-area-inset-right, 0px)) var(--space-24) max(var(--space-16), env(safe-area-inset-left, 0px));
+}
+
+.pagina-schede + .pagina-corpo {
+  padding-top: var(--space-24);
+}
+
+/* Flusso: griglia a 12 colonne, i blocchi di oggi a tutta riga */
+.pagina-admin.is-flusso .pagina-corpo {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--space-24);
+  align-content: start;
+}
+
+.admin-app.is-compatta .pagina-admin.is-flusso .pagina-corpo {
+  gap: var(--space-16);
+}
+
+.pagina-admin.is-flusso .pagina-corpo > * {
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin-top: 0;
+}
+
+/* Testi e moduli lunghi: otto colonne da 840px, così le righe restano leggibili. */
+.admin-app:is(.is-espansa, .is-ampia) .pagina-admin.is-flusso .pagina-corpo > .colonna-testo {
+  grid-column: 1 / span 8;
+}
+
+/* Elenco–dettaglio */
+.pagina-admin.is-elenco-dettaglio .pagina-corpo {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-24);
+}
+
+.elenco-pannello {
+  flex: 0 0 var(--pannello-elenco);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.admin-app:is(.is-compatta, .is-media) .elenco-pannello {
+  flex: 1 1 auto;
+}
+
+.pannello-dettaglio {
+  position: sticky;
+  top: var(--space-24);
+  flex: 1 1 auto;
+  min-width: 0;
+  max-height: calc(100dvh - var(--space-48));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+}
+
+.pannello-dettaglio.is-vuoto {
+  justify-content: center;
+  min-height: 320px;
+}
+
+.pannello-dettaglio.is-pagina {
+  position: static;
+  max-height: none;
+  overflow: visible;
+  gap: var(--space-16);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.pannello-dettaglio-testa {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-12);
+  padding: var(--space-24) var(--space-16) var(--space-16) var(--space-24);
+  background: var(--surface);
+}
+
+.pannello-dettaglio-titoli {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.pannello-dettaglio-titoli h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-section);
+  line-height: var(--lh-title);
+}
+
+.pannello-dettaglio-titoli h2:focus {
+  outline: none;
+}
+
+.pannello-dettaglio-sopratitolo {
+  margin: 0 0 var(--space-6);
+  font-size: var(--fs-eyebrow);
+  font-weight: 600;
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pannello-dettaglio-corpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding: 0 var(--space-24) var(--space-24);
+}
+
+.pannello-dettaglio :is(.avviso-errore, .disclaimer) {
+  margin: 0;
+}
+
+.pannello-dettaglio .dash-ciclo-sezione-testa {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-12);
-  margin-bottom: var(--space-20);
+}
+
+.pannello-dettaglio .dash-ciclo-sezione .controllo-esiti {
+  margin-bottom: var(--space-12);
+}
+
+.pannello-dettaglio .dash-ciclo-sezione > .hint {
+  margin: 0 0 var(--space-12);
+}
+
+/* Pannello di supporto */
+.pagina-admin.is-supporto .pagina-corpo {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-24);
+}
+
+.admin-app:is(.is-compatta, .is-media) .pagina-admin.is-supporto .pagina-corpo {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.area-principale {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.area-principale > * {
+  margin: 0;
+}
+
+.pannello-supporto {
+  position: sticky;
+  top: var(--space-24);
+  flex: 0 0 var(--pannello-supporto);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+  padding: var(--space-20);
+  border-radius: var(--radius-xl);
+  background: var(--surface-rail);
+}
+
+.admin-app:is(.is-compatta, .is-media) .pannello-supporto {
+  position: static;
+  flex-basis: auto;
+}
+
+.pannello-supporto > * {
+  margin: 0;
+}
+
+/* Menu ⋯ e menu dello split button (components/admin/MenuAzioni.jsx) */
+.menu-azioni {
+  position: relative;
+  display: inline-flex;
+}
+
+.menu-azioni-elenco {
+  position: absolute;
+  top: calc(100% + var(--space-4));
+  z-index: 50;
+  min-width: 220px;
+  margin: 0;
+  padding: var(--space-8) 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+}
+
+.menu-azioni-elenco.is-destra {
+  right: 0;
+}
+
+.menu-azioni-elenco.is-sinistra {
+  left: 0;
+}
+
+.menu-azioni-voce {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-10) var(--space-16);
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-small);
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu-azioni-voce.is-pericolo {
+  color: var(--danger);
+}
+
+/* Split button (components/admin/SplitButton.jsx) */
+.split-button {
+  display: inline-flex;
+  gap: var(--space-2);
+}
+
+.split-button-azione {
+  border-radius: var(--radius-md) 4px 4px var(--radius-md);
+}
+
+.split-button-freccia {
+  padding: 0 var(--space-10);
+  border-radius: 4px var(--radius-md) var(--radius-md) 4px;
+}
+
+.split-button-freccia .icona-admin {
+  width: 20px;
+  height: 20px;
+}
+
+.split-button-freccia[aria-expanded='true'] .icona-admin {
+  transform: rotate(180deg);
+}
+
+/* Chip di filtro */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  height: 32px;
+  padding: 0 var(--space-12);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background-color: transparent;
+  color: var(--ink-2);
+  font-family: inherit;
+  font-size: var(--fs-meta);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.chip:is(.is-on, [aria-pressed='true'], [aria-current='page']) {
+  border-color: var(--indicatore-attivo);
+  background-color: var(--indicatore-attivo);
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .admin-cerca {
@@ -1004,15 +1448,6 @@
 }
 
 @media (max-width: 640px) {
-  .admin-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .admin-toolbar .btn {
-    width: 100%;
-  }
-
   .admin-riga {
     flex-direction: column;
   }
@@ -1894,10 +2329,6 @@
   }
 }
 
-.admin-toolbar .vetrina-stato {
-  margin: 0;
-  flex: 0 1 14rem;
-}
 .admin-riga-titolo .badge {
   margin-left: var(--space-8);
 }
@@ -2042,12 +2473,6 @@
   text-align: center;
 }
 
-a.dash-tab {
-  display: inline-flex;
-  align-items: center;
-  text-decoration: none;
-}
-
 .filtri-chip {
   display: flex;
   flex-wrap: wrap;
@@ -2082,7 +2507,7 @@ a.dash-tab {
 }
 
 .admin-riga.is-attiva {
-  background: var(--tint);
+  background: var(--surface-muted);
 }
 
 .controllo-stato.is-non-controllata,
@@ -2096,99 +2521,60 @@ a.dash-tab {
   color: var(--ochre-strong);
 }
 
-/* Pannello laterale (components/PannelloLaterale.jsx) */
-.pannello {
-  position: fixed;
-  inset: 0 0 0 auto;
-  width: min(560px, 100vw);
-  max-width: 100vw;
-  height: 100dvh;
-  max-height: 100dvh;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-left: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--ink);
-  font-family: var(--font-body);
-  box-shadow: var(--shadow-dialog);
-}
-
-.pannello::backdrop {
-  background: var(--backdrop);
-}
-
-.pannello-interno {
+/* Elenco delle tracce nel layout elenco–dettaglio */
+.elenco-tracce-strumenti {
   display: flex;
   flex-direction: column;
-  height: 100%;
-}
-
-.pannello-testa {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
   gap: var(--space-12);
-  padding: calc(var(--space-16) + env(safe-area-inset-top, 0px)) var(--space-24) var(--space-16);
+  padding: var(--space-16) var(--space-16) var(--space-12);
   border-bottom: 1px solid var(--border-soft);
-  background: var(--surface);
 }
 
-.pannello-testa h2 {
+.elenco-tracce-strumenti :is(.field, .filtri-chip, .admin-cerca) {
   margin: 0;
+}
+
+.elenco-pannello > :is(.avviso-errore, .disclaimer, .controllo-avanzamento, .dash-ciclo-sezione) {
+  margin: 0;
+}
+
+.pannello-supporto-titolo {
+  font-family: var(--font-display);
+  font-weight: 400;
   font-size: var(--fs-section);
   line-height: var(--lh-title);
 }
 
-.pannello-sopratitolo {
-  margin: 0 0 var(--space-2);
-  font-size: var(--fs-eyebrow);
-  font-weight: 600;
-  letter-spacing: var(--ls-eyebrow);
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.pannello-corpo {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-16);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: var(--space-20) var(--space-24) calc(var(--space-32) + env(safe-area-inset-bottom, 0px));
-}
-
-.pannello-corpo > .avviso-errore,
-.pannello-corpo > .disclaimer {
+.pannello-supporto p {
   margin: 0;
 }
 
-.pannello .dash-ciclo-sezione-testa {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+/* Righe dell'elenco tracce nella colonna stretta: stato e azioni in colonna a destra, il titolo prende il resto. */
+.elenco-tracce .admin-riga {
+  flex-direction: row;
   gap: var(--space-12);
+  padding: var(--space-14) var(--space-16) var(--space-14) var(--space-20);
 }
 
-.pannello .dash-ciclo-sezione .controllo-esiti {
-  margin-bottom: var(--space-12);
+.elenco-tracce .admin-riga-testi {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
-.pannello .dash-ciclo-sezione > .hint {
-  margin: 0 0 var(--space-12);
+.elenco-tracce .admin-riga-azioni {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-items: end;
+  gap: var(--space-4);
 }
 
-@media (max-width: 719px) {
-  .pannello {
-    width: 100vw;
-    border-left: 0;
-    box-shadow: none;
-  }
+.elenco-tracce .admin-riga-azioni .controllo-stato {
+  grid-column: 1 / -1;
+}
 
-  .pannello-testa,
-  .pannello-corpo {
-    padding-left: max(var(--space-16), env(safe-area-inset-left, 0px));
-    padding-right: max(var(--space-16), env(safe-area-inset-right, 0px));
-  }
+.pannello-dettaglio.is-vuoto .stato-vuoto {
+  margin: 0;
+  border: 0;
+  background: transparent;
+  text-align: center;
 }

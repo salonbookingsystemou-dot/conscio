@@ -41,6 +41,9 @@
   --accent: #3F5443;
   --accent-hover: #2F3F33;
   --accent-soft: #E8ECE3;
+  /* Indicatore della voce attiva su --surface-rail (rail, barra in basso, chip scelti):
+     --accent-soft lì non si distingue. */
+  --accent-indicatore: #DDE5D8;
   --on-accent: #FFFFFF;
   --moss: #4B6B57;
   --moss-light: #8BA792;
@@ -108,6 +111,7 @@
   --space-28: 28px;
   --space-32: 32px;
   --space-36: 36px;
+  --space-40: 40px;
   --space-44: 44px;
   --space-48: 48px;
 

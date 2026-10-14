@@ -1,26 +1,29 @@
 import { Link } from 'react-router-dom'
 import EditorSplash from '../../components/EditorSplash.jsx'
 import EditorVetrina from '../../components/EditorVetrina.jsx'
+import PaginaAdmin from '../../components/admin/PaginaAdmin.jsx'
+import { AreaPrincipale, PannelloSupporto } from '../../components/admin/Pannelli.jsx'
 import { EMAIL_CONTATTO, STRUMENTI } from '../../lib/contatti.js'
 
 export default function Sito() {
   return (
-    <>
-      <header className="dash-panel-testa">
-        <div>
-          <h1>Sito</h1>
-          <p className="lead">Frase di apertura, vetrina Ascolta e limiti d’uso dei dati.</p>
-        </div>
-        <div className="dash-panel-azioni">
-          <Link className="btn btn-ghost" to="/ascolta" target="_blank" rel="noopener noreferrer">
-            Apri Ascolta
-          </Link>
-        </div>
-      </header>
-      <EditorSplash />
-      <EditorVetrina />
-      <div className="card">
-        <h3>Uso dei dati e dei punteggi</h3>
+    <PaginaAdmin
+      titolo="Sito"
+      meta="Frase di apertura, vetrina Ascolta e limiti d’uso dei dati."
+      azione={(
+        <Link className="btn btn-ghost" to="/ascolta" target="_blank" rel="noopener noreferrer">
+          Apri Ascolta
+        </Link>
+      )}
+      layout="supporto"
+    >
+      <AreaPrincipale>
+        <EditorSplash />
+        <EditorVetrina />
+      </AreaPrincipale>
+      {/* EditorSplash non ha ancora un'anteprima: il pannello tiene la nota sull'uso dei dati. */}
+      <PannelloSupporto etichetta="Uso dei dati e dei punteggi">
+        <h2 className="pannello-supporto-titolo">Uso dei dati e dei punteggi</h2>
         <p>
           I totali PSS-10 e FFMQ-I sono numeri grezzi sul range dello strumento.
           Non sono una valutazione clinica. Non usarli per triage, esclusione,
@@ -37,7 +40,7 @@ export default function Sito() {
           {' · '}
           <Link to="/documenti/diritti">Procedura diritti</Link>
         </p>
-      </div>
-    </>
+      </PannelloSupporto>
+    </PaginaAdmin>
   )
 }

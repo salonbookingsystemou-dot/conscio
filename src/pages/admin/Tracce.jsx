@@ -2,8 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import AdminDialogo from '../../components/AdminDialogo.jsx'
 import CardTracciaAudio from '../../components/CardTracciaAudio.jsx'
-import PannelloLaterale from '../../components/PannelloLaterale.jsx'
-import StatoAttesa from '../../components/StatoAttesa.jsx'
+import PaginaAdmin from '../../components/admin/PaginaAdmin.jsx'
+import { ElencoPannello, PannelloDettaglio } from '../../components/admin/Pannelli.jsx'
+import SplitButton from '../../components/admin/SplitButton.jsx'
 import StatoVuoto from '../../components/StatoVuoto.jsx'
 import {
   collegamentiDelCiclo,
@@ -196,214 +197,227 @@ export default function Tracce() {
     }
   }, [tracce, cicloId, nelCiclo, statiVetrina, statoDi])
 
-  if (tracce === null) return <StatoAttesa etichetta="Carico la libreria tracce…" />
-
   const caricaCiclo = cicloId && !nelCiclo && !erroreCiclo
   const senzaLibreria = nelCiclo?.senzaLibreria || []
+  const pronte = tracce !== null && controlli.controlli !== null
+  const delCiclo = (tracce || []).filter(t => nelCiclo?.perTraccia.has(t.id))
+
+  const opzioniControllo = [
+    { etichetta: `Tutte le tracce (${(tracce || []).length})`, onClick: () => controlli.controllaTutte(tracce || []) },
+    { etichetta: `Solo quelle in elenco (${filtrate.length})`, onClick: () => controlli.controllaTutte(filtrate) }
+  ]
+  if (ciclo && nelCiclo) {
+    opzioniControllo.push({
+      etichetta: `Solo ${ciclo.nome_ciclo} (${delCiclo.length})`,
+      onClick: () => controlli.controllaTutte(delCiclo)
+    })
+  }
+
+  const meta = tracce === null ? null : [
+    `${tracce.length} ${tracce.length === 1 ? 'traccia' : 'tracce'}`,
+    conteggiFiltri['da-guardare'] > 0 && !cicloId ? `${conteggiFiltri['da-guardare']} da guardare` : null
+  ].filter(Boolean).join(' · ')
 
   return (
-    <>
-      <header className="dash-panel-testa">
-        <div>
-          <h1>Tracce</h1>
-          <p className="lead">I file audio delle pratiche: crea, modifica, pubblica in vetrina e controlla che si sentano bene.</p>
-        </div>
-        <div className="dash-panel-azioni">
-          {controlli.occupato ? (
-            <button type="button" className="btn btn-ghost" onClick={controlli.interrompi}>Interrompi</button>
-          ) : (
-            <button
-              type="button"
-              className="btn btn-ghost"
-              disabled={filtrate.length === 0 || controlli.controlli === null}
-              onClick={() => controlli.controllaTutte(filtrate)}
-            >
-              Controlla tutte
+    <PaginaAdmin
+      titolo="Tracce"
+      meta={meta || 'I file audio delle pratiche: crea, modifica, pubblica in vetrina e controlla che si sentano bene.'}
+      azione={tracce !== null && (controlli.occupato ? (
+        <button type="button" className="btn btn-tonal" onClick={controlli.interrompi}>Interrompi</button>
+      ) : (
+        <SplitButton
+          etichetta="Controlla tutte"
+          etichettaMenu="Scegli quali tracce controllare"
+          disabled={!pronte || tracce.length === 0}
+          onClick={() => controlli.controllaTutte(tracce)}
+          opzioni={opzioniControllo}
+        />
+      ))}
+      layout="elenco-dettaglio"
+      stato={tracce === null ? 'attesa' : undefined}
+      statoTesto="Carico la libreria tracce…"
+    >
+      <ElencoPannello>
+        {controlli.coda && (
+          <p className="controllo-avanzamento" role="status">
+            {controlli.coda.fase === 'file'
+              ? `Controllo i file di ${controlli.coda.totale} tracce…`
+              : `Ascolto la traccia ${controlli.coda.fatto + 1} di ${controlli.coda.totale}: «${controlli.coda.titolo}». Scarico e decodifico il file intero.`}
+          </p>
+        )}
+        {errore && <p className="avviso-errore" role="alert">{errore}</p>}
+        {controlli.errore && <p className="avviso-errore" role="alert">{controlli.errore}</p>}
+        {!controlli.salvabili && (
+          <p className="disclaimer">
+            Manca la tabella dei controlli nel database: i risultati restano visibili finché non ricarichi la pagina.
+          </p>
+        )}
+        {erroreCiclo && <p className="avviso-errore" role="alert">{erroreCiclo}</p>}
+        {tracciaId && !aperta && tracce !== null && (
+          <p className="avviso-errore" role="alert">
+            La traccia richiesta non è più in libreria.{' '}
+            <button type="button" className="btn-text" onClick={() => aggiornaRicerca({ traccia: '' }, { replace: true })}>
+              Chiudi
             </button>
-          )}
-          <Link className="btn" to="/admin/tracce/nuova">Nuova traccia</Link>
-        </div>
-      </header>
+          </p>
+        )}
 
-      {controlli.coda && (
-        <p className="controllo-avanzamento" role="status">
-          {controlli.coda.fase === 'file'
-            ? `Controllo i file di ${controlli.coda.totale} tracce…`
-            : `Ascolto la traccia ${controlli.coda.fatto + 1} di ${controlli.coda.totale}: «${controlli.coda.titolo}». Scarico e decodifico il file intero.`}
-        </p>
-      )}
-      {errore && <p className="avviso-errore" role="alert">{errore}</p>}
-      {controlli.errore && <p className="avviso-errore" role="alert">{controlli.errore}</p>}
-      {!controlli.salvabili && (
-        <p className="disclaimer">
-          Manca la tabella dei controlli nel database: i risultati restano visibili finché non ricarichi la pagina.
-        </p>
-      )}
-
-      <div className="admin-toolbar">
-        <label className="admin-cerca">
-          <IconaLente />
-          <span className="visually-hidden">Cerca traccia</span>
-          <input
-            type="search"
-            value={ricerca}
-            onChange={e => setRicerca(e.target.value)}
-            placeholder="Cerca una traccia…"
-          />
-        </label>
-        <div className="field vetrina-stato">
-          <label htmlFor="tracce-ciclo" className="visually-hidden">Usate nel ciclo</label>
-          <select
-            id="tracce-ciclo"
-            value={cicloId}
-            disabled={controlli.occupato}
-            onChange={e => aggiornaRicerca({ ciclo: e.target.value }, { replace: true })}
-          >
-            <option value="">Tutti i cicli</option>
-            {cicli.map(c => (
-              <option key={c.id} value={c.id}>Usate in {c.nome_ciclo}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div className="filtri-chip" role="group" aria-label="Filtra le tracce">
-        {FILTRI.map(f => (
-          <button
-            key={f.id}
-            type="button"
-            className={`dash-tab${filtro === f.id ? ' is-on' : ''}`}
-            aria-pressed={filtro === f.id}
-            onClick={() => aggiornaRicerca({ filtro: f.id === 'tutte' ? '' : f.id }, { replace: true })}
-          >
-            {f.label}{Number.isFinite(conteggiFiltri[f.id]) ? ` · ${conteggiFiltri[f.id]}` : ''}
-          </button>
-        ))}
-      </div>
-
-      {erroreCiclo && <p className="avviso-errore" role="alert">{erroreCiclo}</p>}
-
-      {senzaLibreria.length > 0 && (
-        <section className="dash-ciclo-sezione" aria-labelledby="senza-libreria">
-          <div className="dash-ciclo-sezione-testa">
-            <h2 id="senza-libreria">Pratiche senza traccia in libreria</h2>
+        <section className="card is-lista elenco-tracce" aria-label="Elenco tracce">
+          <div className="elenco-tracce-strumenti">
+            <label className="admin-cerca">
+              <IconaLente />
+              <span className="visually-hidden">Cerca traccia</span>
+              <input
+                type="search"
+                value={ricerca}
+                onChange={e => setRicerca(e.target.value)}
+                placeholder="Cerca una traccia…"
+              />
+            </label>
+            <div className="field vetrina-stato">
+              <label htmlFor="tracce-ciclo" className="visually-hidden">Usate nel ciclo</label>
+              <select
+                id="tracce-ciclo"
+                value={cicloId}
+                disabled={controlli.occupato}
+                onChange={e => aggiornaRicerca({ ciclo: e.target.value }, { replace: true })}
+              >
+                <option value="">Tutti i cicli</option>
+                {cicli.map(c => (
+                  <option key={c.id} value={c.id}>Usate in {c.nome_ciclo}</option>
+                ))}
+              </select>
+            </div>
+            <div className="filtri-chip" role="group" aria-label="Filtra le tracce">
+              {FILTRI.map(f => (
+                <button
+                  key={f.id}
+                  type="button"
+                  className="chip"
+                  aria-pressed={filtro === f.id}
+                  onClick={() => aggiornaRicerca({ filtro: f.id === 'tutte' ? '' : f.id }, { replace: true })}
+                >
+                  {f.label}{Number.isFinite(conteggiFiltri[f.id]) ? ` · ${conteggiFiltri[f.id]}` : ''}
+                </button>
+              ))}
+            </div>
           </div>
-          <p className="hint">
-            In {ciclo?.nome_ciclo || 'questo ciclo'} queste pratiche non hanno una traccia della libreria: collegale dalla settimana.
-          </p>
-          <ul className="controllo-esiti">
-            {senzaLibreria.map(p => (
-              <li key={p.id} className={`controllo-esito is-${p.esiti.some(e => e.livello === 'errore') ? 'errore' : 'attenzione'}`}>
-                <span>{etichettaSettimana(p.settimana)} · {p.descrizione}: {p.esiti.map(e => e.testo).join(' ')}</span>
-                <Link className="btn-text" to={`/admin/cicli/${cicloId}/programma/settimana/${p.settimana}`}>
-                  Apri la settimana
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
 
-      <section className="card is-lista" aria-label="Elenco tracce">
-        {caricaCiclo ? (
-          <p className="card-vuota">Leggo le settimane del ciclo…</p>
-        ) : tracce.length === 0 ? (
-          <StatoVuoto titolo="Nessuna traccia ancora">
-            Carica un file o generalo da uno script: sarà disponibile in tutti i cicli.
-          </StatoVuoto>
-        ) : filtrate.length === 0 ? (
-          <p className="card-vuota">
-            {filtro === 'da-guardare'
-              ? 'Niente da guardare tra queste tracce.'
-              : 'Nessuna traccia corrisponde alla ricerca o al filtro.'}
-          </p>
-        ) : (
-          <ul className="admin-lista">
-            {filtrate.map(t => {
-              const minuti = durataBreve(t.durata_minuti)
-              const creata = formattaQuando(t.creato_il)
-              const modificata = formattaQuando(t.aggiornato_il)
-              const vetrina = statiVetrina[t.id]
-              return (
-                <li key={t.id} className={`admin-riga${t.id === tracciaId ? ' is-attiva' : ''}`}>
-                  <div className="admin-riga-testi">
-                    <p className="admin-riga-titolo">
+          {caricaCiclo ? (
+            <p className="card-vuota">Leggo le settimane del ciclo…</p>
+          ) : tracce?.length === 0 ? (
+            <StatoVuoto titolo="Nessuna traccia ancora">
+              Carica un file o generalo da uno script: sarà disponibile in tutti i cicli.
+            </StatoVuoto>
+          ) : filtrate.length === 0 ? (
+            <p className="card-vuota">
+              {filtro === 'da-guardare'
+                ? 'Niente da guardare tra queste tracce.'
+                : 'Nessuna traccia corrisponde alla ricerca o al filtro.'}
+            </p>
+          ) : (
+            <ul className="admin-lista">
+              {filtrate.map(t => {
+                const minuti = durataBreve(t.durata_minuti)
+                const creata = formattaQuando(t.creato_il)
+                const modificata = formattaQuando(t.aggiornato_il)
+                const vetrina = statiVetrina[t.id]
+                return (
+                  <li key={t.id} className={`admin-riga${t.id === tracciaId ? ' is-attiva' : ''}`}>
+                    <div className="admin-riga-testi">
+                      <p className="admin-riga-titolo">
+                        <button
+                          type="button"
+                          className="admin-riga-apri"
+                          aria-current={t.id === tracciaId ? 'true' : undefined}
+                          onClick={() => aggiornaRicerca({ traccia: t.id })}
+                        >
+                          {t.titolo}
+                        </button>
+                        {minuti && <span className="admin-riga-durata"> · {minuti}</span>}
+                        {!vetrina?.pubblica && vetrina?.stato_revisione === 'in-revisione' && (
+                          <span className="badge">In revisione</span>
+                        )}
+                        {!vetrina?.pubblica && vetrina?.stato_revisione === 'approvata' && (
+                          <span className="badge">Approvata</span>
+                        )}
+                      </p>
+                      {(creata || modificata) && (
+                        <p className="admin-riga-date">
+                          {creata && <time dateTime={t.creato_il}>Creata il {creata}</time>}
+                          {creata && modificata && ' · '}
+                          {modificata && <time dateTime={t.aggiornato_il}>modificata il {modificata}</time>}
+                        </p>
+                      )}
+                      <label className="vetrina-spunta">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(vetrina?.pubblica)}
+                          disabled={inVetrina === t.id || !t.url}
+                          onChange={e => cambiaVetrina(t, e.target.checked)}
+                        />
+                        <span>In vetrina</span>
+                      </label>
+                    </div>
+                    <div className="admin-riga-azioni">
+                      <BadgeStato stato={statoDi(t)} />
                       <button
                         type="button"
-                        className="admin-riga-apri"
+                        className="admin-icon-btn"
+                        aria-label={`Ascolta ${t.titolo}`}
+                        title="Ascolta"
+                        disabled={!t.url}
+                        onClick={() => setAscolta(t)}
+                      >
+                        <IconaAscolto />
+                      </button>
+                      <button
+                        type="button"
+                        className="admin-icon-btn"
+                        aria-label={`Apri la scheda di ${t.titolo}`}
+                        title="Modifica, file, vetrina, controllo"
                         onClick={() => aggiornaRicerca({ traccia: t.id })}
                       >
-                        {t.titolo}
+                        <IconaAltro />
                       </button>
-                      {minuti && <span className="admin-riga-durata"> · {minuti}</span>}
-                      {!vetrina?.pubblica && vetrina?.stato_revisione === 'in-revisione' && (
-                        <span className="badge">In revisione</span>
-                      )}
-                      {!vetrina?.pubblica && vetrina?.stato_revisione === 'approvata' && (
-                        <span className="badge">Approvata</span>
-                      )}
-                    </p>
-                    {(creata || modificata) && (
-                      <p className="admin-riga-date">
-                        {creata && <time dateTime={t.creato_il}>Creata il {creata}</time>}
-                        {creata && modificata && ' · '}
-                        {modificata && <time dateTime={t.aggiornato_il}>modificata il {modificata}</time>}
-                      </p>
-                    )}
-                    <label className="vetrina-spunta">
-                      <input
-                        type="checkbox"
-                        checked={Boolean(vetrina?.pubblica)}
-                        disabled={inVetrina === t.id || !t.url}
-                        onChange={e => cambiaVetrina(t, e.target.checked)}
-                      />
-                      <span>In vetrina</span>
-                    </label>
-                  </div>
-                  <div className="admin-riga-azioni">
-                    <BadgeStato stato={statoDi(t)} />
-                    <button
-                      type="button"
-                      className="admin-icon-btn"
-                      aria-label={`Ascolta ${t.titolo}`}
-                      title="Ascolta"
-                      disabled={!t.url}
-                      onClick={() => setAscolta(t)}
-                    >
-                      <IconaAscolto />
-                    </button>
-                    <button
-                      type="button"
-                      className="admin-icon-btn"
-                      aria-label={`Apri la scheda di ${t.titolo}`}
-                      title="Modifica, file, vetrina, controllo"
-                      onClick={() => aggiornaRicerca({ traccia: t.id })}
-                    >
-                      <IconaAltro />
-                    </button>
-                  </div>
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </section>
+
+        {senzaLibreria.length > 0 && (
+          <section className="dash-ciclo-sezione" aria-labelledby="senza-libreria">
+            <div className="dash-ciclo-sezione-testa">
+              <h2 id="senza-libreria">Pratiche senza traccia in libreria</h2>
+            </div>
+            <p className="hint">
+              In {ciclo?.nome_ciclo || 'questo ciclo'} queste pratiche non hanno una traccia della libreria: collegale dalla settimana.
+            </p>
+            <ul className="controllo-esiti">
+              {senzaLibreria.map(p => (
+                <li key={p.id} className={`controllo-esito is-${p.esiti.some(e => e.livello === 'errore') ? 'errore' : 'attenzione'}`}>
+                  <span>{etichettaSettimana(p.settimana)} · {p.descrizione}: {p.esiti.map(e => e.testo).join(' ')}</span>
+                  <Link className="btn-text" to={`/admin/cicli/${cicloId}/programma/settimana/${p.settimana}`}>
+                    Apri la settimana
+                  </Link>
                 </li>
-              )
-            })}
-          </ul>
+              ))}
+            </ul>
+          </section>
         )}
-      </section>
+      </ElencoPannello>
 
-      {tracciaId && !aperta && (
-        <p className="avviso-errore" role="alert">
-          La traccia richiesta non è più in libreria.{' '}
-          <button type="button" className="btn-text" onClick={() => aggiornaRicerca({ traccia: '' }, { replace: true })}>
-            Chiudi
-          </button>
-        </p>
-      )}
-
-      {aperta && (
-        <PannelloLaterale
-          sopratitolo="Traccia"
-          titolo={aperta.titolo}
-          onChiudi={() => aggiornaRicerca({ traccia: '' })}
-        >
+      <PannelloDettaglio
+        aperto={Boolean(aperta)}
+        onChiudi={() => aggiornaRicerca({ traccia: '' })}
+        sopratitolo="Traccia"
+        titolo={aperta?.titolo}
+        vuoto="Scegli una traccia"
+      >
+        {aperta && (
           <SchedaTraccia
             traccia={aperta}
             usi={collegamenti[aperta.id] || []}
@@ -422,8 +436,8 @@ export default function Tracce() {
               carica()
             }}
           />
-        </PannelloLaterale>
-      )}
+        )}
+      </PannelloDettaglio>
 
       {ascolta && (
         <AdminDialogo titolo="Ascolta" className="is-ascolto" onChiudi={() => setAscolta(null)}>
@@ -439,6 +453,6 @@ export default function Tracce() {
           </div>
         </AdminDialogo>
       )}
-    </>
+    </PaginaAdmin>
   )
 }

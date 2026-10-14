@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import StatoAttesa from '../../components/StatoAttesa.jsx'
+import PaginaAdmin from '../../components/admin/PaginaAdmin.jsx'
 import { creaTraccia, elencaTracce, messaggioErroreTraccia, titoloDaNomeFile } from '../../lib/tracce.js'
 import GeneraDaScript from './GeneraDaScript.jsx'
 
@@ -99,28 +100,17 @@ export default function NuovaTraccia() {
   const titoloPagina = idSostituisci ? 'Rigenera da script' : 'Nuova traccia'
 
   return (
-    <>
-      <Link
-        to={idSostituisci ? `/admin/tracce?traccia=${idSostituisci}` : '/admin/tracce'}
-        className="link-testuale dash-ciclo-indietro"
-      >
-        ← Tracce
-      </Link>
-      <header className="dash-panel-testa">
-        <div>
-          <h1>{titoloPagina}</h1>
-          <p className="lead">
-            {idSostituisci
-              ? 'Il nuovo audio sostituisce il file della traccia. Titolo, testo, vetrina e collegamenti restano. Se lo script è già salvato, lo ritrovi qui.'
-              : 'Quando la salvi, la traccia si apre nella libreria e il controllo parte da solo. Lo script resta sulla traccia.'}
-          </p>
-        </div>
-      </header>
-
+    <PaginaAdmin
+      titolo={titoloPagina}
+      indietro={{ a: idSostituisci ? `/admin/tracce?traccia=${idSostituisci}` : '/admin/tracce', etichetta: 'Tracce' }}
+      meta={idSostituisci
+        ? 'Il nuovo audio sostituisce il file della traccia. Titolo, testo, vetrina e collegamenti restano. Se lo script è già salvato, lo ritrovi qui.'
+        : 'Quando la salvi, la traccia si apre nella libreria e il controllo parte da solo. Lo script resta sulla traccia.'}
+    >
       {!idSostituisci && (
         <div className="filtri-chip" role="group" aria-label="Come vuoi creare la traccia">
           <Link
-            className={`dash-tab${modo === 'carica' ? ' is-on' : ''}`}
+            className="chip"
             aria-current={modo === 'carica' ? 'page' : undefined}
             to="/admin/tracce/nuova?modo=carica"
             replace
@@ -128,7 +118,7 @@ export default function NuovaTraccia() {
             Carica un file
           </Link>
           <Link
-            className={`dash-tab${modo === 'genera' ? ' is-on' : ''}`}
+            className="chip"
             aria-current={modo === 'genera' ? 'page' : undefined}
             to="/admin/tracce/nuova?modo=genera"
             replace
@@ -162,6 +152,6 @@ export default function NuovaTraccia() {
           />
         )
       )}
-    </>
+    </PaginaAdmin>
   )
 }

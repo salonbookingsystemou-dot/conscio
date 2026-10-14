@@ -11,6 +11,7 @@ const RUOTABILI = [
   ['--accent', COLORI.accent],
   ['--accent-hover', COLORI.accentHover],
   ['--accent-soft', COLORI.accentSoft],
+  ['--accent-indicatore', COLORI.accentIndicatore],
   ['--ochre', COLORI.ochre],
   ['--ochre-soft', COLORI.ochreSoft],
   ['--bg', COLORI.bg],
