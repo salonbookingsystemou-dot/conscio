@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useOutletContext, useSearchParams } from 'react-router-dom'
+import { Link, useOutletContext, useSearchParams } from 'react-router-dom'
 import {
   CartesianGrid,
   Legend,
@@ -11,6 +11,7 @@ import {
 } from 'recharts'
 import { ASSE_GRAFICO, COLORI, COLORI_STRUMENTO } from '../../../lib/colori.js'
 import { calcolaKpi, esportaAggregati } from '../../../lib/cicli.js'
+import { EMAIL_CONTATTO, STRUMENTI } from '../../../lib/contatti.js'
 
 // Metadata per la lettura intuitiva dei questionari (nessuna interpretazione clinica).
 const INFO_STRUMENTO = {
@@ -387,9 +388,24 @@ export default function Questionari() {
         {raggruppati.map(part => <SchedaCodice key={part.codice} part={part} />)}
       </div>
 
+      <section className="card dash-uso-punteggi">
+        <h3>Uso dei dati e dei punteggi</h3>
+        <p>
+          I totali PSS-10 e FFMQ-I sono numeri grezzi sul range dello strumento. Non sono una valutazione
+          clinica: non usarli per triage, esclusione, «rischio» o consiglio terapeutico. Lo screening resta
+          idoneo / in valutazione / da ricontattare.
+        </p>
+        <p className="hint">
+          Richieste di accesso, correzione o cancellazione: {EMAIL_CONTATTO}, con il codice. Per ritirare una
+          persona usa «Ritira» nella scheda Iscritti. Fonti: {STRUMENTI.map(s => s.nome).join(', ')}.
+          {' '}<Link to="/documenti/uso-punteggi">Protocollo uso punteggi</Link>
+          {' · '}
+          <Link to="/documenti/diritti">Procedura diritti</Link>
+        </p>
+      </section>
+
       <p className="dash-nota-privacy">
-        Le risposte ai questionari sono consultabili solo in forma aggregata e per codice
-        partecipante. Nessuna schermata associa un codice a un nome.
+        Le risposte ai questionari sono consultabili solo in forma aggregata e per codice partecipante.
       </p>
     </>
   )

@@ -54,6 +54,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 14/10/2026 · Pagina Sito più snella, con l’anteprima della prima schermata (da Claude Code)
+Tolti gli elementi inutili o superati: «Vedi la schermata» (per il facilitatore la pagina iniziale rimanda a Cicli, quindi non mostrava nulla), «Apri la vetrina» (doppione di «Apri Ascolta» nella barra), la nota sulle pagine «/a/…» per i social (superata: dal 13/10 le anteprime si generano a ogni pubblicazione), la seconda spiegazione della vetrina che citava ancora «Disponibile per la vetrina». «Uso dei dati e dei punteggi» parla dei punteggi PSS-10 e FFMQ-I, non del sito: ora sta in fondo alla scheda Questionari del ciclo. Al suo posto il pannello di supporto mostra l’anteprima della prima schermata, che segue frase e pulsante mentre si scrivono. La card Ascolta è divisa in tre (Vetrina Ascolta, Meditazione della settimana, Ascolti delle ultime quattro settimane); nel calendario le settimane vuote consecutive sono una riga sola. Gli esiti dei salvataggi vanno nella snackbar. Corretta anche la nota sulla privacy della scheda Questionari. Nessuna modifica al database.
+
 ### 14/10/2026 · Righe degli iscritti più leggibili (da Claude Code)
 In «Percorsi individuali da remoto» e nella scheda Iscritti ogni riga (`RigaIscrizione`) aveva codice, modalità, stato e avvisi come chip uguali, due tendine senza etichetta e un «Ritira» rosso. Ora ha tre livelli: il codice in grassetto (email al passaggio, come prima) con un solo chip, lo stato del percorso; sotto, in testo grigio, la spiegazione dello stato, «da remoto» solo dove non è ovvio e gli avvisi con la data; a destra le tendine Screening e Ciclo/Modalità, con un’intestazione di colonna unica su schermo largo e l’etichetta sopra ogni tendina su telefono. «Ritira» è nel menu ⋯ e apre la stessa conferma di prima. I ritirati sono una riga sola, senza controlli. Stesse azioni e stessi dati.
 

@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { leggiSplash, salvaSplash, SPLASH_DEFAULT } from '../lib/splash.js'
+import { useSnackbar } from './admin/Snackbar.jsx'
 
-export default function EditorSplash() {
+/** Frase e pulsante della prima schermata. `onCambio` riceve il testo mentre si scrive, per l'anteprima. */
+export default function EditorSplash({ onCambio }) {
   const [frase, setFrase] = useState(SPLASH_DEFAULT.frase)
   const [cta, setCta] = useState(SPLASH_DEFAULT.cta)
-  const [stato, setStato] = useState(null)
+  const [salvando, setSalvando] = useState(false)
   const [errore, setErrore] = useState(null)
+  const { mostra } = useSnackbar()
 
   useEffect(() => {
     leggiSplash().then(dati => {
@@ -15,27 +17,30 @@ export default function EditorSplash() {
     })
   }, [])
 
+  useEffect(() => {
+    onCambio?.({ frase, cta })
+  }, [frase, cta, onCambio])
+
   async function handleSubmit(e) {
     e.preventDefault()
     setErrore(null)
-    setStato('invio')
+    setSalvando(true)
     try {
       const salvato = await salvaSplash({ frase, cta })
       setFrase(salvato.frase)
       setCta(salvato.cta)
-      setStato('ok')
+      mostra({ testo: 'Frase aggiornata: si vede al prossimo caricamento del sito' })
     } catch {
       setErrore('Non è stato possibile salvare la frase.')
-      setStato(null)
+    } finally {
+      setSalvando(false)
     }
   }
 
   return (
-    <div className="card">
+    <section className="card">
       <h3>Frase di apertura</h3>
-      <p className="hint">
-        Compare sulla prima schermata del sito, con una breve animazione e il pulsante per proseguire.
-      </p>
+      <p className="hint">La prima schermata del sito, prima del codice. L’anteprima è a destra.</p>
       <form onSubmit={handleSubmit}>
         <div className="field">
           <label htmlFor="splash-frase">Frase</label>
@@ -45,7 +50,7 @@ export default function EditorSplash() {
             maxLength={280}
             required
             value={frase}
-            onChange={e => { setFrase(e.target.value); setStato(null) }}
+            onChange={e => setFrase(e.target.value)}
           />
         </div>
         <div className="field">
@@ -55,20 +60,29 @@ export default function EditorSplash() {
             maxLength={40}
             required
             value={cta}
-            onChange={e => { setCta(e.target.value); setStato(null) }}
+            onChange={e => setCta(e.target.value)}
           />
         </div>
+        {errore && <p className="avviso-errore" role="alert">{errore}</p>}
         <div className="azioni">
-          <button className="btn" type="submit" disabled={stato === 'invio'}>
-            {stato === 'invio' ? 'Salvataggio…' : 'Salva frase'}
+          <button className="btn" type="submit" disabled={salvando}>
+            {salvando ? 'Salvataggio…' : 'Salva frase'}
           </button>
-          <Link className="btn btn-ghost" to="/" target="_blank" rel="noopener noreferrer">
-            Vedi la schermata
-          </Link>
         </div>
-        {stato === 'ok' && <p className="hint">Frase aggiornata. Chi apre il sito la vede al prossimo caricamento.</p>}
-        {errore && <p className="hint hint-errore">{errore}</p>}
       </form>
+    </section>
+  )
+}
+
+/** Anteprima statica della prima schermata, nel pannello di supporto. */
+export function AnteprimaSplash({ frase, cta }) {
+  return (
+    <div className="anteprima-splash" aria-label="Anteprima della prima schermata">
+      <p className="anteprima-splash-marca">Percorso MBSR</p>
+      <span className="anteprima-splash-linea" aria-hidden="true" />
+      <p className="anteprima-splash-frase">{frase || 'La frase di apertura'}</p>
+      <span className="btn anteprima-splash-cta">{cta || 'Prosegui'}</span>
+      <span className="anteprima-splash-secondario">Ho già un codice</span>
     </div>
   )
 }
