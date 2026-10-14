@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import DialogConferma from '../../../components/DialogConferma.jsx'
-import RigaIscrizione from '../../../components/RigaIscrizione.jsx'
+import RigaIscrizione, { IntestazioneIscrizioni } from '../../../components/RigaIscrizione.jsx'
 import {
   dialogoRitiro,
   eIdoneo,
@@ -96,6 +96,7 @@ export default function Iscritti() {
         </div>
       ) : (
         <ul className="dash-iscrizioni">
+            <IntestazioneIscrizioni />
           {visibili.map(i => (
             <RigaIscrizione
               key={i.id}

@@ -1994,20 +1994,53 @@ a:not([class]):hover { color: var(--ink); }
 }
 .dash-iscrizione {
   display: grid;
-  gap: 10px 12px;
+  grid-template-columns: minmax(0, 1fr) 1fr 40px;
+  grid-template-areas:
+    'persona persona menu'
+    'screening secondo secondo';
+  gap: 12px;
   align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
-  grid-template-columns: 1fr;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-soft);
 }
 .dash-iscrizione:last-child { border-bottom: none; }
+.dash-iscrizione-persona { grid-area: persona; }
+.dash-iscrizione-campo:nth-of-type(1) { grid-area: screening; }
+.dash-iscrizione-campo:nth-of-type(2) { grid-area: secondo; }
+.dash-iscrizione-menu { grid-area: menu; justify-self: end; }
 @media (min-width: 720px) {
   .dash-iscrizione {
-    grid-template-columns: minmax(0, 1.3fr) minmax(8.5rem, 0.7fr) minmax(8.5rem, 0.7fr) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(9rem, 11rem) minmax(10rem, 13rem) 40px;
+    grid-template-areas: 'persona screening secondo menu';
+    gap: 16px;
   }
-  .dash-iscrizione.is-libera {
-    grid-template-columns: minmax(0, 1.3fr) minmax(8.5rem, 0.7fr) minmax(10rem, 1fr) auto;
+}
+.dash-iscrizione.is-intestazione {
+  display: none;
+}
+@media (min-width: 720px) {
+  .dash-iscrizione.is-intestazione {
+    display: grid;
+    grid-template-areas: none;
+    padding: 10px 0 8px;
+    font-size: var(--fs-eyebrow);
+    font-weight: 600;
+    letter-spacing: var(--ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--muted);
   }
+  .dash-iscrizione-campo > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+.dash-iscrizione.is-ritirato {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'persona';
 }
 .badge-modalita.is-remoto {
   background: var(--tint-ochre);
@@ -2017,20 +2050,8 @@ a:not([class]):hover { color: var(--ink); }
   background: color-mix(in srgb, var(--ink) 10%, var(--surface));
   color: var(--ink-soft);
 }
-.dash-iscrizione.is-ritirato {
-  opacity: 0.72;
-}
-.dash-iscrizione-ritirato {
-  margin: 0;
-  font-size: 13px;
-  color: var(--ink-soft);
-  font-style: italic;
-}
-@media (min-width: 720px) {
-  .dash-iscrizione-ritirato {
-    grid-column: 2 / -1;
-    text-align: right;
-  }
+.dash-iscrizione.is-ritirato .dash-iscrizione-codice {
+  color: var(--muted);
 }
 .dash-stato {
   display: inline-flex;
@@ -2300,29 +2321,59 @@ a:not([class]):hover { color: var(--ink); }
 }
 .dash-iscrizione-persona {
   display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.dash-iscrizione-testa {
+  display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 10px;
+  gap: 6px 12px;
+}
+.dash-iscrizione-codice {
+  font-size: var(--fs-body);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  cursor: help;
+}
+.dash-iscrizione-dettagli {
+  margin: 0;
+  font-size: var(--fs-meta);
+  line-height: 1.45;
+  color: var(--muted);
+}
+.dash-iscrizione-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
   min-width: 0;
+}
+.dash-iscrizione-campo > span {
+  font-size: var(--fs-eyebrow);
+  font-weight: 600;
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.dash-iscrizione-campo select {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: var(--fs-small);
+  color: var(--ink);
+  background: var(--surface);
 }
 .dash-iscrizione-email {
   font-size: 14px;
   color: var(--ink);
   overflow-wrap: anywhere;
-}
-.dash-iscrizione-esito {
-  margin: 0;
-  min-width: 0;
-}
-.dash-iscrizione-esito select {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-family: inherit;
-  font-size: 14px;
-  color: var(--ink);
-  background: var(--surface);
 }
 .dash-ciclo-pericolo {
   display: flex;
@@ -2548,7 +2599,6 @@ a:not([class]):hover { color: var(--ink); }
   color: var(--ink);
   background: var(--surface);
 }
-.dash-iscrizione-azioni-ritira { align-self: flex-end; }
 
 .pratica-blocco {
   border-top: 1px solid var(--border);

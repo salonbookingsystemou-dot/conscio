@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabaseClient'
 import DialogConferma from '../../components/DialogConferma.jsx'
 import PaginaAdmin from '../../components/admin/PaginaAdmin.jsx'
 import { useSnackbar } from '../../components/admin/Snackbar.jsx'
-import RigaIscrizione from '../../components/RigaIscrizione.jsx'
+import RigaIscrizione, { IntestazioneIscrizioni } from '../../components/RigaIscrizione.jsx'
 import {
   ESITO_PROBLEMA,
   archiviaProblema,
@@ -479,6 +479,7 @@ export default function Cicli() {
             </div>
           ) : (
             <ul className="dash-iscrizioni">
+              <IntestazioneIscrizioni libera />
               {remotiLiberi.map(i => (
                 <RigaIscrizione
                   key={i.id}

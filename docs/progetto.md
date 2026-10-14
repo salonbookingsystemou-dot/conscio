@@ -54,6 +54,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 14/10/2026 · Righe degli iscritti più leggibili (da Claude Code)
+In «Percorsi individuali da remoto» e nella scheda Iscritti ogni riga (`RigaIscrizione`) aveva codice, modalità, stato e avvisi come chip uguali, due tendine senza etichetta e un «Ritira» rosso. Ora ha tre livelli: il codice in grassetto (email al passaggio, come prima) con un solo chip, lo stato del percorso; sotto, in testo grigio, la spiegazione dello stato, «da remoto» solo dove non è ovvio e gli avvisi con la data; a destra le tendine Screening e Ciclo/Modalità, con un’intestazione di colonna unica su schermo largo e l’etichetta sopra ogni tendina su telefono. «Ritira» è nel menu ⋯ e apre la stessa conferma di prima. I ritirati sono una riga sola, senza controlli. Stesse azioni e stessi dati.
+
 ### 14/10/2026 · Comunicazioni con elenco e dettaglio (da Claude Code)
 La pagina era una colonna di card con il modulo sempre aperto in cima e le email automatiche in fondo. Ora segue il layout elenco–dettaglio del framework, come Tracce: a sinistra l'elenco con chip (Tutte, Da inviare, Inviate, Automatiche) e tre gruppi, ogni riga con stato; a destra il dettaglio della voce aperta (`?voce=`). Il modulo si apre solo da «Nuova comunicazione» nel rail o aprendo una comunicazione da inviare; le inviate si rileggono per intero e si possono riusare come base; «Inattività · da remoto» e «Pausa di pratica» hanno regola, persone in attesa, controllo manuale e storico. Gli esiti vanno nella snackbar, gli errori restano nel dettaglio; ogni invio chiede conferma. Tolti «(Resend)» e l'indirizzo scritto a mano (ora `EMAIL_CONTATTO`), etichette collegate ai campi. Stesse funzioni e stessi dati: nessuna modifica al database né alle funzioni.
 
