@@ -51,6 +51,17 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 14/10/2026 · Framework di layout del facilitatore, fase 1 (da Claude Code)
+Implementato `docs/brief_framework_fase1.md` (regole in `docs/framework_layout_facilitatore.md`, mockup in `docs/mockup/framework-facilitatore/`). Le rotte sotto `/admin` c'erano già (13/10): questa fase cambia il guscio e l'impaginazione.
+- **Guscio**: niente più testata con le pillole. Da 600px un rail a sinistra (compatto con icona ed etichetta; esteso da 1200px) con marchio, azione principale della sezione come FAB («Nuovo ciclo», «Nuova traccia», «Nuova comunicazione»; Sito non ne ha), le quattro voci con il badge su Cicli ed «Esci». Sotto 600px la barra in basso (`BarraVoci` in variante facilitatore, quella del partecipante non cambia), il FAB sopra ed «Esci» nel menu ⋯ della pagina.
+- **Pagine**: ogni pagina è un `PaginaAdmin` (barra della pagina con indietro, titolo, meta, contesto, un'azione secondaria e ⋯; schede come rotte) con uno di tre layout: flusso (Cicli, spazio del ciclo, Comunicazioni, Nuova traccia), elenco–dettaglio (Tracce: la scheda della traccia sta a destra da 840px e prende la pagina sotto; `PannelloLaterale` eliminato), supporto (Sito). `?nuovo=1` e `?nuova=1` aprono i moduli di creazione al posto dei bottoni nelle pagine.
+- **Snackbar** per le conferme non bloccanti. Collegata a «Segna come gestita», senza «Annulla»: non esiste una funzione che riapra una segnalazione e non se n'è creata una nuova.
+- **Tracce**: «Controlla tutte» è uno split button: tutta la libreria (azione principale; prima controllava solo le tracce in elenco), solo quelle in elenco, solo il ciclo filtrato.
+- **Sito**: `EditorSplash` non ha un'anteprima, quindi il pannello di supporto tiene per ora la nota «Uso dei dati e dei punteggi».
+- **Token** nuovi: classi di finestra 600/840/1200 (solo area facilitatore), `--surface-rail`, `--accent-indicatore` (`--accent-soft` sul fondo del rail non si vedeva), colori della snackbar, livelli di stato, misure del guscio, `--space-40`. `--radius-xl` passa da 24 a 28px: cambia di poco anche la card del player e il foglio dal basso di Ascolta.
+- In Ascolta «Sorprendimi» è a tutta larghezza con l'icona, come nel mockup.
+- Nessuna modifica al database, alle RPC o ai dati raccolti.
+
 ### 14/10/2026 · Lo script della traccia resta salvato (da Cursor)
 Generando una traccia, testo, pause, modello, voce, velocità, variazione e l’audio di ogni paragrafo restano sulla traccia. «Rigenera da script» riapre quella bozza: si cambia una frase e si rigenerano solo i paragrafi toccati (se il modello aggancia la voce, anche i successivi). «Salva lo script» tiene la bozza senza sostituire il file che ascoltano i partecipanti. L’audio dei paragrafi sta nel bucket privato `bozze-voce`, solo per il facilitatore: non entra nella cache delle tracce e non è un dato dei partecipanti (niente informativa, export o reset). `supabase/migrazione_script_traccia.sql` è applicata. Le tracce già in libreria non hanno uno script finché non si generano di nuovo da questa pagina.
 

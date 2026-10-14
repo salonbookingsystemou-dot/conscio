@@ -34,6 +34,11 @@ Nel CSS non si scrivono colori esadecimali, font o raggi: si usano i token.
   Nelle etichette con faccina `.tono-mini` il neutro resta `--tono-neutro-etichetta`.
 - **Scala dei minuti** `--scala-0` … `--scala-3` (dalla casella vuota al verde scuro).
 
+- **Area facilitatore** (Material 3, `docs/framework_layout_facilitatore.md`): `--surface-rail` #EEE8D9 per rail e barra in basso
+  (surface-container), `--accent-indicatore` #DDE5D8 per l'indicatore della voce attiva e dei chip scelti (su `--surface-rail`
+  `--accent-soft` non si distingue), `--inverse-surface` / `--inverse-on-surface` / `--inverse-accent` per la snackbar.
+  La voce attiva si riconosce anche senza colore: testo `--ink` 600 e `aria-current`.
+
 La funzione Tonalità ruota l'accento, il fondo, i testi e i bordi (elenco in `src/lib/tonalita.js`);
 toni e scala dei minuti non ruotano. Con la tonalità predefinita non scrive nulla e valgono i token.
 
@@ -60,11 +65,18 @@ Le intestazioni di tabella sono maiuscole a 12px con `--ls-table`. Il corsivo re
 
 ## Forme e spazi
 
-- Raggi: `--radius-lg` 16px card · `--radius-tile` 14px card numeriche e riquadri · `--radius-md` 12px pulsanti e campi ·
-  `--radius-sm` 8px elementi piccoli · `--radius-pill` pillole e badge.
+- Raggi: `--radius-xl` 28px pannelli di dettaglio e di supporto, modali, foglio dal basso, card del player ·
+  `--radius-lg` 16px card e FAB · `--radius-tile` 14px card numeriche e riquadri · `--radius-md` 12px pulsanti e campi ·
+  `--radius-sm` 8px elementi piccoli, chip e snackbar · `--radius-pill` pillole, badge e indicatori.
 - Card: superficie bianca, bordo `--border`, niente ombra. Ombre solo per modali (`--shadow-dialog`),
   elementi sollevati (`--shadow-elevated`) e hover (`--shadow-hover`).
-- Spaziature su multipli di 2 (`--space-*`): card 24×28px, card numeriche 18×20px, 16–24px tra card.
+- Spaziature su multipli di 2 (`--space-*`, fino a `--space-48`): card 24×28px, card numeriche 18×20px, 16–24px tra card.
+- **Classi di finestra** (solo area facilitatore, per ora): compatta < 600 · media 600–839 · espansa 840–1199 · ampia ≥ 1200
+  (`--bp-media`, `--bp-espansa`, `--bp-ampia`; nelle `@media` vanno scritte come numeri). In JS: `useClasseFinestra()`.
+  Misure del guscio: `--rail-esteso` 248 · `--rail-compatto` 88 · `--barra-bassa-h` 80 · `--pannello-elenco` 420 · `--pannello-supporto` 380.
+- **Livelli di stato** (area facilitatore): velo del colore del testo al passaggio (`--state-hover` 8%) e alla pressione
+  (`--state-press` 10%) su pulsanti, voci del rail e della barra, chip, schede, voci di menu; anello di focus 2px `--accent`
+  con 2px di distanza. Niente ombre né cambi di fondo al passaggio. Regola unica in `styles/admin.css`.
 
 ## Componenti di riferimento
 
@@ -85,10 +97,27 @@ aggiungi una variante qui.
 | Card | `.card` | `.card.is-lista` (senza padding, per righe a filo bordo), `.card-vuota` (messaggio di card vuota o in caricamento) |
 | Campo di modulo | `.field` | — |
 | Modale | `.dialogo` (+ `.dialogo-azioni`) | `.dialogo.is-ascolto` (più larga, per l'anteprima di una traccia) |
-| Pannello laterale | `.pannello` (+ `.pannello-testa`, `.pannello-corpo`; componente `PannelloLaterale`, CSS in `styles/admin.css`) | — · per aprire la scheda di un elemento senza lasciare l'elenco: a destra largo 560px, pagina intera sotto 720px. Dentro, le sezioni sono `.dash-ciclo-sezione` |
-| Filtri a pillola | `.filtri-chip` con bottoni `.dash-tab` (`.is-on`, `aria-pressed`) | — |
+| Filtri | `.filtri-chip` con chip `.chip` (scelto con `aria-pressed`, `aria-current` o `.is-on`) | — |
 | Errore | `.avviso-errore` (riquadro sopra un modulo o un elenco), `.campo-errore` (riga sotto un campo) | — |
 | Nota informativa | `.disclaimer` | — |
+
+### Area facilitatore (`src/components/admin/`, CSS in `styles/admin.css`)
+
+Regola del framework: ogni pagina è guscio + barra della pagina + uno di tre layout. Nessuna pagina costruisce la propria
+testata, sceglie la propria larghezza o mette l'azione principale («Nuovo …»): quella sta nel rail.
+
+| Componente | Cosa fa |
+|---|---|
+| `AdminChrome` | Guscio di `/admin`: `RailNavigazione` da 600px (compatto, esteso da 1200px), `BarraVoci` + FAB sotto. Passa classe di finestra ed «Esci» alle pagine (`useGuscio`), monta `SnackbarProvider` |
+| `RailNavigazione` | Marchio, FAB dell'azione principale della sezione (`lib/sezioniAdmin.js`; Sito non ne ha e lo spazio resta), le 4 voci con indicatore a pillola e badge, «Esci» in fondo |
+| `BarraVoci` `.is-facilitatore` | Barra in basso sotto 600px: fondo `--surface-rail`, indicatore 64×32, badge 18px `--danger`. La variante del partecipante non cambia |
+| `.fab` | Azione principale: alto 56, raggio 16, `--accent`. Nel rail compatto solo icona; su telefono galleggia sopra la barra (`.is-galleggiante`) |
+| `PaginaAdmin` | Barra della pagina (indietro, titolo serif `--fs-display`, meta, contesto, al massimo un'azione secondaria, menu ⋯ con «Esci» sotto 600px), schede come rotte (`.pagina-scheda`, `aria-current`), corpo `layout="flusso" \| "elenco-dettaglio" \| "supporto"`, `stato="attesa" \| "vuoto" \| "errore"`. In flusso i blocchi vanno a tutta riga; `.colonna-testo` li limita a 8 colonne per moduli e testi lunghi |
+| `ElencoPannello` + `PannelloDettaglio` | Elenco largo `--pannello-elenco` e dettaglio a destra (`--surface`, raggio `--radius-xl`, scroll interno, ✕, Esc). Senza selezione uno `StatoVuoto`. Sotto 840px il dettaglio prende la pagina e titolo e «←» passano nella barra |
+| `AreaPrincipale` + `PannelloSupporto` | Contenuto più pannello fisso a destra largo `--pannello-supporto` su `--surface-rail`; sotto 840px va sotto |
+| `useSnackbar().mostra({ testo, annulla? })` | Conferma non bloccante in basso al centro dell'area contenuto (sopra barra e FAB su telefono), `role="status"`, una alla volta, 6 s (10 s con «Annulla»), si ferma al passaggio. Per le azioni reversibili al posto di `DialogConferma` |
+| `SplitButton` | `.btn-tonal` diviso: azione + freccia con menu (Esc, clic fuori, frecce) |
+| `MenuAzioni` | Menu a comparsa del ⋯ e dello split button |
 
 Le classi `.admin-*` rimaste in `src/styles/admin.css` sono solo layout di pagina dell'area facilitatore
 (barra degli strumenti, righe della libreria, testata), non componenti generici. Unificazione fatta il
