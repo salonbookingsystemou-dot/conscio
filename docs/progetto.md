@@ -51,6 +51,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 14/10/2026 · Velocità del parlato solo dove ElevenLabs la applica (da Claude Code)
+Prova sulla stessa frase, stesso seed, velocità 0,70 e 1,20: Multilingual v2 passa da 14,3 a 8,2 secondi, v4 resta a 9,28 in entrambi i casi, V3 cambia a caso (10,5–11,5 s) senza seguire la velocità. Coerente con la documentazione di v4 (solo stabilità e somiglianza; niente speed né style). Ora, con v4 o V3 scelti, il cursore della velocità in «Genera da script» è disattivato con una nota (per il ritmo: punteggiatura e pause), il campione della voce si ascolta al ritmo normale, la stima non segue il cursore e i paragrafi non risultano «generati a un’altra velocità». `genera-voce` non manda più speed a V3, e a v4 manda solo stabilità e somiglianza; per v2 e Flash non cambia nulla. Funzione ridistribuita (versione 16, verifica JWT come prima). Nessuna modifica al database.
+
 ### 14/10/2026 · Dopo «Sostituisci il file» si sente la versione nuova (da Claude Code)
 Rigenerando una traccia, il player continuava a suonare il file vecchio. Il file nuovo prende lo stesso percorso in Storage, quindi lo stesso indirizzo, e il service worker (CacheFirst, 120 giorni) serviva la copia già salvata: al facilitatore e a chi l'aveva già ascoltata. Ora `sostituisciFileTraccia` salva l'indirizzo con `?v=<istante del caricamento>`, e lo stesso indirizzo passa a pratiche e lezioni collegate: ogni versione del file ha un indirizzo suo. L'unica traccia già sostituita con l'indirizzo vecchio («Tre minuti per riprendere fiato», 14/10) è stata corretta a mano nel database, con `file_aggiornato_il` all'ora del caricamento. Nessuna modifica allo schema né ai dati dei partecipanti.
 

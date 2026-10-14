@@ -14,6 +14,8 @@ export const MODELLI = [
     nome: 'v4',
     creditiPerCarattere: 1,
     aggancia: true,
+    // Prova del 14/10/2026: stessa frase a 0,70 e 1,20, stessa durata. ElevenLabs ignora speed.
+    velocita: false,
     max: 9000,
     nota: 'Più espressivo, con la voce continua da un paragrafo all’altro. Accetta tag come [whispers]; per le pause usa i puntini, non <break>.'
   },
@@ -22,6 +24,8 @@ export const MODELLI = [
     nome: 'V3',
     creditiPerCarattere: 1,
     aggancia: false,
+    // Stessa prova: le durate cambiano a caso, non con la velocità.
+    velocita: false,
     max: 4500,
     nota: 'Registro stabile, lo stesso da un paragrafo all’altro. Le pause restano silenzio aggiunto qui. Un carattere, un credito.'
   },
@@ -37,6 +41,11 @@ export const MODELLI = [
 
 export function modelloDaId(id) {
   return MODELLI.find(m => m.id === id) || MODELLI[0]
+}
+
+/** Velocità che il modello applica davvero: 1 per quelli che la ignorano. */
+export function velocitaPerModello(modello, velocita) {
+  return modello?.velocita === false ? 1 : velocitaDi(velocita)
 }
 
 // Moltiplicatore del parlato accettato da ElevenLabs (1 = ritmo della voce).

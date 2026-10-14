@@ -14,7 +14,8 @@ import {
   VELOCITA_MAX,
   VELOCITA_MIN,
   VELOCITA_PASSO,
-  velocitaDi
+  velocitaDi,
+  velocitaPerModello
 } from '../../lib/generaVoce'
 import { caricaAudioParagrafi, leggiScriptTraccia, salvaScriptTraccia } from '../../lib/scriptTraccia'
 import { AUDIO_MAX, creaTraccia, messaggioErroreTraccia, sostituisciFileTraccia } from '../../lib/tracce'
@@ -102,14 +103,17 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
   const fileUrlRef = useRef('')
 
   const modello = modelloDaId(modelloId)
+  // v4 e V3 ignorano la velocità: per loro vale sempre 1, il cursore resta sul valore scelto per gli altri modelli.
+  const velocitaAttiva = modello.velocita !== false
+  const velocitaEffettiva = velocitaPerModello(modello, velocita)
   const voce = voci.find(v => v.id === voceId) || null
   const stima = useMemo(
-    () => stimaGenerazione(paragrafi, modello, velocita),
-    [paragrafi, modello, velocita]
+    () => stimaGenerazione(paragrafi, modello, velocitaEffettiva),
+    [paragrafi, modello, velocitaEffettiva]
   )
   const scriptDiverso = paragrafi.length > 0 && dividiScript(script).join('\n\n') !== firmaParagrafi(paragrafi)
   const pronti = paragrafi.filter(p => String(p.testo || '').trim() && compatibile(p, modelloId, voceId))
-  const daFare = paragrafi.filter(p => vaRigenerato(p, modelloId, voceId, seed, velocita))
+  const daFare = paragrafi.filter(p => vaRigenerato(p, modelloId, voceId, seed, velocitaEffettiva))
   const puoGenerareTutto = Boolean(voceId) && (scriptDiverso || daFare.length > 0)
   const italiane = voci.filter(v => v.italiana)
   const altre = voci.filter(v => !v.italiana)
@@ -290,7 +294,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
         precedenti: modello.aggancia ? catena : [],
         successivo: modello.aggancia ? (pezzi[n + 1] || dopo) : '',
         seed,
-        velocita,
+        velocita: velocitaEffettiva,
         signal
       })
       let rifinito
@@ -325,7 +329,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
           modello: modelloId,
           voceId,
           seed: semeDi(seed),
-          velocita,
+          velocita: velocitaEffettiva,
           obsoleto: false,
           audioSalvato: false,
           audioFormato: null,
@@ -385,7 +389,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
       setParagrafi(lista)
       setScript(firmaParagrafi(lista))
     }
-    const daRigenerare = p => vaRigenerato(p, modelloId, voceId, seed, velocita)
+    const daRigenerare = p => vaRigenerato(p, modelloId, voceId, seed, velocitaEffettiva)
     const primo = lista.findIndex(daRigenerare)
     if (primo < 0) {
       rilasciaFile()
@@ -511,9 +515,10 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
     if (!voce?.anteprima) return
     fermaAscolto()
     const audio = new Audio(voce.anteprima)
-    impostaRitmoCampione(audio, velocitaRef.current)
+    const ritmo = () => (velocitaAttiva ? velocitaRef.current : 1)
+    impostaRitmoCampione(audio, ritmo())
     audio.addEventListener('loadedmetadata', () => {
-      if (campioneRef.current === audio) impostaRitmoCampione(audio, velocitaRef.current)
+      if (campioneRef.current === audio) impostaRitmoCampione(audio, ritmo())
     })
     audio.onended = () => {
       if (campioneRef.current === audio) campioneRef.current = null
@@ -766,7 +771,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
         <div className="field genera-velocita">
           <div className="genera-velocita-testa">
             <label htmlFor="genera-velocita">Velocità del parlato</label>
-            <strong>{testoVelocita(velocita)}</strong>
+            <strong>{velocitaAttiva ? testoVelocita(velocita) : 'ritmo della voce'}</strong>
           </div>
           <input
             id="genera-velocita"
@@ -774,18 +779,26 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
             min={VELOCITA_MIN}
             max={VELOCITA_MAX}
             step={VELOCITA_PASSO}
-            value={velocita}
-            aria-valuetext={descrizioneVelocita(velocita)}
+            value={velocitaAttiva ? velocita : 1}
+            disabled={!velocitaAttiva}
+            aria-describedby={velocitaAttiva ? undefined : 'genera-velocita-nota'}
+            aria-valuetext={descrizioneVelocita(velocitaAttiva ? velocita : 1)}
             onChange={e => cambiaVelocita(e.target.value)}
           />
           <div className="genera-velocita-estremi" aria-hidden="true">
             <span>Più lenta</span>
             <span>Più rapida</span>
           </div>
+          {!velocitaAttiva && (
+            <p id="genera-velocita-nota" className="hint">
+              Con {modello.nome} la velocità non si regola: ElevenLabs la ignora. Per il ritmo usa la punteggiatura
+              (i puntini allungano le pause) e le pause tra i paragrafi.
+            </p>
+          )}
         </div>
         <p className="genera-nota">
-          {modello.nota} Le pause sono silenzio aggiunto qui e non consumano crediti.
-          Il campione della voce si ascolta alla velocità scelta.
+          {modello.nota} Le pause sono silenzio aggiunto qui e non consumano crediti.{' '}
+          {velocitaAttiva && 'Il campione della voce si ascolta alla velocità scelta. '}
           Ogni paragrafo esce col volume allineato. La chiusura non copre l’ultima parola.
           Nel file entra solo quando generi: i paragrafi già fatti restano com’erano finché non li rigeneri.
         </p>
@@ -851,7 +864,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
           <ul className="genera-lista">
             {paragrafi.map((p, indice) => {
               const pronto = compatibile(p, modelloId, voceId)
-              const stessaVelocita = (p.velocita ?? 1) === velocita
+              const stessaVelocita = (p.velocita ?? 1) === velocitaEffettiva
               const attivo = inAscolto?.id === p.id
               return (
                 <li key={p.id} className={attivo ? 'is-attivo' : undefined}>
@@ -944,10 +957,10 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
             <p>
               {stima.caratteri.toLocaleString('it-IT')} caratteri · circa {stima.crediti.toLocaleString('it-IT')} crediti
               {' '}· voce {formattaMinuti(stima.minutiVoce)} · pause {formattaMinuti(stima.minutiPause)}
-              {' '}· parlato {testoVelocita(velocita)}
+              {velocitaAttiva && <>{' '}· parlato {testoVelocita(velocita)}</>}
             </p>
             <p className="genera-nota">
-              La stima della voce usa circa mille caratteri al minuto al ritmo normale, e segue la velocità scelta. La durata vera si sente nell’anteprima.
+              La stima della voce usa circa mille caratteri al minuto al ritmo normale{velocitaAttiva ? ', e segue la velocità scelta' : ''}. La durata vera si sente nell’anteprima.
             </p>
             {avanzamento && (
               <p role="status">Paragrafo {avanzamento.fatto + 1} di {avanzamento.totale}</p>

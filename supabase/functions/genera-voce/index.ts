@@ -170,18 +170,19 @@ async function generaParagrafo(chiave: string, corpo: Record<string, unknown>) {
   if (modello === 'eleven_v3') {
     // V3 non accetta l’aggancio tra richieste: senza un registro fisso ogni
     // paragrafo riparte con un tono diverso. 1 è il registro stabile.
-    payload.voice_settings = {
-      stability: 1,
-      speed: velocita
-    }
+    // Speed non ha effetto su V3 (prova del 14/10/2026): non si manda.
+    payload.voice_settings = { stability: 1 }
   } else {
-    payload.voice_settings = {
-      stability: 0.62,
-      similarity_boost: 0.8,
-      style: 0,
-      use_speaker_boost: true,
-      speed: velocita
-    }
+    payload.voice_settings = modello === 'eleven_v4'
+      // v4 usa solo stabilità e somiglianza: style, speaker boost e speed li ignora.
+      ? { stability: 0.62, similarity_boost: 0.8 }
+      : {
+        stability: 0.62,
+        similarity_boost: 0.8,
+        style: 0,
+        use_speaker_boost: true,
+        speed: velocita
+      }
     if (precedenti.length) payload.previous_request_ids = precedenti
     // Senza il seguito il modello legge ogni paragrafo come la fine del testo:
     // cadenza conclusiva e ultima parola che sembra troncata.
