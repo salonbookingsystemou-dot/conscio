@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cicli · telefono</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F5F1E7}
+a{color:#3F5443}a:hover{color:#262419}
+.app *{box-sizing:border-box}
+.serif{font-family:"Source Serif 4",Georgia,serif;font-weight:400}
+.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.i.s{width:20px;height:20px}
+.bi{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 0 14px;color:#4A4536;text-decoration:none;font-size:12px;font-weight:500}
+.bi .ind{width:64px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;position:relative}
+.bi.on{color:#262419;font-weight:600}
+.bi.on .ind{background:#DDE5D8}
+.bn{position:absolute;top:-2px;right:12px;min-width:18px;height:18px;border-radius:999px;background:#9A3B2E;color:#FFFFFF;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0 5px}
+.ib{width:44px;height:44px;border-radius:999px;border:0;background:transparent;display:inline-flex;align-items:center;justify-content:center;color:#4A4536;cursor:pointer;flex-shrink:0}
+.card{background:#FFFFFF;border:1px solid #E9E3D3;border-radius:16px}
+.h2{margin:0;font-family:"Source Serif 4",Georgia,serif;font-weight:400;font-size:21px;line-height:1.2}
+.kpi{background:#FFFFFF;border:1px solid #E9E3D3;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.kl{font-size:13px;color:#6B6553}
+.kv{font-family:"Source Serif 4",Georgia,serif;font-size:28px;line-height:1.1;font-variant-numeric:tabular-nums}
+.st{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;align-self:flex-start}
+.st-ok{background:#E3E9E0;color:#2F4A37}
+.st-warn{background:#F3E6D2;color:#6E4310}
+.st-err{background:#F4DEDA;color:#8A2E22}
+.st-none{background:#EFEADC;color:#5E5848}
+.num{font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+
+
+<div class="app" style="width: 390px; height: 844px; position: relative; background: #F5F1E7; color: #262419; font-family: 'Public Sans', system-ui, sans-serif; overflow: hidden; display: flex; flex-direction: column">
+
+<header style="display: flex; align-items: center; gap: 8px; padding: 16px 8px 8px 20px">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px">
+<h1 class="serif" style="margin: 0; font-size: 28px; line-height: 1.15">Cicli</h1>
+<span style="font-size: 13px; color: #6B6553">2 cicli · 1 in corso</span>
+</div>
+<button class="ib" type="button" aria-label="Altre azioni ed Esci"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.2"></circle><circle cx="12" cy="12" r="1.2"></circle><circle cx="12" cy="19" r="1.2"></circle></svg></button>
+</header>
+
+<div style="flex-grow: 1; min-height: 0; overflow: hidden; padding: 8px 16px 180px; display: flex; flex-direction: column; gap: 16px">
+
+<section class="card" style="display: flex; flex-direction: column">
+<h2 class="h2" style="padding: 16px 18px 10px">Da fare</h2>
+
+<a href="#" style="display: flex; flex-direction: column; gap: 6px; padding: 12px 18px; border-top: 1px solid #F1ECDF; color: #262419; text-decoration: none">
+<span class="st st-err">Segnalazione</span>
+<span style="font-size: 15px; font-weight: 500">Momento difficile nel check-in</span>
+<span style="font-size: 13px; color: #6B6553">K7F-2Q · settimana 3</span>
+</a>
+
+<a href="#" style="display: flex; flex-direction: column; gap: 6px; padding: 12px 18px; border-top: 1px solid #F1ECDF; color: #262419; text-decoration: none">
+<span class="st st-warn">Iscrizione</span>
+<span style="font-size: 15px; font-weight: 500">In attesa di esito</span>
+<span style="font-size: 13px; color: #6B6553">M4R-9T · Ciclo inverno 2027</span>
+</a>
+
+<a href="#" style="padding: 12px 18px 14px; border-top: 1px solid #F1ECDF; font-size: 14px; font-weight: 600; text-decoration: none">Vedi tutte (3)</a>
+</section>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div class="kpi"><span class="kl">Iscritti attivi</span><span class="kv">8</span></div>
+<div class="kpi"><span class="kl">Aderenza</span><span class="kv">61%</span></div>
+</div>
+
+<section class="card" style="display: flex; flex-direction: column">
+<h2 class="h2" style="padding: 16px 18px 10px">Cicli</h2>
+
+<a href="#" style="display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-top: 1px solid #F1ECDF; color: #262419; text-decoration: none">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 15px; font-weight: 500">Gruppo pilota · autunno 2026</span>
+<span class="num" style="font-size: 13px; color: #6B6553">18 set – 6 nov · 8 iscritti</span>
+<span class="st st-ok">In corso · sett. 4</span>
+</div>
+<svg class="i s" viewBox="0 0 24 24" aria-hidden="true" style="color: #6B6553"><path d="m9 6 6 6-6 6"></path></svg>
+</a>
+
+<a href="#" style="display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-top: 1px solid #F1ECDF; color: #262419; text-decoration: none">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 15px; font-weight: 500">Ciclo inverno 2027</span>
+<span class="num" style="font-size: 13px; color: #6B6553">[date] · 3 iscritti</span>
+<span class="st st-none">Iscrizioni aperte</span>
+</div>
+<svg class="i s" viewBox="0 0 24 24" aria-hidden="true" style="color: #6B6553"><path d="m9 6 6 6-6 6"></path></svg>
+</a>
+
+</section>
+</div>
+
+<a href="#" style="position: absolute; right: 16px; bottom: 96px; display: inline-flex; align-items: center; gap: 10px; height: 56px; padding: 0 20px 0 16px; border-radius: 16px; background: #3F5443; color: #FFFFFF; font: 600 15px 'Public Sans', sans-serif; text-decoration: none; box-shadow: 0 4px 14px rgba(38,36,25,.16)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Nuovo ciclo</a>
+
+<nav aria-label="Area facilitatore" style="position: absolute; left: 0; right: 0; bottom: 0; background: #EEE8D9; display: flex">
+<a class="bi on" href="#" aria-current="page"><span class="ind"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"></path><path d="M20 4v4h-4"></path></svg><span class="bn" aria-label="3 cose da fare">3</span></span>Cicli</a>
+<a class="bi" href="#"><span class="ind"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4M8 6v12M12 3v18M16 8v8M20 11v2"></path></svg></span>Tracce</a>
+<a class="bi" href="#"><span class="ind"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path></svg></span>Comunicazioni</a>
+<a class="bi" href="#"><span class="ind"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"></path></svg></span>Sito</a>
+</nav>
+</div>
+
+</body>
+</html>

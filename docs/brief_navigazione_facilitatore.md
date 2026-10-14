@@ -1,7 +1,9 @@
 # Brief · Riorganizzazione della navigazione del facilitatore
 
-Deciso con Dimitri il 13/10/2026. Da implementare in Cursor, a fasi.
-Prima di iniziare leggi `docs/interfaccia.md`, `docs/architettura.md` e `docs/design-system.md`.
+Deciso con Dimitri il 13/10/2026, aggiornato il 14/10/2026 (rail laterale, azione principale nel rail, snackbar).
+Da implementare in Cursor, a fasi.
+Prima di iniziare leggi `docs/interfaccia.md`, `docs/architettura.md`, `docs/design-system.md` e
+`docs/framework_layout_facilitatore.md` (guscio, anatomia della pagina, layout canonici).
 
 ## 0. Obiettivo e regola guida
 
@@ -34,11 +36,18 @@ dei partecipanti. L'unica modifica al database è la tabella degli esiti del con
 
 `Cicli · Tracce · Comunicazioni · Sito` + `Esci`
 
-- Marchio: «Conscio · Facilitatore», porta a `/admin/cicli`.
-- Schermo largo: pillole in testata come oggi.
-- Telefono: barra in basso a 4 voci con icona, stesso componente visivo di `BarraBassa` (estrarre la parte
-  grafica in un componente condiviso, con le voci passate come prop). Niente menu a scomparsa. «Esci» resta in testata.
-- Badge numerico su «Cicli» = segnalazioni difficili aperte + iscrizioni in attesa.
+Le pillole in testata spariscono. Navigazione per classe di finestra (dettagli in `framework_layout_facilitatore.md`, sez. 2–3):
+
+- **Da 600px in su: rail di navigazione a sinistra.** Compatto (icona + etichetta sotto) fino a 1199px,
+  esteso (etichetta accanto all'icona) da 1200px. Dall'alto: marchio «Conscio · Facilitatore» (porta a `/admin/cicli`),
+  **azione principale contestuale** come FAB esteso, le 4 voci con indicatore attivo a pillola, «Esci» in fondo.
+- **Azione principale nel rail**, per sezione: Cicli → «Nuovo ciclo» · Tracce → «Nuova traccia» ·
+  Comunicazioni → «Nuova comunicazione» · Sito → nessuna. La barra della pagina non la ripete.
+- **Sotto 600px:** barra in basso a 4 voci con icona, stesso componente visivo di `BarraBassa` (estrarre la parte
+  grafica in un componente condiviso, con le voci passate come prop). Niente menu a scomparsa.
+  L'azione principale diventa un FAB in basso a destra; «Esci» va nel menu ⋯ della barra della pagina.
+- Badge numerico su «Cicli» = segnalazioni difficili aperte + iscrizioni in attesa (sia nel rail sia nella barra in basso).
+- Non c'è più una testata globale: titolo, indietro e azioni secondarie stanno nella barra della pagina (`PaginaAdmin`).
 
 ### 2.2 Rotte
 
@@ -82,13 +91,13 @@ Dall'alto in basso:
 1. **Da fare**: segnalazioni difficili aperte (blocco attuale con «Segna come gestita») e iscrizioni in attesa
    di esito, ciascuna con link al ciclo/scheda giusta. Se non c'è niente, una riga sola «Niente da fare».
 2. **Numeri chiave**: le card `.dash-kpi-card` attuali.
-3. **Cicli**: elenco (card o tabella attuale) con nome, date, stato, iscritti; clic → spazio del ciclo. «Nuovo ciclo» in testata.
+3. **Cicli**: elenco (card o tabella attuale) con nome, date, stato, iscritti; clic → spazio del ciclo. «Nuovo ciclo» è l'azione principale nel rail.
 4. **Percorsi individuali da remoto**: l'attuale sezione `remoti-liberi` (iscritti senza ciclo), con le stesse azioni.
 5. **Questionari · tutti i cicli**: link alla vista aggregata (sez. 3.2, Questionari).
 
 ### 3.2 Spazio del ciclo `/admin/cicli/:cicloId/*`
 
-Testata fissa: «← Cicli», nome del ciclo, stato, date, e un selettore per passare a un altro ciclo
+Barra della pagina (`PaginaAdmin`): «← Cicli», nome del ciclo, stato, date, e un selettore per passare a un altro ciclo
 mantenendo la scheda corrente. Sotto, le schede (stile `.dash-tabs` attuale, collegate alle rotte):
 
 `Panoramica · Iscritti · Programma · Pratica · Questionari`
@@ -111,7 +120,8 @@ si sposta l'interfaccia, non si riscrive la logica.
 
 ### 4.1 Elenco `/admin/tracce`
 
-- Testata: «Tracce», bottoni **Nuova traccia** e **Controlla tutte** (in coda, `FILE_IN_PARALLELO` come oggi).
+- Barra della pagina: «Tracce» e **Controlla tutte** come split button (tutte · solo il ciclo filtrato), in coda con
+  `FILE_IN_PARALLELO` come oggi. **Nuova traccia** è l'azione principale nel rail.
 - Ricerca + filtri: `Tutte · Usate nel ciclo [selettore] · Da guardare · In vetrina · Non controllate`.
 - Ogni riga: titolo, durata, creata/modificata, spunta vetrina, **badge di stato** (`Funziona` / `Da guardare` /
   `Problema` / `Non controllata` / `Da ricontrollare`, etichette di `ETICHETTE_STATO`), azioni rapide (ascolta, menu ⋯).
@@ -119,7 +129,7 @@ si sposta l'interfaccia, non si riscrive la logica.
 
 ### 4.2 Scheda traccia (`?traccia=<id>`)
 
-Pannello laterale su schermo largo, pagina intera su telefono. Sezioni:
+Pannello di dettaglio del layout elenco–dettaglio da 840px, pagina intera sotto. Sezioni:
 1. **Ascolto** (player attuale, `CardTracciaAudio` in anteprima).
 2. **Contenuto**: titolo, testo della card (form di modifica attuale).
 3. **File**: sostituisci file · rigenera da script (apre il flusso Genera precompilato solo con il titolo:
@@ -174,13 +184,23 @@ Regole:
   Lo stato mostrato nel filtro «Usate nel ciclo X» = peggiore fra esito salvato e collegamenti di quel ciclo (`peggiore()`).
 - Dopo «Ricontrolla» o «Controlla tutte» si fa `upsert` della riga. `pulisciCacheControllo()` resta.
 
+## 4bis. Conferme: snackbar con «Annulla»
+
+Le azioni reversibili non aprono un dialogo: si eseguono subito e mostrano una snackbar in basso
+(«Segnalazione segnata come gestita · Annulla», «Traccia tolta dalla vetrina · Annulla», «Traccia salvata»).
+- Durata ~6 s, si chiude anche a mano; una sola alla volta; sopra la barra in basso su telefono; `role="status"`.
+- «Annulla» ripristina lo stato precedente con la stessa funzione di `lib/` (nessuna RPC nuova).
+- Restano su `DialogConferma` le azioni non reversibili o con effetti fuori dall'app: eliminare una traccia o un ciclo,
+  ritirare un iscritto, inviare una comunicazione, reset dati.
+- Esiti di salvataggio senza «Annulla» (es. «Modifiche salvate») usano la stessa snackbar.
+
 ## 5. Comunicazioni e Sito
 
 - `/admin/comunicazioni`: la parte facilitatore di `Comunicazioni.jsx` (componi, inviate, inattività, pausa di pratica)
   spostata in una pagina propria, es. `pages/admin/Comunicazioni.jsx`. `Comunicazioni.jsx` resta solo
   per il partecipante (titolo «Avvisi»). Il facilitatore non vede mai la parola «Avvisi» nel suo menu.
 - `/admin/sito`: `EditorSplash`, `EditorVetrina`, card «Uso dei dati e dei punteggi», tolti da `Dashboard.jsx`.
-  In testata un link «Apri Ascolta» per vedere la vetrina pubblica.
+  Nella barra della pagina un link «Apri Ascolta» per vedere la vetrina pubblica.
 
 ## 6. Pulizia
 
@@ -196,11 +216,12 @@ Regole:
 
 ## 7. Fasi e criteri di accettazione
 
-1. **Rotte e guscio**: layout `/admin`, 4 voci, barra in basso su telefono, reindirizzamenti, login → `/admin/cicli`,
-   menu tolto da `Nav.jsx`. *Fatto quando*: ogni vecchio indirizzo apre la pagina giusta; nessuna pagina facilitatore
-   raggiungibile fuori da `/admin`.
+1. **Rotte e guscio**: layout `/admin`, rail (compatto/esteso) con azione principale, barra in basso sotto 600px,
+   `PaginaAdmin` (barra della pagina), snackbar condivisa, reindirizzamenti, login → `/admin/cicli`, menu tolto da `Nav.jsx`.
+   *Fatto quando*: ogni vecchio indirizzo apre la pagina giusta; nessuna pagina facilitatore raggiungibile fuori da `/admin`;
+   a 390, 768 e 1280px la navigazione cambia forma come da sez. 2.1.
 2. **Cicli**: pagina iniziale e spazio del ciclo con le 5 schede; `Percorso.jsx` e la Dashboard non più usati.
-   *Fatto quando*: il ciclo si sceglie solo dall'elenco o dal selettore in testata; nessuna tendina «Ciclo» nelle schede.
+   *Fatto quando*: il ciclo si sceglie solo dall'elenco o dal selettore nella barra della pagina; nessuna tendina «Ciclo» nelle schede.
 3. **Tracce**: elenco, scheda, nuova traccia, migrazione `controlli_tracce` applicata.
    *Fatto quando*: si può creare (carica/genera), modificare, mettere in vetrina, controllare ed eliminare una traccia
    senza lasciare `/admin/tracce`; il badge sopravvive al ricaricamento e diventa «Da ricontrollare» dopo una sostituzione del file.
@@ -210,8 +231,9 @@ Regole:
 
 ## 8. Vincoli
 
-- Solo componenti e token esistenti (`docs/design-system.md`): `.btn`, `.card`, `.field`, `.dialogo`, `.dash-tabs`, card numeriche.
-  Il pannello laterale della scheda traccia è l'unico elemento nuovo: aggiungerlo come componente condiviso e documentarlo.
+- Componenti e token esistenti (`docs/design-system.md`): `.btn`, `.card`, `.field`, `.dialogo`, `.dash-tabs`, card numeriche.
+  Elementi nuovi, tutti condivisi e da documentare in `design-system.md`: rail di navigazione, barra in basso condivisa,
+  `PaginaAdmin`, pannello di dettaglio, FAB esteso, split button, snackbar (vedi `framework_layout_facilitatore.md`).
 - Tre stati in ogni pagina (attesa, vuoto, errore).
 - Accessibilità: schede con `role="tablist"` come oggi, ma ognuna è una rotta (link con `aria-current`).
 - Nessun cambio alle RPC dei partecipanti, a export/reset o ai dati raccolti.

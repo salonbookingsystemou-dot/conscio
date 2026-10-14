@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sito pubblico · facilitatore</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F5F1E7}
+a{color:#3F5443}a:hover{color:#262419}
+.app *{box-sizing:border-box}
+.serif{font-family:"Source Serif 4",Georgia,serif;font-weight:400}
+.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.i.s{width:20px;height:20px}
+.eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:#6B6553}
+.navi{display:flex;align-items:center;gap:12px;height:56px;padding:0 16px;border-radius:999px;color:#4A4536;text-decoration:none;font-size:14px;font-weight:500}
+.navi:hover{color:#262419;background:rgba(38,36,25,.06)}
+.navi.on{background:#DDE5D8;color:#262419;font-weight:600}
+.bn{margin-left:auto;min-width:22px;height:22px;border-radius:999px;background:#9A3B2E;color:#FFFFFF;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0 7px}
+.btn{height:40px;padding:0 18px;border-radius:12px;font:600 14px "Public Sans",sans-serif;display:inline-flex;align-items:center;gap:8px;border:1px solid transparent;background:transparent;color:#3F5443;text-decoration:none;white-space:nowrap;cursor:pointer}
+.btn-primary{background:#3F5443;color:#FFFFFF}
+.btn-primary:hover{color:#FFFFFF;background:#33463A}
+.btn-ghost{border-color:#CFC8B4}
+.btn-sm{height:36px;padding:0 14px;font-size:13px}
+.ib{width:40px;height:40px;border-radius:999px;border:0;background:transparent;display:inline-flex;align-items:center;justify-content:center;color:#4A4536;cursor:pointer}
+.card{background:#FFFFFF;border:1px solid #E9E3D3;border-radius:16px;padding:22px 24px;display:flex;flex-direction:column;gap:16px}
+.h2{margin:0;font-family:"Source Serif 4",Georgia,serif;font-weight:400;font-size:22px;line-height:1.2}
+.desc{margin:0;font-size:14px;color:#6B6553;line-height:1.5}
+.lbl{font-size:13px;color:#6B6553;font-weight:500}
+.inp{height:44px;border:1px solid #D9D2C0;border-radius:12px;padding:0 14px;font:400 15px "Public Sans",sans-serif;color:#262419;background:#FFFFFF;width:100%}
+.sw{width:52px;height:32px;border-radius:999px;border:0;background:#3F5443;padding:0 4px;display:flex;align-items:center;justify-content:flex-end;cursor:pointer;flex-shrink:0}
+.sw span{width:24px;height:24px;border-radius:999px;background:#FFFFFF}
+</style>
+</head>
+<body>
+
+
+<div class="app" style="width: 1280px; height: 1000px; display: flex; background: #F5F1E7; color: #262419; font-family: 'Public Sans', system-ui, sans-serif; overflow: hidden">
+
+<nav aria-label="Area facilitatore" style="width: 248px; flex-shrink: 0; background: #EEE8D9; display: flex; flex-direction: column; gap: 4px; padding: 24px 12px 20px">
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 0 16px 20px">
+<span class="serif" style="font-size: 26px; line-height: 1">Conscio</span>
+<span class="eyebrow">Facilitatore</span>
+</div>
+<div style="height: 76px"></div>
+<a class="navi" href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"></path><path d="M20 4v4h-4"></path></svg>Cicli<span class="bn" aria-label="3 cose da fare">3</span></a>
+<a class="navi" href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4M8 6v12M12 3v18M16 8v8M20 11v2"></path></svg>Tracce</a>
+<a class="navi" href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path></svg>Comunicazioni</a>
+<a class="navi on" href="#" aria-current="page"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"></path></svg>Sito</a>
+<div style="flex-grow: 1"></div>
+<a class="navi" href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"></path></svg>Esci</a>
+</nav>
+
+<main style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column">
+<header style="display: flex; align-items: flex-end; gap: 16px; padding: 32px 40px 24px">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 4px">
+<h1 class="serif" style="margin: 0; font-size: 34px; line-height: 1.1">Sito pubblico</h1>
+<p class="desc">Pagina iniziale, vetrina Ascolta e nota sull'uso dei dati · modifiche non salvate</p>
+</div>
+<a class="btn" href="#">Apri Ascolta<svg class="i s" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"></path></svg></a>
+<button class="btn btn-primary" type="button">Salva</button>
+</header>
+
+<div style="flex-grow: 1; min-height: 0; padding: 0 40px 32px; display: flex; gap: 24px">
+
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 24px; overflow: hidden">
+<section class="card">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 class="h2">Pagina iniziale</h2>
+<p class="desc">Il primo schermo di conscio.mnesti.it, prima del codice.</p>
+</div>
+<label style="display: flex; flex-direction: column; gap: 6px"><span class="lbl">Titolo</span><input class="inp" value="Otto settimane per allenare l'attenzione"></label>
+<label style="display: flex; flex-direction: column; gap: 6px"><span class="lbl">Sottotitolo</span><textarea class="inp" style="height: 84px; padding: 12px 14px; resize: none; line-height: 1.5">Un percorso di pratica guidata, in presenza o da remoto, con tracce audio e un diario della giornata.</textarea></label>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+<label style="display: flex; flex-direction: column; gap: 6px"><span class="lbl">Pulsante principale</span><input class="inp" value="Iscriviti al prossimo ciclo"></label>
+<label style="display: flex; flex-direction: column; gap: 6px"><span class="lbl">Pulsante secondario</span><input class="inp" value="Ho già un codice"></label>
+</div>
+</section>
+
+<section class="card" style="gap: 0; padding-bottom: 8px">
+<div style="display: flex; flex-direction: column; gap: 4px; padding-bottom: 12px">
+<h2 class="h2">Vetrina Ascolta</h2>
+<p class="desc">Le tracce che chiunque può ascoltare senza iscrizione.</p>
+</div>
+
+<div style="display: flex; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid #F1ECDF">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 500">Spazio di respiro di 3 minuti</span>
+<span style="font-size: 13px; color: #6B6553">3 min · in vetrina dal 20 set</span>
+</div>
+<button class="sw" type="button" role="switch" aria-checked="true" aria-label="In vetrina: Spazio di respiro di 3 minuti"><span></span></button>
+</div>
+
+<div style="display: flex; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid #F1ECDF">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 500">Meditazione seduta · respiro</span>
+<span style="font-size: 13px; color: #6B6553">20 min · in vetrina dal 20 set</span>
+</div>
+<button class="sw" type="button" role="switch" aria-checked="true" aria-label="In vetrina: Meditazione seduta · respiro"><span></span></button>
+</div>
+
+<div style="display: flex; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid #F1ECDF">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 500">Meditazione camminata</span>
+<span style="font-size: 13px; color: #6B6553">15 min · in vetrina dal 2 ott</span>
+</div>
+<button class="sw" type="button" role="switch" aria-checked="true" aria-label="In vetrina: Meditazione camminata"><span></span></button>
+</div>
+
+</section>
+</div>
+
+<aside aria-label="Anteprima" style="width: 380px; flex-shrink: 0; background: #EEE8D9; border-radius: 28px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; gap: 8px">
+<span class="eyebrow" style="flex-grow: 1">Anteprima · telefono</span>
+<button class="ib" type="button" aria-label="Anteprima su schermo largo"><svg class="i s" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"></rect><path d="M8 21h8M12 17v4"></path></svg></button>
+</div>
+<div style="flex-grow: 1; background: #F5F1E7; border-radius: 20px; border: 1px solid #E2DCCB; padding: 40px 24px 24px; display: flex; flex-direction: column; gap: 16px">
+<span class="eyebrow">Conscio</span>
+<h3 class="serif" style="margin: 0; font-size: 30px; line-height: 1.15">Otto settimane per allenare l'attenzione</h3>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: #4A4536">Un percorso di pratica guidata, in presenza o da remoto, con tracce audio e un diario della giornata.</p>
+<div style="flex-grow: 1"></div>
+<span class="btn btn-primary" style="justify-content: center; height: 48px">Iscriviti al prossimo ciclo</span>
+<span class="btn btn-ghost" style="justify-content: center; height: 48px">Ho già un codice</span>
+</div>
+</aside>
+
+</div>
+</main>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tracce · facilitatore</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F5F1E7}
+a{color:#3F5443}a:hover{color:#262419}
+.app *{box-sizing:border-box}
+.serif{font-family:"Source Serif 4",Georgia,serif;font-weight:400}
+.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.i.s{width:20px;height:20px}
+.eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:#6B6553}
+.fab{display:inline-flex;align-items:center;gap:12px;height:56px;padding:0 22px 0 18px;border-radius:16px;background:#3F5443;color:#FFFFFF;font:600 15px "Public Sans",sans-serif;border:0;text-decoration:none}
+.fab:hover{color:#FFFFFF;background:#33463A}
+.navi{display:flex;align-items:center;gap:12px;height:56px;padding:0 16px;border-radius:999px;color:#4A4536;text-decoration:none;font-size:14px;font-weight:500}
+.navi:hover{color:#262419;background:rgba(38,36,25,.06)}
+.navi.on{background:#DDE5D8;color:#262419;font-weight:600}
+.bn{margin-left:auto;min-width:22px;height:22px;border-radius:999px;background:#9A3B2E;color:#FFFFFF;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0 7px}
+.btn{height:40px;padding:0 18px;border-radius:12px;font:600 14px "Public Sans",sans-serif;display:inline-flex;align-items:center;gap:8px;border:1px solid transparent;background:transparent;color:#3F5443;text-decoration:none;white-space:nowrap;cursor:pointer}
+.btn-tonal{background:#DDE5D8;color:#262419}
+.btn-ghost{border-color:#CFC8B4}
+.btn-sm{height:36px;padding:0 14px;font-size:13px}
+.btn-danger{border-color:#E2C3BC;color:#9A3B2E}
+.ib{width:40px;height:40px;border-radius:999px;border:0;background:transparent;display:inline-flex;align-items:center;justify-content:center;color:#4A4536;cursor:pointer}
+.card{background:#FFFFFF;border:1px solid #E9E3D3;border-radius:16px}
+.h3{margin:0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:#6B6553}
+.desc{margin:0;font-size:14px;color:#6B6553;line-height:1.5}
+.chip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:8px;border:1px solid #CFC8B4;font:500 13px "Public Sans",sans-serif;color:#4A4536;background:transparent;white-space:nowrap;cursor:pointer}
+.chip.on{background:#DDE5D8;border-color:#DDE5D8;color:#262419;font-weight:600}
+.st{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.st-ok{background:#E3E9E0;color:#2F4A37}
+.st-warn{background:#F3E6D2;color:#6E4310}
+.st-err{background:#F4DEDA;color:#8A2E22}
+.st-none{background:#EFEADC;color:#5E5848}
+.st-re{background:#FFFFFF;color:#6E4310;box-shadow:inset 0 0 0 1px #C99A5E}
+.lbl{font-size:13px;color:#6B6553;font-weight:500}
+.inp{height:44px;border:1px solid #D9D2C0;border-radius:12px;padding:0 14px;font:400 15px "Public Sans",sans-serif;color:#262419;background:#FFFFFF;width:100%}
+.sec{display:flex;flex-direction:column;gap:12px;padding:20px 24px;border-top:1px solid #F1ECDF}
+.num{font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+
+
+<div class="app" style="width: 1280px; height: 1000px; display: flex; background: #F5F1E7; color: #262419; font-family: 'Public Sans', system-ui, sans-serif; overflow: hidden; position: relative">
+
+<nav aria-label="Area facilitatore" style="width: 248px; flex-shrink: 0; background: #EEE8D9; display: flex; flex-direction: column; gap: 4px; padding: 24px 12px 20px">
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 0 16px 20px">
+<span class="serif" style="font-size: 26px; line-height: 1">Conscio</span>
+<span class="eyebrow">Facilitatore</span>
+</div>
+<div style="padding: 0 4px 20px"><a class="fab" href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Nuova traccia</a></div>
+<a class="navi" href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"></path><path d="M20 4v4h-4"></path></svg>Cicli<span class="bn" aria-label="3 cose da fare">3</span></a>
+<a class="navi on" href="#" aria-current="page"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4M8 6v12M12 3v18M16 8v8M20 11v2"></path></svg>Tracce</a>
+<a class="navi" href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path></svg>Comunicazioni</a>
+<a class="navi" href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"></path></svg>Sito</a>
+<div style="flex-grow: 1"></div>
+<a class="navi" href="#"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"></path></svg>Esci</a>
+</nav>
+
+<main style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column">
+<header style="display: flex; align-items: flex-end; gap: 16px; padding: 32px 40px 24px">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 4px">
+<h1 class="serif" style="margin: 0; font-size: 34px; line-height: 1.1">Tracce</h1>
+<p class="desc">24 tracce · 2 da guardare · ultimo controllo 12 ott</p>
+</div>
+<div style="display: flex; gap: 2px">
+<button class="btn btn-tonal" type="button" style="border-radius: 12px 4px 4px 12px">Controlla tutte</button>
+<button class="btn btn-tonal" type="button" aria-label="Altre opzioni di controllo" style="border-radius: 4px 12px 12px 4px; padding: 0 10px"><svg class="i s" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
+</div>
+<button class="ib" type="button" aria-label="Altre azioni"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.2"></circle><circle cx="12" cy="12" r="1.2"></circle><circle cx="12" cy="19" r="1.2"></circle></svg></button>
+</header>
+
+<div style="flex-grow: 1; min-height: 0; padding: 0 40px 32px; display: flex; gap: 24px">
+
+<section class="card" aria-label="Elenco tracce" style="width: 420px; flex-shrink: 0; display: flex; flex-direction: column; overflow: hidden">
+<div style="padding: 16px 16px 12px; display: flex; flex-direction: column; gap: 12px">
+<label style="display: flex; align-items: center; gap: 10px; height: 44px; border-radius: 999px; background: #F3EFE4; padding: 0 16px; color: #6B6553">
+<svg class="i s" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+<input type="search" placeholder="Cerca una traccia" aria-label="Cerca una traccia" style="border: 0; background: transparent; font: 400 15px 'Public Sans', sans-serif; color: #262419; flex-grow: 1; outline: none">
+</label>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button class="chip on" type="button" aria-pressed="true">Tutte</button>
+<button class="chip" type="button">Usate nel ciclo<svg class="i s" viewBox="0 0 24 24" aria-hidden="true" style="width: 16px; height: 16px"><path d="m6 9 6 6 6-6"></path></svg></button>
+<button class="chip" type="button">Da guardare · 2</button>
+<button class="chip" type="button">In vetrina</button>
+<button class="chip" type="button">Non controllate</button>
+</div>
+</div>
+<div style="flex-grow: 1; overflow: hidden">
+
+<a href="#" style="display: flex; align-items: center; gap: 12px; padding: 14px 16px 14px 20px; border-top: 1px solid #F1ECDF; text-decoration: none; color: #262419; background: #F3EFE4">
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 600">Body scan</span>
+<span class="num" style="font-size: 13px; color: #6B6553">45 min · creata 2 set</span>
+</div>
+<span class="st st-ok">Funziona</span>
+</a>
+
+<a href="#" style="display: flex; align-items: center; gap: 12px; padding: 14px 16px 14px 20px; border-top: 1px solid #F1ECDF; text-decoration: none; color: #262419; background: transparent">
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 500">Yoga consapevole 1</span>
+<span class="num" style="font-size: 13px; color: #6B6553">40 min · modificata 10 ott</span>
+</div>
+<span class="st st-warn">Da guardare</span>
+</a>
+
+<a href="#" style="display: flex; align-items: center; gap: 12px; padding: 14px 16px 14px 20px; border-top: 1px solid #F1ECDF; text-decoration: none; color: #262419; background: transparent">
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 500">Meditazione camminata</span>
+<span class="num" style="font-size: 13px; color: #6B6553">15 min · file sostituito 13 ott</span>
+</div>
+<span class="st st-re">Da ricontrollare</span>
+</a>
+
+<a href="#" style="display: flex; align-items: center; gap: 12px; padding: 14px 16px 14px 20px; border-top: 1px solid #F1ECDF; text-decoration: none; color: #262419; background: transparent">
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 500">Meditazione seduta · respiro</span>
+<span class="num" style="font-size: 13px; color: #6B6553">20 min · creata 4 set</span>
+</div>
+<span class="st st-ok">Funziona</span>
+</a>
+
+<a href="#" style="display: flex; align-items: center; gap: 12px; padding: 14px 16px 14px 20px; border-top: 1px solid #F1ECDF; text-decoration: none; color: #262419; background: transparent">
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 500">Spazio di respiro di 3 minuti</span>
+<span class="num" style="font-size: 13px; color: #6B6553">3 min · creata 4 set</span>
+</div>
+<span class="st st-ok">Funziona</span>
+</a>
+
+<a href="#" style="display: flex; align-items: center; gap: 12px; padding: 14px 16px 14px 20px; border-top: 1px solid #F1ECDF; text-decoration: none; color: #262419; background: transparent">
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 500">Meditazione della montagna</span>
+<span class="num" style="font-size: 13px; color: #6B6553">25 min · creata 14 ott</span>
+</div>
+<span class="st st-none">Non controllata</span>
+</a>
+
+<a href="#" style="display: flex; align-items: center; gap: 12px; padding: 14px 16px 14px 20px; border-top: 1px solid #F1ECDF; text-decoration: none; color: #262419; background: transparent">
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 500">Yoga consapevole 2</span>
+<span class="num" style="font-size: 13px; color: #6B6553">40 min · modificata 8 ott</span>
+</div>
+<span class="st st-err">Problema</span>
+</a>
+
+</div>
+</section>
+
+<section aria-label="Scheda traccia" style="flex-grow: 1; min-width: 0; background: #FFFFFF; border: 1px solid #E9E3D3; border-radius: 28px; display: flex; flex-direction: column; overflow: hidden">
+<div style="display: flex; align-items: flex-start; gap: 12px; padding: 24px 24px 16px">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 6px">
+<span class="eyebrow">Pratica formale · 45 min</span>
+<h2 class="serif" style="margin: 0; font-size: 28px; line-height: 1.15">Body scan</h2>
+</div>
+<span class="st st-ok" style="margin-top: 6px">Funziona</span>
+<button class="ib" type="button" aria-label="Chiudi la scheda"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+</div>
+
+<div style="margin: 0 24px 20px; background: #F3EFE4; border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; gap: 14px">
+<button type="button" aria-label="Ascolta" style="width: 44px; height: 44px; border-radius: 999px; border: 0; background: #3F5443; color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 20px; height: 20px; fill: currentColor"><path d="M8 5v14l11-7z"></path></svg></button>
+<div style="flex-grow: 1; height: 6px; border-radius: 999px; background: #E2DCCB"><div style="width: 28%; height: 6px; border-radius: 999px; background: #4B6B57"></div></div>
+<span class="num" style="font-size: 13px; color: #4A4536">12:40 / 45:12</span>
+</div>
+
+<div style="flex-grow: 1; overflow: hidden; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr))">
+<div style="display: flex; flex-direction: column; border-right: 1px solid #F1ECDF">
+<div class="sec">
+<h3 class="h3">Contenuto</h3>
+<label style="display: flex; flex-direction: column; gap: 6px"><span class="lbl">Titolo</span><input class="inp" value="Body scan"></label>
+<label style="display: flex; flex-direction: column; gap: 6px"><span class="lbl">Testo della card</span><textarea class="inp" style="height: 96px; padding: 12px 14px; resize: none; line-height: 1.5">Un'esplorazione lenta del corpo, dalla punta dei piedi alla testa.</textarea></label>
+</div>
+<div class="sec">
+<h3 class="h3">File</h3>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<button class="btn btn-ghost btn-sm" type="button">Sostituisci file</button>
+<button class="btn btn-ghost btn-sm" type="button">Rigenera da script</button>
+</div>
+</div>
+<div class="sec">
+<div style="display: flex; align-items: center; gap: 12px">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px">
+<h3 class="h3">Vetrina Ascolta</h3>
+<span style="font-size: 14px; color: #4A4536">Non visibile nella pagina pubblica</span>
+</div>
+<button type="button" role="switch" aria-checked="false" aria-label="Mostra in vetrina" style="width: 52px; height: 32px; border-radius: 999px; border: 2px solid #8E8873; background: #EFEADC; padding: 0 4px; display: flex; align-items: center; cursor: pointer"><span style="width: 16px; height: 16px; border-radius: 999px; background: #8E8873"></span></button>
+</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column">
+<div class="sec">
+<h3 class="h3">Dove è usata</h3>
+<a href="#" style="font-size: 14px">Gruppo pilota · settimana 1</a>
+<a href="#" style="font-size: 14px">Gruppo pilota · settimana 2</a>
+</div>
+<div class="sec">
+<div style="display: flex; align-items: center; gap: 12px">
+<h3 class="h3" style="flex-grow: 1">Controllo · 12 ott</h3>
+<button class="btn btn-sm" type="button">Ricontrolla</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px">
+<div style="display: flex; gap: 10px; align-items: center"><span class="st st-ok">ok</span>Collegamenti: 2 settimane, nessun link rotto</div>
+<div style="display: flex; gap: 10px; align-items: center"><span class="st st-ok">ok</span>File: MP3, 45:12, si apre</div>
+<div style="display: flex; gap: 10px; align-items: center"><span class="st st-ok">ok</span>Ascolto tecnico: nessun tratto basso</div>
+</div>
+</div>
+<div class="sec" style="margin-top: auto">
+<button class="btn btn-danger btn-sm" type="button" style="align-self: flex-start">Elimina traccia</button>
+</div>
+</div>
+</div>
+</section>
+
+</div>
+</main>
+
+<div role="status" style="position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); margin-left: 124px; display: flex; align-items: center; gap: 24px; min-height: 48px; padding: 6px 8px 6px 18px; border-radius: 8px; background: #262419; color: #F5F1E7; font-size: 14px; box-shadow: 0 6px 20px rgba(38,36,25,.18)">
+<span>«Yoga consapevole 1» tolta dalla vetrina</span>
+<button type="button" style="height: 36px; padding: 0 12px; border-radius: 8px; border: 0; background: transparent; color: #C9D9C4; font: 600 14px 'Public Sans', sans-serif; cursor: pointer">Annulla</button>
+</div>
+
+</div>
+
+</body>
+</html>

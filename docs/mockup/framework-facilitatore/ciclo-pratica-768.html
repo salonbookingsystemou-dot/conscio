@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spazio del ciclo · Pratica · tablet</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#F5F1E7}
+a{color:#3F5443}a:hover{color:#262419}
+.app *{box-sizing:border-box}
+.serif{font-family:"Source Serif 4",Georgia,serif;font-weight:400}
+.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.i.s{width:20px;height:20px}
+.eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:#6B6553}
+.ri{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;color:#4A4536;text-decoration:none;font-size:12px;font-weight:500;width:100%}
+.ri .ind{width:56px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;position:relative}
+.ri.on{color:#262419;font-weight:600}
+.ri.on .ind{background:#DDE5D8}
+.bn{position:absolute;top:-2px;right:6px;min-width:18px;height:18px;border-radius:999px;background:#9A3B2E;color:#FFFFFF;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0 5px}
+.btn{height:40px;padding:0 16px;border-radius:12px;font:600 14px "Public Sans",sans-serif;display:inline-flex;align-items:center;gap:8px;border:1px solid transparent;background:transparent;color:#3F5443;text-decoration:none;white-space:nowrap;cursor:pointer}
+.btn-ghost{border-color:#CFC8B4}
+.ib{width:40px;height:40px;border-radius:999px;border:0;background:transparent;display:inline-flex;align-items:center;justify-content:center;color:#4A4536;cursor:pointer;flex-shrink:0}
+.tab{height:48px;padding:0 16px;display:inline-flex;align-items:center;font-size:14px;font-weight:500;color:#4A4536;text-decoration:none;border-bottom:3px solid transparent;white-space:nowrap}
+.tab.on{color:#262419;font-weight:600;border-bottom-color:#3F5443}
+.card{background:#FFFFFF;border:1px solid #E9E3D3;border-radius:16px;padding:22px 24px;display:flex;flex-direction:column;gap:16px}
+.h2{margin:0;font-family:"Source Serif 4",Georgia,serif;font-weight:400;font-size:22px;line-height:1.2}
+.desc{margin:0;font-size:14px;color:#6B6553;line-height:1.5}
+.kpi{background:#FFFFFF;border:1px solid #E9E3D3;border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:4px}
+.kl{font-size:13px;color:#6B6553}
+.kv{font-family:"Source Serif 4",Georgia,serif;font-size:30px;line-height:1.1;font-variant-numeric:tabular-nums}
+.kc{font-size:12px;color:#6B6553}
+.num{font-variant-numeric:tabular-nums}
+.sq{width:12px;height:12px;border-radius:3px;display:inline-block}
+</style>
+</head>
+<body>
+
+
+<div class="app" style="width: 768px; height: 1100px; display: flex; background: #F5F1E7; color: #262419; font-family: 'Public Sans', system-ui, sans-serif; overflow: hidden">
+
+<nav aria-label="Area facilitatore" style="width: 88px; flex-shrink: 0; background: #EEE8D9; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px 0">
+<span class="serif" aria-label="Conscio · Facilitatore" style="font-size: 26px; line-height: 1; padding-bottom: 8px">C</span>
+<a href="#" aria-label="Nuovo ciclo" style="width: 56px; height: 56px; border-radius: 16px; background: #3F5443; color: #FFFFFF; display: flex; align-items: center; justify-content: center; margin-bottom: 12px"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></a>
+<a class="ri on" href="#" aria-current="page"><span class="ind"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"></path><path d="M20 4v4h-4"></path></svg><span class="bn" aria-label="3 cose da fare">3</span></span>Cicli</a>
+<a class="ri" href="#"><span class="ind"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4M8 6v12M12 3v18M16 8v8M20 11v2"></path></svg></span>Tracce</a>
+<a class="ri" href="#"><span class="ind"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path></svg></span>Comunicazioni</a>
+<a class="ri" href="#"><span class="ind"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"></path></svg></span>Sito</a>
+<div style="flex-grow: 1"></div>
+<a class="ri" href="#"><span class="ind"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"></path></svg></span>Esci</a>
+</nav>
+
+<main style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column">
+<header style="display: flex; flex-direction: column; gap: 4px; padding: 20px 24px 0">
+<div style="display: flex; align-items: center; gap: 4px; margin-left: -10px">
+<a class="ib" href="#" aria-label="Torna a Cicli"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"></path></svg></a>
+<span style="font-size: 14px; color: #6B6553; flex-grow: 1">Cicli</span>
+<button class="btn btn-ghost" type="button" style="height: 36px; font-size: 13px">Cambia ciclo<svg class="i s" viewBox="0 0 24 24" aria-hidden="true" style="width: 16px; height: 16px"><path d="m6 9 6 6 6-6"></path></svg></button>
+<button class="ib" type="button" aria-label="Altre azioni"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.2"></circle><circle cx="12" cy="12" r="1.2"></circle><circle cx="12" cy="19" r="1.2"></circle></svg></button>
+</div>
+<h1 class="serif" style="margin: 4px 0 0; font-size: 30px; line-height: 1.15">Gruppo pilota · autunno 2026</h1>
+<p class="desc">In corso · settimana 4 di 8 · 18 set – 6 nov · 8 iscritti</p>
+</header>
+
+<div role="tablist" aria-label="Spazio del ciclo" style="display: flex; padding: 12px 8px 0; border-bottom: 1px solid #E2DCCB; overflow: hidden">
+<a class="tab" href="#">Panoramica</a>
+<a class="tab" href="#">Iscritti</a>
+<a class="tab" href="#">Programma</a>
+<a class="tab on" href="#" aria-current="page">Pratica</a>
+<a class="tab" href="#">Questionari</a>
+</div>
+
+<div style="padding: 24px; display: flex; flex-direction: column; gap: 20px">
+<p class="desc">Solo dati aggregati o senza identificativi: nessun codice e nessuna email in questa scheda.</p>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+<div class="kpi"><span class="kl">Aderenza del gruppo</span><span class="kv">61%</span><span class="kc">giornate con ascolto, sul totale possibile</span></div>
+<div class="kpi"><span class="kl">Minuti di meditazione</span><span class="kv">1.840</span><span class="kc">tracce ascoltate per intero</span></div>
+<div class="kpi"><span class="kl">Media per partecipante</span><span class="kv">230</span><span class="kc">minuti · mediana 215</span></div>
+<div class="kpi"><span class="kl">Pratiche informali</span><span class="kv">51</span><span class="kc">spunte, tutto il gruppo</span></div>
+</div>
+
+<section class="card">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 class="h2">Partecipazione settimana per settimana</h2>
+<p class="desc">Persone che hanno ascoltato per intero almeno una meditazione, divise per tono della giornata.</p>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: #4A4536">
+<span style="display: flex; align-items: center; gap: 6px"><span class="sq" style="background: #4B6B57"></span>Piacevole</span>
+<span style="display: flex; align-items: center; gap: 6px"><span class="sq" style="background: #B4B8B0"></span>Neutro</span>
+<span style="display: flex; align-items: center; gap: 6px"><span class="sq" style="background: #A8763E"></span>Spiacevole</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 12px; align-items: end; height: 180px; border-bottom: 1px solid #CFC8B4; padding: 0 4px">
+
+<div title="Settimana 1" style="height: 180px; display: flex; flex-direction: column-reverse; gap: 2px">
+
+<div style="height: 100px; background: #4B6B57; border-radius: 3px"></div>
+
+<div style="height: 40px; background: #B4B8B0; border-radius: 3px"></div>
+
+<div style="height: 20px; background: #A8763E; border-radius: 3px"></div>
+
+</div>
+
+<div title="Settimana 2" style="height: 180px; display: flex; flex-direction: column-reverse; gap: 2px">
+
+<div style="height: 80px; background: #4B6B57; border-radius: 3px"></div>
+
+<div style="height: 40px; background: #B4B8B0; border-radius: 3px"></div>
+
+<div style="height: 20px; background: #A8763E; border-radius: 3px"></div>
+
+</div>
+
+<div title="Settimana 3" style="height: 180px; display: flex; flex-direction: column-reverse; gap: 2px">
+
+<div style="height: 80px; background: #4B6B57; border-radius: 3px"></div>
+
+<div style="height: 20px; background: #B4B8B0; border-radius: 3px"></div>
+
+<div style="height: 40px; background: #A8763E; border-radius: 3px"></div>
+
+</div>
+
+<div title="Settimana 4 (in corso)" style="height: 180px; display: flex; flex-direction: column-reverse; gap: 2px">
+
+<div style="height: 40px; background: #4B6B57; border-radius: 3px"></div>
+
+<div style="height: 20px; background: #B4B8B0; border-radius: 3px"></div>
+
+<div style="height: 20px; background: #A8763E; border-radius: 3px"></div>
+
+</div>
+
+<div title="Settimana 5: ancora da fare" style="height: 180px; display: flex; flex-direction: column-reverse; gap: 2px">
+
+<div style="height: 4px; background: #E9E3D3; border-radius: 3px"></div>
+
+</div>
+
+<div title="Settimana 6: ancora da fare" style="height: 180px; display: flex; flex-direction: column-reverse; gap: 2px">
+
+<div style="height: 4px; background: #E9E3D3; border-radius: 3px"></div>
+
+</div>
+
+<div title="Settimana 7: ancora da fare" style="height: 180px; display: flex; flex-direction: column-reverse; gap: 2px">
+
+<div style="height: 4px; background: #E9E3D3; border-radius: 3px"></div>
+
+</div>
+
+<div title="Settimana 8: ancora da fare" style="height: 180px; display: flex; flex-direction: column-reverse; gap: 2px">
+
+<div style="height: 4px; background: #E9E3D3; border-radius: 3px"></div>
+
+</div>
+
+</div>
+<div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 12px; padding: 0 4px; font-size: 12px; color: #6B6553">
+
+<span style="text-align: center; font-weight: 400; color: #6B6553">Sett. 1</span>
+
+<span style="text-align: center; font-weight: 400; color: #6B6553">Sett. 2</span>
+
+<span style="text-align: center; font-weight: 400; color: #6B6553">Sett. 3</span>
+
+<span style="text-align: center; font-weight: 600; color: #3F5443">Sett. 4</span>
+
+<span style="text-align: center; font-weight: 400; color: #6B6553">Sett. 5</span>
+
+<span style="text-align: center; font-weight: 400; color: #6B6553">Sett. 6</span>
+
+<span style="text-align: center; font-weight: 400; color: #6B6553">Sett. 7</span>
+
+<span style="text-align: center; font-weight: 400; color: #6B6553">Sett. 8</span>
+
+</div>
+</section>
+
+<section class="card" style="gap: 0">
+<div style="display: flex; flex-direction: column; gap: 4px; padding-bottom: 12px">
+<h2 class="h2">Pratiche informali</h2>
+<p class="desc">Ogni spunta conta una volta.</p>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 70px 90px; gap: 12px; padding: 10px 0; border-bottom: 1px solid #E9E3D3; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: #6B6553; font-weight: 600">
+<span>Pratica</span><span style="text-align: right">Volte</span><span style="text-align: right">Persone</span>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 70px 90px; gap: 12px; padding: 12px 0; border-bottom: 1px solid #F1ECDF; font-size: 14px">
+<span>Bere il caffè consapevolmente</span><span class="num" style="text-align: right; font-weight: 600">14</span><span class="num" style="text-align: right">6 su 8</span>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 70px 90px; gap: 12px; padding: 12px 0; border-bottom: 1px solid #F1ECDF; font-size: 14px">
+<span>Quando lavi i denti</span><span class="num" style="text-align: right; font-weight: 600">11</span><span class="num" style="text-align: right">5 su 8</span>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 70px 90px; gap: 12px; padding: 12px 0; border-bottom: 1px solid #F1ECDF; font-size: 14px">
+<span>Mentre mangi</span><span class="num" style="text-align: right; font-weight: 600">9</span><span class="num" style="text-align: right">5 su 8</span>
+</div>
+
+</section>
+</div>
+</main>
+</div>
+
+</body>
+</html>
