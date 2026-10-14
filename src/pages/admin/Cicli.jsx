@@ -73,6 +73,15 @@ export default function Cicli() {
     }
     return mappa
   }, [iscrizioni])
+  // Solo per contattare chi ha segnalato un momento difficile (decisione del 14/10/2026, docs/progetto.md).
+  const emailPerCodice = useMemo(() => {
+    const mappa = new Map()
+    for (const i of iscrizioni) {
+      const codice = i.utenti?.codice_partecipante
+      if (codice && i.utenti?.email) mappa.set(codice, i.utenti.email)
+    }
+    return mappa
+  }, [iscrizioni])
   const notifichePerCodice = useMemo(() => {
     const m = new Map()
     for (const n of dati?.notifiche || []) {
@@ -267,7 +276,9 @@ export default function Cicli() {
                   <li key={s.checkin_id} className="dash-segnalazione">
                     <div className="dash-segnalazione-testi">
                       <div className="dash-segnalazione-meta">
-                        <span className="badge">{s.codice_partecipante}</span>
+                        <span className="badge" title={emailPerCodice.get(s.codice_partecipante) || 'Nessuna email registrata'}>
+                          {s.codice_partecipante}
+                        </span>
                         <span>{s.settimana === 9 ? 'Settimana intensiva' : `Settimana ${s.settimana}`}</span>
                         {s.creato_il && (
                           <span>· {new Date(s.creato_il).toLocaleDateString('it-IT')}</span>
@@ -501,7 +512,8 @@ export default function Cicli() {
 
         <p className="dash-nota-privacy">
           Le risposte ai questionari sono consultabili solo in forma aggregata e per codice
-          partecipante. Nessuna schermata associa un codice a un nome.
+          partecipante. L’email compare solo passando sopra un codice, nelle iscrizioni e nelle
+          segnalazioni difficili, per contattare la persona.
         </p>
 
         <DialogConferma

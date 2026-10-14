@@ -18,6 +18,9 @@ Chiunque cambi qualcosa di importante aggiorna la sezione **Registro delle modif
 
 - I partecipanti accedono solo tramite RPC `security definer` con `p_codice`. Nessuna tabella è leggibile dal client.
 - L'email non viene mai unita a risposte, log o check-in nelle analisi.
+  Unica eccezione operativa (decisa da Dimitri il 14/10/2026): nelle segnalazioni difficili in «Da fare»
+  l'email compare come tooltip sul codice, come già nelle iscrizioni, per contattare la persona. Non entra
+  in export aggregati, grafici o elenchi di check-in.
 - Ogni nuova categoria di dati va aggiunta a: informativa (`src/pages/Documento.jsx`, sezione 3),
   `esporta_dati_del_partecipante`, `resetta_dati_del_partecipante`, e serve una base giuridica
   (per i dati sul benessere: consenso esplicito, art. 9 GDPR).
@@ -50,6 +53,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 | T3 (follow-up) | da 4 a 8 settimane dopo la fine |
 
 ## Registro delle modifiche
+
+### 14/10/2026 · Email al passaggio sul codice nelle segnalazioni difficili (da Claude Code)
+In «Da fare», passando sopra il codice di una segnalazione difficile compare l'email della persona, come già in Iscritti e nei percorsi da remoto: serve a contattarla. È un'eccezione alla regola «email mai unita ai check-in», decisa da Dimitri e annotata nelle regole sui dati. L'email viene dalle iscrizioni già lette dalla pagina: nessuna RPC nuova; dopo `separa_email_cicli_conclusi` compare «Nessuna email registrata». Aggiornata la nota sulla privacy in fondo a Cicli. Nessuna modifica al database.
 
 ### 14/10/2026 · Esito delle segnalazioni di problemi in «Da fare» (da Claude Code)
 Ogni segnalazione di un problema dell’app compare in «Da fare» su Cicli, e nel badge, finché il facilitatore non la archivia (snackbar con «Annulla»). Per ognuna: stato (In lavorazione, Risolta, Non risolta), testo, pagina, data e, quando l’agente l’ha chiusa, cosa è stato corretto o perché non è risolta, con il link alla pull request. Mai codice né email.
