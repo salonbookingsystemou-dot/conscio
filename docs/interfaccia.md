@@ -16,7 +16,7 @@ flowchart TB
     PTR[PullToRefresh] --- IH[InvitoHome<br/>installa su home] --- CE[ConfineErrori]
   end
   subgraph Part["Guscio partecipante · .shell"]
-    NAV["Nav · brand, OreAscolto, RuotaTonalita, menu"] --> CONT1[contenuto] --> FOOT[Footer]
+    NAV["Nav · Marchio (solo segno in Ascoltati), OreAscolto, RuotaTonalita, menu"] --> CONT1[contenuto] --> FOOT[Footer]
     BB["BarraBassa · Settimana · Storico · Questionari · Avvisi"]
   end
   subgraph Fac["Guscio facilitatore · AdminChrome (/admin/*)"]
@@ -96,6 +96,7 @@ Tutto sotto `/admin`; le vecchie rotte (`/dashboard`, `/percorso…`, `/lezioni`
 | Dati e grafici | `SchedaPratica`, `StoricoGiornate`, `IndicatoreOrientamento`, `OreAscolto` |
 | Personalizzazione | `RuotaTonalita` (ruota l'accento e il fondo, vedi `lib/tonalita.js`) |
 | Admin | `AdminChrome`; in `components/admin/`: `RailNavigazione`, `PaginaAdmin`, `ElencoPannello` + `PannelloDettaglio`, `AreaPrincipale` + `PannelloSupporto` (`Pannelli.jsx`), `SnackbarProvider` / `useSnackbar`, `SplitButton`, `MenuAzioni`, `IconeAdmin`, `useGuscio` (`gusci.js`); `AdminDialogo` (modale delle pagine facilitatore), `RigaIscrizione` (una iscrizione: codice e stato del percorso, dettagli in testo, tendine Screening e Modalità o «Collega a un ciclo» per i percorsi liberi, «Ritira» nel menu ⋯; `IntestazioneIscrizioni` in cima all'elenco), `EditorSplash`, `EditorVetrina`, `ModuloVetrina`, `ScegliSfondo` |
+| Marchio | `Marchio` (segno, orizzontale, verticale; colore dal contenitore; regole in `design-system.md`, «Marchio») |
 | Navigazione | `Nav`, `BarraBassa` (voci del partecipante), `BarraVoci` (la barra in basso vera e propria, con voci e badge passati come prop: la usano `BarraBassa` e `AdminChrome`), `Footer`, `PullToRefresh` |
 
 **Non usati oggi:** `GraficoAndamentoPratica.jsx` (`TracciaGuidata.jsx` eliminato il 15/10/2026). Prima di riprenderli verifica che seguano il design system, altrimenti eliminali.

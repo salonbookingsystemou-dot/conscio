@@ -78,6 +78,17 @@ Le intestazioni di tabella sono maiuscole a 12px con `--ls-table`. Il corsivo re
   (`--state-press` 10%) su pulsanti, voci del rail e della barra, chip, schede, voci di menu; anello di focus 2px `--accent`
   con 2px di distanza. Niente ombre né cambi di fondo al passaggio. Regola unica in `styles/admin.css`.
 
+## Marchio
+
+Segno a spirale + scritta «conscio» in Literata 600, minuscolo, a un solo colore (deciso il 15/10/2026, brief in `docs/brief_logo.md`).
+La scritta è già in tracciati: Literata non si carica nell’app.
+
+- **Componente:** `src/components/Marchio.jsx`, varianti `segno`, `orizzontale`, `verticale`; prop `altezza` in px, `decorativo` quando un link attorno porta già il nome («Conscio, pagina iniziale»).
+- **Colore:** eredita `currentColor`: si mette `color: var(--accent)` (o `var(--ink)`) sul contenitore, mai un esadecimale. Con la Tonalità il marchio ruota insieme all’accento.
+- **Misure:** header 28px (24 sotto i 600px), in Ascoltati solo il segno a 32px; rail esteso 30px con occhiello «Facilitatore», rail compatto segno 32px; prima schermata verticale 112px; accesso e invito all’installazione segno 40px. Sotto i 40px il segno usa da solo la spirale semplificata.
+- **Fuori dal codice:** SVG sorgente in `src/assets/marchio/` (verde, inchiostro, carta); favicon, icone PWA e icona iOS in `public/`; marchio per le email in `public/email/conscio-email-2x.png` (mostrato a 64px).
+- **Cosa non fare:** niente ombre, contorni, rotazioni, animazioni (rispetta `prefers-reduced-motion`), altri font per la scritta, tracciati ridisegnati a mano. Non usarlo come decorazione in stati di attesa o errori.
+
 ## Componenti di riferimento
 
 - **Card numerica**: etichetta `--fs-meta` `--muted`, numero in serif `--fs-number`, nota `--fs-caption`.

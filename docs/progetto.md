@@ -54,6 +54,13 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 15/10/2026 · L’app si chiama Conscio, con il nuovo marchio (da Claude Code)
+Applicato il kit del logo (`docs/brief_logo.md`): segno a spirale + scritta «conscio» in Literata 600, un solo colore. Deciso con Dimitri: tutto diventa «Conscio» (nome dell’app installata, titolo della scheda, header, prima schermata); «percorso MBSR» resta nei testi dove descrive il percorso.
+- **File e manifest:** favicon ICO e SVG, icone PWA `any` e `maskable` in `public/icons/`, icona iOS; manifest `name`/`short_name` «Conscio», `theme_color` `#3F5443` (prima `#4B6B57`); la Tonalità colora la barra del browser con l’accento. Eliminate le icone vecchie e `scripts/crea-icone-pwa.mjs`; `public/icon-192.png` resta, con la nuova icona, perché la richiamano le email già inviate.
+- **Componente `Marchio`** nell’header (in Ascoltati solo il segno, come chiesto), nel rail del facilitatore (orizzontale esteso, segno compatto al posto della «C»), sulla prima schermata (verticale), nell’accesso facilitatore, nell’invito all’installazione e nell’anteprima in Sito. Un solo nome per i lettori di schermo («Conscio, pagina iniziale»).
+- **Email:** marchio in cima a ogni messaggio e firma «Conscio è un progetto dell’Associazione ADS Hanuman» (`_shared/firmaEmail.ts`). Da ridistribuire: `porta`, `invia-comunicazione`, `avvisa-segnalazione-checkin`, `notifica-inattivita`, `promemoria-pausa`, `promemoria-questionari`, `invia-incoraggiamento-pratica`. Restano «Percorso MBSR» nelle firme in fondo ai testi, negli oggetti e nel mittente predefinito: da decidere.
+- Nessuna modifica al database, alle RPC o alle rotte.
+
 ### 15/10/2026 · La campana tibetana è dentro il file di ogni traccia (da Claude Code)
 Ogni traccia comincia e finisce con la campana tibetana, e ora la campana sta **nel file** invece di suonare dal player: si sente anche a schermo spento, nei browser interni delle app e offline, dove la campana del player poteva perdersi (e quella finale non c'era).
 - **Generatore**: `preparaMp3` (`lib/tracciaFinale.js`) mette campana, 1 s, voce, 2 s, campana, tutto in una codifica; la campana sta 3 LU sotto il parlato.
