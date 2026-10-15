@@ -16,7 +16,8 @@ export default function Nav() {
     minutiAscolto,
     esci: esciPartecipante,
     onboardingCompleto,
-    percorsoPronto
+    percorsoPronto,
+    caricamento
   } = usePartecipante()
   const { pathname } = useLocation()
   const paginaAscolta = pathname === '/ascolta' || pathname.startsWith('/ascolta/')
@@ -124,8 +125,9 @@ export default function Nav() {
           <img className="brand-mark" src={iconaConscio} alt={paginaAscolta ? 'Percorso MBSR' : ''} />
           {paginaAscolta ? null : 'Percorso MBSR'}
         </Link>
-        {/* In Ascoltati l'unica azione è l'invito al percorso; chi è già iscritto non lo vede. */}
-        {paginaAscolta && !registrato && (
+        {/* In Ascoltati l'unica azione è l'invito al percorso; chi è già iscritto non lo vede.
+            Si aspetta di sapere se c'è un codice, così il link non compare e poi sparisce. */}
+        {paginaAscolta && !caricamento && !registrato && (
           <Link to="/iscrizione" className="topbar-percorso">Inizia il percorso</Link>
         )}
         {paginaAscolta ? null : (
