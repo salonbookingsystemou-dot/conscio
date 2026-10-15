@@ -243,32 +243,29 @@ export default function Cicli() {
           </div>
         )}
 
-        <section className="dash-ciclo-sezione dash-segnalazioni" aria-labelledby="da-fare-titolo">
-          <header className="dash-ciclo-sezione-testa">
-            <div>
-              <h2 id="da-fare-titolo">
-                Da fare
-                {!niente && (
+        {/* Senza niente da fare il blocco non compare. */}
+        {!niente && (
+          <section className="dash-ciclo-sezione dash-segnalazioni" aria-labelledby="da-fare-titolo">
+            <header className="dash-ciclo-sezione-testa">
+              <div>
+                <h2 id="da-fare-titolo">
+                  Da fare
                   <span className="dash-ciclo-conteggio">{segnalazioni.length + kpi.inAttesa + problemi.length}</span>
+                </h2>
+                {segnalazioni.length > 0 && (
+                  <p className="hint">
+                    Segnalazioni dal check-in settimanale: la persona ha vissuto un momento difficile durante la pratica.
+                    Contattala, poi segna la segnalazione come gestita. La nota resta solo qui.
+                  </p>
                 )}
-              </h2>
-              {segnalazioni.length > 0 && (
-                <p className="hint">
-                  Segnalazioni dal check-in settimanale: la persona ha vissuto un momento difficile durante la pratica.
-                  Contattala, poi segna la segnalazione come gestita. La nota resta solo qui.
-                </p>
-              )}
-              {problemi.length > 0 && (
-                <p className="hint">
-                  Segnalazioni di problemi dell’app, anonime: l’agente le esamina e scrive qui se le ha risolte.
-                  Archiviale quando le hai lette.
-                </p>
-              )}
-            </div>
-          </header>
-          {niente ? (
-            <p className="hint">Niente da fare.</p>
-          ) : (
+                {problemi.length > 0 && (
+                  <p className="hint">
+                    Segnalazioni di problemi dell’app, anonime: l’agente le esamina e scrive qui se le ha risolte.
+                    Archiviale quando le hai lette.
+                  </p>
+                )}
+              </div>
+            </header>
             <ul className="dash-segnalazioni-lista">
               {segnalazioni.map(s => {
                 const cicloId = cicloPerCodice.get(s.codice_partecipante)
@@ -371,8 +368,8 @@ export default function Cicli() {
                 </li>
               ))}
             </ul>
-          )}
-        </section>
+          </section>
+        )}
 
         <div className="dash-kpi">
           <article className="dash-kpi-card">

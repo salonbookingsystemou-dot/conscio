@@ -54,6 +54,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 15/10/2026 · «Da fare» compare solo quando c’è qualcosa (da Claude Code)
+In Cicli il blocco «Da fare» non mostra più «Niente da fare»: se non ci sono segnalazioni difficili, segnalazioni di problemi o iscrizioni in attesa, non compare e la pagina parte dai numeri. Gestita l’ultima voce, il blocco sparisce subito; la snackbar di conferma resta. Nessuna modifica al database.
+
 ### 14/10/2026 · Pagina Sito più snella, con l’anteprima della prima schermata (da Claude Code)
 Tolti gli elementi inutili o superati: «Vedi la schermata» (per il facilitatore la pagina iniziale rimanda a Cicli, quindi non mostrava nulla), «Apri la vetrina» (doppione di «Apri Ascolta» nella barra), la nota sulle pagine «/a/…» per i social (superata: dal 13/10 le anteprime si generano a ogni pubblicazione), la seconda spiegazione della vetrina che citava ancora «Disponibile per la vetrina». «Uso dei dati e dei punteggi» parla dei punteggi PSS-10 e FFMQ-I, non del sito: ora sta in fondo alla scheda Questionari del ciclo. Al suo posto il pannello di supporto mostra l’anteprima della prima schermata, che segue frase e pulsante mentre si scrivono. La card Ascolta è divisa in tre (Vetrina Ascolta, Meditazione della settimana, Ascolti delle ultime quattro settimane); nel calendario le settimane vuote consecutive sono una riga sola. Gli esiti dei salvataggi vanno nella snackbar. Corretta anche la nota sulla privacy della scheda Questionari. Nessuna modifica al database.
 
