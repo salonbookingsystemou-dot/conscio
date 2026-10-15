@@ -3,7 +3,7 @@ import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth.jsx'
 import { destinazionePartecipante, usePartecipante } from '../lib/partecipante.jsx'
 import { leggiSplash, SPLASH_DEFAULT } from '../lib/splash.js'
-import iconaConscio from '../assets/icona-conscio.png'
+import Marchio from '../components/Marchio.jsx'
 
 export default function Splash() {
   const { facilitatore, caricamento: authLoad } = useAuth()
@@ -42,8 +42,9 @@ export default function Splash() {
 
   return (
     <main className="splash">
-      <img className="splash-icona" src={iconaConscio} alt="" />
-      <p className="splash-marca">Percorso MBSR</p>
+      <div className="splash-icona">
+        <Marchio variante="verticale" altezza={112} />
+      </div>
       <span className="splash-linea" aria-hidden="true" />
       <h1 className="splash-frase">{testo.frase}</h1>
       <div className="splash-cta">

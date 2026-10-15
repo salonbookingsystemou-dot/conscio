@@ -2,7 +2,7 @@ import { useEffect, useId, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth.jsx'
 import { usePartecipante } from '../lib/partecipante.jsx'
-import iconaConscio from '../assets/icona-conscio.png'
+import Marchio from './Marchio.jsx'
 import { apriInvitoHome, appGiaInHome } from '../lib/invitoHome.js'
 import RuotaTonalita from './RuotaTonalita.jsx'
 import OreAscolto from './OreAscolto.jsx'
@@ -121,9 +121,11 @@ export default function Nav() {
   return (
     <header className={`topbar${aperto ? ' is-open' : ''}${paginaAscolta ? ' is-solo-logo' : ''}`}>
       <div className="topbar-riga">
-        <Link to="/" className="brand" onClick={chiudi}>
-          <img className="brand-mark" src={iconaConscio} alt={paginaAscolta ? 'Percorso MBSR' : ''} />
-          {paginaAscolta ? null : 'Percorso MBSR'}
+        <Link to="/" className="brand" aria-label="Conscio, pagina iniziale" onClick={chiudi}>
+          {/* In Ascoltati solo il segno; altrove segno e scritta. */}
+          {paginaAscolta
+            ? <Marchio variante="segno" altezza={32} decorativo className="brand-segno" />
+            : <Marchio variante="orizzontale" altezza={28} decorativo className="brand-marchio" />}
         </Link>
         {/* In Ascoltati l'unica azione è l'invito al percorso; chi è già iscritto non lo vede.
             Si aspetta di sapere se c'è un codice, così il link non compare e poi sparisce. */}

@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth.jsx'
 import { supabaseConfigurato } from '../lib/supabaseClient'
 import StatoAttesa from '../components/StatoAttesa.jsx'
+import Marchio from '../components/Marchio.jsx'
 
 export default function Accedi() {
   const { facilitatore, caricamento, accedi } = useAuth()
@@ -37,6 +38,7 @@ export default function Accedi() {
 
   return (
     <div className="card entra-box">
+      <span className="entra-box-marchio"><Marchio variante="segno" altezza={40} /></span>
       <h2>Accesso facilitatore</h2>
       <p className="entra-box-nota">
         Area riservata a chi conduce il percorso. I partecipanti entrano con il

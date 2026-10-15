@@ -125,9 +125,13 @@
 .rail-marchio {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  color: var(--ink);
+  gap: var(--space-6);
+  color: var(--accent);
   text-decoration: none;
+}
+
+.rail-marchio svg {
+  display: block;
 }
 
 .rail.is-esteso .rail-marchio {
@@ -137,12 +141,6 @@
 .rail.is-compatto .rail-marchio {
   align-items: center;
   padding-bottom: var(--space-8);
-}
-
-.rail-marchio-nome {
-  font-family: var(--font-display);
-  font-size: 26px;
-  line-height: 1;
 }
 
 .rail-marchio-ruolo {
@@ -2564,10 +2562,8 @@
 
 .anteprima-splash .anteprima-splash-marca {
   margin: auto 0 0;
-  font-size: var(--fs-caption);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ochre);
+  color: var(--accent);
+  line-height: 0;
 }
 
 .anteprima-splash-linea {

@@ -1,5 +1,6 @@
 import { Link, NavLink } from 'react-router-dom'
 import { percorsoSezione } from '../../lib/sezioniAdmin.js'
+import Marchio from '../Marchio.jsx'
 import { ICONE_SEZIONE, IconaEsci, IconaPiu } from './IconeAdmin.jsx'
 
 function Badge({ numero }) {
@@ -21,14 +22,14 @@ export default function RailNavigazione({ sezioni, attiva, badge = {}, esteso, o
 
   return (
     <nav className={`rail${esteso ? ' is-esteso' : ' is-compatto'}`} aria-label="Area facilitatore">
-      <Link to="/admin/cicli" className="rail-marchio" aria-label={esteso ? undefined : 'Conscio · Facilitatore'}>
+      <Link to="/admin/cicli" className="rail-marchio" aria-label="Conscio, area facilitatore">
         {esteso ? (
           <>
-            <span className="rail-marchio-nome">Conscio</span>
-            <span className="rail-marchio-ruolo">Facilitatore</span>
+            <Marchio variante="orizzontale" altezza={30} decorativo />
+            <span className="rail-marchio-ruolo" aria-hidden="true">Facilitatore</span>
           </>
         ) : (
-          <span className="rail-marchio-nome" aria-hidden="true">C</span>
+          <Marchio variante="segno" altezza={32} decorativo />
         )}
       </Link>
 

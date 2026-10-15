@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import iconaConscio from '../assets/icona-conscio.png'
+import Marchio from './Marchio.jsx'
 import { usePartecipante } from '../lib/partecipante.jsx'
 import {
   memorizzaInvitoChiuso,
@@ -109,7 +109,7 @@ export default function InvitoHome() {
           />
         </svg>
       </button>
-      <img className="invito-home-icona" src={iconaConscio} alt="" />
+      <span className="invito-home-icona"><Marchio variante="segno" altezza={40} decorativo /></span>
       <h2 id="invito-home-titolo">Tieni il percorso a portata di mano</h2>
       <p>
         Puoi aggiungere questa app alla schermata Home del telefono.

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { leggiSplash, salvaSplash, SPLASH_DEFAULT } from '../lib/splash.js'
 import { useSnackbar } from './admin/Snackbar.jsx'
+import Marchio from './Marchio.jsx'
 
 /** Frase e pulsante della prima schermata. `onCambio` riceve il testo mentre si scrive, per l'anteprima. */
 export default function EditorSplash({ onCambio }) {
@@ -78,7 +79,7 @@ export default function EditorSplash({ onCambio }) {
 export function AnteprimaSplash({ frase, cta }) {
   return (
     <div className="anteprima-splash" aria-label="Anteprima della prima schermata">
-      <p className="anteprima-splash-marca">Percorso MBSR</p>
+      <span className="anteprima-splash-marca"><Marchio variante="verticale" altezza={64} decorativo /></span>
       <span className="anteprima-splash-linea" aria-hidden="true" />
       <p className="anteprima-splash-frase">{frase || 'La frase di apertura'}</p>
       <span className="btn anteprima-splash-cta">{cta || 'Prosegui'}</span>

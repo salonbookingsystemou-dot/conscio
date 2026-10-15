@@ -837,12 +837,20 @@ a:not([class]):hover { color: var(--ink); }
   align-items: center;
   gap: 10px;
 }
-.brand-mark {
-  width: 32px;
-  height: 32px;
+.brand {
+  color: var(--accent);
+}
+.brand svg {
   display: block;
-  object-fit: contain;
   flex-shrink: 0;
+}
+/* Marchio orizzontale: 28px, 24px sotto i 600px (docs/design-system.md, «Marchio»). */
+.brand-marchio {
+  height: 28px;
+  width: auto;
+}
+@media (max-width: 599px) {
+  .brand-marchio { height: 24px; }
 }
 
 .layout-due {
@@ -3211,6 +3219,12 @@ a:not([class]):hover { color: var(--ink); }
   height: 1px;
   overflow: hidden;
 }
+.entra-box-marchio {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--accent);
+  line-height: 0;
+}
 .entra-box {
   padding: 26px 24px 22px;
   box-shadow: inset 3px 0 0 var(--moss);
@@ -3523,7 +3537,6 @@ button.cal-giorno { cursor: pointer; }
   }
   .topbar-riga { padding-bottom: 12px; }
   .topbar .brand { font-size: var(--fs-item); }
-  .topbar .brand-mark { width: 26px; height: 26px; }
   .nav-toggle { display: inline-flex; }
   .nav-velo {
     display: block;
@@ -3702,22 +3715,12 @@ body:has(.splash) {
 }
 .splash-icona {
   display: block;
-  width: 88px;
-  height: 88px;
-  margin: 0 0 28px;
-  object-fit: contain;
+  margin: 0 0 4px;
+  color: var(--accent);
+  line-height: 0;
   opacity: 0;
   transform: translateY(10px);
   animation: splash-in 0.8s ease 0.02s forwards;
-}
-.splash-marca {
-  margin: 0;
-  font-size: 12px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ochre);
-  opacity: 0;
-  animation: splash-in 0.7s ease 0.16s forwards;
 }
 .splash-linea {
   display: block;
@@ -3765,7 +3768,6 @@ body:has(.splash) {
 }
 @media (prefers-reduced-motion: reduce) {
   .splash-icona,
-  .splash-marca,
   .splash-linea,
   .splash-frase,
   .splash-cta {
@@ -3817,11 +3819,10 @@ body:has(.splash) {
   outline: none;
 }
 .invito-home-icona {
-  display: block;
-  width: 64px;
-  height: 64px;
+  display: flex;
+  justify-content: center;
   margin: 0 auto 16px;
-  object-fit: contain;
+  color: var(--accent);
 }
 .invito-home h2 {
   font-size: var(--fs-section);
