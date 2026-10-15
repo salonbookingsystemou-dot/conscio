@@ -54,6 +54,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 15/10/2026 · v4 tiene lo stesso tono tra i paragrafi (da Claude Code)
+Con v4 il tono cambiava molto da un paragrafo all’altro. L’aggancio c’era già (`previous_request_ids` e `next_text`, come v2; la documentazione ElevenLabs lo mostra proprio con `eleven_v4`), stessa voce e stesso seed per tutti i paragrafi. La causa era la stabilità: v4 aveva lo 0,62 di v2, ma su v4 la stabilità è proprio il comando che decide quanto la resa resta uguale tra una generazione e l’altra (valori bassi: resa più varia; alti: vicina a un registro fisso). Ora `genera-voce` manda a v4 stabilità 0,85 (somiglianza 0,8 come prima). Diversamente da V3 (stabilità 1, senza aggancio), v4 tiene anche l’aggancio; 0,85 lascia un po’ di espressività, da alzare se il tono varia ancora o da abbassare se diventa piatto. I paragrafi già fatti restano com’erano finché non si rigenerano: per una traccia omogenea, rigenerarla tutta. Funzione `genera-voce` ridistribuita (versione 17, verifica JWT come prima). Non provato a orecchio. Nessuna modifica al database.
+
 ### 15/10/2026 · Le pratiche della settimana si riordinano trascinandole (da Claude Code)
 Nell’editor della settimana (Programma → Settimana N) le pratiche formali e informali si riordinano con il drag & drop: maniglia a sei puntini a sinistra di ogni riga (compare con almeno due pratiche), anteprima dal vivo mentre si trascina, salvataggio al rilascio. Da tastiera: focus sulla maniglia e frecce su/giù.
 - Il nuovo ordine rinumera `esercizi.ordine` 1..n per tutta la settimana (le pratiche dell’altra scheda restano al loro posto) e aggiorna solo le righe cambiate. Disattivato mentre una pratica è in modifica.

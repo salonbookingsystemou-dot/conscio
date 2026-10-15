@@ -175,7 +175,10 @@ async function generaParagrafo(chiave: string, corpo: Record<string, unknown>) {
   } else {
     payload.voice_settings = modello === 'eleven_v4'
       // v4 usa solo stabilità e somiglianza: style, speaker boost e speed li ignora.
-      ? { stability: 0.62, similarity_boost: 0.8 }
+      // Su v4 la stabilità decide quanto la resa resta uguale tra una generazione
+      // e l’altra: a 0,62 (il valore di v2) ogni paragrafo prendeva un tono suo,
+      // anche con l’aggancio. Più in alto resta vicina a un registro fisso.
+      ? { stability: 0.85, similarity_boost: 0.8 }
       : {
         stability: 0.62,
         similarity_boost: 0.8,
