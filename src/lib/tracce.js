@@ -155,7 +155,7 @@ export async function durataFileAudio(file) {
 }
 
 const COLONNE_TRACCIA = 'id, titolo, descrizione, url, storage_path, durata_minuti, creato_il, aggiornato_il'
-const COLONNE_TRACCIA_CON_FILE = `${COLONNE_TRACCIA}, file_aggiornato_il`
+const COLONNE_TRACCIA_CON_FILE = `${COLONNE_TRACCIA}, file_aggiornato_il, campane_nel_file`
 const COLONNE_TRACCIA_SENZA_AGGIORNAMENTO = 'id, titolo, descrizione, url, storage_path, durata_minuti, creato_il'
 const COLONNE_TRACCIA_BASE = 'id, titolo, url, storage_path, durata_minuti, creato_il'
 
@@ -303,11 +303,13 @@ export async function creaTraccia(file, { titolo, descrizione, durataMinuti } = 
     url: pub.publicUrl,
     storage_path: path,
     durata_minuti: minuti || null,
-    file_aggiornato_il: new Date().toISOString()
+    file_aggiornato_il: new Date().toISOString(),
+    // Caricato con le sue campane, aggiunte dall'app o generato da script: le ha sempre.
+    campane_nel_file: true
   }
   let { data, error } = await supabase.from('tracce').insert(riga).select(COLONNE_TRACCIA).single()
   if (error && conDataFile(error)) {
-    const { file_aggiornato_il: _senza, ...resto } = riga
+    const { file_aggiornato_il: _senza, campane_nel_file: _senzaCampane, ...resto } = riga
     riga = resto
     ;({ data, error } = await supabase.from('tracce').insert(riga).select(COLONNE_TRACCIA).single())
   }
@@ -343,13 +345,19 @@ export async function rinominaTraccia(id, titolo, descrizione) {
   return { url: urlNuovo, descrizione: testo }
 }
 
-export async function sostituisciFileTraccia(traccia, file) {
+/**
+ * Mette un file nuovo sulla traccia. Con `copiaPrecedente` il file va a un percorso
+ * nuovo e il vecchio resta in Storage, così si può tornare indietro.
+ */
+export async function sostituisciFileTraccia(traccia, file, { copiaPrecedente = false } = {}) {
   if (!file) throw new Error('FILE_MANCANTE')
   if (file.size > AUDIO_MAX) throw new Error('AUDIO_TROPPO_GRANDE')
   const ext = estensioneAudio(file.name)
-  const path = traccia.storage_path && traccia.storage_path.startsWith('libreria/')
-    ? traccia.storage_path
-    : `libreria/${traccia.id}.${ext}`
+  const path = copiaPrecedente
+    ? `libreria/${traccia.id}-${Date.now()}.${ext}`
+    : traccia.storage_path && traccia.storage_path.startsWith('libreria/')
+      ? traccia.storage_path
+      : `libreria/${traccia.id}.${ext}`
   const { error: erroreUpload } = await supabase.storage.from('tracce-audio').upload(path, file, {
     upsert: true,
     contentType: file.type || 'audio/mpeg'
@@ -361,19 +369,20 @@ export async function sostituisciFileTraccia(traccia, file) {
   const patch = {
     storage_path: path,
     durata_minuti: minuti || traccia.durata_minuti || null,
-    file_aggiornato_il: new Date().toISOString()
+    file_aggiornato_il: new Date().toISOString(),
+    campane_nel_file: true
   }
   let { error } = await supabase.from('tracce').update(patch).eq('id', traccia.id)
   if (error && conDataFile(error)) {
-    const { file_aggiornato_il: _senza, ...resto } = patch
+    const { file_aggiornato_il: _senza, campane_nel_file: _senzaCampane, ...resto } = patch
     ;({ error } = await supabase.from('tracce').update(resto).eq('id', traccia.id))
   }
   if (error) throw error
   if (minuti) {
     await supabase.from('esercizi').update({ durata_minuti: minuti }).eq('traccia_id', traccia.id)
   }
-  // Il file nuovo sta allo stesso percorso: senza un indirizzo nuovo il service worker
-  // (CacheFirst, 120 giorni) e il CDN continuerebbero a servire la copia vecchia.
+  // Il file nuovo può stare allo stesso percorso: senza un indirizzo nuovo il service
+  // worker (CacheFirst, 120 giorni) e il CDN continuerebbero a servire la copia vecchia.
   const versionato = `${pub.publicUrl}?v=${Date.now()}`
   await scriviUrlConTesto(traccia.id, versionato, testo, traccia.url)
 }

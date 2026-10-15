@@ -1,5 +1,6 @@
 // Unisce i paragrafi in PCM, regola il volume sulla traccia intera e codifica
-// una sola volta in MP3 mono.
+// una sola volta in MP3 mono. Con le campane (predefinito) il file comincia e
+// finisce con la campana tibetana: suona anche a schermo spento e offline.
 //
 // Volume: misura la loudness integrata (ITU-R BS.1770, in LUFS) di tutta la
 // traccia e la porta a OBIETTIVO_LUFS. Un paragrafo si corregge da solo solo se
@@ -127,16 +128,73 @@ function limita(s) {
 
 const respira = () => new Promise(r => setTimeout(r, 0))
 
+// ── Campana tibetana ────────────────────────────────────────────────────────
+
+// Silenzio fra la campana iniziale e la voce, e fra l'ultima parola e la campana finale.
+const PAUSA_DOPO_CAMPANA = 1
+const PAUSA_PRIMA_CAMPANA = 2
+// La campana sta poco sotto il parlato: accompagna, non sovrasta.
+const CAMPANA_SOTTO_DB = 3
+
+function urlCampana() {
+  return `${import.meta.env.BASE_URL || '/'}audio/campana-tibetana.mp3`
+}
+
+/** Decodifica un file audio in PCM mono a 44,1 kHz (Int16Array). */
+export async function decodificaMono(arrayBuffer) {
+  const Offline = window.OfflineAudioContext || window.webkitOfflineAudioContext
+  if (!Offline) throw new Error('DECODIFICA_NON_DISPONIBILE')
+  const ctx = new Offline(1, 1, CAMPIONI)
+  const audio = await ctx.decodeAudioData(arrayBuffer.slice(0))
+  const n = audio.length
+  const pcm = new Int16Array(n)
+  const canali = Array.from({ length: audio.numberOfChannels }, (_, c) => audio.getChannelData(c))
+  for (let i = 0; i < n; i += 1) {
+    let somma = 0
+    for (const canale of canali) somma += canale[i]
+    const v = Math.max(-1, Math.min(1, somma / canali.length))
+    pcm[i] = v < 0 ? Math.round(v * 0x8000) : Math.round(v * 0x7fff)
+  }
+  return pcm
+}
+
+let campanaPronta = null
+
+/** PCM della campana e il guadagno che la porta poco sotto la voce. */
+async function campana() {
+  if (!campanaPronta) {
+    campanaPronta = (async () => {
+      const res = await fetch(urlCampana(), { cache: 'force-cache' })
+      if (!res.ok) throw new Error('CAMPANA_NON_TROVATA')
+      const pcm = await decodificaMono(await res.arrayBuffer())
+      const misura = integrata(blocchi(pcm))
+      let gain = misura == null ? 1 : 10 ** ((OBIETTIVO_LUFS - CAMPANA_SOTTO_DB - misura) / 20)
+      let picco = 0
+      for (let i = 0; i < pcm.length; i += 1) picco = Math.max(picco, Math.abs(pcm[i]) / 0x8000)
+      if (picco * gain > TETTO) gain = TETTO / picco
+      return { pcm, gain }
+    })().catch(err => {
+      campanaPronta = null
+      throw err
+    })
+  }
+  return campanaPronta
+}
+
 // paragrafi: [{ pcm: Int16Array, pausaDopo: secondi }]
-export async function preparaMp3(paragrafi, onAvanzamento) {
+export async function preparaMp3(paragrafi, onAvanzamento, { campane = true } = {}) {
   const validi = (paragrafi || []).filter(p => p.pcm?.length)
   if (!validi.length) throw new Error('AUDIO_VUOTO')
   const gain = guadagniPerParagrafo(validi.map(p => p.pcm))
+  const suono = campane ? await campana() : null
   const { Mp3Encoder } = await import('@breezystack/lamejs')
   const encoder = new Mp3Encoder(1, CAMPIONI, KBPS)
   const pezzi = []
   const blocco = new Int16Array(BLOCCO_MP3)
-  const totale = validi.reduce((n, p, i) => (
+  const extra = suono
+    ? 2 * suono.pcm.length + Math.round((PAUSA_DOPO_CAMPANA + PAUSA_PRIMA_CAMPANA) * CAMPIONI)
+    : 0
+  const totale = extra + validi.reduce((n, p, i) => (
     n + p.pcm.length + (i < validi.length - 1 ? Math.round((Number(p.pausaDopo) || 0) * CAMPIONI) : 0)
   ), 0)
   let fatti = 0
@@ -161,10 +219,18 @@ export async function preparaMp3(paragrafi, onAvanzamento) {
     }
   }
 
+  if (suono) {
+    await codifica(suono.pcm, suono.gain)
+    await codifica(new Int16Array(Math.round(PAUSA_DOPO_CAMPANA * CAMPIONI)), 0)
+  }
   for (let i = 0; i < validi.length; i += 1) {
     await codifica(validi[i].pcm, gain[i])
     const pausa = i < validi.length - 1 ? Math.round((Number(validi[i].pausaDopo) || 0) * CAMPIONI) : 0
     if (pausa > 0) await codifica(new Int16Array(pausa), 0)
+  }
+  if (suono) {
+    await codifica(new Int16Array(Math.round(PAUSA_PRIMA_CAMPANA * CAMPIONI)), 0)
+    await codifica(suono.pcm, suono.gain)
   }
   const coda = encoder.flush()
   if (coda?.length) pezzi.push(new Uint8Array(coda))
@@ -176,4 +242,13 @@ export async function preparaMp3(paragrafi, onAvanzamento) {
     offset += p.length
   }
   return out
+}
+
+/**
+ * Aggiunge le campane a un file audio già pronto (caricato, o generato prima del
+ * 15/10/2026): lo decodifica, regola il volume e lo ricodifica una volta.
+ */
+export async function aggiungiCampane(arrayBuffer, onAvanzamento) {
+  const pcm = await decodificaMono(arrayBuffer)
+  return preparaMp3([{ pcm, pausaDopo: 0 }], onAvanzamento, { campane: true })
 }

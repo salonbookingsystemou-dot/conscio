@@ -53,40 +53,6 @@ export function erroreMediaIgnorabile(el) {
   return code === 1 /* MEDIA_ERR_ABORTED */
 }
 
-/**
- * play() muto nel click, così l’elemento resta sbloccato dopo la campana.
- * Non mettere in pausa da onPlay mentre è in corso: su iOS lo sblocco fallirebbe.
- */
-export function avviaSblocco(el) {
-  applicaPlaysInline(el)
-  el.muted = true
-  el.volume = 0
-  const playP = el.play().then(() => true, () => false)
-
-  const partito = new Promise(resolve => {
-    let chiuso = false
-    const fine = ok => {
-      if (chiuso) return
-      chiuso = true
-      resolve(ok)
-    }
-    el.addEventListener('playing', () => fine(true), { once: true })
-    playP.then(fine)
-    window.setTimeout(() => fine(false), 2500)
-  })
-
-  return {
-    async chiudi() {
-      const ok = await partito
-      try { el.pause() } catch { /* ignore */ }
-      riavvolgiSicuro(el)
-      el.muted = true
-      el.volume = 0
-      return ok
-    }
-  }
-}
-
 export async function avviaPlay(el) {
   if (!el) throw new Error('no audio')
   applicaPlaysInline(el)

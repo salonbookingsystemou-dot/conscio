@@ -13,7 +13,6 @@ import GuidaMeditazione from '../components/GuidaMeditazione.jsx'
 import StatoAttesa from '../components/StatoAttesa.jsx'
 import TonoEsperienza from '../components/TonoEsperienza.jsx'
 import VoceLog from '../components/VoceLog.jsx'
-import { precaricaCampanaTibetana } from '../lib/campanaTibetana.js'
 import { addDays, formatISODate, oggiLocaleISO, parseISODate } from '../lib/date.js'
 import {
   ascoltoCompletato,
@@ -332,10 +331,6 @@ export default function Programma() {
   const [tickAscolto, setTickAscolto] = useState(0)
   const [occupatoInformale, setOccupatoInformale] = useState(null)
   const pillsRef = useRef(null)
-
-  useEffect(() => {
-    precaricaCampanaTibetana()
-  }, [])
 
   async function caricaProgramma(codicePulito) {
     await sincronizzaAscoltiLocaliVersoServer(codicePulito)

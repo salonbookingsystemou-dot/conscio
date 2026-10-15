@@ -3,12 +3,14 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import StatoAttesa from '../../components/StatoAttesa.jsx'
 import PaginaAdmin from '../../components/admin/PaginaAdmin.jsx'
 import { creaTraccia, elencaTracce, messaggioErroreTraccia, titoloDaNomeFile } from '../../lib/tracce.js'
+import { aggiungiCampane } from '../../lib/tracciaFinale.js'
 import GeneraDaScript from './GeneraDaScript.jsx'
 
 function CaricaFile({ onSalvata }) {
   const [titolo, setTitolo] = useState('')
   const [descrizione, setDescrizione] = useState('')
   const [file, setFile] = useState(null)
+  const [haCampane, setHaCampane] = useState(true)
   const [occupato, setOccupato] = useState(false)
   const [errore, setErrore] = useState(null)
 
@@ -18,10 +20,17 @@ function CaricaFile({ onSalvata }) {
       setErrore('Scegli il file audio.')
       return
     }
-    setOccupato(true)
+    setOccupato(haCampane ? 'carico' : 'campane')
     setErrore(null)
     try {
-      const traccia = await creaTraccia(file, {
+      // Ogni traccia comincia e finisce con la campana: se il file non l'ha, la aggiunge l'app.
+      let pronto = file
+      if (!haCampane) {
+        const bytes = await aggiungiCampane(await file.arrayBuffer())
+        pronto = new File([bytes], `${file.name.replace(/\.[^.]+$/, '')}.mp3`, { type: 'audio/mpeg' })
+        setOccupato('carico')
+      }
+      const traccia = await creaTraccia(pronto, {
         titolo: titolo || titoloDaNomeFile(file.name),
         descrizione
       })
@@ -48,6 +57,11 @@ function CaricaFile({ onSalvata }) {
           }}
         />
         <p className="hint">Al massimo 50 MB. MP3 è il formato più leggero per chi ascolta da telefono.</p>
+        <label className="vetrina-spunta">
+          <input type="checkbox" checked={haCampane} onChange={e => setHaCampane(e.target.checked)} />
+          <span>Il file ha già la campana tibetana all’inizio e alla fine</span>
+        </label>
+        {!haCampane && <p className="hint">La aggiunge l’app prima di salvare, allo stesso volume della voce.</p>}
       </div>
       <div className="field">
         <label htmlFor="nuova-titolo">Titolo</label>
@@ -65,7 +79,7 @@ function CaricaFile({ onSalvata }) {
       </div>
       <div className="azioni">
         <button type="submit" className="btn" disabled={occupato}>
-          {occupato ? 'Carico il file…' : 'Salva in libreria'}
+          {occupato === 'campane' ? 'Aggiungo le campane…' : occupato ? 'Carico il file…' : 'Salva in libreria'}
         </button>
       </div>
     </form>

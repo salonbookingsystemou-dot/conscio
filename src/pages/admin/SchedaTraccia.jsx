@@ -10,12 +10,14 @@ import {
   formattaTempo
 } from '../../lib/controlloTracce.js'
 import { leggiScriptTraccia } from '../../lib/scriptTraccia.js'
+import { aggiungiCampane } from '../../lib/tracciaFinale.js'
 import {
   eliminaTraccia,
   leggiTestoCard,
   messaggioErroreTraccia,
   rinominaTraccia,
-  sostituisciFileTraccia
+  sostituisciFileTraccia,
+  urlAudioSenzaTesto
 } from '../../lib/tracce.js'
 
 export function durataBreve(minuti) {
@@ -81,6 +83,7 @@ export default function SchedaTraccia({
   const [scriptInfo, setScriptInfo] = useState(null)
   const vetrinaRef = useRef(null)
   const fileRef = useRef(null)
+  const [fileHaCampane, setFileHaCampane] = useState(true)
   const ascoltoRef = useRef(null)
 
   useEffect(() => {
@@ -141,9 +144,22 @@ export default function SchedaTraccia({
   function sostituisci(file) {
     if (!file) return
     esegui('file', async () => {
-      await sostituisciFileTraccia(traccia, file)
+      const pronto = fileHaCampane ? file : await conCampane(await file.arrayBuffer(), file.name)
+      await sostituisciFileTraccia(traccia, pronto)
       await onAggiornata()
     }, 'File sostituito. Ricontrolla la traccia quando vuoi.')
+  }
+
+  // Tracce generate prima del 15/10/2026: la campana si aggiunge al file che c'è.
+  // Il file nuovo va a un percorso nuovo, il vecchio resta in Storage come copia.
+  function aggiungiCampaneAlFile() {
+    esegui('campane', async () => {
+      const risposta = await fetch(urlAudioSenzaTesto(traccia.url), { mode: 'cors', credentials: 'omit' })
+      if (!risposta.ok) throw new Error('Non sono riuscito a scaricare il file della traccia.')
+      const pronto = await conCampane(await risposta.arrayBuffer(), `${traccia.titolo}.mp3`)
+      await sostituisciFileTraccia(traccia, pronto, { copiaPrecedente: true })
+      await onAggiornata()
+    }, 'Campane aggiunte all’inizio e alla fine. Il file precedente resta come copia.')
   }
 
   function chiediElimina() {
@@ -234,6 +250,23 @@ export default function SchedaTraccia({
           {[durataBreve(traccia.durata_minuti), peso, fileAggiornato && `file del ${fileAggiornato}`]
             .filter(Boolean).join(' · ') || 'Nessuna informazione sul file.'}
         </p>
+        {traccia.campane_nel_file === false && (
+          <div className="disclaimer campane-mancanti">
+            <p>Il file non ha la campana tibetana all’inizio e alla fine.</p>
+            <button
+              type="button"
+              className="btn btn-tonal is-piccolo"
+              disabled={Boolean(lavoro) || inControllo}
+              onClick={aggiungiCampaneAlFile}
+            >
+              {lavoro === 'campane' ? 'Aggiungo le campane…' : 'Aggiungi le campane'}
+            </button>
+          </div>
+        )}
+        <label className="vetrina-spunta">
+          <input type="checkbox" checked={fileHaCampane} onChange={e => setFileHaCampane(e.target.checked)} />
+          <span>Il file che carichi ha già la campana all’inizio e alla fine</span>
+        </label>
         <div className="azioni">
           <button
             type="button"
@@ -241,7 +274,7 @@ export default function SchedaTraccia({
             disabled={Boolean(lavoro) || inControllo}
             onClick={() => fileRef.current?.click()}
           >
-            {lavoro === 'file' ? 'Carico il file…' : 'Sostituisci il file'}
+            {lavoro === 'file' ? (fileHaCampane ? 'Carico il file…' : 'Aggiungo le campane…') : 'Sostituisci il file'}
           </button>
           <Link
             className="btn btn-ghost"
@@ -419,4 +452,10 @@ export default function SchedaTraccia({
       )}
     </>
   )
+}
+
+async function conCampane(arrayBuffer, nome) {
+  const bytes = await aggiungiCampane(arrayBuffer)
+  const base = String(nome || 'traccia').replace(/\.[^.]+$/, '')
+  return new File([bytes], `${base}.mp3`, { type: 'audio/mpeg' })
 }

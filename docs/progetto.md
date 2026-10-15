@@ -54,6 +54,14 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 15/10/2026 · La campana tibetana è dentro il file di ogni traccia (da Claude Code)
+Ogni traccia comincia e finisce con la campana tibetana, e ora la campana sta **nel file** invece di suonare dal player: si sente anche a schermo spento, nei browser interni delle app e offline, dove la campana del player poteva perdersi (e quella finale non c'era).
+- **Generatore**: `preparaMp3` (`lib/tracciaFinale.js`) mette campana, 1 s, voce, 2 s, campana, tutto in una codifica; la campana sta 3 LU sotto il parlato.
+- **Caricamento** (Nuova traccia e «Sostituisci il file»): spunta «Il file ha già la campana all’inizio e alla fine», attiva di default; togliendola, l’app la aggiunge (`aggiungiCampane`: decodifica, regola il volume, ricodifica una volta).
+- **Tracce esistenti**: i file caricati a settembre avevano già la campana; le otto tracce di ottobre, generate da script, no. Per loro «Aggiungi le campane» nella scheda della traccia, già eseguito su tutte e otto: il file nuovo ha un percorso nuovo (`libreria/<id>-<istante>.mp3`) e il vecchio resta in Storage come copia. Durate aggiornate anche sulle pratiche collegate (es. Scansione del corpo 13 → 14 min).
+- **Player**: la pratica settimanale non suona più la sua campana (prima, sui file caricati, all’inizio se ne sentivano due). Eliminati `lib/campanaTibetana.js`, `TracciaGuidata.jsx` (non usato) e lo sblocco audio che serviva solo alla campana. Ascoltati non la suonava già.
+- **Database**: `supabase/migrazione_campane_nel_file.sql` (applicata): colonna `tracce.campane_nel_file`. Nessun dato dei partecipanti.
+
 ### 15/10/2026 · «Pillola della settimana» (da Claude Code)
 In Ascoltati l’occhiello della meditazione in evidenza, sulla card e in cima al player a schermo intero, dice «Pillola della settimana» al posto di «Meditazione della settimana» (in maiuscolo per stile). Stesso nome per la card del calendario nella pagina Sito. Nessuna modifica al database.
 

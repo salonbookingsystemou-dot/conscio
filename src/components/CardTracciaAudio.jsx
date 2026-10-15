@@ -4,16 +4,9 @@ import { durataNotaMp3 } from '../lib/audioMp3.js'
 import { testoDaUrlAudio, urlAudioSenzaTesto } from '../lib/tracce.js'
 import { assicuraTracciaOffline } from '../lib/cacheTracce.js'
 import {
-  GAP_DOPO_CAMPANA_MS,
-  precaricaCampanaTibetana,
-  suonaCampanaTibetana
-} from '../lib/campanaTibetana.js'
-import {
   applicaPlaysInline,
   ascoltaPausaAltreTracce,
   avviaPlay,
-  avviaSblocco,
-  browserAudioRestrittivo,
   erroreMediaIgnorabile,
   errorePlayIgnorabile,
   messaggioErroreRiproduzione,
@@ -115,7 +108,6 @@ export default function CardTracciaAudio({
   onAvvioRef.current = onAvvio
   const contatoGiro = useRef(vetrinaIniziale ? false : ascoltoCompletato(persistenzaKey))
   const accreditatoRef = useRef(0)
-  const campanaRef = useRef(null)
   const ignoraEventiRef = useRef(false)
   const annullaAvvioRef = useRef(false)
   const contaAscoltoRef = useRef(false)
@@ -137,15 +129,10 @@ export default function CardTracciaAudio({
   const [posizione, setPosizione] = useState(0)
   const [durata, setDurata] = useState(0)
   const [errore, setErrore] = useState(false)
-  const [inCampana, setInCampana] = useState(false)
 
   const soglia = Number.isFinite(sogliaCompletamento)
     ? Math.min(1, Math.max(0.5, sogliaCompletamento))
     : 0.95
-
-  useEffect(() => {
-    precaricaCampanaTibetana()
-  }, [])
 
   useEffect(() => {
     applicaPlaysInline(audioRef.current)
@@ -154,9 +141,6 @@ export default function CardTracciaAudio({
   useEffect(() => {
     return ascoltaPausaAltreTracce(audioRef, () => {
       annullaAvvioRef.current = true
-      campanaRef.current?.ferma()
-      campanaRef.current = null
-      setInCampana(false)
       const el = audioRef.current
       if (el) {
         if (Number.isFinite(el.currentTime) && el.currentTime >= 0.15) {
@@ -197,9 +181,6 @@ export default function CardTracciaAudio({
     accreditatoRef.current = 0
     contaAscoltoRef.current = false
     annullaAvvioRef.current = true
-    campanaRef.current?.ferma()
-    campanaRef.current = null
-    setInCampana(false)
     const el = audioRef.current
     if (el) {
       el.pause()
@@ -215,8 +196,6 @@ export default function CardTracciaAudio({
     }
     return () => {
       annullaAvvioRef.current = true
-      campanaRef.current?.ferma()
-      campanaRef.current = null
     }
   }, [persistenzaKey, src])
 
@@ -366,47 +345,13 @@ export default function CardTracciaAudio({
       try { el.currentTime = ricordata } catch { /* metadati non pronti */ }
     }
     const dallInizio = el.currentTime < 0.15
-    const skipCampana = dallInizio && (browserAudioRestrittivo() || vetrinaRef.current)
     annullaAvvioRef.current = false
     if (!anteprima && !vetrinaRef.current) assicuraTracciaOffline(urlAudioSenzaTesto(src))
     try {
       setErrore(false)
-      if (dallInizio && !skipCampana) {
-        contaAscoltoRef.current = false
-        ignoraEventiRef.current = true
-        setInCampana(true)
-        setInRiproduzione(true)
-        /* Traccia per prima: il gesto utente sblocca l’elemento che deve suonare. */
-        const sblocco = avviaSblocco(el)
-        void precaricaCampanaTibetana()
-        const suono = suonaCampanaTibetana()
-        campanaRef.current = suono
-        const [esito] = await Promise.all([suono.attesa, sblocco.chiudi()])
-        campanaRef.current = null
-        if (annullaAvvioRef.current || esito !== 'fine') {
-          setInCampana(false)
-          setInRiproduzione(false)
-          ignoraEventiRef.current = false
-          return
-        }
-        await new Promise(risolvi => window.setTimeout(risolvi, GAP_DOPO_CAMPANA_MS))
-        if (annullaAvvioRef.current) {
-          setInCampana(false)
-          setInRiproduzione(false)
-          ignoraEventiRef.current = false
-          return
-        }
-        setInCampana(false)
-        el.pause()
-        riavvolgiSicuro(el)
-        el.muted = false
-        el.volume = 1
-        playedRef.current = 0
-        lastRef.current = 0
-        wallRef.current = performance.now()
-        posizioneRealeRef.current = 0
-        ignoraEventiRef.current = false
-      } else if (dallInizio && skipCampana) {
+      // La campana tibetana è dentro il file, all'inizio e alla fine (dal 15/10/2026):
+      // il player non ne suona una sua.
+      if (dallInizio) {
         contaAscoltoRef.current = false
         el.muted = false
         el.volume = 1
@@ -423,7 +368,6 @@ export default function CardTracciaAudio({
       contaAscoltoRef.current = true
       wallRef.current = performance.now()
       if (!dallInizio && Number.isFinite(el.currentTime)) lastRef.current = el.currentTime
-      // Una campana interrotta lascia l’elemento muto dallo sblocco.
       el.muted = false
       el.volume = 1
       await avviaPlay(el)
@@ -433,9 +377,6 @@ export default function CardTracciaAudio({
         onAvvioRef.current?.()
       }
     } catch (err) {
-      campanaRef.current?.ferma()
-      campanaRef.current = null
-      setInCampana(false)
       if (errorePlayIgnorabile(err) || annullaAvvioRef.current) {
         setInRiproduzione(false)
         return
@@ -447,13 +388,6 @@ export default function CardTracciaAudio({
 
   function pausa() {
     annullaAvvioRef.current = true
-    if (campanaRef.current) {
-      campanaRef.current.ferma()
-      campanaRef.current = null
-      setInCampana(false)
-      setInRiproduzione(false)
-      return
-    }
     const el = audioRef.current
     if (!el) return
     const t = el.currentTime
@@ -465,11 +399,6 @@ export default function CardTracciaAudio({
 
   function stop() {
     annullaAvvioRef.current = true
-    if (campanaRef.current) {
-      campanaRef.current.ferma()
-      campanaRef.current = null
-      setInCampana(false)
-    }
     const el = audioRef.current
     if (!el) return
     const giaCredito = contatoGiro.current
@@ -485,13 +414,13 @@ export default function CardTracciaAudio({
   }
 
   function toggleRiproduzione() {
-    if (inRiproduzione || inCampana) pausa()
+    if (inRiproduzione) pausa()
     else ascolta()
   }
 
   function vaiA(secondi) {
     const el = audioRef.current
-    if (!el || inCampana || !(durata > 0)) return
+    if (!el || !(durata > 0)) return
     const limite = Number.isFinite(el.duration) && el.duration > 0 ? Math.min(durata, el.duration) : durata
     const t = Math.min(Math.max(0, secondi), Math.max(0, limite - 0.5))
     try { el.currentTime = t } catch { /* metadati non pronti: lo riprende ascolta() */ }
@@ -535,14 +464,12 @@ export default function CardTracciaAudio({
   }, [completo, inRiproduzione, posizione, durata])
 
   const metaDurata = durata >= 8 ? formattaTempo(durata) : etichettaDurata
-  const testoDescrizione = inCampana
-    ? 'Campana di apertura… poi inizia la traccia.'
-    : (modalita === 'vetrina'
-      ? ''
-      : (String(descrizione || '').trim() || testoDaUrlAudio(src)))
+  const testoDescrizione = modalita === 'vetrina'
+    ? ''
+    : (String(descrizione || '').trim() || testoDaUrlAudio(src))
   const srcAudio = urlAudioSenzaTesto(src)
 
-  const inPlay = inRiproduzione || inCampana
+  const inPlay = inRiproduzione
 
   const audio = (
       <audio
@@ -557,11 +484,11 @@ export default function CardTracciaAudio({
         onLoadedMetadata={onLoadedMetadata}
         onDurationChange={onLoadedMetadata}
         onPlay={() => {
-          if (ignoraEventiRef.current || campanaRef.current) return
+          if (ignoraEventiRef.current) return
           setInRiproduzione(true)
         }}
         onPause={() => {
-          if (ignoraEventiRef.current || campanaRef.current) return
+          if (ignoraEventiRef.current) return
           setInRiproduzione(false)
         }}
         onError={e => {
@@ -577,7 +504,6 @@ export default function CardTracciaAudio({
     return vista({
       audio,
       inPlay,
-      inCampana,
       posizione,
       durata,
       errore: errore ? messaggioErroreRiproduzione() : '',
@@ -634,7 +560,7 @@ export default function CardTracciaAudio({
           aria-valuemax={Math.round(durata)}
           aria-valuenow={Math.round(posizione)}
           aria-valuetext={`${formattaTempo(posizione)} di ${formattaTempo(durata)}`}
-          aria-disabled={!(durata > 0) || inCampana}
+          aria-disabled={!(durata > 0)}
           onClick={clicOnda}
           onKeyDown={tastoOnda}
         >

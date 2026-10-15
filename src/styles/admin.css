@@ -2911,3 +2911,16 @@
   font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
+
+/* Scheda traccia: file senza campane (pages/admin/SchedaTraccia.jsx) */
+.campane-mancanti {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8) var(--space-12);
+}
+
+.campane-mancanti p {
+  margin: 0;
+}
