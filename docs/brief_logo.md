@@ -17,7 +17,7 @@ Riferimento visivo: canvas Claude Design «Logo Conscio», tavola «Spirale + Li
 | `png/apple-touch-icon.png` | 180 px, fondo pieno |
 | `png/pwa-192.png`, `png/pwa-512.png` | icone PWA `any` (angoli arrotondati, fondo trasparente) |
 | `png/pwa-maskable-192.png`, `png/pwa-maskable-512.png` | icone PWA `maskable` (fondo pieno, segno nella zona sicura) |
-| `png/conscio-email-2x.png` | marchio orizzontale per l'intestazione delle email, alto 128 px (mostrarlo a 64) |
+| `png/conscio-email-2x.png` | marchio orizzontale per la firma in fondo alle email, alto 128 px (mostrato a 45) |
 
 La scritta è già convertita in tracciati: **non** caricare Literata nell'app.
 Il segno ha due disegni: spirale piena (da 40 px in su) e spirale semplificata (sotto i 40 px). `Marchio.jsx` sceglie da solo.
@@ -90,7 +90,7 @@ Dove sta da solo, lascia l'etichetta predefinita «Conscio».
 
 In `supabase/functions/_shared/stileEmail.ts` sostituisci l'intestazione testuale con:
 ```html
-<img src="https://conscio.mnesti.it/email/conscio-email-2x.png" width="284" height="64" alt="Conscio" style="display:block;border:0">
+<img src="https://conscio.mnesti.it/email/conscio-email-2x.png" width="199" height="45" alt="Conscio" style="display:block;border:0">
 ```
 Le Edge Functions si ridistribuiscono a mano: elenca nel resoconto quali vanno ridistribuite, senza farlo.
 

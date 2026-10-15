@@ -66,7 +66,9 @@ Deno.serve(async (req) => {
   let com: { id?: string, oggetto?: string, tipo?: string, testo?: string, ciclo_id?: string, destinatari?: string } | null = null
 
   if (prova) {
-    const { data: sessione } = await supabase.auth.getUser()
+    // Senza token esplicito getUser() cerca una sessione salvata, che qui non c'è.
+    const jwt = authHeader.replace(/^Bearer\s+/i, '')
+    const { data: sessione } = await supabase.auth.getUser(jwt)
     const mia = sessione?.user?.email
     if (!mia) return json({ ok: false, motivo: 'NESSUN_DESTINATARIO' })
     const oggettoProva = typeof corpo?.oggetto === 'string' ? corpo.oggetto.trim() : ''

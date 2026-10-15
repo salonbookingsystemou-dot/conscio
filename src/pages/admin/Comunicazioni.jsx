@@ -412,6 +412,8 @@ export default function Comunicazioni() {
     const { esito, errFn } = await invocaInvio({ prova: true, oggetto, testo })
     if (errFn) setErrore('La prova non è partita. Riprova tra un momento.')
     else if (esito?.motivo === 'TESTO_MANCANTE') setErrore('Per la prova servono oggetto e testo della comunicazione.')
+    else if (esito?.motivo === 'NESSUN_DESTINATARIO') setErrore('Non trovo l’email del tuo account: esci e rientra, poi riprova.')
+    else if (esito?.motivo === 'RESEND_NON_CONFIGURATO') setErrore('Prova non inviata: manca il servizio email sul server.')
     else if (esito?.ok) mostra({ testo: 'Prova inviata alla tua email di accesso. Controlla anche lo spam' })
     else setErrore(esito?.errore || 'La prova non è andata a buon fine.')
     setInvio(false)
