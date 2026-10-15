@@ -16,7 +16,7 @@ flowchart TB
     PTR[PullToRefresh] --- IH[InvitoHome<br/>installa su home] --- CE[ConfineErrori]
   end
   subgraph Part["Guscio partecipante · .shell"]
-    NAV["Nav · Marchio (solo segno in Ascoltati), OreAscolto, RuotaTonalita, menu"] --> CONT1[contenuto] --> FOOT[Footer]
+    NAV["Nav · Marchio (solo segno in Prova a darti ascolto), OreAscolto, RuotaTonalita, menu"] --> CONT1[contenuto] --> FOOT[Footer]
     BB["BarraBassa · Settimana · Storico · Questionari · Avvisi"]
   end
   subgraph Fac["Guscio facilitatore · AdminChrome (/admin/*)"]

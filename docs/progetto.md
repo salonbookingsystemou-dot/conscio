@@ -54,6 +54,12 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 15/10/2026 · Testo sotto il titolo di «Prova a darti ascolto» (da Claude Code)
+Ora è: «Dedica del tempo alla meditazione tutte le volte che senti il bisogno di tornare in contatto con te stessə.». Vale anche per la descrizione dell’anteprima del link `/ascolta` (`scripts/pagine-condivisione.mjs`). Nessuna modifica al database.
+
+### 15/10/2026 · La sezione pubblica si chiama «Prova a darti ascolto» (da Claude Code)
+Il nome visibile passa da «Ascoltati» a «Prova a darti ascolto» negli stessi punti del cambio precedente: titolo della pagina, voce del menu, pagina Sito, vetrina, scheda della traccia, informativa (`Documento.jsx`), pagine per i link condivisi (`scripts/pagine-condivisione.mjs`, `public/ascolta/index.html`) e riferimenti in `design-system.md` e `interfaccia.md`. Indirizzi `/ascolta` e nomi nel codice invariati. Nessuna modifica al database.
+
 ### 15/10/2026 · Cursore della stabilità per v4 (da Claude Code)
 Con v4 scelto, «Genera da script» ha il cursore «Stabilità della voce», da 0,50 (più espressiva) a 1 (più costante), a passi di 0,05; si parte da 0,85, il valore fisso messo oggi. Abbiamo scelto il cursore e non 1 fisso perché su v4 la stabilità alta tiene uguale il tono ma può appiattire la voce: il punto giusto si trova all’ascolto, e per tracce diverse può cambiare. La stabilità si salva nella ricetta, sia quella scelta sia quella di ogni paragrafo. Un paragrafo generato con un’altra stabilità compare come «generato con un’altra stabilità» e «Genera tutto» lo rifà, come per la velocità. I paragrafi v4 generati prima del cursore valgono come 0,85, così le bozze già salvate non risultano tutte da rigenerare. `genera-voce` legge `stabilita` (0,50–1, senza valore 0,85; fuori intervallo dà errore) e la usa solo per v4: v2 e Flash restano a 0,62, V3 a 1. Funzione `genera-voce` ridistribuita (versione 18, verifica JWT come prima). Non provato nell’app, perché serve l’accesso del facilitatore; build e ricetta provati. Nessuna modifica al database.
 

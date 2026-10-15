@@ -224,7 +224,7 @@ export default function Ascolta() {
       {stato === 'attesa' && <StatoAttesa etichetta="Caricamento delle meditazioni…" />}
       {stato === 'errore' && (
         <>
-          <p className="avviso-errore" role="alert">Non è stato possibile aprire Ascoltati.</p>
+          <p className="avviso-errore" role="alert">Non è stato possibile aprire Prova a darti ascolto.</p>
           <button type="button" className="btn" onClick={() => setTentativo(n => n + 1)}>
             Riprova
           </button>
@@ -244,9 +244,9 @@ export default function Ascolta() {
       {stato === 'pronta' && !slug && (
         <>
           <header className="ascolta-testa">
-            <h1>Ascoltati</h1>
+            <h1>Prova a darti ascolto</h1>
             <p>
-              Assumi una o più pillole di meditazione tutte le volte che senti il bisogno di tornare in contatto con te stessə.
+              Dedica del tempo alla meditazione tutte le volte che senti il bisogno di tornare in contatto con te stessə.
             </p>
           </header>
           {audioEvidenza?.audio_url && player(audioEvidenza, true)}

@@ -7,7 +7,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { loadEnv } from 'vite'
 
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/
-const DESCRIZIONE_SEZIONE = 'Assumi una o più pillole di meditazione tutte le volte che senti il bisogno di tornare in contatto con te stessə.'
+const DESCRIZIONE_SEZIONE = 'Dedica del tempo alla meditazione tutte le volte che senti il bisogno di tornare in contatto con te stessə.'
 
 function escapa(testo) {
   return String(testo ?? '')
@@ -97,7 +97,7 @@ async function principale() {
 
   await mkdir('dist/ascolta', { recursive: true })
   await writeFile('dist/ascolta/index.html', pagina({
-    titolo: 'Ascoltati',
+    titolo: 'Prova a darti ascolto',
     descrizione: DESCRIZIONE_SEZIONE,
     immagineUrl: immagine(tracce[0]),
     url: `${sito}/ascolta/`,

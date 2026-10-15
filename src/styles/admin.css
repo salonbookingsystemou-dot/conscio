@@ -2594,7 +2594,7 @@
   text-decoration: underline;
 }
 
-/* Anteprima della pagina Ascoltati: la pagina vera a 390px, ridotta per stare nel pannello */
+/* Anteprima della pagina Prova a darti ascolto: la pagina vera a 390px, ridotta per stare nel pannello */
 .anteprima-telefono {
   --scala-anteprima: 0.86;
   position: relative;
