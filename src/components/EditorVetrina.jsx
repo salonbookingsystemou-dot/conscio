@@ -33,7 +33,7 @@ function raggruppaSettimane(settimane) {
 }
 
 /** Vetrina Ascolta: interruttore e testi dell'invito, calendario della meditazione della settimana, ascolti recenti. */
-export default function EditorVetrina() {
+export default function EditorVetrina({ onSalvata }) {
   const [attiva, setAttiva] = useState(false)
   const [titolo, setTitolo] = useState('')
   const [testo, setTesto] = useState('')
@@ -80,6 +80,7 @@ export default function EditorVetrina() {
         cta_testo_senza_ciclo: senzaCiclo
       })
       mostra({ testo: attiva ? 'Vetrina salvata: la pagina Ascolta è pubblica' : 'Vetrina salvata: la pagina Ascolta è spenta' })
+      onSalvata?.()
     } catch {
       setErrore('Non è stato possibile salvare la vetrina.')
     } finally {

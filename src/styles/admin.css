@@ -2598,6 +2598,31 @@
   text-decoration: underline;
 }
 
+/* Anteprima della pagina Ascolta: la pagina vera a 390px, ridotta per stare nel pannello */
+.anteprima-telefono {
+  --scala-anteprima: 0.86;
+  position: relative;
+  width: calc(390px * var(--scala-anteprima));
+  max-width: 100%;
+  height: calc(720px * var(--scala-anteprima));
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+}
+
+.anteprima-telefono iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 390px;
+  height: 720px;
+  border: 0;
+  transform: scale(var(--scala-anteprima));
+  transform-origin: 0 0;
+}
+
 .vetrina-calendario li.is-vuota > span:first-child {
   color: var(--muted);
 }

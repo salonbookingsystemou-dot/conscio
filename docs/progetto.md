@@ -54,6 +54,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 15/10/2026 · Anteprima della pagina Ascolta in Sito (da Claude Code)
+Nel pannello a destra di Sito due chip scelgono l’anteprima: «Prima schermata» (come prima) e «Ascolta». Ascolta è la pagina vera, caricata in un riquadro a larghezza di telefono (390px, ridotta per stare nel pannello): mostra meditazione della settimana, «Sorprendimi» e invito al percorso così come li vede il pubblico. Dopo «Salva vetrina» il riquadro si ricarica e passa su Ascolta. Aprire l’anteprima non conta come ascolto: i contatori partono solo dal play. Nessuna modifica al database.
+
 ### 15/10/2026 · «Da fare» compare solo quando c’è qualcosa (da Claude Code)
 In Cicli il blocco «Da fare» non mostra più «Niente da fare»: se non ci sono segnalazioni difficili, segnalazioni di problemi o iscrizioni in attesa, non compare e la pagina parte dai numeri. Gestita l’ultima voce, il blocco sparisce subito; la snackbar di conferma resta. Nessuna modifica al database.
 
