@@ -32,7 +32,7 @@ function raggruppaSettimane(settimane) {
   return righe
 }
 
-/** Vetrina Ascoltati: interruttore e testi dell'invito, calendario della meditazione della settimana, ascolti recenti. */
+/** Vetrina Ascoltati: interruttore e testi dell'invito, calendario della pillola della settimana, ascolti recenti. */
 export default function EditorVetrina({ onSalvata }) {
   const [attiva, setAttiva] = useState(false)
   const [titolo, setTitolo] = useState('')
@@ -124,7 +124,7 @@ export default function EditorVetrina({ onSalvata }) {
       </section>
 
       <section className="card">
-        <h3>Meditazione della settimana</h3>
+        <h3>Pillola della settimana</h3>
         <p className="hint">Le prossime otto settimane. La data si sceglie nella scheda della traccia, sezione Vetrina.</p>
         <ul className="vetrina-calendario">
           {raggruppaSettimane(settimane).map(riga => (

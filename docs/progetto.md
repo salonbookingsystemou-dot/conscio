@@ -54,6 +54,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 15/10/2026 · «Pillola della settimana» (da Claude Code)
+In Ascoltati l’occhiello della meditazione in evidenza, sulla card e in cima al player a schermo intero, dice «Pillola della settimana» al posto di «Meditazione della settimana» (in maiuscolo per stile). Stesso nome per la card del calendario nella pagina Sito. Nessuna modifica al database.
+
 ### 15/10/2026 · Testo sotto il titolo di Ascoltati, nuova versione (da Claude Code)
 Ora è: «Assumi una o più pillole di meditazione tutte le volte che senti il bisogno di tornare in contatto con te stessə.». Vale anche per la descrizione dell’anteprima del link `/ascolta`. Nessuna modifica al database.
 
