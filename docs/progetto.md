@@ -54,6 +54,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 15/10/2026 · «Inizia il percorso» nell’header di Ascoltati (da Claude Code)
+Nella pagina Ascoltati l’header aveva solo il logo; ora a destra c’è il link «Inizia il percorso», che porta a `/iscrizione`. Non compare a chi è già iscritto con il codice. Nessuna modifica al database.
+
 ### 15/10/2026 · Chiudere il player di Ascoltati ferma l’ascolto (da Claude Code)
 Chiudendo il player a schermo intero (✕ o Esc) la traccia va in pausa e la barra ridotta flottante in fondo alla pagina non c’è più. Riaprendo la stessa meditazione si riprende dal punto in cui ci si era fermati. Tolti il componente della barra e il suo CSS (`.ascolta-mini`). L’accredito resta invariato: in vetrina il player non accredita la pratica, conta solo avvii e completamenti. Nessuna modifica al database.
 

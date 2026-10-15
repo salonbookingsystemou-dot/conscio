@@ -190,7 +190,27 @@ a:not([class]):hover { color: var(--ink); }
   padding-bottom: 16px;
 }
 .topbar.is-solo-logo .topbar-riga {
-  justify-content: flex-start;
+  justify-content: space-between;
+}
+.topbar-percorso {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 4px;
+  color: var(--accent);
+  font-size: var(--fs-body);
+  font-weight: 500;
+  text-decoration: none;
+}
+.topbar-percorso:hover {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.topbar-percorso:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
 }
 .topbar-azioni {
   display: flex;

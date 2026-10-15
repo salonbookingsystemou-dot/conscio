@@ -124,6 +124,10 @@ export default function Nav() {
           <img className="brand-mark" src={iconaConscio} alt={paginaAscolta ? 'Percorso MBSR' : ''} />
           {paginaAscolta ? null : 'Percorso MBSR'}
         </Link>
+        {/* In Ascoltati l'unica azione è l'invito al percorso; chi è già iscritto non lo vede. */}
+        {paginaAscolta && !registrato && (
+          <Link to="/iscrizione" className="topbar-percorso">Inizia il percorso</Link>
+        )}
         {paginaAscolta ? null : (
         <div className="topbar-azioni">
           {registrato && <OreAscolto minuti={minutiAscolto} />}
