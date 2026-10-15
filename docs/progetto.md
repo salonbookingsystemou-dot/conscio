@@ -54,6 +54,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 15/10/2026 · Nuovo testo sotto il titolo di Ascoltati (da Claude Code)
+Sotto «Ascoltati» ora c’è: «Pillole di meditazione da assumere ogni volta che si ha bisogno di tornare in contatto con se stessi. Assaggiane subito una.». Lo stesso testo è la descrizione dell’anteprima del link `/ascolta` sui social (`scripts/pagine-condivisione.mjs`), che prima ripeteva la vecchia frase. Nessuna modifica al database.
+
 ### 15/10/2026 · La sezione pubblica si chiama «Ascoltati» (da Claude Code)
 Il nome visibile della sezione delle meditazioni passa da «Ascolta» ad «Ascoltati»: titolo della pagina, voce del menu, pagina Sito (card, interruttore, chip dell’anteprima, «Apri Ascoltati»), scheda della traccia, informativa (`Documento.jsx`, solo il nome), titolo delle pagine per i link condivisi (`scripts/pagine-condivisione.mjs`, `public/ascolta/index.html`). Restano invariati gli indirizzi `/ascolta` e `/ascolta/<slug>`, già nei link condivisi e nelle anteprime, e i nomi nel codice (`Ascolta.jsx`, `urlAscolta`, classi `.ascolta-`). Il verbo resta dove è un’azione («Ascolta il campione», «Ascolta un’altra»). Nessuna modifica al database.
 

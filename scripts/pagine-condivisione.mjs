@@ -7,7 +7,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { loadEnv } from 'vite'
 
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/
-const DESCRIZIONE_SEZIONE = 'Meditazioni guidate da ascoltare con calma.'
+const DESCRIZIONE_SEZIONE = 'Pillole di meditazione da assumere ogni volta che si ha bisogno di tornare in contatto con se stessi. Assaggiane subito una.'
 
 function escapa(testo) {
   return String(testo ?? '')

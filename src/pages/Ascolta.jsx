@@ -246,7 +246,7 @@ export default function Ascolta() {
           <header className="ascolta-testa">
             <h1>Ascoltati</h1>
             <p>
-              Meditazioni guidate da ascoltare con calma. Se un passaggio non fa per te, puoi fermarti o sceglierne un’altra.
+              Pillole di meditazione da assumere ogni volta che si ha bisogno di tornare in contatto con se stessi. Assaggiane subito una.
             </p>
           </header>
           {audioEvidenza?.audio_url && player(audioEvidenza, true)}
