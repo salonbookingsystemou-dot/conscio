@@ -249,7 +249,11 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
     fermaAscolto()
     rilasciaFile()
     const pausa = normalizzaPausa(pausaPredefinita)
-    setParagrafi(blocchi.map(testo => ({ ...paragrafoVuoto(pausa), testo })))
+    // Dopo l’ultimo paragrafo viene la campana: la pausa lì parte da zero.
+    setParagrafi(blocchi.map((testo, i) => ({
+      ...paragrafoVuoto(i === blocchi.length - 1 ? 0 : pausa),
+      testo
+    })))
     setConfermaDividi(false)
     setErrore(null)
     setAvviso(null)
@@ -368,7 +372,12 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
     const pausa = normalizzaPausa(pausaPredefinita)
     let rotto = false
     return blocchi.map((testo, i) => {
-      const prima = esistenti[i]
+      const ultimo = i === blocchi.length - 1
+      const esistente = esistenti[i]
+      // L’ultimo di prima, se ora ne ha altri dopo e non aveva pausa, prende quella predefinita.
+      const prima = esistente && i === esistenti.length - 1 && !ultimo && !normalizzaPausa(esistente.pausaDopo)
+        ? { ...esistente, pausaDopo: pausa }
+        : esistente
       const uguale = Boolean(prima) && String(prima.testo || '').trim() === testo
       if (!uguale) rotto = true
       if (uguale && !rotto) return prima
@@ -376,7 +385,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
         return modello.aggancia && prima.audio ? { ...prima, obsoleto: true } : prima
       }
       return {
-        ...paragrafoVuoto(prima ? normalizzaPausa(prima.pausaDopo) : pausa),
+        ...paragrafoVuoto(prima ? normalizzaPausa(prima.pausaDopo) : (ultimo ? 0 : pausa)),
         testo
       }
     })
@@ -493,7 +502,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
         setInAscolto({ id: paragrafo.id, pausa: false })
         await riproduci(paragrafo.audio, controller.signal)
         if (controller.signal.aborted) return
-        const pausa = i < paragrafi.length - 1 ? normalizzaPausa(paragrafo.pausaDopo) : 0
+        const pausa = normalizzaPausa(paragrafo.pausaDopo)
         if (pausa > 0) {
           setInAscolto({ id: paragrafo.id, pausa: true, restanti: pausa })
           await attendi(pausa * 1000, controller.signal, restanti => {
@@ -930,25 +939,25 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
                       )}
                     </div>
                   </div>
-                  {indice < paragrafi.length - 1 && (
-                    <div className="genera-pausa">
-                      <div className="field">
-                        <label htmlFor={`pausa-${p.id}`}>Pausa dopo (secondi)</label>
-                        <input
-                          id={`pausa-${p.id}`}
-                          type="number"
-                          min="0"
-                          max="300"
-                          step="1"
-                          value={p.pausaDopo}
-                          onChange={e => {
-                            rilasciaFile()
-                            aggiornaParagrafo(p.id, { pausaDopo: e.target.value })
-                          }}
-                        />
-                      </div>
+                  <div className="genera-pausa">
+                    <div className="field">
+                      <label htmlFor={`pausa-${p.id}`}>
+                        {indice === paragrafi.length - 1 ? 'Pausa prima della campana (secondi)' : 'Pausa dopo (secondi)'}
+                      </label>
+                      <input
+                        id={`pausa-${p.id}`}
+                        type="number"
+                        min="0"
+                        max="300"
+                        step="1"
+                        value={p.pausaDopo}
+                        onChange={e => {
+                          rilasciaFile()
+                          aggiornaParagrafo(p.id, { pausaDopo: e.target.value })
+                        }}
+                      />
                     </div>
-                  )}
+                  </div>
                 </li>
               )
             })}

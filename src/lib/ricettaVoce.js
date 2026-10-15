@@ -61,6 +61,9 @@ export function normalizzaRicetta(valore) {
     })
   }
   if (paragrafi.length === 0) return null
+  // Fino alla versione 1 la pausa dopo l’ultimo paragrafo non entrava nel file:
+  // si azzera, così le bozze salvate prima suonano come prima.
+  if (!(Number(valore.versione) >= 2)) paragrafi[paragrafi.length - 1].pausaDopo = 0
   const modelloSalvato = String(valore.modello || '')
   return {
     modello: MODELLI.includes(modelloSalvato) ? modelloSalvato : MODELLI[0],
@@ -95,7 +98,7 @@ export function ricettaDaStato(stato, { omessi = new Set(), formatoNuovo = 'gzip
     })
   }
   return {
-    versione: 1,
+    versione: 2,
     modello: MODELLI.includes(stato?.modelloId) ? stato.modelloId : MODELLI[0],
     voce_id: String(stato?.voceId || ''),
     velocita: velocitaRicetta(stato?.velocita),

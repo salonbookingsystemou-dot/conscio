@@ -195,7 +195,7 @@ export async function preparaMp3(paragrafi, onAvanzamento, { campane = true } = 
     ? 2 * suono.pcm.length + Math.round((PAUSA_DOPO_CAMPANA + PAUSA_PRIMA_CAMPANA) * CAMPIONI)
     : 0
   const totale = extra + validi.reduce((n, p, i) => (
-    n + p.pcm.length + (i < validi.length - 1 ? Math.round((Number(p.pausaDopo) || 0) * CAMPIONI) : 0)
+    n + p.pcm.length + Math.round((Number(p.pausaDopo) || 0) * CAMPIONI)
   ), 0)
   let fatti = 0
   let daUltimoRespiro = 0
@@ -225,7 +225,8 @@ export async function preparaMp3(paragrafi, onAvanzamento, { campane = true } = 
   }
   for (let i = 0; i < validi.length; i += 1) {
     await codifica(validi[i].pcm, gain[i])
-    const pausa = i < validi.length - 1 ? Math.round((Number(validi[i].pausaDopo) || 0) * CAMPIONI) : 0
+    // Anche dopo l’ultimo paragrafo: silenzio prima della campana di chiusura.
+    const pausa = Math.round((Number(validi[i].pausaDopo) || 0) * CAMPIONI)
     if (pausa > 0) await codifica(new Int16Array(pausa), 0)
   }
   if (suono) {

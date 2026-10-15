@@ -96,7 +96,7 @@ export function spezzaTesto(testo, max) {
 export function stimaGenerazione(paragrafi, modello, velocita = 1) {
   const testi = (paragrafi || []).map(p => String(p.testo || '').trim()).filter(Boolean)
   const caratteri = testi.reduce((n, t) => n + t.length, 0)
-  const pause = (paragrafi || []).slice(0, -1).reduce((n, p) => n + (Number(p.pausaDopo) || 0), 0)
+  const pause = (paragrafi || []).reduce((n, p) => n + (Number(p.pausaDopo) || 0), 0)
   const crediti = Math.ceil(caratteri * (modello?.creditiPerCarattere || 1))
   const ritmo = velocitaDi(velocita)
   return {
