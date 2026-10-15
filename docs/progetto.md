@@ -54,6 +54,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 15/10/2026 · Spirale standard anche nei marchi piccoli (da Claude Code)
+Dentro l’app il segno usa sempre la spirale standard, anche sotto i 40px (header, Ascoltati, rail compatto): prima `Marchio` passava da solo alla spirale semplificata. La semplificata resta per la favicon e con la prop `semplice`. Nessuna modifica al database.
+
 ### 15/10/2026 · L’app si chiama Conscio, con il nuovo marchio (da Claude Code)
 Applicato il kit del logo (`docs/brief_logo.md`): segno a spirale + scritta «conscio» in Literata 600, un solo colore. Deciso con Dimitri: tutto diventa «Conscio» (nome dell’app installata, titolo della scheda, header, prima schermata); «percorso MBSR» resta nei testi dove descrive il percorso.
 - **File e manifest:** favicon ICO e SVG, icone PWA `any` e `maskable` in `public/icons/`, icona iOS; manifest `name`/`short_name` «Conscio», `theme_color` `#3F5443` (prima `#4B6B57`); la Tonalità colora la barra del browser con l’accento. Eliminate le icone vecchie e `scripts/crea-icone-pwa.mjs`; `public/icon-192.png` resta, con la nuova icona, perché la richiamano le email già inviate.
