@@ -54,6 +54,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 15/10/2026 · Testo sotto il titolo di Ascoltati, nuova versione (da Claude Code)
+Ora è: «Assumi una o più pillole di meditazione tutte le volte che senti il bisogno di tornare in contatto con te stessə.». Vale anche per la descrizione dell’anteprima del link `/ascolta`. Nessuna modifica al database.
+
 ### 15/10/2026 · Il player di Ascoltati non si apriva (da Claude Code)
 Dopo la rimozione della barra flottante (commit `bb945b0`) il play andava in errore: con la barra era sparita anche `restante`, il tempo rimanente che il player a schermo intero mostra sotto la barra. Ripristinata. Provato nel browser bloccando i conteggi della vetrina: il player si apre, mostra il tempo rimanente, alla chiusura va in pausa. Nessuna modifica al database.
 

@@ -246,7 +246,7 @@ export default function Ascolta() {
           <header className="ascolta-testa">
             <h1>Ascoltati</h1>
             <p>
-              Pillole di meditazione da assumere ogni volta che si ha bisogno di tornare in contatto con se stessi. Assaggiane subito una.
+              Assumi una o più pillole di meditazione tutte le volte che senti il bisogno di tornare in contatto con te stessə.
             </p>
           </header>
           {audioEvidenza?.audio_url && player(audioEvidenza, true)}
