@@ -10,6 +10,12 @@ import {
   generaPezzo,
   modelloDaId,
   spezzaTesto,
+  STABILITA_MAX,
+  STABILITA_MIN,
+  STABILITA_PASSO,
+  STABILITA_PREDEFINITA,
+  stabilitaDi,
+  stabilitaPerModello,
   stimaGenerazione,
   VELOCITA_MAX,
   VELOCITA_MIN,
@@ -78,6 +84,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
   const [vociPronte, setVociPronte] = useState(false)
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1_000_000))
   const [velocita, setVelocita] = useState(1)
+  const [stabilita, setStabilita] = useState(STABILITA_PREDEFINITA)
   const [pausaPredefinita, setPausaPredefinita] = useState(10)
   const [script, setScript] = useState('')
   const [paragrafi, setParagrafi] = useState([])
@@ -106,6 +113,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
   // v4 e V3 ignorano la velocità: per loro vale sempre 1, il cursore resta sul valore scelto per gli altri modelli.
   const velocitaAttiva = modello.velocita !== false
   const velocitaEffettiva = velocitaPerModello(modello, velocita)
+  const stabilitaEffettiva = stabilitaPerModello(modello, stabilita)
   const voce = voci.find(v => v.id === voceId) || null
   const stima = useMemo(
     () => stimaGenerazione(paragrafi, modello, velocitaEffettiva),
@@ -113,7 +121,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
   )
   const scriptDiverso = paragrafi.length > 0 && dividiScript(script).join('\n\n') !== firmaParagrafi(paragrafi)
   const pronti = paragrafi.filter(p => String(p.testo || '').trim() && compatibile(p, modelloId, voceId))
-  const daFare = paragrafi.filter(p => vaRigenerato(p, modelloId, voceId, seed, velocitaEffettiva))
+  const daFare = paragrafi.filter(p => vaRigenerato(p, modelloId, voceId, seed, velocitaEffettiva, stabilitaEffettiva))
   const puoGenerareTutto = Boolean(voceId) && (scriptDiverso || daFare.length > 0)
   const italiane = voci.filter(v => v.italiana)
   const altre = voci.filter(v => !v.italiana)
@@ -157,6 +165,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
         setSeed(ricetta.variazione == null ? '' : ricetta.variazione)
         setVelocita(ricetta.velocita)
         velocitaRef.current = ricetta.velocita
+        setStabilita(ricetta.stabilita ?? STABILITA_PREDEFINITA)
         setPausaPredefinita(ricetta.pausaPredefinita)
         setParagrafi(caricati)
         setScript(firmaParagrafi(caricati))
@@ -299,6 +308,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
         successivo: modello.aggancia ? (pezzi[n + 1] || dopo) : '',
         seed,
         velocita: velocitaEffettiva,
+        stabilita: stabilitaEffettiva,
         signal
       })
       let rifinito
@@ -334,6 +344,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
           voceId,
           seed: semeDi(seed),
           velocita: velocitaEffettiva,
+          stabilita: stabilitaEffettiva,
           obsoleto: false,
           audioSalvato: false,
           audioFormato: null,
@@ -398,7 +409,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
       setParagrafi(lista)
       setScript(firmaParagrafi(lista))
     }
-    const daRigenerare = p => vaRigenerato(p, modelloId, voceId, seed, velocitaEffettiva)
+    const daRigenerare = p => vaRigenerato(p, modelloId, voceId, seed, velocitaEffettiva, stabilitaEffettiva)
     const primo = lista.findIndex(daRigenerare)
     if (primo < 0) {
       rilasciaFile()
@@ -578,6 +589,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
       modelloId,
       voceId,
       velocita,
+      stabilita,
       variazione: seed,
       pausaPredefinita,
       paragrafi
@@ -805,6 +817,35 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
             </p>
           )}
         </div>
+        {stabilitaEffettiva != null && (
+          <div className="field genera-velocita">
+            <div className="genera-velocita-testa">
+              <label htmlFor="genera-stabilita">Stabilità della voce</label>
+              <strong>{testoStabilita(stabilita)}</strong>
+            </div>
+            <input
+              id="genera-stabilita"
+              type="range"
+              min={STABILITA_MIN}
+              max={STABILITA_MAX}
+              step={STABILITA_PASSO}
+              value={stabilitaEffettiva}
+              aria-describedby="genera-stabilita-nota"
+              aria-valuetext={testoStabilita(stabilita).replace(' · ', ', ')}
+              onChange={e => {
+                setStabilita(stabilitaDi(e.target.value))
+                rilasciaFile()
+              }}
+            />
+            <div className="genera-velocita-estremi" aria-hidden="true">
+              <span>Più espressiva</span>
+              <span>Più costante</span>
+            </div>
+            <p id="genera-stabilita-nota" className="hint">
+              Più alta, il tono resta uguale da un paragrafo all’altro; a 1 può diventare piatto. Cambiandola, i paragrafi già fatti vanno rigenerati.
+            </p>
+          </div>
+        )}
         <p className="genera-nota">
           {modello.nota} Le pause sono silenzio aggiunto qui e non consumano crediti.{' '}
           {velocitaAttiva && 'Il campione della voce si ascolta alla velocità scelta. '}
@@ -874,6 +915,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
             {paragrafi.map((p, indice) => {
               const pronto = compatibile(p, modelloId, voceId)
               const stessaVelocita = (p.velocita ?? 1) === velocitaEffettiva
+              const stessaStabilita = stessaStabilitaDi(p, stabilitaEffettiva)
               const attivo = inAscolto?.id === p.id
               return (
                 <li key={p.id} className={attivo ? 'is-attivo' : undefined}>
@@ -882,9 +924,10 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
                       <p className="genera-kicker">Paragrafo {indice + 1}</p>
                       <p className="genera-meta">
                         {String(p.testo || '').trim().length} caratteri
-                        {pronto && stessaVelocita ? ' · pronto' : ''}
+                        {pronto && stessaVelocita && stessaStabilita ? ' · pronto' : ''}
                         {p.audio && !pronto ? ' · generato con un altro modello o un’altra voce' : ''}
                         {pronto && !stessaVelocita ? ' · generato a un’altra velocità' : ''}
+                        {pronto && !stessaStabilita ? ' · generato con un’altra stabilità' : ''}
                         {p.obsoleto && pronto ? ' · la voce precedente è cambiata' : ''}
                         {attivo && inAscolto.pausa ? ` · pausa ${inAscolto.restanti}s` : ''}
                         {attivo && !inAscolto.pausa ? ' · in ascolto' : ''}
@@ -1079,12 +1122,25 @@ function messaggioOmessi(quanti, fileSalvato) {
   return fileSalvato ? `File e script salvati. ${quali}` : `Script salvato. ${quali}`
 }
 
-function vaRigenerato(paragrafo, modelloId, voceId, seed, velocita) {
+function vaRigenerato(paragrafo, modelloId, voceId, seed, velocita, stabilita) {
   if (!String(paragrafo.testo || '').trim()) return false
   if (!compatibile(paragrafo, modelloId, voceId)) return true
   if (paragrafo.obsoleto) return true
   if ((paragrafo.velocita ?? 1) !== velocita) return true
+  if (!stessaStabilitaDi(paragrafo, stabilita)) return true
   return (paragrafo.seed ?? null) !== semeDi(seed)
+}
+
+// I paragrafi v4 generati prima del cursore non hanno la stabilità: valgono come la predefinita.
+function stessaStabilitaDi(paragrafo, stabilita) {
+  if (stabilita == null) return true
+  return (paragrafo.stabilita ?? STABILITA_PREDEFINITA) === stabilita
+}
+
+function testoStabilita(valore) {
+  const n = stabilitaDi(valore)
+  const numero = n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return n === STABILITA_PREDEFINITA ? `${numero} · consigliata` : numero
 }
 
 function impostaRitmoCampione(audio, valore) {

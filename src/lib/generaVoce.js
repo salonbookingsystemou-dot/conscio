@@ -16,6 +16,8 @@ export const MODELLI = [
     aggancia: true,
     // Prova del 14/10/2026: stessa frase a 0,70 e 1,20, stessa durata. ElevenLabs ignora speed.
     velocita: false,
+    // Su v4 la stabilità decide quanto il tono resta uguale tra i paragrafi.
+    stabilita: true,
     max: 9000,
     nota: 'Più espressivo, con la voce continua da un paragrafo all’altro. Accetta tag come [whispers]; per le pause usa i puntini, non <break>.'
   },
@@ -46,6 +48,24 @@ export function modelloDaId(id) {
 /** Velocità che il modello applica davvero: 1 per quelli che la ignorano. */
 export function velocitaPerModello(modello, velocita) {
   return modello?.velocita === false ? 1 : velocitaDi(velocita)
+}
+
+// Stabilità di v4: più alta, tono più costante tra i paragrafi; più bassa, più espressivo.
+export const STABILITA_MIN = 0.5
+export const STABILITA_MAX = 1
+export const STABILITA_PASSO = 0.05
+export const STABILITA_PREDEFINITA = 0.85
+
+export function stabilitaDi(valore) {
+  const n = Number(valore)
+  if (valore == null || valore === '' || !Number.isFinite(n)) return STABILITA_PREDEFINITA
+  const arrotondata = Math.round(Math.round(n / STABILITA_PASSO) * STABILITA_PASSO * 100) / 100
+  return Math.min(STABILITA_MAX, Math.max(STABILITA_MIN, arrotondata))
+}
+
+/** Stabilità scelta, solo per i modelli che la regolano; per gli altri null. */
+export function stabilitaPerModello(modello, stabilita) {
+  return modello?.stabilita ? stabilitaDi(stabilita) : null
 }
 
 // Moltiplicatore del parlato accettato da ElevenLabs (1 = ritmo della voce).
@@ -213,7 +233,7 @@ export async function elencaVociJson(signal) {
   return Array.isArray(payload?.voci) ? payload.voci : []
 }
 
-export function generaPezzo({ testo, voceId, modello, precedenti, successivo, seed, velocita, signal }) {
+export function generaPezzo({ testo, voceId, modello, precedenti, successivo, seed, velocita, stabilita, signal }) {
   return chiama({
     azione: 'paragrafo',
     testo,
@@ -222,6 +242,7 @@ export function generaPezzo({ testo, voceId, modello, precedenti, successivo, se
     precedenti: precedenti || [],
     successivo: successivo || '',
     seed,
-    velocita: velocitaDi(velocita)
+    velocita: velocitaDi(velocita),
+    stabilita: stabilita == null ? null : stabilitaDi(stabilita)
   }, signal)
 }

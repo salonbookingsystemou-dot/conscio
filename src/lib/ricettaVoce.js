@@ -4,6 +4,9 @@
 const VELOCITA_MIN = 0.7
 const VELOCITA_MAX = 1.2
 const VELOCITA_PASSO = 0.05
+const STABILITA_MIN = 0.5
+const STABILITA_MAX = 1
+const STABILITA_PASSO = 0.05
 const MODELLI = ['eleven_multilingual_v2', 'eleven_v4', 'eleven_v3', 'eleven_flash_v2_5']
 const ID_OK = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -17,6 +20,15 @@ export function velocitaRicetta(valore) {
   const passi = Math.round(n / VELOCITA_PASSO)
   const arrotondata = Math.round(passi * VELOCITA_PASSO * 100) / 100
   return Math.min(VELOCITA_MAX, Math.max(VELOCITA_MIN, arrotondata))
+}
+
+// null: modello senza stabilità regolabile, o paragrafo generato prima del cursore.
+export function stabilitaRicetta(valore) {
+  if (valore == null || valore === '') return null
+  const n = Number(valore)
+  if (!Number.isFinite(n)) return null
+  const arrotondata = Math.round(Math.round(n / STABILITA_PASSO) * STABILITA_PASSO * 100) / 100
+  return Math.min(STABILITA_MAX, Math.max(STABILITA_MIN, arrotondata))
 }
 
 export function variazioneRicetta(valore) {
@@ -55,6 +67,7 @@ export function normalizzaRicetta(valore) {
       obsoleto: Boolean(p.obsoleto),
       seed: variazioneRicetta(p.variazione),
       velocita: p.velocita == null ? 1 : velocitaRicetta(p.velocita),
+      stabilita: stabilitaRicetta(p.stabilita),
       audioFormato: formato,
       audioSalvato: false,
       audioMancante: false
@@ -69,6 +82,7 @@ export function normalizzaRicetta(valore) {
     modello: MODELLI.includes(modelloSalvato) ? modelloSalvato : MODELLI[0],
     voceId: String(valore.voce_id || ''),
     velocita: velocitaRicetta(valore.velocita),
+    stabilita: stabilitaRicetta(valore.stabilita),
     variazione: variazioneRicetta(valore.variazione),
     pausaPredefinita: pausaRicetta(valore.pausa_predefinita ?? 10),
     paragrafi
@@ -93,6 +107,7 @@ export function ricettaDaStato(stato, { omessi = new Set(), formatoNuovo = 'gzip
       voce_id: String(p.voceId || ''),
       variazione: variazioneRicetta(p.seed),
       velocita: p.velocita == null ? null : velocitaRicetta(p.velocita),
+      stabilita: stabilitaRicetta(p.stabilita),
       obsoleto: Boolean(p.obsoleto),
       audio
     })
@@ -102,6 +117,7 @@ export function ricettaDaStato(stato, { omessi = new Set(), formatoNuovo = 'gzip
     modello: MODELLI.includes(stato?.modelloId) ? stato.modelloId : MODELLI[0],
     voce_id: String(stato?.voceId || ''),
     velocita: velocitaRicetta(stato?.velocita),
+    stabilita: stabilitaRicetta(stato?.stabilita),
     variazione: variazioneRicetta(stato?.variazione),
     pausa_predefinita: pausaRicetta(stato?.pausaPredefinita ?? 10),
     paragrafi

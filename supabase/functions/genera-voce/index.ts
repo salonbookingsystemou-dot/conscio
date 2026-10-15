@@ -161,6 +161,13 @@ async function generaParagrafo(chiave: string, corpo: Record<string, unknown>) {
     }, 400)
   }
   const velocita = velocitaLetta.valore
+  const stabilita = leggiStabilita(corpo.stabilita)
+  if (stabilita == null) {
+    return json({
+      errore: 'STABILITA_NON_VALIDA',
+      messaggio: 'La stabilità della voce va da 0,50 a 1.'
+    }, 400)
+  }
 
   const payload: Record<string, unknown> = {
     text: testo,
@@ -178,7 +185,8 @@ async function generaParagrafo(chiave: string, corpo: Record<string, unknown>) {
       // Su v4 la stabilità decide quanto la resa resta uguale tra una generazione
       // e l’altra: a 0,62 (il valore di v2) ogni paragrafo prendeva un tono suo,
       // anche con l’aggancio. Più in alto resta vicina a un registro fisso.
-      ? { stability: 0.85, similarity_boost: 0.8 }
+      // Si sceglie dal cursore nell’editor (0,50–1, predefinita 0,85).
+      ? { stability: stabilita, similarity_boost: 0.8 }
       : {
         stability: 0.62,
         similarity_boost: 0.8,
@@ -254,6 +262,16 @@ function leggiVelocita(grezzo: unknown): { ok: true, valore: number } | { ok: fa
   const arrotondata = Math.round(n * 100) / 100
   if (arrotondata < 0.7 || arrotondata > 1.2) return { ok: false }
   return { ok: true, valore: arrotondata }
+}
+
+// Solo v4 la usa. Senza valore vale 0,85; fuori da 0,50–1 è un errore (null).
+function leggiStabilita(grezzo: unknown): number | null {
+  if (grezzo == null || grezzo === '') return 0.85
+  const n = typeof grezzo === 'number' ? grezzo : (typeof grezzo === 'string' ? Number(grezzo) : NaN)
+  if (!Number.isFinite(n)) return null
+  const arrotondata = Math.round(n * 100) / 100
+  if (arrotondata < 0.5 || arrotondata > 1) return null
+  return arrotondata
 }
 
 function inizioDi(testo: string, max: number) {
