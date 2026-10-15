@@ -296,6 +296,7 @@ export default function PlayerVetrina({
   function vista(stato) {
     statoRef.current = stato
     const { posizione, durata, inPlay } = stato
+    const restante = Math.max(0, durata - posizione)
     const etichettaPlay = inPlay ? 'Metti in pausa' : 'Riproduci'
 
     return (
