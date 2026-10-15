@@ -5392,9 +5392,7 @@ body:has(.splash) {
 .ascolta-player-play,
 .ascolta-player-salto,
 .ascolta-player-testo,
-.ascolta-foglio-chiudi,
-.ascolta-mini-apri,
-.ascolta-mini-play {
+.ascolta-foglio-chiudi {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -5412,9 +5410,7 @@ body:has(.splash) {
 .ascolta-player-salto:focus-visible,
 .ascolta-player-testo:focus-visible,
 .ascolta-player-barra:focus-visible,
-.ascolta-foglio-chiudi:focus-visible,
-.ascolta-mini-apri:focus-visible,
-.ascolta-mini-play:focus-visible {
+.ascolta-foglio-chiudi:focus-visible {
   outline: var(--focus-ring);
   outline-offset: 2px;
 }
@@ -5425,8 +5421,7 @@ body:has(.splash) {
   background: var(--surface);
   color: var(--ink);
 }
-.ascolta-tondo svg,
-.ascolta-mini-play svg {
+.ascolta-tondo svg {
   width: 22px;
   height: 22px;
 }
@@ -5716,89 +5711,6 @@ body:has(.splash) {
   color: var(--muted);
 }
 
-/* Barra ridotta quando il player è chiuso ma la traccia è avviata */
-.ascolta-mini {
-  position: fixed;
-  left: var(--space-12);
-  right: var(--space-12);
-  bottom: calc(var(--space-12) + env(safe-area-inset-bottom, 0px));
-  z-index: 45;
-  display: flex;
-  align-items: center;
-  gap: var(--space-10);
-  max-width: 32rem;
-  margin: 0 auto;
-  padding: var(--space-8);
-  border-radius: var(--radius-lg);
-  background: var(--ink);
-  color: var(--surface);
-  box-shadow: var(--shadow-float);
-}
-.ascolta-mini-apri {
-  flex: 1 1 auto;
-  justify-content: flex-start;
-  gap: var(--space-10);
-  min-width: 0;
-  text-align: left;
-  border-radius: var(--radius-sm);
-}
-.ascolta-mini-foto {
-  flex: 0 0 auto;
-  width: 40px;
-  height: 40px;
-  overflow: hidden;
-  border-radius: var(--radius-sm);
-  background: var(--accent);
-}
-.ascolta-mini-foto img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.ascolta-mini-testo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-  min-width: 0;
-  flex: 1 1 auto;
-}
-.ascolta-mini-titolo {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font-size: var(--fs-small);
-  font-weight: 500;
-}
-.ascolta-mini-barra {
-  display: block;
-  height: 3px;
-  border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--surface) 25%, transparent);
-  overflow: hidden;
-}
-.ascolta-mini-barra span {
-  display: block;
-  height: 100%;
-  background: var(--surface);
-}
-.ascolta-mini-play {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-pill);
-  background: var(--surface);
-  color: var(--ink);
-}
-body:has(.ascolta-mini) .shell {
-  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
-}
-@media (max-width: 1099px) {
-  body.has-barra-bassa .ascolta-mini {
-    bottom: calc(56px + var(--space-12) + env(safe-area-inset-bottom, 0px));
-  }
-  body.has-barra-bassa:has(.ascolta-mini) .shell {
-    padding-bottom: calc(144px + env(safe-area-inset-bottom, 0px));
-  }
-}
 .ascolta-scheda-pubblica .ascolta-credito {
   margin: 0;
   color: inherit;

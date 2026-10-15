@@ -245,10 +245,11 @@ export default function PlayerVetrina({
   const playRef = useRef(null)
   const chiudiRef = useRef(null)
   const chiudiInfoRef = useRef(null)
+  // Ultimo stato del player, per fermare l'audio quando si chiude lo schermo intero.
+  const statoRef = useRef(null)
   const idTitolo = useId()
   const idInfo = useId()
   const sfondo = traccia.sfondo || {}
-  const immagine = sfondo.poster_url || sfondo.url
   const autore = traccia.autore?.nome
   const voce = voceBreve(traccia.voce)
   const minuti = traccia.durata_minuti ? `${traccia.durata_minuti} min` : ''
@@ -279,7 +280,9 @@ export default function PlayerVetrina({
     return () => window.removeEventListener('keydown', tasto)
   }, [aperto, info])
 
+  // Chiudendo il player l'ascolto si ferma: non c'è un mini player che continua in pagina.
   function chiudi() {
+    if (statoRef.current?.inPlay) statoRef.current.alterna()
     setInfo(false)
     setAperto(false)
     window.requestAnimationFrame(() => playRef.current?.focus())
@@ -291,9 +294,8 @@ export default function PlayerVetrina({
   }
 
   function vista(stato) {
+    statoRef.current = stato
     const { posizione, durata, inPlay } = stato
-    const restante = Math.max(0, durata - posizione)
-    const aMeta = posizione > 0 && (!(durata > 0) || restante > 1)
     const etichettaPlay = inPlay ? 'Metti in pausa' : 'Riproduci'
 
     return (
@@ -320,31 +322,6 @@ export default function PlayerVetrina({
             </div>
           </div>
         </section>
-
-        {!aperto && (inPlay || aMeta) && createPortal(
-          <div className="ascolta-mini">
-            <button
-              type="button"
-              className="ascolta-mini-apri"
-              aria-label={`Apri il player di «${traccia.titolo}»`}
-              onClick={() => setAperto(true)}
-            >
-              <span className="ascolta-mini-foto" aria-hidden="true">
-                {immagine && <img src={immagine} alt="" />}
-              </span>
-              <span className="ascolta-mini-testo">
-                <span className="ascolta-mini-titolo">{traccia.titolo}</span>
-                <span className="ascolta-mini-barra" aria-hidden="true">
-                  <span style={{ width: `${durata > 0 ? Math.min(100, (posizione / durata) * 100) : 0}%` }} />
-                </span>
-              </span>
-            </button>
-            <button type="button" className="ascolta-mini-play" aria-label={etichettaPlay} onClick={stato.alterna}>
-              {inPlay ? <IconaPausa /> : <IconaPlay />}
-            </button>
-          </div>,
-          document.body
-        )}
 
         {aperto && createPortal(
           <div className="ascolta-player" role="dialog" aria-modal="true" aria-labelledby={idTitolo}>
