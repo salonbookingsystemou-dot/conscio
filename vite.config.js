@@ -53,16 +53,18 @@ export default defineConfig({
         ]
       },
       manifest: {
-        name: 'Percorso MBSR',
-        short_name: 'MBSR',
-        description: 'Gestione iscrizioni, lezioni, questionari e log di pratica per i cicli del percorso MBSR',
-        theme_color: '#4B6B57',
+        name: 'Conscio',
+        short_name: 'Conscio',
+        description: 'Il percorso MBSR: pratica guidata, questionari e diario della giornata',
+        theme_color: '#3F5443',
         background_color: '#F5F1E7',
         display: 'standalone',
         start_url: './',
         icons: [
-          { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: 'icon-512.png', sizes: '512x512', type: 'image/png' }
+          { src: 'icons/pwa-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: 'icons/pwa-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: 'icons/pwa-maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+          { src: 'icons/pwa-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
         ]
       }
     })

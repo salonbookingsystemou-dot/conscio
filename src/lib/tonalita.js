@@ -86,16 +86,17 @@ export function applicaTonalita(hue) {
   const meta = document.querySelector('meta[name="theme-color"]')
   if (Math.abs(delta) < 0.8) {
     for (const [nome] of PALETTE) root.style.removeProperty(nome)
-    meta?.setAttribute('content', COLORI.moss)
+    meta?.setAttribute('content', COLORI.accent)
     return
   }
-  let moss = null
+  // La barra del browser ha il colore del marchio (--accent), come il manifest.
+  let accento = null
   for (const [nome, baseH, s, l] of PALETTE) {
     const ruotato = normalizzaHue(baseH + delta)
     root.style.setProperty(nome, `hsl(${ruotato.toFixed(2)} ${s.toFixed(2)}% ${l.toFixed(2)}%)`)
-    if (nome === '--moss') moss = hslToHex(ruotato, s, l)
+    if (nome === '--accent') accento = hslToHex(ruotato, s, l)
   }
-  meta?.setAttribute('content', moss)
+  meta?.setAttribute('content', accento)
 }
 
 export function avviaTonalita() {
