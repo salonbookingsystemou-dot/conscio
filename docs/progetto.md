@@ -54,6 +54,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 15/10/2026 · «Spunto per una pausa» (da Claude Code)
+L’occhiello della meditazione in evidenza (card e player a schermo intero) dice «Spunto per una pausa» al posto di «Pillola della settimana», sempre in maiuscolo per stile. Stesso nome per la card del calendario nella pagina Sito. Nessuna modifica al database.
+
 ### 15/10/2026 · La sezione pubblica si chiama «E se ti fermassi un momento?» (da Claude Code)
 Il nome visibile passa da «Prova a darti ascolto» a «E se ti fermassi un momento?», negli stessi punti dei cambi precedenti. Dove il nome sta dentro una frase (pagina Sito, vetrina, scheda della traccia, informativa, messaggio d’errore) è tra «», per via del punto interrogativo. Indirizzi `/ascolta` e nomi nel codice invariati. Nessuna modifica al database.
 

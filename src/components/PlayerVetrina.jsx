@@ -316,7 +316,7 @@ export default function PlayerVetrina({
         <section className="ascolta-palco">
           <Sfondo sfondo={sfondo} conVideo={!aperto} />
           <div className="ascolta-palco-testo">
-            {inEvidenza && <p className="ascolta-sopracciglio">Pillola della settimana</p>}
+            {inEvidenza && <p className="ascolta-sopracciglio">Spunto per una pausa</p>}
             <h2>{traccia.titolo}</h2>
             <div className="ascolta-palco-piede">
               <p className="ascolta-meta">
@@ -350,7 +350,7 @@ export default function PlayerVetrina({
                   <IconaIndietro />
                 </button>
                 <p className="ascolta-player-occhiello">
-                  {inEvidenza ? 'Pillola della settimana' : ''}
+                  {inEvidenza ? 'Spunto per una pausa' : ''}
                 </p>
                 {onCondividi ? (
                   <button
