@@ -5519,66 +5519,6 @@ body:has(.splash) {
   margin: var(--space-4) 0 0;
   font-size: var(--fs-meta);
 }
-.ascolta-player-descrizione {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-4);
-  margin-top: var(--space-12);
-}
-.ascolta-player-descrizione-testo {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  font-size: var(--fs-body);
-  line-height: var(--lh-body);
-  white-space: pre-wrap;
-  color: color-mix(in srgb, var(--surface) 94%, transparent);
-}
-.ascolta-player-descrizione-testo.is-aperta {
-  display: block;
-  -webkit-line-clamp: unset;
-  max-height: min(16rem, 34vh);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: var(--space-14) var(--space-16);
-  border-radius: var(--radius-tile);
-  background: color-mix(in srgb, var(--ink) 62%, transparent);
-}
-.ascolta-player-descrizione-testo.is-aperta:focus-visible {
-  outline: 2px solid var(--surface);
-  outline-offset: 2px;
-}
-.ascolta-player-leggi {
-  min-height: 36px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--surface);
-  font: inherit;
-  font-size: var(--fs-small);
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  cursor: pointer;
-}
-.ascolta-player-leggi:focus-visible {
-  outline: 2px solid var(--surface);
-  outline-offset: 2px;
-  border-radius: var(--radius-xs);
-}
-/* A descrizione aperta il velo sale e si scurisce, per la leggibilità. */
-.ascolta-player:has(.is-descrizione-aperta) .ascolta-velo {
-  background:
-    linear-gradient(to bottom, color-mix(in srgb, var(--ink) 45%, transparent) 0%, transparent 22%),
-    linear-gradient(
-      to top,
-      var(--ink) 0%,
-      color-mix(in srgb, var(--ink) 82%, transparent) 55%,
-      transparent 85%
-    );
-}
 .ascolta-player-barra {
   position: relative;
   height: 24px;

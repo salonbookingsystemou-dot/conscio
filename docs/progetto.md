@@ -54,6 +54,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 15/10/2026 · La descrizione torna nella scheda Informazioni del player (da Claude Code)
+Annullata la modifica del 14/10 «Descrizione della traccia nel player di Ascolta»: il player a schermo intero non mostra più la descrizione (né «Leggi tutto»), che torna in cima alla scheda dal basso. Il pulsante e la scheda si chiamano di nuovo «Informazioni». Ripristinati `PlayerVetrina.jsx`, `Ascolta.jsx` e le regole CSS com’erano prima; resta solo l’icona di «Sorprendimi», usata anche nella pagina. Nessuna modifica al database.
+
 ### 15/10/2026 · Anteprima della pagina Ascolta in Sito (da Claude Code)
 Nel pannello a destra di Sito due chip scelgono l’anteprima: «Prima schermata» (come prima) e «Ascolta». Ascolta è la pagina vera, caricata in un riquadro a larghezza di telefono (390px, ridotta per stare nel pannello): mostra meditazione della settimana, «Sorprendimi» e invito al percorso così come li vede il pubblico. Dopo «Salva vetrina» il riquadro si ricarica e passa su Ascolta. Aprire l’anteprima non conta come ascolto: i contatori partono solo dal play. Nessuna modifica al database.
 

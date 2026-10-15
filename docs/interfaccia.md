@@ -90,7 +90,7 @@ Tutto sotto `/admin`; le vecchie rotte (`/dashboard`, `/percorso…`, `/lezioni`
 | Accesso e identità | `ChiediCodice`, `BoxCodicePrivacy`, `IdentitaCodice` |
 | Avvisi, consenso, privacy | `Disclaimer` (`.avvertenza`, chiudibile), `AvvisoDatiPseudonimi`, `.disclaimer` (classe) |
 | Modali e inviti | `DialogConferma` (`.dialogo`), `InvitoHome` (installazione PWA), `InvitoCheckin` (modale a ogni apertura finché manca il check-in) |
-| Audio e pratica | `CardTracciaAudio` (player, eyebrow, stato «ascoltata», barre cliccabili per saltare a un punto; con `modalita="vetrina"` non segna l’ascolto e non prepara l’offline; con `vista` un altro componente disegna i controlli sulla stessa logica), `PlayerVetrina` (card, player a schermo intero con descrizione a tre righe e «Leggi tutto», scheda «Crediti e licenza» dal basso, barra ridotta quando è chiuso), `GuidaMeditazione` (carosello di posture: `assets/guida/*.png`), `LibreriaTracce`, `CalendarioPratica`, `VoceLog` |
+| Audio e pratica | `CardTracciaAudio` (player, eyebrow, stato «ascoltata», barre cliccabili per saltare a un punto; con `modalita="vetrina"` non segna l’ascolto e non prepara l’offline; con `vista` un altro componente disegna i controlli sulla stessa logica), `PlayerVetrina` (card, player a schermo intero, scheda Informazioni dal basso con descrizione, crediti e licenza, barra ridotta quando è chiuso), `GuidaMeditazione` (carosello di posture: `assets/guida/*.png`), `LibreriaTracce`, `CalendarioPratica`, `VoceLog` |
 | Tono della giornata | `TonoEsperienza` (scelta), `TonoIcon` (faccina SVG), `TonoMini` (etichetta) |
 | Input | `CampoNota` (testo + dettatura), `ScalaLikert`, `SegnalaProblema` |
 | Dati e grafici | `SchedaPratica`, `StoricoGiornate`, `IndicatoreOrientamento`, `OreAscolto` |
