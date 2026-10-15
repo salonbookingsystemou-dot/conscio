@@ -237,10 +237,11 @@ export default function PlayerVetrina({
   onCompleto,
   onSorprendi,
   onCondividi,
+  apriSubito = false,
   informazioni,
   avviso = ''
 }) {
-  const [aperto, setAperto] = useState(false)
+  const [aperto, setAperto] = useState(apriSubito)
   const [info, setInfo] = useState(false)
   const playRef = useRef(null)
   const chiudiRef = useRef(null)
@@ -254,7 +255,6 @@ export default function PlayerVetrina({
   const voce = voceBreve(traccia.voce)
   const minuti = traccia.durata_minuti ? `${traccia.durata_minuti} min` : ''
   const etichette = etichetteTag(traccia)
-  const Titolo = inEvidenza ? 'h2' : 'h1'
 
   useEffect(() => {
     if (!aperto) return undefined
@@ -293,6 +293,17 @@ export default function PlayerVetrina({
     if (!stato.inPlay) stato.alterna()
   }
 
+  // Arrivando da «Sorprendimi» a schermo intero il player nuovo si apre subito e parte.
+  useEffect(() => {
+    if (apriSubito && statoRef.current) apri(statoRef.current)
+  }, [])
+
+  // La meditazione che suona si ferma prima di passare alla prossima.
+  function sorprendi() {
+    if (statoRef.current?.inPlay) statoRef.current.alterna()
+    onSorprendi(true)
+  }
+
   function vista(stato) {
     statoRef.current = stato
     const { posizione, durata, inPlay } = stato
@@ -306,7 +317,7 @@ export default function PlayerVetrina({
           <Sfondo sfondo={sfondo} conVideo={!aperto} />
           <div className="ascolta-palco-testo">
             {inEvidenza && <p className="ascolta-sopracciglio">Pillola della settimana</p>}
-            <Titolo>{traccia.titolo}</Titolo>
+            <h2>{traccia.titolo}</h2>
             <div className="ascolta-palco-piede">
               <p className="ascolta-meta">
                 {[minuti, autore, voce].filter(Boolean).join(' · ')}
@@ -397,7 +408,7 @@ export default function PlayerVetrina({
                 {(onSorprendi || informazioni) && (
                   <div className="ascolta-player-azioni">
                     {onSorprendi ? (
-                      <button type="button" className="ascolta-player-testo" onClick={onSorprendi}>
+                      <button type="button" className="ascolta-player-testo" onClick={sorprendi}>
                         <IconaCaso /> Sorprendimi
                       </button>
                     ) : <span />}

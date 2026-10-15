@@ -65,8 +65,10 @@ function AvvisiOComunicazioni() {
 }
 
 // Il guscio del facilitatore resta montato fra le pagine: il confine per pagina sta in AdminChrome.
+// Le meditazioni pubbliche sono una pagina sola: passando dall'una all'altra il player a schermo intero resta aperto.
 function chiaveConfine(pathname) {
   if (pathname === '/admin' || pathname.startsWith('/admin/')) return '/admin'
+  if (pathname === '/ascolta' || pathname.startsWith('/ascolta/')) return '/ascolta'
   return pathname
 }
 
@@ -84,8 +86,7 @@ export default function App() {
           <Route path="/dati" element={<IMieiDati />} />
           <Route path="/entra" element={<Entra />} />
           <Route path="/segnala" element={<Segnala />} />
-          <Route path="/ascolta" element={<Ascolta />} />
-          <Route path="/ascolta/:slug" element={<Ascolta />} />
+          <Route path="/ascolta/:slug?" element={<Ascolta />} />
           <Route path="/onboarding" element={<SoloRegistrato><Onboarding /></SoloRegistrato>} />
           <Route path="/questionari" element={<SoloRegistrato><Questionari /></SoloRegistrato>} />
           <Route path="/pratica" element={<SoloPercorso><LogPratica /></SoloPercorso>} />

@@ -5253,12 +5253,8 @@ body:has(.splash) {
   margin: 0;
   white-space: pre-wrap;
 }
-.ascolta-torna {
-  margin: 0 0 var(--space-12);
-}
 .ascolta-filtri,
-.ascolta-condividi,
-.ascolta-azioni {
+.ascolta-condividi {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-8);

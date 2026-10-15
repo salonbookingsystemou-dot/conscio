@@ -54,6 +54,12 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 15/10/2026 · «Sorprendimi» nel player a schermo intero resta a schermo intero (da Claude Code)
+Prima, premendo «Sorprendimi» dentro il player a schermo intero si tornava alla pagina con il caricamento. Ora la meditazione in ascolto si ferma, il player resta aperto e la nuova parte da sola appena arriva. Il «Sorprendimi» della pagina, fuori dal player, non cambia. In `App.jsx` `/ascolta` e `/ascolta/<slug>` sono una sola route (`/ascolta/:slug?`) con un solo confine degli errori, così la pagina non si rimonta passando da una meditazione all’altra. Nessuna modifica al database.
+
+### 15/10/2026 · Il link di una meditazione apre la pagina con lo stesso layout di /ascolta (da Claude Code)
+Chi apre un link condiviso (`/ascolta/<slug>/`, che rimanda a `/#/ascolta/<slug>`) ora vede la stessa pagina di `/ascolta`: titolo «Prova a darti ascolto» con il testo sotto, la card della meditazione condivisa al posto della pillola della settimana (con l’occhiello «Pillola della settimana» solo se è proprio quella), «Sorprendimi» e l’invito al percorso. Tolti il link «Tutte le meditazioni», la scheda sotto la card e «Ascolta un’altra»; descrizione, crediti e condivisione restano in «Informazioni» dentro il player. Il titolo nella card è sempre `h2` (l’`h1` è quello della pagina). Nessuna modifica al database.
+
 ### 15/10/2026 · Testo sotto il titolo di «Prova a darti ascolto» (da Claude Code)
 Ora è: «Dedica del tempo alla meditazione tutte le volte che senti il bisogno di tornare in contatto con te stessə.». Vale anche per la descrizione dell’anteprima del link `/ascolta` (`scripts/pagine-condivisione.mjs`). Nessuna modifica al database.
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import PlayerVetrina, { Credito, IconaCaso } from '../components/PlayerVetrina.jsx'
 import StatoAttesa from '../components/StatoAttesa.jsx'
 import StatoVuoto from '../components/StatoVuoto.jsx'
@@ -102,6 +102,9 @@ function Scheda({ traccia, onCondiviso, avviso }) {
 export default function Ascolta() {
   const { slug } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
+  // Vero quando si arriva da «Sorprendimi» premuto nel player a schermo intero.
+  const schermoIntero = Boolean(location.state?.schermoIntero)
   const [stato, setStato] = useState('attesa')
   const [impostazioni, setImpostazioni] = useState(null)
   const [elenco, setElenco] = useState([])
@@ -113,7 +116,8 @@ export default function Ascolta() {
 
   useEffect(() => {
     let vivo = true
-    setStato('attesa')
+    // Da schermo intero il player resta aperto mentre arriva la meditazione nuova.
+    if (!schermoIntero) setStato('attesa')
     setAvviso('')
     leggiImpostazioniPubbliche()
       .then(async dati => {
@@ -124,13 +128,15 @@ export default function Ascolta() {
           return
         }
         if (slug) {
-          const [scheda, lista] = await Promise.all([
+          const [scheda, lista, inEvidenza] = await Promise.all([
             leggiTracciaPubblica(slug),
-            leggiElenco()
+            leggiElenco(),
+            leggiEvidenza().catch(() => null)
           ])
           if (!vivo) return
           setTraccia(scheda)
           setElenco(lista)
+          setEvidenza(inEvidenza)
           setStato(scheda ? 'pronta' : 'assente')
           return
         }
@@ -158,12 +164,17 @@ export default function Ascolta() {
     return () => { vivo = false }
   }, [slug, tentativo])
 
-  function sorprendi() {
+  function sorprendi(daSchermoIntero = false) {
     const scelte = elenco.filter(voce => voce.slug && voce.slug !== slug)
     if (!scelte.length) return
     const prossima = scelte[Math.floor(Math.random() * scelte.length)]
-    navigate(`/ascolta/${prossima.slug}`)
+    navigate(`/ascolta/${prossima.slug}`, daSchermoIntero ? { state: { schermoIntero: true } } : undefined)
   }
+
+  // Aperto il player nuovo, lo stato si toglie: ricaricando la pagina non si riapre da solo.
+  useEffect(() => {
+    if (schermoIntero && traccia?.slug === slug) navigate(location.pathname, { replace: true })
+  }, [schermoIntero, traccia, slug])
 
   useEffect(() => {
     if (!avviso || avviso.startsWith('Link:')) return undefined
@@ -200,7 +211,9 @@ export default function Ascolta() {
     const condividiVoce = soloCopia => condividi(voce, soloCopia)
     return (
       <PlayerVetrina
+        key={voce.slug}
         traccia={voce}
+        apriSubito={schermoIntero && voce.slug === slug}
         inEvidenza={inEvidenza}
         onAvvio={() => eventoVetrina(voce.slug, 'avvio')}
         onCompleto={() => eventoVetrina(voce.slug, 'completamento')}
@@ -218,6 +231,12 @@ export default function Ascolta() {
   }
 
   const slugInvito = traccia?.slug || evidenza?.slug || elenco[0]?.slug || ''
+  // Con o senza slug la pagina ha lo stesso impianto: intestazione, una meditazione, Sorprendimi, invito.
+  // Mentre arriva la meditazione scelta da «Sorprendimi» resta quella di prima, così il player non si chiude.
+  const voceMostrata = slug ? (traccia || audioEvidenza) : audioEvidenza
+  const mostraSorprendi = slug
+    ? elenco.some(voce => voce.slug && voce.slug !== slug)
+    : elenco.length > 1
 
   return (
     <main className="ascolta">
@@ -241,7 +260,7 @@ export default function Ascolta() {
         </StatoVuoto>
       )}
 
-      {stato === 'pronta' && !slug && (
+      {stato === 'pronta' && (!slug || voceMostrata) && (
         <>
           <header className="ascolta-testa">
             <h1>Prova a darti ascolto</h1>
@@ -249,31 +268,23 @@ export default function Ascolta() {
               Dedica del tempo alla meditazione tutte le volte che senti il bisogno di tornare in contatto con te stessə.
             </p>
           </header>
-          {audioEvidenza?.audio_url && player(audioEvidenza, true)}
-          {elenco.length > 1 && (
-            <button type="button" className="btn btn-tonal ascolta-sorprendi" onClick={sorprendi}>
+          {voceMostrata?.audio_url && player(voceMostrata, voceMostrata.slug === evidenza?.slug)}
+          {slug && traccia && !traccia.audio_url && (
+            <>
+              <h2>{traccia.titolo}</h2>
+              <Scheda traccia={traccia} onCondiviso={soloCopia => condividi(traccia, soloCopia)} avviso={avviso} />
+            </>
+          )}
+          {mostraSorprendi && (
+            <button type="button" className="btn btn-tonal ascolta-sorprendi" onClick={() => sorprendi()}>
               <IconaCaso />
               Sorprendimi
             </button>
           )}
-          {elenco.length === 0 && (
+          {!slug && elenco.length === 0 && (
             <StatoVuoto titolo="Non ci sono ancora meditazioni pubblicate" />
           )}
           <Invito impostazioni={impostazioni} slug={slugInvito} />
-        </>
-      )}
-
-      {stato === 'pronta' && slug && traccia && (
-        <>
-          <p className="ascolta-torna"><Link to="/ascolta">Tutte le meditazioni</Link></p>
-          {traccia.audio_url ? player(traccia) : <h1>{traccia.titolo}</h1>}
-          <Scheda traccia={traccia} onCondiviso={soloCopia => condividi(traccia, soloCopia)} avviso={avviso} />
-          <div className="ascolta-azioni">
-            {elenco.length > 1 && (
-              <button type="button" className="btn btn-tonal" onClick={sorprendi}>Ascolta un’altra</button>
-            )}
-          </div>
-          <Invito impostazioni={impostazioni} slug={traccia.slug} />
         </>
       )}
     </main>
