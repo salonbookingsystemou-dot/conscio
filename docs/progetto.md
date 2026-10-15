@@ -54,6 +54,11 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 15/10/2026 · Le pratiche della settimana si riordinano trascinandole (da Claude Code)
+Nell’editor della settimana (Programma → Settimana N) le pratiche formali e informali si riordinano con il drag & drop: maniglia a sei puntini a sinistra di ogni riga (compare con almeno due pratiche), anteprima dal vivo mentre si trascina, salvataggio al rilascio. Da tastiera: focus sulla maniglia e frecce su/giù.
+- Il nuovo ordine rinumera `esercizi.ordine` 1..n per tutta la settimana (le pratiche dell’altra scheda restano al loro posto) e aggiorna solo le righe cambiate. Disattivato mentre una pratica è in modifica.
+- Nessuna modifica al database, alle RPC o alle rotte.
+
 ### 15/10/2026 · L’app si chiama Conscio, con il nuovo marchio (da Claude Code)
 Applicato il kit del logo (`docs/brief_logo.md`): segno a spirale + scritta «conscio» in Literata 600, un solo colore. Deciso con Dimitri: tutto diventa «Conscio» (nome dell’app installata, titolo della scheda, header, prima schermata); «percorso MBSR» resta nei testi dove descrive il percorso.
 - **File e manifest:** favicon ICO e SVG, icone PWA `any` e `maskable` in `public/icons/`, icona iOS; manifest `name`/`short_name` «Conscio», `theme_color` `#3F5443` (prima `#4B6B57`); la Tonalità colora la barra del browser con l’accento. Eliminate le icone vecchie e `scripts/crea-icone-pwa.mjs`; `public/icon-192.png` resta, con la nuova icona, perché la richiamano le email già inviate.

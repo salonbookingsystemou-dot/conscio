@@ -2920,3 +2920,44 @@
 .campane-mancanti p {
   margin: 0;
 }
+
+/* Riordino pratiche (drag & drop) */
+.editor-riga[draggable="true"] {
+  cursor: grab;
+}
+
+.editor-riga.is-trascinata {
+  opacity: 0.45;
+}
+
+.editor-maniglia {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin: 0 calc(var(--space-4) * -1) 0 calc(var(--space-8) * -1);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  cursor: grab;
+}
+
+.editor-maniglia svg {
+  width: 18px;
+  height: 18px;
+}
+
+.editor-maniglia:hover,
+.editor-maniglia:focus-visible {
+  color: var(--ink);
+  background: var(--accent-soft);
+}
+
+.editor-maniglia:disabled {
+  cursor: default;
+  opacity: 0.5;
+}

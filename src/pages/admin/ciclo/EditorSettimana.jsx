@@ -38,6 +38,19 @@ function IconaMatita() {
   )
 }
 
+function IconaManiglia() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      {[6, 12, 18].map(y => (
+        <g key={y} fill="currentColor">
+          <circle cx="9" cy={y} r="1.4" />
+          <circle cx="15" cy={y} r="1.4" />
+        </g>
+      ))}
+    </svg>
+  )
+}
+
 function IconaCestino() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -62,9 +75,19 @@ export default function EditorSettimana() {
   const [invio, setInvio] = useState(false)
   const [errore, setErrore] = useState(null)
   const [okMsg, setOkMsg] = useState(null)
+  // Riordino via drag & drop: id trascinato + sequenza provvisoria mostrata durante il trascinamento.
+  const [trascinaId, setTrascinaId] = useState(null)
+  const [anteprima, setAnteprima] = useState(null)
 
   const formali = useMemo(() => esercizi.filter(eFormale), [esercizi])
   const informali = useMemo(() => esercizi.filter(eInformale), [esercizi])
+
+  function inSequenza(lista) {
+    if (!anteprima) return lista
+    const perId = new Map(lista.map(ex => [ex.id, ex]))
+    if (!anteprima.every(id => perId.has(id))) return lista
+    return anteprima.map(id => perId.get(id))
+  }
   const perNumero = useMemo(() => {
     const mappa = {}
     for (const l of lezioni) mappa[l.numero_settimana] = l
@@ -292,6 +315,106 @@ export default function EditorSettimana() {
     await carica()
   }
 
+  // Salva la nuova sequenza di una lista (formali o informali). Le altre pratiche restano
+  // nelle loro posizioni; tutta la settimana viene rinumerata 1..n e si aggiornano solo le righe cambiate.
+  async function salvaSequenza(lista, nuoviId) {
+    const prima = lista.map(ex => ex.id)
+    if (nuoviId.join() === prima.join()) return
+    const inLista = new Set(prima)
+    const perId = new Map(esercizi.map(ex => [ex.id, ex]))
+    const coda = [...nuoviId]
+    const completa = esercizi.map(ex => (inLista.has(ex.id) ? perId.get(coda.shift()) : ex))
+    const rinumerata = completa.map((ex, i) => ({ ...ex, ordine: i + 1 }))
+    const cambiate = rinumerata.filter(ex => perId.get(ex.id).ordine !== ex.ordine)
+
+    setEsercizi(rinumerata)
+    setErrore(null)
+    setOkMsg(null)
+    setInvio(true)
+    const risultati = await Promise.all(
+      cambiate.map(ex => supabase.from('esercizi').update({ ordine: ex.ordine }).eq('id', ex.id))
+    )
+    setInvio(false)
+    if (risultati.some(r => r.error)) {
+      setErrore('Non è stato possibile salvare il nuovo ordine.')
+      await carica()
+      return
+    }
+    setOkMsg('Ordine salvato.')
+  }
+
+  const propsListaTrascinamento = {
+    onDragOver: e => {
+      if (trascinaId) e.preventDefault()
+    },
+    onDrop: e => e.preventDefault()
+  }
+
+  function propsTrascinamento(lista, ex, attivo) {
+    if (!attivo) return {}
+    return {
+      draggable: true,
+      onDragStart: e => {
+        e.dataTransfer.effectAllowed = 'move'
+        e.dataTransfer.setData('text/plain', ex.id)
+        setTrascinaId(ex.id)
+        setAnteprima(lista.map(x => x.id))
+      },
+      onDragOver: e => {
+        if (!trascinaId || !anteprima?.includes(trascinaId)) return
+        e.preventDefault()
+        e.dataTransfer.dropEffect = 'move'
+        if (ex.id === trascinaId) return
+        const da = anteprima.indexOf(trascinaId)
+        const a = anteprima.indexOf(ex.id)
+        if (da < 0 || a < 0) return
+        const nuova = [...anteprima]
+        nuova.splice(da, 1)
+        nuova.splice(a, 0, trascinaId)
+        setAnteprima(nuova)
+      },
+      onDrop: e => e.preventDefault(),
+      onDragEnd: e => {
+        const finale = anteprima
+        setTrascinaId(null)
+        setAnteprima(null)
+        if (e.dataTransfer.dropEffect !== 'none' && finale) salvaSequenza(lista, finale)
+      }
+    }
+  }
+
+  // Alternativa da tastiera alla maniglia: frecce su/giù spostano di una posizione.
+  function spostaConTastiera(e, lista, ex) {
+    const passo = e.key === 'ArrowUp' ? -1 : e.key === 'ArrowDown' ? 1 : 0
+    if (!passo) return
+    e.preventDefault()
+    const ids = lista.map(x => x.id)
+    const da = ids.indexOf(ex.id)
+    const a = da + passo
+    if (a < 0 || a >= ids.length) return
+    ids.splice(da, 1)
+    ids.splice(a, 0, ex.id)
+    salvaSequenza(lista, ids).then(() => {
+      document.getElementById(`maniglia-${ex.id}`)?.focus()
+    })
+  }
+
+  function maniglia(lista, ex) {
+    return (
+      <button
+        type="button"
+        id={`maniglia-${ex.id}`}
+        className="editor-maniglia"
+        aria-label={`Sposta ${ex.descrizione} (frecce su e giù)`}
+        title="Trascina per riordinare"
+        disabled={invio}
+        onKeyDown={e => spostaConTastiera(e, lista, ex)}
+      >
+        <IconaManiglia />
+      </button>
+    )
+  }
+
   const etichetta = etichettaSettimana(n)
   const indietro = `/admin/cicli/${cicloId}/programma`
 
@@ -390,17 +513,21 @@ export default function EditorSettimana() {
                   <p className="card-vuota">Salva prima il tema per aggiungere le pratiche formali.</p>
                 ) : (
                   <>
-                    <ul className="editor-lista">
+                    <ul className="editor-lista" {...propsListaTrascinamento}>
                       {formali.length === 0 && (
                         <li className="editor-lista-vuota">Nessuna pratica formale. Aggiungila sotto.</li>
                       )}
-                      {formali.map(ex => {
+                      {inSequenza(formali).map(ex => {
                         const inModifica = modifica?.id === ex.id
                         const traccia = tracce.find(t => t.id === ex.traccia_id)
                         const titoloTraccia = traccia?.titolo
                         const minuti = traccia?.durata_minuti || ex.durata_minuti
                         return (
-                          <li key={ex.id} className="editor-riga">
+                          <li
+                            key={ex.id}
+                            className={`editor-riga${trascinaId === ex.id ? ' is-trascinata' : ''}`}
+                            {...propsTrascinamento(formali, ex, !inModifica && !modifica && !invio && formali.length > 1)}
+                          >
                             {inModifica ? (
                               <div className="editor-riga-form">
                                 <div className="field">
@@ -432,6 +559,7 @@ export default function EditorSettimana() {
                               </div>
                             ) : (
                               <>
+                                {formali.length > 1 && maniglia(formali, ex)}
                                 <div className="editor-riga-testi">
                                   <strong>{ex.descrizione}</strong>
                                   <p>
@@ -509,14 +637,18 @@ export default function EditorSettimana() {
                   <p className="card-vuota">Salva prima il tema per aggiungere le pratiche informali.</p>
                 ) : (
                   <>
-                    <ul className="editor-lista">
+                    <ul className="editor-lista" {...propsListaTrascinamento}>
                       {informali.length === 0 && (
                         <li className="editor-lista-vuota">Nessuna pratica informale. Aggiungila sotto.</li>
                       )}
-                      {informali.map(ex => {
+                      {inSequenza(informali).map(ex => {
                         const inModifica = modifica?.id === ex.id
                         return (
-                          <li key={ex.id} className="editor-riga">
+                          <li
+                            key={ex.id}
+                            className={`editor-riga${trascinaId === ex.id ? ' is-trascinata' : ''}`}
+                            {...propsTrascinamento(informali, ex, !inModifica && !modifica && !invio && informali.length > 1)}
+                          >
                             {inModifica ? (
                               <div className="editor-riga-form">
                                 <div className="field">
@@ -538,6 +670,7 @@ export default function EditorSettimana() {
                               </div>
                             ) : (
                               <>
+                                {informali.length > 1 && maniglia(informali, ex)}
                                 <p className="editor-riga-nome">{ex.descrizione}</p>
                                 <div className="admin-riga-azioni">
                                   <button
