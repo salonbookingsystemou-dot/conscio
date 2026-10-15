@@ -224,7 +224,7 @@ export default function Ascolta() {
       {stato === 'attesa' && <StatoAttesa etichetta="Caricamento delle meditazioni…" />}
       {stato === 'errore' && (
         <>
-          <p className="avviso-errore" role="alert">Non è stato possibile aprire Ascolta.</p>
+          <p className="avviso-errore" role="alert">Non è stato possibile aprire Ascoltati.</p>
           <button type="button" className="btn" onClick={() => setTentativo(n => n + 1)}>
             Riprova
           </button>
@@ -244,7 +244,7 @@ export default function Ascolta() {
       {stato === 'pronta' && !slug && (
         <>
           <header className="ascolta-testa">
-            <h1>Ascolta</h1>
+            <h1>Ascoltati</h1>
             <p>
               Meditazioni guidate da ascoltare con calma. Se un passaggio non fa per te, puoi fermarti o sceglierne un’altra.
             </p>

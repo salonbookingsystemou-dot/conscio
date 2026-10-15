@@ -58,7 +58,7 @@ export default function Nav() {
   }
 
   const voceAscolta = vetrinaAperta
-    ? <NavLink to="/ascolta" onClick={chiudi}>Ascolta</NavLink>
+    ? <NavLink to="/ascolta" onClick={chiudi}>Ascoltati</NavLink>
     : null
 
   const barraBassa = registrato && percorsoPronto

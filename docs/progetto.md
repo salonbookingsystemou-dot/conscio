@@ -54,6 +54,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 15/10/2026 · La sezione pubblica si chiama «Ascoltati» (da Claude Code)
+Il nome visibile della sezione delle meditazioni passa da «Ascolta» ad «Ascoltati»: titolo della pagina, voce del menu, pagina Sito (card, interruttore, chip dell’anteprima, «Apri Ascoltati»), scheda della traccia, informativa (`Documento.jsx`, solo il nome), titolo delle pagine per i link condivisi (`scripts/pagine-condivisione.mjs`, `public/ascolta/index.html`). Restano invariati gli indirizzi `/ascolta` e `/ascolta/<slug>`, già nei link condivisi e nelle anteprime, e i nomi nel codice (`Ascolta.jsx`, `urlAscolta`, classi `.ascolta-`). Il verbo resta dove è un’azione («Ascolta il campione», «Ascolta un’altra»). Nessuna modifica al database.
+
 ### 15/10/2026 · La descrizione torna nella scheda Informazioni del player (da Claude Code)
 Annullata la modifica del 14/10 «Descrizione della traccia nel player di Ascolta»: il player a schermo intero non mostra più la descrizione (né «Leggi tutto»), che torna in cima alla scheda dal basso. Il pulsante e la scheda si chiamano di nuovo «Informazioni». Ripristinati `PlayerVetrina.jsx`, `Ascolta.jsx` e le regole CSS com’erano prima; resta solo l’icona di «Sorprendimi», usata anche nella pagina. Nessuna modifica al database.
 

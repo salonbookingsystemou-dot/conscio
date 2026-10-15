@@ -7,10 +7,10 @@ import { AreaPrincipale, PannelloSupporto } from '../../components/admin/Pannell
 
 const ANTEPRIME = [
   { id: 'splash', etichetta: 'Prima schermata' },
-  { id: 'ascolta', etichetta: 'Ascolta' }
+  { id: 'ascolta', etichetta: 'Ascoltati' }
 ]
 
-// La pagina Ascolta vera, nello stesso indirizzo dell'app: l'anteprima è com'è pubblicata.
+// La pagina Ascoltati vera, nello stesso indirizzo dell'app: l'anteprima è com'è pubblicata.
 const URL_ASCOLTA = `${window.location.href.split('#')[0]}#/ascolta`
 
 export default function Sito() {
@@ -26,10 +26,10 @@ export default function Sito() {
   return (
     <PaginaAdmin
       titolo="Sito"
-      meta="La prima schermata e la pagina pubblica Ascolta."
+      meta="La prima schermata e la pagina pubblica Ascoltati."
       azione={(
         <Link className="btn btn-ghost" to="/ascolta" target="_blank" rel="noopener noreferrer">
-          Apri Ascolta
+          Apri Ascoltati
         </Link>
       )}
       layout="supporto"
@@ -60,7 +60,7 @@ export default function Sito() {
               <iframe
                 key={versioneAscolta}
                 src={URL_ASCOLTA}
-                title="Anteprima della pagina Ascolta"
+                title="Anteprima della pagina Ascoltati"
                 loading="lazy"
               />
             </div>

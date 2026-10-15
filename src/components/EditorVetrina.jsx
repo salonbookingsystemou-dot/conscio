@@ -32,7 +32,7 @@ function raggruppaSettimane(settimane) {
   return righe
 }
 
-/** Vetrina Ascolta: interruttore e testi dell'invito, calendario della meditazione della settimana, ascolti recenti. */
+/** Vetrina Ascoltati: interruttore e testi dell'invito, calendario della meditazione della settimana, ascolti recenti. */
 export default function EditorVetrina({ onSalvata }) {
   const [attiva, setAttiva] = useState(false)
   const [titolo, setTitolo] = useState('')
@@ -79,7 +79,7 @@ export default function EditorVetrina({ onSalvata }) {
         cta_testo: testo,
         cta_testo_senza_ciclo: senzaCiclo
       })
-      mostra({ testo: attiva ? 'Vetrina salvata: la pagina Ascolta è pubblica' : 'Vetrina salvata: la pagina Ascolta è spenta' })
+      mostra({ testo: attiva ? 'Vetrina salvata: la pagina Ascoltati è pubblica' : 'Vetrina salvata: la pagina Ascoltati è spenta' })
       onSalvata?.()
     } catch {
       setErrore('Non è stato possibile salvare la vetrina.')
@@ -93,14 +93,14 @@ export default function EditorVetrina({ onSalvata }) {
   return (
     <>
       <section className="card">
-        <h3>Vetrina Ascolta</h3>
+        <h3>Vetrina Ascoltati</h3>
         <p className="hint">
           La pagina pubblica delle meditazioni. Mostra le tracce con la spunta «In vetrina» in Tracce, non le pratiche dei cicli.
         </p>
         <form onSubmit={salva}>
           <label className="vetrina-spunta">
             <input type="checkbox" checked={attiva} onChange={e => setAttiva(e.target.checked)} />
-            <span>Pagina Ascolta pubblica</span>
+            <span>Pagina Ascoltati pubblica</span>
           </label>
           <div className="field">
             <label htmlFor="vetrina-cta-titolo">Titolo dell’invito al percorso</label>

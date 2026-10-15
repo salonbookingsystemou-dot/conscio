@@ -97,7 +97,7 @@ async function principale() {
 
   await mkdir('dist/ascolta', { recursive: true })
   await writeFile('dist/ascolta/index.html', pagina({
-    titolo: 'Ascolta',
+    titolo: 'Ascoltati',
     descrizione: DESCRIZIONE_SEZIONE,
     immagineUrl: immagine(tracce[0]),
     url: `${sito}/ascolta/`,

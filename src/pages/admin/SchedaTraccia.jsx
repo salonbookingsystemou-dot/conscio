@@ -220,7 +220,7 @@ export default function SchedaTraccia({
               onChange={e => setDescrizione(e.target.value)}
               placeholder="Facoltativo nella card. Obbligatorio per la vetrina."
             />
-            <p className="hint">Nella card della pratica e, se la pubblichi, nella pagina Ascolta.</p>
+            <p className="hint">Nella card della pratica e, se la pubblichi, nella pagina Ascoltati.</p>
           </div>
           <button type="submit" className="btn" disabled={Boolean(lavoro)}>
             {lavoro === 'contenuto' ? 'Salvataggio…' : 'Salva titolo e testo'}
