@@ -7,10 +7,10 @@ import { AreaPrincipale, PannelloSupporto } from '../../components/admin/Pannell
 
 const ANTEPRIME = [
   { id: 'splash', etichetta: 'Prima schermata' },
-  { id: 'ascolta', etichetta: 'Prova a darti ascolto' }
+  { id: 'ascolta', etichetta: 'E se ti fermassi un momento?' }
 ]
 
-// La pagina Prova a darti ascolto vera, nello stesso indirizzo dell'app: l'anteprima è com'è pubblicata.
+// La pagina «E se ti fermassi un momento?» vera, nello stesso indirizzo dell'app: l'anteprima è com'è pubblicata.
 const URL_ASCOLTA = `${window.location.href.split('#')[0]}#/ascolta`
 
 export default function Sito() {
@@ -26,10 +26,10 @@ export default function Sito() {
   return (
     <PaginaAdmin
       titolo="Sito"
-      meta="La prima schermata e la pagina pubblica Prova a darti ascolto."
+      meta="La prima schermata e la pagina pubblica «E se ti fermassi un momento?»."
       azione={(
         <Link className="btn btn-ghost" to="/ascolta" target="_blank" rel="noopener noreferrer">
-          Apri Prova a darti ascolto
+          Apri «E se ti fermassi un momento?»
         </Link>
       )}
       layout="supporto"
@@ -60,7 +60,7 @@ export default function Sito() {
               <iframe
                 key={versioneAscolta}
                 src={URL_ASCOLTA}
-                title="Anteprima della pagina Prova a darti ascolto"
+                title="Anteprima della pagina «E se ti fermassi un momento?»"
                 loading="lazy"
               />
             </div>

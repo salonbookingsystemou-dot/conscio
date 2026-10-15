@@ -59,7 +59,7 @@ export default function Nav() {
   }
 
   const voceAscolta = vetrinaAperta
-    ? <NavLink to="/ascolta" onClick={chiudi}>Prova a darti ascolto</NavLink>
+    ? <NavLink to="/ascolta" onClick={chiudi}>E se ti fermassi un momento?</NavLink>
     : null
 
   const barraBassa = registrato && percorsoPronto
@@ -122,12 +122,12 @@ export default function Nav() {
     <header className={`topbar${aperto ? ' is-open' : ''}${paginaAscolta ? ' is-solo-logo' : ''}`}>
       <div className="topbar-riga">
         <Link to="/" className="brand" aria-label="Conscio, pagina iniziale" onClick={chiudi}>
-          {/* In Prova a darti ascolto solo il segno; altrove segno e scritta. */}
+          {/* In «E se ti fermassi un momento?» solo il segno; altrove segno e scritta. */}
           {paginaAscolta
             ? <Marchio variante="segno" altezza={32} decorativo className="brand-segno" />
             : <Marchio variante="orizzontale" altezza={28} decorativo className="brand-marchio" />}
         </Link>
-        {/* In Prova a darti ascolto l'unica azione è l'invito al percorso; chi è già iscritto non lo vede.
+        {/* In «E se ti fermassi un momento?» l'unica azione è l'invito al percorso; chi è già iscritto non lo vede.
             Si aspetta di sapere se c'è un codice, così il link non compare e poi sparisce. */}
         {paginaAscolta && !caricamento && !registrato && (
           <Link to="/iscrizione" className="topbar-percorso">Inizia il percorso</Link>

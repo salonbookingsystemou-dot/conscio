@@ -82,7 +82,7 @@ function Informativa() {
           scriverti quando la correzione è online.
         </li>
         <li>
-          <strong>Sezione pubblica Prova a darti ascolto</strong>, quando è accesa: art. 6, par. 1,
+          <strong>Sezione pubblica «E se ti fermassi un momento?»</strong>, quando è accesa: art. 6, par. 1,
           lett. f) GDPR — interesse legittimo a contare, in forma aggregata e senza
           identificativi, gli avvii, i completamenti, le condivisioni e i clic verso
           il percorso. Non c’è account e non si usa il codice. L’indirizzo IP serve
@@ -130,7 +130,7 @@ function Informativa() {
           non il codice e non l’email.
         </li>
         <li>
-          nella sezione pubblica Prova a darti ascolto, se è accesa: nessun dato personale e nessun
+          nella sezione pubblica «E se ti fermassi un momento?», se è accesa: nessun dato personale e nessun
           cookie. Per ogni traccia e ogni giorno contiamo solo gli avvii, i
           completamenti, i clic verso il percorso e le condivisioni.
         </li>
@@ -187,7 +187,7 @@ function Informativa() {
         nei limiti di legge. Le segnalazioni di problemi restano nella casella email
         e nella sessione di analisi solo il tempo necessario a risolverli. Il testo
         collegato al tuo account resta finché non azzeri i dati o ne chiedi la
-        cancellazione. I conteggi della sezione Prova a darti ascolto restano come statistiche
+        cancellazione. I conteggi della sezione «E se ti fermassi un momento?» restano come statistiche
         del sito: non sono legati a una persona.
       </p>
 

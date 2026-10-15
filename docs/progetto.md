@@ -54,6 +54,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 15/10/2026 · La sezione pubblica si chiama «E se ti fermassi un momento?» (da Claude Code)
+Il nome visibile passa da «Prova a darti ascolto» a «E se ti fermassi un momento?», negli stessi punti dei cambi precedenti. Dove il nome sta dentro una frase (pagina Sito, vetrina, scheda della traccia, informativa, messaggio d’errore) è tra «», per via del punto interrogativo. Indirizzi `/ascolta` e nomi nel codice invariati. Nessuna modifica al database.
+
 ### 15/10/2026 · «Sorprendimi» nel player a schermo intero resta a schermo intero (da Claude Code)
 Prima, premendo «Sorprendimi» dentro il player a schermo intero si tornava alla pagina con il caricamento. Ora la meditazione in ascolto si ferma, il player resta aperto e la nuova parte da sola appena arriva. Il «Sorprendimi» della pagina, fuori dal player, non cambia. In `App.jsx` `/ascolta` e `/ascolta/<slug>` sono una sola route (`/ascolta/:slug?`) con un solo confine degli errori, così la pagina non si rimonta passando da una meditazione all’altra. Nessuna modifica al database.
 
