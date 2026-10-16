@@ -54,6 +54,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 16/10/2026 · Scaricare le tracce anche da Tracce (da Claude Code)
+La riga «Scarica per ascoltare senza rete» compare ora anche nell’area facilitatore, in Tracce: nella sezione Ascolto della scheda della traccia e nella finestra «Ascolta» dell’elenco. Serve per avere le tracce sul proprio telefono quando si conduce un incontro con rete scarsa. L’anteprima continua a non registrare ascolti. Le copie scaricate dal facilitatore non si tolgono da sole: dopo «Sostituisci file» la copia del file vecchio resta finché non si preme «Togli». Provata la card in anteprima con una pagina di prova temporanea; non provato dentro Tracce, perché serve l’accesso del facilitatore. Nessuna modifica al database.
+
 ### 16/10/2026 · Tracce scaricate per ascoltare con rete scarsa (da Claude Code)
 Con connessione scarsa una traccia poteva non partire o fermarsi: la copia per l’offline si scaricava solo premendo play, cioè proprio quando la rete serviva all’ascolto.
 - **Nella card della traccia (Settimana):** «Scarica per ascoltare senza rete»; durante lo scaricamento la percentuale e «Annulla», poi «Scaricata sul telefono» con «Togli». Lo stato si legge dalla cache, quindi resta dopo il ricaricamento. Vetrina e anteprime del facilitatore restano come prima.

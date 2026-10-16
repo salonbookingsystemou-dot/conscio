@@ -214,6 +214,7 @@ export default function SchedaTraccia({
             etichettaDurata={durataBreve(traccia.durata_minuti) || 'Audio'}
             inizio={inizio}
             anteprima
+            scaricabile
           />
         ) : (
           <p className="hint">Questa traccia non ha un file.</p>

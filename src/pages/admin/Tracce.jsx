@@ -450,6 +450,7 @@ export default function Tracce() {
             descrizione={ascolta.descrizione}
             etichettaDurata={durataBreve(ascolta.durata_minuti) || 'Audio'}
             anteprima
+            scaricabile
           />
           <div className="dialogo-azioni">
             <button type="button" className="btn btn-ghost" onClick={() => setAscolta(null)}>Chiudi</button>

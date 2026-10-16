@@ -688,7 +688,7 @@ export default function CardTracciaAudio({
           {messaggioErroreRiproduzione()}
         </p>
       )}
-      {scaricabile && !anteprima && modalita !== 'vetrina' && (
+      {scaricabile && modalita !== 'vetrina' && (
         <ScaricaPerOffline src={srcAudio} titolo={titolo} />
       )}
     </article>
