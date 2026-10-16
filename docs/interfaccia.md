@@ -55,7 +55,7 @@ Le tavole di riferimento sono in `docs/mockup/ascolta-*.png`. La vetrina usa il 
 |---|---|---|
 | Onboarding | `/onboarding` | Benvenuto, `AvvisoDatiPseudonimi`, atteggiamenti della mindfulness (card), `CampoNota` |
 | Questionari | `/questionari` | flusso a passi `scelta → avviso → domanda → esito`; `ScalaLikert`, `Disclaimer`, esito con `IndicatoreOrientamento` (non clinico) |
-| Settimana | `/programma` | intestazione settimana, `CalendarioPratica`, «Da fare ogni giorno» con `CardTracciaAudio` (formali), `GuidaMeditazione`, «Pratiche informali» (spunta), «Annotazioni del giorno» con `TonoEsperienza` + `CampoNota`, `VoceLog`, `CardCheckin`, invito all'incontro remoto |
+| Settimana | `/programma` | intestazione settimana, `CalendarioPratica`, «Da fare ogni giorno» con `CardTracciaAudio` (formali) scaricabili per l’ascolto senza rete, `GuidaMeditazione`, «Pratiche informali» (spunta), «Annotazioni del giorno» con `TonoEsperienza` + `CampoNota`, `VoceLog`, `CardCheckin`, invito all'incontro remoto |
 | Storico | `/pratica` | `StoricoGiornate` (contatori + una riga per giornata: barra minuti colorata dal tono, `TonoIcon`, nota) |
 | Check-in | `/checkin` | consenso separato → cursori (stress, sonno, presenza) → ostacoli → momenti difficili → grazie / già registrato |
 | Avvisi | `/comunicazioni` | elenco comunicazioni del partecipante, `StatoVuoto` |
@@ -90,7 +90,7 @@ Tutto sotto `/admin`; le vecchie rotte (`/dashboard`, `/percorso…`, `/lezioni`
 | Accesso e identità | `ChiediCodice`, `BoxCodicePrivacy`, `IdentitaCodice` |
 | Avvisi, consenso, privacy | `Disclaimer` (`.avvertenza`, chiudibile), `AvvisoDatiPseudonimi`, `.disclaimer` (classe) |
 | Modali e inviti | `DialogConferma` (`.dialogo`), `InvitoHome` (installazione PWA), `InvitoCheckin` (modale a ogni apertura finché manca il check-in) |
-| Audio e pratica | `CardTracciaAudio` (player senza campana propria: la campana è nel file; eyebrow, stato «ascoltata», barre cliccabili per saltare a un punto; con `modalita="vetrina"` non segna l’ascolto e non prepara l’offline; con `vista` un altro componente disegna i controlli sulla stessa logica), `PlayerVetrina` (card, player a schermo intero, scheda Informazioni dal basso con descrizione, crediti e licenza; chiudendo lo schermo intero l’ascolto si ferma), `GuidaMeditazione` (carosello di posture: `assets/guida/*.png`), `LibreriaTracce`, `CalendarioPratica`, `VoceLog` |
+| Audio e pratica | `CardTracciaAudio` (player senza campana propria: la campana è nel file; eyebrow, stato «ascoltata», barre cliccabili per saltare a un punto; con `scaricabile` (solo Settimana) la riga «Scarica per ascoltare senza rete» / percentuale con «Annulla» / «Scaricata sul telefono» con «Togli»; con `modalita="vetrina"` non segna l’ascolto e non prepara l’offline; con `vista` un altro componente disegna i controlli sulla stessa logica), `PlayerVetrina` (card, player a schermo intero, scheda Informazioni dal basso con descrizione, crediti e licenza; chiudendo lo schermo intero l’ascolto si ferma), `GuidaMeditazione` (carosello di posture: `assets/guida/*.png`), `LibreriaTracce`, `CalendarioPratica`, `VoceLog` |
 | Tono della giornata | `TonoEsperienza` (scelta), `TonoIcon` (faccina SVG), `TonoMini` (etichetta) |
 | Input | `CampoNota` (testo + dettatura), `ScalaLikert`, `SegnalaProblema` |
 | Dati e grafici | `SchedaPratica`, `StoricoGiornate`, `IndicatoreOrientamento`, `OreAscolto` |
