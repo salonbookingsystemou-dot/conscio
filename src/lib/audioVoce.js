@@ -9,8 +9,11 @@ const ATTACCO_S = 0.07
 // Una voce da meditazione chiude piano: la coda dell'ultima vocale scende ben
 // sotto il livello del corpo. Soglia bassa e dissolvenza lunga per non tagliarla.
 const SOGLIA_FINE = 0.03
-const CODA_S = 0.18
-const GUARDIA_S = 0.02
+// Fuori dal parlato il segnale va a zero: sotto c’è il tappeto di fondo della
+// traccia (lib/tracciaFinale.js), quindi lo stacco non si sente come uno
+// spegnimento. Coda e attacco minimo lunghi rendono la giuntura più morbida.
+const CODA_S = 0.3
+const GUARDIA_S = 0.04
 
 function passaAlto(samples, sampleRate) {
   const rc = 1 / (2 * Math.PI * 20)
