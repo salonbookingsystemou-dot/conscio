@@ -5105,6 +5105,59 @@ body:has(.splash) {
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
+/* Copia sul telefono per ascoltare senza rete (solo nel Programma). */
+.card-traccia-offline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4) var(--space-12);
+  margin-top: var(--space-12);
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--border-soft);
+}
+.card-traccia-offline .btn.is-piccolo {
+  padding-inline: var(--space-8);
+}
+.card-traccia-offline-scarica {
+  margin-left: calc(-1 * var(--space-8));
+}
+.card-traccia-offline-stato {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin: 0;
+  font-size: var(--fs-meta);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.card-traccia-offline-stato.is-pronta {
+  color: var(--moss);
+  font-weight: 600;
+}
+.card-traccia-offline-stato svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+.card-traccia-offline-barra {
+  position: relative;
+  width: 88px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--grid);
+  overflow: hidden;
+}
+.card-traccia-offline-barra > span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--moss);
+  transition: width 0.2s ease;
+}
+.card-traccia-offline-errore {
+  flex-basis: 100%;
+  margin: 0;
+}
 .card-traccia-percento {
   display: inline-block;
   padding: 6px 14px;

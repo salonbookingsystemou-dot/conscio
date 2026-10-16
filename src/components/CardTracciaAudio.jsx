@@ -2,7 +2,16 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { ascoltoCompletato, avanzaAscolto, memorizzaAscolto, recuperaAscoltoSeManca, registraAscoltoCompleto } from '../lib/ascolto.js'
 import { durataNotaMp3 } from '../lib/audioMp3.js'
 import { testoDaUrlAudio, urlAudioSenzaTesto } from '../lib/tracce.js'
-import { assicuraTracciaOffline } from '../lib/cacheTracce.js'
+import {
+  STATO_IN_CORSO,
+  STATO_PRONTA,
+  annullaScaricamento,
+  assicuraTracciaOffline,
+  scaricaTraccia,
+  togliTraccia,
+  tracciaRemota,
+  useStatoTraccia
+} from '../lib/cacheTracce.js'
 import {
   applicaPlaysInline,
   ascoltaPausaAltreTracce,
@@ -68,6 +77,92 @@ function IconaStop() {
   )
 }
 
+function IconaScarica() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function IconaSpunta() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="m5.5 12.5 4 4 9-9"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+// Copia della traccia sul telefono, per ascoltarla anche senza rete.
+function ScaricaPerOffline({ src, titolo }) {
+  const { stato, percentuale, errore } = useStatoTraccia(src)
+  if (!tracciaRemota(src)) return null
+  return (
+    <div className="card-traccia-offline">
+      {stato === STATO_PRONTA && (
+        <>
+          <p className="card-traccia-offline-stato is-pronta">
+            <IconaSpunta />
+            <span>Scaricata: la ascolti anche senza rete</span>
+          </p>
+          <button
+            type="button"
+            className="btn btn-text is-piccolo"
+            onClick={() => togliTraccia(src)}
+            aria-label={`Togli dal telefono la traccia ${titolo}`}
+          >
+            Togli
+          </button>
+        </>
+      )}
+      {stato === STATO_IN_CORSO && (
+        <>
+          <p className="card-traccia-offline-stato" role="status">
+            <span>Scaricamento {percentuale}%</span>
+            <span className="card-traccia-offline-barra" aria-hidden="true">
+              <span style={{ width: `${percentuale}%` }} />
+            </span>
+          </p>
+          <button
+            type="button"
+            className="btn btn-text is-piccolo"
+            onClick={() => annullaScaricamento(src)}
+          >
+            Annulla
+          </button>
+        </>
+      )}
+      {stato !== STATO_PRONTA && stato !== STATO_IN_CORSO && (
+        <button
+          type="button"
+          className="btn btn-text is-piccolo card-traccia-offline-scarica"
+          onClick={() => scaricaTraccia(src)}
+        >
+          <IconaScarica />
+          Scarica per ascoltare senza rete
+        </button>
+      )}
+      {errore && stato !== STATO_IN_CORSO && (
+        <p className="campo-errore card-traccia-offline-errore" role="alert">{errore}</p>
+      )}
+    </div>
+  )
+}
+
 export default function CardTracciaAudio({
   src,
   titolo = 'Body Scan',
@@ -85,7 +180,8 @@ export default function CardTracciaAudio({
   inizio = 0,
   modalita = 'percorso',
   onAvvio,
-  vista
+  vista,
+  scaricabile = false
 }) {
   const audioRef = useRef(null)
   const playedRef = useRef(0)
@@ -591,6 +687,9 @@ export default function CardTracciaAudio({
         <p className="campo-errore" role="alert">
           {messaggioErroreRiproduzione()}
         </p>
+      )}
+      {scaricabile && !anteprima && modalita !== 'vetrina' && (
+        <ScaricaPerOffline src={srcAudio} titolo={titolo} />
       )}
     </article>
   )

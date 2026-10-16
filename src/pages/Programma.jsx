@@ -280,6 +280,7 @@ function TaskFormale({
           descrizione={esercizio.traccia_descrizione || testoDaUrlAudio(esercizio.traccia_audio)}
           etichettaDurata={durataLabel || undefined}
           persistenzaKey={chiave}
+          scaricabile
           giaAscoltata={ascoltoNeiLog(esercizio, data)}
           onCompleto={suCompleto}
           onDurata={setDurataSec}
