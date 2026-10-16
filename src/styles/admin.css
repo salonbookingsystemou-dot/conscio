@@ -2045,6 +2045,18 @@
   max-width: 12rem;
 }
 
+.genera-badge {
+  align-self: center;
+}
+
+.genera-avviso {
+  margin: var(--space-20) 0;
+}
+
+.genera-avviso .disclaimer {
+  margin: 0 0 var(--space-8);
+}
+
 .genera-pausa-riga {
   display: flex;
   flex-wrap: wrap;

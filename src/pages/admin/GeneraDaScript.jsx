@@ -27,6 +27,15 @@ import {
 import { caricaAudioParagrafi, leggiScriptTraccia, salvaScriptTraccia } from '../../lib/scriptTraccia'
 import { AUDIO_MAX, creaTraccia, messaggioErroreTraccia, sostituisciFileTraccia } from '../../lib/tracce'
 
+// Gli ID delle richieste a ElevenLabs valgono 2 ore: oltre, l’aggancio non regge.
+// Con un margine, i paragrafi più vecchi di 110 minuti non si agganciano più.
+const AGGANCIO_VALIDO_MS = 110 * 60 * 1000
+
+function aggancioValido(paragrafo, adesso = Date.now()) {
+  const t = Date.parse(paragrafo.generatoIl || '')
+  return Number.isFinite(t) && adesso - t < AGGANCIO_VALIDO_MS
+}
+
 function nuovoId() {
   return crypto.randomUUID()
 }
@@ -40,7 +49,9 @@ function paragrafoVuoto(pausaDopo) {
     requestId: '',
     modello: '',
     voceId: '',
-    obsoleto: false
+    obsoleto: false,
+    agganciato: null,
+    generatoIl: null
   }
 }
 
@@ -95,6 +106,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
   const erroreNodo = useRef(null)
   const [avviso, setAvviso] = useState(null)
   const [aggancioPerso, setAggancioPerso] = useState(false)
+  const [aggancioScaduto, setAggancioScaduto] = useState(false)
   const [occupato, setOccupato] = useState(null)
   const [avanzamento, setAvanzamento] = useState(null)
   const [inAscolto, setInAscolto] = useState(null)
@@ -124,6 +136,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
   const pronti = paragrafi.filter(p => String(p.testo || '').trim() && compatibile(p, modelloId, voceId))
   const daFare = paragrafi.filter(p => vaRigenerato(p, modelloId, voceId, seed, velocitaEffettiva, stabilitaEffettiva))
   const puoGenerareTutto = Boolean(voceId) && (scriptDiverso || daFare.length > 0)
+  const senzaAggancio = paragrafi.some(p => p.audio && p.agganciato === false)
   const italiane = voci.filter(v => v.italiana)
   const altre = voci.filter(v => !v.italiana)
 
@@ -236,6 +249,8 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
           voceId: '',
           obsoleto: false,
           seed: null,
+          agganciato: null,
+          generatoIl: null,
           audioSalvato: false,
           audioFormato: null,
           audioMancante: false
@@ -306,19 +321,25 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
     if (!testo) throw new Error('Il paragrafo è vuoto.')
     if (!voceId) throw new Error('Scegli una voce.')
     const pezzi = spezzaTesto(testo, modello.max)
-    const precedenti = []
+    let vicini = []
     if (modello.aggancia) {
       for (let i = 0; i < indice; i += 1) {
         const prima = lista[i]
         if (compatibile(prima, modelloId, voceId) && prima.requestId && !prima.obsoleto) {
-          precedenti.push(prima.requestId)
+          vicini.push(prima)
         }
       }
+      vicini = vicini.slice(-3)
     }
+    // Gli ID scaduti non si mandano: ElevenLabs li rifiuterebbe e la richiesta
+    // ripartirebbe comunque senza aggancio.
+    const adesso = Date.now()
+    const validi = vicini.filter(p => aggancioValido(p, adesso))
+    if (validi.length < vicini.length) setAggancioScaduto(true)
     const audioPezzi = []
     let requestId = ''
     let agganciato = true
-    const catena = precedenti.slice(-3)
+    const catena = validi.map(p => p.requestId)
     const dopo = String(lista[indice + 1]?.testo || '').trim()
     for (let n = 0; n < pezzi.length; n += 1) {
       if (signal?.aborted) return null
@@ -351,7 +372,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
       ? audioPezzi[0]
       : unisciPcm(audioPezzi)
     if (!agganciato) setAggancioPerso(true)
-    return { audio, requestId }
+    return { audio, requestId, agganciato: modello.aggancia ? agganciato : null }
   }
 
   function applicaGenerato(lista, id, risultato) {
@@ -367,6 +388,8 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
           seed: semeDi(seed),
           velocita: velocitaEffettiva,
           stabilita: stabilitaEffettiva,
+          agganciato: risultato.agganciato,
+          generatoIl: new Date().toISOString(),
           obsoleto: false,
           audioSalvato: false,
           audioFormato: null,
@@ -386,6 +409,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
     setErrore(null)
     setAvviso(null)
     setAggancioPerso(false)
+    setAggancioScaduto(false)
     setOccupato(id)
     const controller = new AbortController()
     abortRef.current = controller
@@ -424,14 +448,20 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
     })
   }
 
-  async function generaTutto() {
+  // Con `daId` rigenera quel paragrafo e tutti i seguenti, anche se sono pronti
+  // («Rigenera da qui», «Rigenera tutto»); senza, solo quelli da rifare.
+  async function generaTutto(daId = null) {
     let lista = paragrafi
     if (dividiScript(script).join('\n\n') !== firmaParagrafi(paragrafi)) {
       lista = paragrafiDaScript(script, paragrafi)
       setParagrafi(lista)
       setScript(firmaParagrafi(lista))
     }
-    const daRigenerare = p => vaRigenerato(p, modelloId, voceId, seed, velocitaEffettiva, stabilitaEffettiva)
+    const da = daId == null ? -1 : Math.max(0, lista.findIndex(p => p.id === daId))
+    const daRigenerare = (p, i) => (
+      (da >= 0 && i >= da && Boolean(String(p.testo || '').trim()))
+      || vaRigenerato(p, modelloId, voceId, seed, velocitaEffettiva, stabilitaEffettiva)
+    )
     const primo = lista.findIndex(daRigenerare)
     if (primo < 0) {
       rilasciaFile()
@@ -439,7 +469,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
     }
     // Con l’aggancio ogni paragrafo rigenerato rende obsoleti quelli già pronti
     // che lo seguono: vanno rifatti nello stesso giro, non lasciati in sospeso.
-    const totale = lista.filter((p, i) => daRigenerare(p) || (
+    const totale = lista.filter((p, i) => daRigenerare(p, i) || (
       modello.aggancia && i > primo && p.audio && String(p.testo || '').trim()
     )).length
     fermaAscolto()
@@ -447,6 +477,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
     setErrore(null)
     setAvviso(null)
     setAggancioPerso(false)
+    setAggancioScaduto(false)
     setOccupato('tutti')
     const controller = new AbortController()
     abortRef.current = controller
@@ -455,7 +486,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
       for (let i = primo; i < lista.length; i += 1) {
         if (controller.signal.aborted) break
         const id = lista[i].id
-        if (!daRigenerare(lista[i])) continue
+        if (!daRigenerare(lista[i], i)) continue
         setAvanzamento({ fatto, totale })
         const risultato = await generaUno(lista, id, controller.signal)
         if (!risultato) break
@@ -726,7 +757,22 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
 
       {errore && <p ref={erroreNodo} className="avviso-errore" role="alert">{errore}</p>}
       {avviso && <p className="disclaimer" role="status">{avviso}</p>}
-      {aggancioPerso && (
+      {aggancioScaduto && (
+        <div className="genera-avviso" role="status">
+          <p className="disclaimer">
+            L’aggancio con i paragrafi già pronti è scaduto. Per una voce uniforme rigenera dall’inizio.
+          </p>
+          <button
+            type="button"
+            className="btn btn-ghost is-piccolo"
+            onClick={() => generaTutto(paragrafi[0]?.id)}
+            disabled={Boolean(occupato) || !voceId}
+          >
+            Rigenera tutto
+          </button>
+        </div>
+      )}
+      {aggancioPerso && !senzaAggancio && (
         <p className="disclaimer" role="status">
           ElevenLabs non ha accettato l’aggancio con i paragrafi vicini: in almeno un paragrafo il tono può cambiare. Rigeneralo per riprovare.
         </p>
@@ -982,6 +1028,19 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
                       >
                         Ascolta da qui
                       </button>
+                      {pronto && p.agganciato === false && (
+                        <>
+                          <span className="badge genera-badge">Senza aggancio</span>
+                          <button
+                            type="button"
+                            className="btn btn-text is-piccolo"
+                            onClick={() => generaTutto(p.id)}
+                            disabled={Boolean(occupato) || !voceId}
+                          >
+                            Rigenera da qui
+                          </button>
+                        </>
+                      )}
                       {paragrafi.length > 1 && (
                         <button
                           type="button"
@@ -1073,7 +1132,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
                 <button
                   type="button"
                   className="btn"
-                  onClick={generaTutto}
+                  onClick={() => generaTutto()}
                   disabled={!puoGenerareTutto || Boolean(occupato)}
                   title={puoGenerareTutto ? undefined : 'Nessuna modifica rispetto all’audio già generato.'}
                 >

@@ -43,6 +43,17 @@ export function pausaRicetta(valore) {
   return Math.min(300, Math.round(n))
 }
 
+// Data ISO (quando è stato generato il paragrafo), o null.
+export function dataRicetta(valore) {
+  if (!valore) return null
+  const t = Date.parse(String(valore))
+  return Number.isFinite(t) ? new Date(t).toISOString() : null
+}
+
+function agganciatoRicetta(valore) {
+  return typeof valore === 'boolean' ? valore : null
+}
+
 function formatoAudio(valore) {
   if (valore === 'gzip' || valore === 'pcm') return valore
   return null
@@ -69,6 +80,9 @@ export function normalizzaRicetta(valore) {
       seed: variazioneRicetta(p.variazione),
       velocita: p.velocita == null ? 1 : velocitaRicetta(p.velocita),
       stabilita: stabilitaRicetta(p.stabilita),
+      // Dalla versione 3. Nelle precedenti mancano: null, nessun badge.
+      agganciato: agganciatoRicetta(p.agganciato),
+      generatoIl: dataRicetta(p.generato_il),
       audioFormato: formato,
       audioSalvato: false,
       audioMancante: false
@@ -109,12 +123,15 @@ export function ricettaDaStato(stato, { omessi = new Set(), formatoNuovo = 'gzip
       variazione: variazioneRicetta(p.seed),
       velocita: p.velocita == null ? null : velocitaRicetta(p.velocita),
       stabilita: stabilitaRicetta(p.stabilita),
+      agganciato: agganciatoRicetta(p.agganciato),
+      generato_il: dataRicetta(p.generatoIl),
       obsoleto: Boolean(p.obsoleto),
       audio
     })
   }
   return {
-    versione: 2,
+    // 3: per paragrafo anche `agganciato` e `generato_il`. Si leggono anche la 1 e la 2.
+    versione: 3,
     modello: MODELLI.includes(stato?.modelloId) ? stato.modelloId : MODELLI[0],
     voce_id: String(stato?.voceId || ''),
     velocita: velocitaRicetta(stato?.velocita),
