@@ -161,7 +161,7 @@ async function generaParagrafo(chiave: string, corpo: Record<string, unknown>) {
     }, 400)
   }
   const velocita = velocitaLetta.valore
-  const stabilita = leggiStabilita(corpo.stabilita)
+  const stabilita = leggiStabilita(corpo.stabilita, modello === 'eleven_v4' ? 0.85 : 0.62)
   if (stabilita == null) {
     return json({
       errore: 'STABILITA_NON_VALIDA',
@@ -187,8 +187,10 @@ async function generaParagrafo(chiave: string, corpo: Record<string, unknown>) {
       // anche con l’aggancio. Più in alto resta vicina a un registro fisso.
       // Si sceglie dal cursore nell’editor (0,50–1, predefinita 0,85).
       ? { stability: stabilita, similarity_boost: 0.8 }
+      // v2 ha lo stesso cursore, con predefinita 0,62 (il valore fisso di prima).
+      // Flash non lo ha: arriva senza valore e resta a 0,62.
       : {
-        stability: 0.62,
+        stability: stabilita,
         similarity_boost: 0.8,
         style: 0,
         use_speaker_boost: true,
@@ -264,9 +266,10 @@ function leggiVelocita(grezzo: unknown): { ok: true, valore: number } | { ok: fa
   return { ok: true, valore: arrotondata }
 }
 
-// Solo v4 la usa. Senza valore vale 0,85; fuori da 0,50–1 è un errore (null).
-function leggiStabilita(grezzo: unknown): number | null {
-  if (grezzo == null || grezzo === '') return 0.85
+// V3 non la usa (resta a 1). Senza valore vale la predefinita del modello;
+// fuori da 0,50–1 è un errore (null).
+function leggiStabilita(grezzo: unknown, predefinita: number): number | null {
+  if (grezzo == null || grezzo === '') return predefinita
   const n = typeof grezzo === 'number' ? grezzo : (typeof grezzo === 'string' ? Number(grezzo) : NaN)
   if (!Number.isFinite(n)) return null
   const arrotondata = Math.round(n * 100) / 100

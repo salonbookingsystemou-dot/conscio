@@ -6,7 +6,7 @@ const VELOCITA_MAX = 1.2
 const VELOCITA_PASSO = 0.05
 const STABILITA_MIN = 0.5
 const STABILITA_MAX = 1
-const STABILITA_PASSO = 0.05
+const STABILITA_PASSO = 0.01
 const MODELLI = ['eleven_multilingual_v2', 'eleven_v4', 'eleven_v3', 'eleven_flash_v2_5']
 const ID_OK = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -22,7 +22,8 @@ export function velocitaRicetta(valore) {
   return Math.min(VELOCITA_MAX, Math.max(VELOCITA_MIN, arrotondata))
 }
 
-// null: modello senza stabilità regolabile, o paragrafo generato prima del cursore.
+// null: modello senza stabilità regolabile, o paragrafo generato prima del cursore
+// (vale la predefinita del suo modello: 0,85 per v4, 0,62 per v2).
 export function stabilitaRicetta(valore) {
   if (valore == null || valore === '') return null
   const n = Number(valore)

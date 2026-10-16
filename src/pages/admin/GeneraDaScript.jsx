@@ -5,6 +5,7 @@ import { rifinisciVoce, unisciPcm, wavDa } from '../../lib/rifinisciVoce'
 import { preparaMp3 } from '../../lib/tracciaFinale'
 import {
   MODELLI,
+  MODELLO_PREDEFINITO,
   dividiScript,
   elencaVociJson,
   generaPezzo,
@@ -13,9 +14,9 @@ import {
   STABILITA_MAX,
   STABILITA_MIN,
   STABILITA_PASSO,
-  STABILITA_PREDEFINITA,
   stabilitaDi,
   stabilitaPerModello,
+  stabilitaPredefinitaDi,
   stimaGenerazione,
   VELOCITA_MAX,
   VELOCITA_MIN,
@@ -78,13 +79,13 @@ function formattaMinuti(minuti) {
 export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
   const [titolo, setTitolo] = useState(sostituisci?.titolo || '')
   const [descrizione, setDescrizione] = useState('')
-  const [modelloId, setModelloId] = useState(MODELLI[0].id)
+  const [modelloId, setModelloId] = useState(MODELLO_PREDEFINITO)
   const [voceId, setVoceId] = useState('')
   const [voci, setVoci] = useState([])
   const [vociPronte, setVociPronte] = useState(false)
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1_000_000))
   const [velocita, setVelocita] = useState(1)
-  const [stabilita, setStabilita] = useState(STABILITA_PREDEFINITA)
+  const [stabilita, setStabilita] = useState(() => stabilitaPredefinitaDi(modelloDaId(MODELLO_PREDEFINITO)))
   const [pausaPredefinita, setPausaPredefinita] = useState(10)
   const [script, setScript] = useState('')
   const [paragrafi, setParagrafi] = useState([])
@@ -165,7 +166,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
         setSeed(ricetta.variazione == null ? '' : ricetta.variazione)
         setVelocita(ricetta.velocita)
         velocitaRef.current = ricetta.velocita
-        setStabilita(ricetta.stabilita ?? STABILITA_PREDEFINITA)
+        setStabilita(ricetta.stabilita ?? stabilitaPredefinitaDi(modelloDaId(ricetta.modello)))
         setPausaPredefinita(ricetta.pausaPredefinita)
         setParagrafi(caricati)
         setScript(firmaParagrafi(caricati))
@@ -755,6 +756,8 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
               value={modelloId}
               onChange={e => {
                 setModelloId(e.target.value)
+                // Ogni modello parte dalla sua stabilità consigliata (v2 0,62, v4 0,85).
+                setStabilita(stabilitaPredefinitaDi(modelloDaId(e.target.value)))
                 rilasciaFile()
               }}
             >
@@ -821,7 +824,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
           <div className="field genera-velocita">
             <div className="genera-velocita-testa">
               <label htmlFor="genera-stabilita">Stabilità della voce</label>
-              <strong>{testoStabilita(stabilita)}</strong>
+              <strong>{testoStabilita(stabilitaEffettiva, modello)}</strong>
             </div>
             <input
               id="genera-stabilita"
@@ -831,9 +834,9 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
               step={STABILITA_PASSO}
               value={stabilitaEffettiva}
               aria-describedby="genera-stabilita-nota"
-              aria-valuetext={testoStabilita(stabilita).replace(' · ', ', ')}
+              aria-valuetext={testoStabilita(stabilitaEffettiva, modello).replace(' · ', ', ')}
               onChange={e => {
-                setStabilita(stabilitaDi(e.target.value))
+                setStabilita(stabilitaDi(e.target.value, stabilitaPredefinitaDi(modello)))
                 rilasciaFile()
               }}
             />
@@ -1131,16 +1134,18 @@ function vaRigenerato(paragrafo, modelloId, voceId, seed, velocita, stabilita) {
   return (paragrafo.seed ?? null) !== semeDi(seed)
 }
 
-// I paragrafi v4 generati prima del cursore non hanno la stabilità: valgono come la predefinita.
+// I paragrafi generati prima del cursore (v4) o prima che v2 lo avesse non hanno
+// la stabilità: valgono come la predefinita del loro modello (0,85 e 0,62).
 function stessaStabilitaDi(paragrafo, stabilita) {
   if (stabilita == null) return true
-  return (paragrafo.stabilita ?? STABILITA_PREDEFINITA) === stabilita
+  return (paragrafo.stabilita ?? stabilitaPredefinitaDi(modelloDaId(paragrafo.modello))) === stabilita
 }
 
-function testoStabilita(valore) {
-  const n = stabilitaDi(valore)
+function testoStabilita(valore, modello) {
+  const predefinita = stabilitaPredefinitaDi(modello)
+  const n = stabilitaDi(valore, predefinita)
   const numero = n.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  return n === STABILITA_PREDEFINITA ? `${numero} · consigliata` : numero
+  return n === predefinita ? `${numero} · consigliata` : numero
 }
 
 function impostaRitmoCampione(audio, valore) {

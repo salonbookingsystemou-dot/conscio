@@ -6,6 +6,9 @@ export const MODELLI = [
     nome: 'Multilingual v2',
     creditiPerCarattere: 1,
     aggancia: true,
+    stabilita: true,
+    // Il valore fisso usato fino al 16/10/2026: a cursore fermo la resa non cambia.
+    stabilitaPredefinita: 0.62,
     max: 9000,
     nota: 'La voce resta continua da un paragrafo all’altro. Un carattere, un credito.'
   },
@@ -18,6 +21,7 @@ export const MODELLI = [
     velocita: false,
     // Su v4 la stabilità decide quanto il tono resta uguale tra i paragrafi.
     stabilita: true,
+    stabilitaPredefinita: 0.85,
     max: 9000,
     nota: 'Più espressivo, con la voce continua da un paragrafo all’altro. Accetta tag come [whispers]; per le pause usa i puntini, non <break>.'
   },
@@ -41,6 +45,9 @@ export const MODELLI = [
   }
 ]
 
+// Per un nuovo script; le bozze salvate tengono il loro.
+export const MODELLO_PREDEFINITO = 'eleven_v4'
+
 export function modelloDaId(id) {
   return MODELLI.find(m => m.id === id) || MODELLI[0]
 }
@@ -50,22 +57,28 @@ export function velocitaPerModello(modello, velocita) {
   return modello?.velocita === false ? 1 : velocitaDi(velocita)
 }
 
-// Stabilità di v4: più alta, tono più costante tra i paragrafi; più bassa, più espressivo.
+// Stabilità (v2 e v4): più alta, tono più costante tra i paragrafi; più bassa, più espressivo.
+// Passo di 0,01 perché la predefinita di v2 (0,62) stia sul cursore.
 export const STABILITA_MIN = 0.5
 export const STABILITA_MAX = 1
-export const STABILITA_PASSO = 0.05
+export const STABILITA_PASSO = 0.01
 export const STABILITA_PREDEFINITA = 0.85
 
-export function stabilitaDi(valore) {
+/** Predefinita del modello: 0,85 per v4, 0,62 per v2. */
+export function stabilitaPredefinitaDi(modello) {
+  return modello?.stabilitaPredefinita ?? STABILITA_PREDEFINITA
+}
+
+export function stabilitaDi(valore, predefinita = STABILITA_PREDEFINITA) {
   const n = Number(valore)
-  if (valore == null || valore === '' || !Number.isFinite(n)) return STABILITA_PREDEFINITA
+  if (valore == null || valore === '' || !Number.isFinite(n)) return predefinita
   const arrotondata = Math.round(Math.round(n / STABILITA_PASSO) * STABILITA_PASSO * 100) / 100
   return Math.min(STABILITA_MAX, Math.max(STABILITA_MIN, arrotondata))
 }
 
 /** Stabilità scelta, solo per i modelli che la regolano; per gli altri null. */
 export function stabilitaPerModello(modello, stabilita) {
-  return modello?.stabilita ? stabilitaDi(stabilita) : null
+  return modello?.stabilita ? stabilitaDi(stabilita, stabilitaPredefinitaDi(modello)) : null
 }
 
 // Moltiplicatore del parlato accettato da ElevenLabs (1 = ritmo della voce).
