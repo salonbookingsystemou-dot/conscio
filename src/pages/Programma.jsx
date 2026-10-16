@@ -9,6 +9,7 @@ import CampoNota from '../components/CampoNota.jsx'
 import CalendarioPratica from '../components/CalendarioPratica.jsx'
 import CardTracciaAudio from '../components/CardTracciaAudio.jsx'
 import { testoDaUrlAudio } from '../lib/tracce.js'
+import { scaricaSettimanaInCorso } from '../lib/cacheTracce.js'
 import GuidaMeditazione from '../components/GuidaMeditazione.jsx'
 import StatoAttesa from '../components/StatoAttesa.jsx'
 import TonoEsperienza from '../components/TonoEsperienza.jsx'
@@ -137,6 +138,15 @@ function VuotoFormali() {
       </div>
     </div>
   )
+}
+
+// Tracce delle pratiche formali di una settimana.
+function tracceDellaSettimana(lezioni, numero) {
+  const lezione = (lezioni || []).find(l => l.numero_settimana === numero)
+  return (lezione?.esercizi || [])
+    .filter(e => eFormale(e) && e.traccia_audio)
+    .sort((a, b) => (a.ordine || 0) - (b.ordine || 0))
+    .map(e => e.traccia_audio)
 }
 
 function spuntatoNelGiorno(esercizio, data) {
@@ -360,6 +370,9 @@ export default function Programma() {
       return scelta > apertaFino ? apertaFino : scelta
     })
     setAperto(true)
+    // Le tracce della settimana in corso restano sul telefono per ascoltarle con rete
+    // scarsa o assente (non con «risparmio dati» o rete 2G; vedi lib/cacheTracce.js).
+    if (!facilitatore) scaricaSettimanaInCorso(tracceDellaSettimana(lezioniCaricate, apertaFino))
     return true
   }
 

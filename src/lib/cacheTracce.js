@@ -33,6 +33,8 @@ const ascoltatori = new Set()
 // Coda di scaricamenti: uno alla volta.
 const coda = []
 let attivo = null // { url, controllo, automatico }
+// Annullate a mano in questa sessione: l'automatico non le riprende subito.
+const annullateSessione = new Set()
 
 export function tracciaRemota(url) {
   const pulito = typeof url === 'string' ? urlAudioSenzaTesto(url) : ''
@@ -230,6 +232,7 @@ export function scaricaTraccia(url, { automatico = false } = {}) {
   const pulito = pulisci(url)
   if (!tracciaRemota(pulito) || !cacheDisponibile()) return Promise.resolve(false)
   if (!automatico) {
+    annullateSessione.delete(pulito)
     const tolte = leggiTolte()
     if (tolte.delete(pulito)) scriviTolte(tolte)
   }
@@ -269,6 +272,7 @@ export function scaricaTraccia(url, { automatico = false } = {}) {
 
 export function annullaScaricamento(url) {
   const pulito = pulisci(url)
+  annullateSessione.add(pulito)
   const i = coda.findIndex(v => v.url === pulito)
   if (i >= 0) {
     const [voce] = coda.splice(i, 1)
@@ -341,7 +345,7 @@ function audioInRiproduzione() {
   return [...document.querySelectorAll('audio')].some(el => !el.paused && !el.ended)
 }
 
-let automaticoAvviato = ''
+let automaticoInCorso = false
 
 // All'apertura: scarica le tracce della settimana in corso, una alla volta,
 // a pagina inattiva e mai mentre una traccia suona.
@@ -351,10 +355,17 @@ export async function scaricaSettimanaInCorso(urls) {
   if (reteLenta()) return
   const tolte = leggiTolte()
   const lista = [...new Set((urls || []).map(pulisci))]
-    .filter(u => tracciaRemota(u) && !tolte.has(u))
-  const firma = lista.join('|')
-  if (!lista.length || automaticoAvviato === firma) return
-  automaticoAvviato = firma
+    .filter(u => tracciaRemota(u) && !tolte.has(u) && !annullateSessione.has(u))
+  if (!lista.length || automaticoInCorso) return
+  automaticoInCorso = true
+  try {
+    await scaricaInSequenza(lista)
+  } finally {
+    automaticoInCorso = false
+  }
+}
+
+async function scaricaInSequenza(lista) {
   for (const url of lista) {
     if (await tracciaInCache(url)) {
       imposta(url, { stato: STATO_PRONTA, percentuale: 100, errore: '' })
@@ -366,7 +377,7 @@ export async function scaricaSettimanaInCorso(urls) {
       await new Promise(r => document.addEventListener('visibilitychange', r, { once: true }))
     }
     if (reteLenta() || navigator.onLine === false) break
-    if (leggiTolte().has(url)) continue
+    if (leggiTolte().has(url) || annullateSessione.has(url)) continue
     await scaricaTraccia(url, { automatico: true })
   }
 }
