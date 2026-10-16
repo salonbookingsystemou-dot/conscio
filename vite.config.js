@@ -21,8 +21,12 @@ export default defineConfig({
         runtimeCaching: [
           {
             // Tracce audio guidate su Supabase Storage: disponibili anche offline.
-            // NB: per le richieste cross-origin la RegExp deve combaciare dall'origine.
-            urlPattern: /^https:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/tracce-audio\//i,
+            // Le richieste con `copia=1` sono gli scaricamenti per l'ascolto senza rete
+            // (lib/cacheTracce.js): vanno dirette in rete, così «Annulla» le ferma davvero,
+            // e la copia in cache la scrive la pagina a file completo.
+            urlPattern: ({ url }) =>
+              /^https:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/tracce-audio\//i.test(url.href) &&
+              !url.searchParams.has('copia'),
             handler: 'CacheFirst',
             options: {
               cacheName: 'tracce-audio-v2',
@@ -31,8 +35,8 @@ export default defineConfig({
               rangeRequests: true,
               // SOLO 200: le richieste no-cors dell'<audio> danno risposte opaque
               // (status 0) che il RangeRequestsPlugin non può affettare e che
-              // romperebbero la riproduzione. La copia completa arriva dal priming
-              // CORS (fetch → 200) in cacheTracce.js.
+              // romperebbero la riproduzione. La copia completa la scrive
+              // cacheTracce.js (fetch CORS → 200).
               cacheableResponse: { statuses: [200] },
               expiration: {
                 maxEntries: 60,

@@ -117,7 +117,7 @@ function ScaricaPerOffline({ src, titolo }) {
         <>
           <p className="card-traccia-offline-stato is-pronta">
             <IconaSpunta />
-            <span>Scaricata: la ascolti anche senza rete</span>
+            <span>Scaricata sul telefono</span>
           </p>
           <button
             type="button"

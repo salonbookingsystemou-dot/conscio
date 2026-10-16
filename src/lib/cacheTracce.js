@@ -7,8 +7,8 @@
 // RangeRequestsPlugin del service worker serve i frammenti anche offline.
 //
 // Lo scaricamento legge il file a pezzi (per l'avanzamento), un file alla volta,
-// e scrive la copia in cache solo a file completo: se si annulla o cade la rete
-// non resta una copia a metà.
+// e scrive la copia in cache, sotto l'indirizzo che usa il player, solo a file
+// completo: se si annulla o cade la rete non resta una copia a metà.
 
 import { useEffect, useState } from 'react'
 import { urlAudioSenzaTesto } from './tracce.js'
@@ -148,7 +148,11 @@ function erroreSpazio() {
 }
 
 async function scarica(url, controllo) {
-  const risposta = await fetch(url, { mode: 'cors', credentials: 'omit', signal: controllo.signal })
+  // `copia=1` fa saltare al file il service worker (vite.config.js): se passasse da
+  // lì, il service worker finirebbe lo scaricamento anche dopo «Annulla».
+  const indirizzo = new URL(url)
+  indirizzo.searchParams.set('copia', '1')
+  const risposta = await fetch(indirizzo.href, { mode: 'cors', credentials: 'omit', signal: controllo.signal })
   if (!risposta.ok || !risposta.body) throw new Error('RISPOSTA')
   const totale = Number(risposta.headers.get('content-length')) || 0
   if (!(await spazioSufficiente(totale))) {
@@ -273,6 +277,10 @@ export function scaricaTraccia(url, { automatico = false } = {}) {
 export function annullaScaricamento(url) {
   const pulito = pulisci(url)
   annullateSessione.add(pulito)
+  interrompi(pulito)
+}
+
+function interrompi(pulito) {
   const i = coda.findIndex(v => v.url === pulito)
   if (i >= 0) {
     const [voce] = coda.splice(i, 1)
@@ -298,7 +306,7 @@ export function sospendiAutomatici({ tranne } = {}) {
 export async function togliTraccia(url) {
   const pulito = pulisci(url)
   if (!pulito) return
-  annullaScaricamento(pulito)
+  interrompi(pulito)
   const tolte = leggiTolte()
   tolte.add(pulito)
   scriviTolte(tolte)
