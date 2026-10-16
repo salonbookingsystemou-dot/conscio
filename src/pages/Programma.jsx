@@ -9,7 +9,7 @@ import CampoNota from '../components/CampoNota.jsx'
 import CalendarioPratica from '../components/CalendarioPratica.jsx'
 import CardTracciaAudio from '../components/CardTracciaAudio.jsx'
 import { testoDaUrlAudio } from '../lib/tracce.js'
-import { scaricaSettimanaInCorso } from '../lib/cacheTracce.js'
+import { scaricaSettimanaInCorso, togliTracceNonUsate } from '../lib/cacheTracce.js'
 import GuidaMeditazione from '../components/GuidaMeditazione.jsx'
 import StatoAttesa from '../components/StatoAttesa.jsx'
 import TonoEsperienza from '../components/TonoEsperienza.jsx'
@@ -147,6 +147,13 @@ function tracceDellaSettimana(lezioni, numero) {
     .filter(e => eFormale(e) && e.traccia_audio)
     .sort((a, b) => (a.ordine || 0) - (b.ordine || 0))
     .map(e => e.traccia_audio)
+}
+
+function tutteLeTracce(lezioni) {
+  return (lezioni || []).flatMap(l => [
+    l.traccia_audio,
+    ...(l.esercizi || []).map(e => e.traccia_audio)
+  ]).filter(Boolean)
 }
 
 function spuntatoNelGiorno(esercizio, data) {
@@ -370,9 +377,13 @@ export default function Programma() {
       return scelta > apertaFino ? apertaFino : scelta
     })
     setAperto(true)
-    // Le tracce della settimana in corso restano sul telefono per ascoltarle con rete
-    // scarsa o assente (non con «risparmio dati» o rete 2G; vedi lib/cacheTracce.js).
-    if (!facilitatore) scaricaSettimanaInCorso(tracceDellaSettimana(lezioniCaricate, apertaFino))
+    if (!facilitatore) {
+      // Un file sostituito ha un indirizzo nuovo (?v=): la copia del file vecchio non serve più.
+      togliTracceNonUsate(tutteLeTracce(lezioniCaricate))
+      // Le tracce della settimana in corso restano sul telefono per ascoltarle con rete
+      // scarsa o assente (non con «risparmio dati» o rete 2G; vedi lib/cacheTracce.js).
+      scaricaSettimanaInCorso(tracceDellaSettimana(lezioniCaricate, apertaFino))
+    }
     return true
   }
 

@@ -382,6 +382,26 @@ async function scaricaInSequenza(lista) {
   }
 }
 
+// Toglie le copie che il programma non usa più: file sostituiti (stesso file in
+// Storage con un'altra versione ?v=, o spostato a un percorso nuovo) e tracce
+// tolte dal programma. Le copie scritte da qui non passano dalla scadenza del
+// service worker, quindi la pulizia la facciamo noi.
+export async function togliTracceNonUsate(urls) {
+  if (typeof caches === 'undefined') return
+  const usate = new Set((urls || []).map(pulisci).filter(tracciaRemota))
+  if (!usate.size) return
+  try {
+    const cache = await caches.open(CACHE_TRACCE)
+    for (const richiesta of await cache.keys()) {
+      if (usate.has(richiesta.url) || attivo?.url === richiesta.url) continue
+      await cache.delete(richiesta)
+      if (stati.has(richiesta.url)) imposta(richiesta.url, { stato: STATO_ASSENTE, percentuale: 0 })
+    }
+  } catch {
+    // ignora
+  }
+}
+
 // Stato di una traccia per i componenti: { stato, percentuale, errore }.
 export function useStatoTraccia(url) {
   const pulito = pulisci(url)
