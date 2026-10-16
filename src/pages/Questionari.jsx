@@ -95,6 +95,7 @@ export default function Questionari() {
     onboardingCompleto,
     t0Completo,
     percorsoPronto,
+    questionarioDaCompilare,
     aggiornaPercorso
   } = usePartecipante()
   const location = useLocation()
@@ -361,6 +362,11 @@ export default function Questionari() {
           </div>
         ) : (
           <div className="azioni esito-azioni">
+            {percorsoPronto && !questionarioDaCompilare && (
+              <Link className="btn btn-avanti" to="/programma">
+                Torna alla settimana di pratica
+              </Link>
+            )}
             <button className="btn btn-ghost" type="button" onClick={() => caricaPiano()}>
               Torna ai questionari
             </button>
@@ -502,7 +508,12 @@ export default function Questionari() {
             I questionari T0 non risultano aperti in questa finestra. Contatta il facilitatore.
           </p>
         )}
-        {percorsoPronto && (
+        {percorsoPronto && questionarioDaCompilare && (
+          <p className="questionari-avviso is-azione">
+            Per continuare con la pratica settimanale, completa prima il questionario {questionarioDaCompilare}.
+          </p>
+        )}
+        {percorsoPronto && !questionarioDaCompilare && (
           <Link className="questionari-scorciatoia" to="/programma">
             <span>Percorso pronto</span>
             <strong>Apri la settimana di pratica</strong>

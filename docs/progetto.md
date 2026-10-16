@@ -54,6 +54,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 16/10/2026 · Un questionario aperto viene prima della pratica (da Claude Code)
+Come già per T0, quando si apre T1, T2 o T3 e la persona non l’ha ancora compilato, Settimana, Storico e Check-in rimandano a Questionari. Lì un avviso dice «Per continuare con la pratica settimanale, completa prima il questionario T1» (o T2, T3) e la scorciatoia «Percorso pronto» non compare. Dopo l’invio, l’esito ha «Torna alla settimana di pratica». Gli Avvisi restano leggibili. Se il momento si chiude senza compilazione il blocco cade da solo. Lo stato si rilegge a ogni pagina del percorso (`stato_questionari_del_partecipante`, dentro `leggiStatoPercorso` in `src/lib/partecipante.jsx`), così un momento che si apre con l’app aperta blocca subito. Blocco solo nell’interfaccia, come quello di T0. Non provato con un codice vero con T1 aperto: provata la build. Nessuna modifica al database.
+
 ### 16/10/2026 · Voce più continua in «Genera da script» (da Claude Code)
 Dal brief del 16/10 su tono che cambia tra i paragrafi e pause che sembrano un audio interrotto.
 - **Tappeto di fondo:** il file preparato ha sotto tutta la traccia (campane, voce, pause) un fondo costante a −60 dBFS RMS: rumore rosa tra 80 Hz e 4 kHz, sempre uguale per la stessa traccia, con 1 s di dissolvenza in testa e in coda. Si somma dopo la regolazione del volume. Tra la prima e l’ultima campana il segnale non resta mai a zero (prima, 30 s di pausa erano zero assoluto e alcune cuffie Bluetooth si spegnevano). Loudness misurata su una traccia di prova: −19,57 → −19,93 LUFS, per via del gate di BS.1770 che ora conta anche i blocchi delle pause; la voce non cambia. Livello in `LETTO_DB` (`src/lib/tracciaFinale.js`), da confermare all’ascolto tra −66, −60 e −54. «Aggiungi le campane» sui file caricati non lo mette.

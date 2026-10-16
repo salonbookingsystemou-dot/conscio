@@ -61,7 +61,7 @@ function AvvisiOComunicazioni() {
   const { facilitatore, caricamento } = useAuth()
   if (caricamento) return <StatoAttesa />
   if (facilitatore) return <Navigate to="/admin/comunicazioni" replace />
-  return <SoloPercorso><Comunicazioni /></SoloPercorso>
+  return <SoloPercorso pratica={false}><Comunicazioni /></SoloPercorso>
 }
 
 // Il guscio del facilitatore resta montato fra le pagine: il confine per pagina sta in AdminChrome.
