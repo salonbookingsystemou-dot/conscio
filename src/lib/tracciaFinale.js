@@ -137,7 +137,8 @@ const respira = () => new Promise(r => setTimeout(r, 0))
 // si spegne e le cuffie Bluetooth non vanno in risparmio durante le pause.
 // Rumore rosa con seme fisso (stessa traccia, stesso fondo), tra 80 Hz e 4 kHz.
 
-export const LETTO_DB = -60
+// −66 dBFS: metà del volume di −60, scelto da Dimitri il 16/10/2026.
+export const LETTO_DB = -66
 const LETTO_SEME = 0x1f2e3d4c
 const LETTO_DISSOLVENZA_S = 1
 
