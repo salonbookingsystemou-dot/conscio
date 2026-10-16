@@ -2045,6 +2045,19 @@
   max-width: 12rem;
 }
 
+.genera-pausa-riga {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-8) var(--space-12);
+}
+
+.genera-pausa-nota {
+  margin: var(--space-8) 0 0;
+  font-size: var(--fs-caption);
+  color: var(--muted);
+}
+
 .genera-riepilogo {
   padding: var(--space-18) var(--space-20) var(--space-20);
   border-top: 1px solid var(--border);

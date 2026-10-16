@@ -277,6 +277,27 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
     applicaDivisione()
   }
 
+  // Due paragrafi diventano uno: una generazione in meno, un confine in meno
+  // in cui il tono può cambiare. Resta la pausa del secondo.
+  function unisciAlSuccessivo(id) {
+    const indice = paragrafi.findIndex(p => p.id === id)
+    const corrente = paragrafi[indice]
+    const dopo = paragrafi[indice + 1]
+    if (!corrente || !dopo) return
+    fermaAscolto()
+    rilasciaFile()
+    const testo = [corrente.testo, dopo.testo].map(t => String(t || '').trim()).filter(Boolean).join(' ')
+    const prossima = []
+    paragrafi.forEach((p, i) => {
+      if (i === indice) prossima.push({ ...paragrafoVuoto(dopo.pausaDopo), id: corrente.id, testo })
+      else if (i === indice + 1) return
+      else if (modello.aggancia && i > indice && p.audio) prossima.push({ ...p, obsoleto: true })
+      else prossima.push(p)
+    })
+    setParagrafi(prossima)
+    setScript(firmaParagrafi(prossima))
+  }
+
   async function generaUno(lista, id, signal) {
     const indice = lista.findIndex(p => p.id === id)
     const corrente = lista[indice]
@@ -920,6 +941,7 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
               const stessaVelocita = (p.velocita ?? 1) === velocitaEffettiva
               const stessaStabilita = stessaStabilitaDi(p, stabilitaEffettiva)
               const attivo = inAscolto?.id === p.id
+              const ultimo = indice === paragrafi.length - 1
               return (
                 <li key={p.id} className={attivo ? 'is-attivo' : undefined}>
                   <div className="genera-paragrafo">
@@ -986,9 +1008,10 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
                     </div>
                   </div>
                   <div className="genera-pausa">
+                    <div className="genera-pausa-riga">
                     <div className="field">
                       <label htmlFor={`pausa-${p.id}`}>
-                        {indice === paragrafi.length - 1 ? 'Pausa prima della campana (secondi)' : 'Pausa dopo (secondi)'}
+                        {ultimo ? 'Pausa prima della campana (secondi)' : 'Pausa dopo (secondi)'}
                       </label>
                       <input
                         id={`pausa-${p.id}`}
@@ -1003,6 +1026,22 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
                         }}
                       />
                     </div>
+                    {!ultimo && (
+                      <button
+                        type="button"
+                        className="btn btn-text is-piccolo"
+                        onClick={() => unisciAlSuccessivo(p.id)}
+                        disabled={Boolean(occupato)}
+                      >
+                        Unisci al successivo
+                      </button>
+                    )}
+                    </div>
+                    {!ultimo && normalizzaPausa(p.pausaDopo) < 3 && (
+                      <p className="genera-pausa-nota">
+                        Una pausa breve si fa con i puntini nel testo: unendo i paragrafi la voce resta più uniforme.
+                      </p>
+                    )}
                   </div>
                 </li>
               )
