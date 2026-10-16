@@ -54,6 +54,15 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 16/10/2026 · Voce più continua in «Genera da script» (da Claude Code)
+Dal brief del 16/10 su tono che cambia tra i paragrafi e pause che sembrano un audio interrotto.
+- **Tappeto di fondo:** il file preparato ha sotto tutta la traccia (campane, voce, pause) un fondo costante a −60 dBFS RMS: rumore rosa tra 80 Hz e 4 kHz, sempre uguale per la stessa traccia, con 1 s di dissolvenza in testa e in coda. Si somma dopo la regolazione del volume. Tra la prima e l’ultima campana il segnale non resta mai a zero (prima, 30 s di pausa erano zero assoluto e alcune cuffie Bluetooth si spegnevano). Loudness misurata su una traccia di prova: −19,57 → −19,93 LUFS, per via del gate di BS.1770 che ora conta anche i blocchi delle pause; la voce non cambia. Livello in `LETTO_DB` (`src/lib/tracciaFinale.js`), da confermare all’ascolto tra −66, −60 e −54. «Aggiungi le campane» sui file caricati non lo mette.
+- **Giunture:** coda dopo l’ultima parola 0,30 s (era 0,18), attacco minimo 0,04 s (era 0,02). Vale per i paragrafi generati da ora.
+- **Stabilità su Multilingual v2:** stesso cursore di v4, che parte da 0,62 (il valore fisso di prima); passo 0,01 per tutti e due. Cambiando modello torna alla predefinita del modello. I paragrafi v2 salvati senza stabilità valgono 0,62. Nuovi script: modello predefinito v4. **`genera-voce` va ridistribuita**: finché non lo è, su v2 il cursore non ha effetto (resta 0,62).
+- **«Unisci al successivo»** accanto alla pausa di ogni paragrafo (tranne l’ultimo); con una pausa sotto i 3 s una nota suggerisce i puntini. Nessuna fusione automatica.
+- **Aggancio:** ogni paragrafo ricorda se ElevenLabs ha accettato l’aggancio e quando è stato generato (ricetta versione 3, campi `agganciato` e `generato_il`; le versioni 1 e 2 si leggono come prima). Badge «Senza aggancio» con «Rigenera da qui». I paragrafi precedenti generati da più di 110 minuti (o senza data, cioè salvati prima) non si agganciano: avviso nella pagina con «Rigenera tutto».
+Non provato nell’app con una generazione vera, perché serve l’accesso del facilitatore: provati build, ricetta, editor montato da solo (cursore v2, unione, nota) e il file su una traccia di prova. Nessuna modifica al database.
+
 ### 15/10/2026 · «Spunto per una pausa» (da Claude Code)
 L’occhiello della meditazione in evidenza (card e player a schermo intero) dice «Spunto per una pausa» al posto di «Pillola della settimana», sempre in maiuscolo per stile. Stesso nome per la card del calendario nella pagina Sito. Nessuna modifica al database.
 
