@@ -5515,6 +5515,45 @@ body:has(.splash) {
       transparent 72%
     );
 }
+/* Ascolto in corso (canvas «Conscio · Player Ascolta»): tre onde sottili che
+   partono a 3 s l'una dall'altra; in pausa svaniscono e si fermano. */
+.ascolta-onde {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.6s ease;
+}
+.ascolta-onde.is-attive {
+  opacity: 1;
+}
+.ascolta-onde span {
+  position: absolute;
+  left: 50%;
+  top: 36%;
+  width: 220px;
+  height: 220px;
+  margin: -110px 0 0 -110px;
+  border: 1.5px solid color-mix(in srgb, var(--surface) 70%, transparent);
+  border-radius: var(--radius-pill);
+  opacity: 0;
+  animation: ascolta-onda 9s cubic-bezier(0.25, 0.6, 0.35, 1) infinite;
+  animation-play-state: paused;
+}
+.ascolta-onde span:nth-child(2) { animation-delay: -3s; }
+.ascolta-onde span:nth-child(3) { animation-delay: -6s; }
+.ascolta-onde.is-attive span {
+  animation-play-state: running;
+}
+@keyframes ascolta-onda {
+  0% { transform: scale(0.35); opacity: 0; }
+  18% { opacity: 0.55; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ascolta-onde { display: none; }
+}
 .ascolta-player-corpo {
   position: relative;
   z-index: 1;

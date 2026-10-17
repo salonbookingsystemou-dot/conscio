@@ -54,6 +54,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 17/10/2026 · Onde dell'ascolto nel player di Ascolta (da Claude Code)
+Nel player a schermo intero, quando la traccia è in play, tre cerchi sottili si allargano piano dal terzo superiore dello schermo e svaniscono, uno ogni 3 secondi (ciclo di 9 s). In pausa l'overlay sfuma in 1,6 s e l'animazione si ferma dove si trova; con «riduci movimento» non compare. Solo CSS, nessun tocco intercettato, ignorato dai lettori di schermo. Riferimento: canvas «Conscio · Player Ascolta», variante «solo onde». Nessuna modifica al database né ai dati raccolti.
+
 ### 17/10/2026 · Cache di un anno sui file caricati (da Claude Code)
 Supabase ha segnalato di nuovo la quota di cached egress superata (14,5 GB su 5,5, piano Free). Le tracce
 avevano `max-age=60`: browser e CDN le riscaricavano spesso. Ora i caricamenti in `tracce-audio` e
