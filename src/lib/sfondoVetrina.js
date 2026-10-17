@@ -144,6 +144,7 @@ export function preparaVideo(file) {
 async function caricaBlob(percorso, blob, contentType) {
   const { error } = await supabase.storage.from('sfondi-vetrina').upload(percorso, blob, {
     contentType,
+    cacheControl: '31536000',
     upsert: false
   })
   if (error) throw new Error('Non sono riuscito a salvare lo sfondo.')

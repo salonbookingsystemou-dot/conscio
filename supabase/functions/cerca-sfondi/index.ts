@@ -371,7 +371,7 @@ async function scegliPexels(tipo: 'foto' | 'video', id: string, url: string, pos
   const caricato = await admin.storage.from('sfondi-vetrina').upload(
     percorso,
     new Blob([scaricato.byte], { type: scaricato.tipo }),
-    { contentType: scaricato.tipo, upsert: true }
+    { contentType: scaricato.tipo, cacheControl: '31536000', upsert: true }
   )
   if (caricato.error) {
     return json({ errore: 'ARCHIVIO', messaggio: 'Non sono riuscito a salvare lo sfondo.' }, 502)
@@ -382,7 +382,7 @@ async function scegliPexels(tipo: 'foto' | 'video', id: string, url: string, pos
     const poster = await admin.storage.from('sfondi-vetrina').upload(
       posterPercorso,
       new Blob([posterByte], { type: posterTipo }),
-      { contentType: posterTipo, upsert: true }
+      { contentType: posterTipo, cacheControl: '31536000', upsert: true }
     )
     if (poster.error) {
       return json({ errore: 'ARCHIVIO', messaggio: 'Non sono riuscito a salvare la copertina.' }, 502)

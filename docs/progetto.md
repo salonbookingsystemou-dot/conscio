@@ -54,6 +54,17 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 17/10/2026 · Cache di un anno sui file caricati (da Claude Code)
+Supabase ha segnalato di nuovo la quota di cached egress superata (14,5 GB su 5,5, piano Free). Le tracce
+avevano `max-age=60`: browser e CDN le riscaricavano spesso. Ora i caricamenti in `tracce-audio` e
+`sfondi-vetrina` (anche da `cerca-sfondi`) chiedono una cache di un anno. Perché sia sicuro,
+`sostituisciFileTraccia` scrive sempre a un percorso nuovo (`libreria/<id>-<istante>.mp3`) e, senza
+`copiaPrecedente`, toglie il file vecchio dopo aver aggiornato la traccia; restituisce la traccia aggiornata,
+che «Genera da script» usa per i salvataggi successivi. I file già in Storage tengono la cache di prima finché
+non vengono sostituiti. Tolto da `sfondi-vetrina` un video `.mov` di 33 MB che nessuna traccia usava.
+Le tracce in uso pesano già 2–17 MB (96–134 kbps): i file da 20–35 MB sono copie non collegate, che non
+generano traffico. Nessuna modifica allo schema né ai dati dei partecipanti.
+
 ### 17/10/2026 · Puntini in coda al testo mandato a ElevenLabs (da Claude Code)
 Dimitri sentiva una dissolvenza sull’ultima lettera dei paragrafi. Da ora a ogni richiesta si aggiunge « ...» in fondo (`testoConCoda` in `src/lib/generaVoce.js`; niente se il testo finisce già con i puntini), e la rifinitura (`src/lib/audioVoce.js`) cerca la fine della parola fino a 2,5 s prima della fine, così toglie la pausa che ne esce. Script e ricetta non cambiano.
 

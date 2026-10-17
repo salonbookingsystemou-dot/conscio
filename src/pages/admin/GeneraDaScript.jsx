@@ -701,8 +701,10 @@ export default function GeneraDaScript({ sostituisci = null, onSalvata }) {
         ? Math.max(1, Math.round(file.secondi / 60))
         : undefined
       let traccia = creataRef.current
-      if (traccia?.id) await sostituisciFileTraccia(traccia, mp3)
-      else {
+      if (traccia?.id) {
+        traccia = await sostituisciFileTraccia(traccia, mp3)
+        creataRef.current = traccia
+      } else {
         traccia = await creaTraccia(mp3, { titolo: nome, descrizione, durataMinuti: minuti })
         creataRef.current = traccia
       }

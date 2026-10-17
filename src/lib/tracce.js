@@ -3,6 +3,9 @@ import { eliminaBozzeVoce } from './scriptTraccia.js'
 import { supabase } from './supabaseClient'
 
 export const AUDIO_MAX = 50 * 1024 * 1024
+// Ogni file sta a un percorso suo e non si sovrascrive: browser e CDN possono tenerlo un anno
+// (con i 60 secondi predefiniti lo riscaricavano spesso, e il traffico del CDN si paga).
+const CACHE_AUDIO = '31536000'
 
 export function estensioneAudio(nome) {
   const pezzo = (nome || '').split('.').pop()
@@ -290,6 +293,7 @@ export async function creaTraccia(file, { titolo, descrizione, durataMinuti } = 
   const path = `libreria/${id}.${estensioneAudio(file.name)}`
   const { error: erroreUpload } = await supabase.storage.from('tracce-audio').upload(path, file, {
     upsert: false,
+    cacheControl: CACHE_AUDIO,
     contentType: file.type || 'audio/mpeg'
   })
   if (erroreUpload) throw erroreUpload
@@ -346,20 +350,18 @@ export async function rinominaTraccia(id, titolo, descrizione) {
 }
 
 /**
- * Mette un file nuovo sulla traccia. Con `copiaPrecedente` il file va a un percorso
- * nuovo e il vecchio resta in Storage, così si può tornare indietro.
+ * Mette un file nuovo sulla traccia, sempre a un percorso nuovo (la cache dura un anno).
+ * Con `copiaPrecedente` il vecchio resta in Storage, così si può tornare indietro;
+ * altrimenti si toglie dopo aver aggiornato la traccia.
  */
 export async function sostituisciFileTraccia(traccia, file, { copiaPrecedente = false } = {}) {
   if (!file) throw new Error('FILE_MANCANTE')
   if (file.size > AUDIO_MAX) throw new Error('AUDIO_TROPPO_GRANDE')
   const ext = estensioneAudio(file.name)
-  const path = copiaPrecedente
-    ? `libreria/${traccia.id}-${Date.now()}.${ext}`
-    : traccia.storage_path && traccia.storage_path.startsWith('libreria/')
-      ? traccia.storage_path
-      : `libreria/${traccia.id}.${ext}`
+  const path = `libreria/${traccia.id}-${Date.now()}.${ext}`
   const { error: erroreUpload } = await supabase.storage.from('tracce-audio').upload(path, file, {
-    upsert: true,
+    upsert: false,
+    cacheControl: CACHE_AUDIO,
     contentType: file.type || 'audio/mpeg'
   })
   if (erroreUpload) throw erroreUpload
@@ -384,7 +386,11 @@ export async function sostituisciFileTraccia(traccia, file, { copiaPrecedente = 
   // Il file nuovo può stare allo stesso percorso: senza un indirizzo nuovo il service
   // worker (CacheFirst, 120 giorni) e il CDN continuerebbero a servire la copia vecchia.
   const versionato = `${pub.publicUrl}?v=${Date.now()}`
-  await scriviUrlConTesto(traccia.id, versionato, testo, traccia.url)
+  const url = await scriviUrlConTesto(traccia.id, versionato, testo, traccia.url)
+  if (!copiaPrecedente && traccia.storage_path?.startsWith('libreria/') && traccia.storage_path !== path) {
+    await supabase.storage.from('tracce-audio').remove([traccia.storage_path])
+  }
+  return { ...traccia, ...patch, url, descrizione: testo || null }
 }
 
 function erroreTracciaInUso(collegamenti) {
