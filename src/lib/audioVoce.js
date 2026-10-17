@@ -14,6 +14,7 @@ const SOGLIA_FINE = 0.03
 // spegnimento. Coda e attacco minimo lunghi rendono la giuntura più morbida.
 const CODA_S = 0.3
 const GUARDIA_S = 0.04
+const FINE_CERCA_S = 2.5
 
 function passaAlto(samples, sampleRate) {
   const rc = 1 / (2 * Math.PI * 20)
@@ -87,8 +88,14 @@ function guadagni(samples, sampleRate) {
       gain[i] = curva((i - inizioAttacco) / Math.max(1, fineAttacco - inizioAttacco))
     }
 
+    // In coda ci può essere la pausa dei puntini (lib/generaVoce.js): la fine
+    // della parola si cerca fino a 2,5 s prima della fine, non solo nel margine.
+    const margineFine = Math.min(
+      Math.round(FINE_CERCA_S / HOP_S),
+      Math.max(2, Math.floor(env.length * 0.5))
+    )
     let fineParola = env.length - 1
-    const limite = Math.max(0, env.length - 1 - margine)
+    const limite = Math.max(0, env.length - 1 - Math.max(margine, margineFine))
     while (fineParola > limite && env[fineParola] < corpo * SOGLIA_FINE) fineParola -= 1
     const coda = Math.round(sampleRate * (fineParola < env.length - 2 ? CODA_S : GUARDIA_S))
     const inizioCoda = Math.min(samples.length, (fineParola + 1) * hop)

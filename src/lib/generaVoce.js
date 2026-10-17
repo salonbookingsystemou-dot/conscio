@@ -246,10 +246,21 @@ export async function elencaVociJson(signal) {
   return Array.isArray(payload?.voci) ? payload.voci : []
 }
 
+// ElevenLabs tende a troncare l’ultima lettera quando il testo finisce lì: con i
+// puntini in coda la generazione chiude con una pausa, che la rifinitura toglie
+// (lib/audioVoce.js). Solo nella richiesta: lo script salvato non cambia.
+export const CODA_TESTO = ' ...'
+
+export function testoConCoda(testo) {
+  const pulito = String(testo || '').trimEnd()
+  if (!pulito || /(\.\.\.|…)$/.test(pulito)) return pulito
+  return `${pulito}${CODA_TESTO}`
+}
+
 export function generaPezzo({ testo, voceId, modello, precedenti, successivo, seed, velocita, stabilita, signal }) {
   return chiama({
     azione: 'paragrafo',
-    testo,
+    testo: testoConCoda(testo),
     voceId,
     modello,
     precedenti: precedenti || [],
