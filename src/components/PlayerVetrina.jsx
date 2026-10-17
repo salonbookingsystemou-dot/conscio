@@ -338,6 +338,12 @@ export default function PlayerVetrina({
         {aperto && createPortal(
           <div className="ascolta-player" role="dialog" aria-modal="true" aria-labelledby={idTitolo}>
             <Sfondo sfondo={sfondo} />
+            {/* Ascolto in corso: onde che si allargano piano, solo in play */}
+            <div className={inPlay ? 'ascolta-onde is-attive' : 'ascolta-onde'} aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </div>
             <div className="ascolta-player-corpo" aria-hidden={info || undefined}>
               <div className="ascolta-player-testa">
                 <button
