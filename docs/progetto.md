@@ -62,6 +62,9 @@ avevano `max-age=60`: browser e CDN le riscaricavano spesso. Ora i caricamenti i
 `copiaPrecedente`, toglie il file vecchio dopo aver aggiornato la traccia; restituisce la traccia aggiornata,
 che «Genera da script» usa per i salvataggi successivi. I file già in Storage tengono la cache di prima finché
 non vengono sostituiti. Tolto da `sfondi-vetrina` un video `.mov` di 33 MB che nessuna traccia usava.
+Tolti anche 19 file che nessuna tabella citava (circa 212 MB): gli mp3 di 12 tracce eliminate dalla libreria,
+la vecchia cartella `e063ca00…/` di settembre e 5 immagini di sfondo. Restano le copie precedenti delle tracce
+(per tornare indietro dopo «Aggiungi le campane»), le bozze di `bozze-voce` e le immagini caricate il 17/10.
 Le tracce in uso pesano già 2–17 MB (96–134 kbps): i file da 20–35 MB sono copie non collegate, che non
 generano traffico. Nessuna modifica allo schema né ai dati dei partecipanti.
 
