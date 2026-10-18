@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import PlayerVetrina, { Credito, IconaCaso } from '../components/PlayerVetrina.jsx'
+import { useAuth } from '../lib/auth.jsx'
 import StatoAttesa from '../components/StatoAttesa.jsx'
 import StatoVuoto from '../components/StatoVuoto.jsx'
 import {
@@ -11,6 +12,7 @@ import {
   leggiEvidenza,
   leggiImpostazioniPubbliche,
   leggiTracciaPubblica,
+  salvaSfondoVetrina,
   urlAscolta
 } from '../lib/vetrina.js'
 
@@ -102,6 +104,7 @@ function Scheda({ traccia, onCondiviso, avviso }) {
 export default function Ascolta() {
   const { slug } = useParams()
   const navigate = useNavigate()
+  const { facilitatore } = useAuth()
   const location = useLocation()
   // Vero quando si arriva da «Sorprendimi» premuto nel player a schermo intero.
   const schermoIntero = Boolean(location.state?.schermoIntero)
@@ -220,6 +223,11 @@ export default function Ascolta() {
         onSorprendi={elenco.some(item => item.slug && item.slug !== voce.slug) ? sorprendi : undefined}
         onCondividi={condividiVoce}
         avviso={avviso}
+        onCambiaSfondo={facilitatore ? async campi => {
+          const sfondo = await salvaSfondoVetrina(voce.slug, campi)
+          setAvviso('Sfondo aggiornato.')
+          return sfondo
+        } : undefined}
         informazioni={(
           <>
             <Scheda traccia={voce} onCondiviso={condividiVoce} avviso={avviso} />

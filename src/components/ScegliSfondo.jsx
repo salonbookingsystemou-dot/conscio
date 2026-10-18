@@ -15,7 +15,7 @@ const FONTI = [
   ['pexels', 'Pexels']
 ]
 
-export default function ScegliSfondo({ onChiudi, onConferma }) {
+export default function ScegliSfondo({ onChiudi, onConferma, fuocoIniziale = 'centro' }) {
   const [fonte, setFonte] = useState('caricato')
   const [tipo, setTipo] = useState('foto')
   const [query, setQuery] = useState('')
@@ -23,7 +23,7 @@ export default function ScegliSfondo({ onChiudi, onConferma }) {
   const [scelto, setScelto] = useState(null)
   const [autore, setAutore] = useState('')
   const [linkAutore, setLinkAutore] = useState('')
-  const [fuoco, setFuoco] = useState('centro')
+  const [fuoco, setFuoco] = useState(fuocoIniziale)
   const [consenso, setConsenso] = useState(false)
   const [anteprima, setAnteprima] = useState('')
   const [file, setFile] = useState(null)
@@ -106,7 +106,7 @@ export default function ScegliSfondo({ onChiudi, onConferma }) {
         if (!autore.trim()) throw new Error('Indica chi ha realizzato lo sfondo.')
         if (!consenso) throw new Error('Serve la conferma sul permesso d’uso.')
         const caricato = await caricaSfondoLocale(file, posterRef.current)
-        onConferma({
+        await onConferma({
           ...caricato,
           sfondo_autore: autore.trim(),
           sfondo_autore_link: linkAutore.trim(),
@@ -122,7 +122,7 @@ export default function ScegliSfondo({ onChiudi, onConferma }) {
           id: scelto.id,
           downloadLocation: scelto.downloadLocation
         })
-        onConferma({
+        await onConferma({
           sfondo_tipo: 'foto',
           sfondo_fonte: 'unsplash',
           sfondo_url: scelto.url,
@@ -141,7 +141,7 @@ export default function ScegliSfondo({ onChiudi, onConferma }) {
         url: scelto.url,
         posterUrl: scelto.posterUrl
       })
-      onConferma({
+      await onConferma({
         sfondo_tipo: salvato.sfondo_tipo || tipo,
         sfondo_fonte: 'pexels',
         sfondo_url: salvato.sfondo_url,

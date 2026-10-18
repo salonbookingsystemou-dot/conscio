@@ -5569,8 +5569,13 @@ body:has(.splash) {
 }
 .ascolta-player-testa {
   display: grid;
-  grid-template-columns: 40px 1fr 40px;
+  grid-template-columns: minmax(40px, 1fr) auto minmax(40px, 1fr);
   align-items: center;
+  gap: var(--space-8);
+}
+.ascolta-player-testa-azioni {
+  display: flex;
+  justify-content: flex-end;
   gap: var(--space-8);
 }
 .ascolta-player-icona {

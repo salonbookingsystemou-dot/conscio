@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import CardTracciaAudio, { formattaTempo } from './CardTracciaAudio.jsx'
+import ScegliSfondo from './ScegliSfondo.jsx'
 import { etichettaVoce } from '../lib/vetrina.js'
 
 export const FUOCO = { centro: 'center', alto: 'center top', basso: 'center bottom' }
@@ -164,6 +165,13 @@ const IconaInfo = () => (
     <path d="M12 11v5.5M12 7.6v.1" />
   </Icona>
 )
+const IconaSfondo = () => (
+  <Icona>
+    <rect x="3.5" y="5" width="17" height="14" rx="2.5" />
+    <circle cx="9" cy="10" r="1.6" />
+    <path d="m4 17.5 5-4.5 3.5 3 2.5-2 5 4" />
+  </Icona>
+)
 const IconaChiudi = () => <Icona><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" /></Icona>
 
 function IconaSalto({ avanti = false }) {
@@ -239,10 +247,14 @@ export default function PlayerVetrina({
   onCondividi,
   apriSubito = false,
   informazioni,
-  avviso = ''
+  avviso = '',
+  onCambiaSfondo
 }) {
   const [aperto, setAperto] = useState(apriSubito)
   const [info, setInfo] = useState(false)
+  const [scegliSfondo, setScegliSfondo] = useState(false)
+  // Lo sfondo appena scelto dal facilitatore si vede subito, senza rileggere la traccia.
+  const [sfondoNuovo, setSfondoNuovo] = useState(null)
   const playRef = useRef(null)
   const chiudiRef = useRef(null)
   const chiudiInfoRef = useRef(null)
@@ -250,7 +262,7 @@ export default function PlayerVetrina({
   const statoRef = useRef(null)
   const idTitolo = useId()
   const idInfo = useId()
-  const sfondo = traccia.sfondo || {}
+  const sfondo = sfondoNuovo || traccia.sfondo || {}
   const autore = traccia.autore?.nome
   const voce = voceBreve(traccia.voce)
   const minuti = traccia.durata_minuti ? `${traccia.durata_minuti} min` : ''
@@ -270,7 +282,7 @@ export default function PlayerVetrina({
   }, [info, aperto])
 
   useEffect(() => {
-    if (!aperto) return undefined
+    if (!aperto || scegliSfondo) return undefined
     function tasto(e) {
       if (e.key !== 'Escape') return
       if (info) setInfo(false)
@@ -278,7 +290,7 @@ export default function PlayerVetrina({
     }
     window.addEventListener('keydown', tasto)
     return () => window.removeEventListener('keydown', tasto)
-  }, [aperto, info])
+  }, [aperto, info, scegliSfondo])
 
   // Chiudendo il player l'ascolto si ferma: non c'è un mini player che continua in pagina.
   function chiudi() {
@@ -358,16 +370,29 @@ export default function PlayerVetrina({
                 <p className="ascolta-player-occhiello">
                   {inEvidenza ? 'Spunto per una pausa' : ''}
                 </p>
-                {onCondividi ? (
-                  <button
-                    type="button"
-                    className="ascolta-player-icona"
-                    aria-label="Condividi"
-                    onClick={() => onCondividi(false)}
-                  >
-                    <IconaCondividi />
-                  </button>
-                ) : <span className="ascolta-player-icona is-vuota" aria-hidden="true" />}
+                <div className="ascolta-player-testa-azioni">
+                  {onCambiaSfondo && (
+                    <button
+                      type="button"
+                      className="ascolta-player-icona"
+                      aria-label="Cambia lo sfondo"
+                      title="Cambia lo sfondo"
+                      onClick={() => setScegliSfondo(true)}
+                    >
+                      <IconaSfondo />
+                    </button>
+                  )}
+                  {onCondividi ? (
+                    <button
+                      type="button"
+                      className="ascolta-player-icona"
+                      aria-label="Condividi"
+                      onClick={() => onCondividi(false)}
+                    >
+                      <IconaCondividi />
+                    </button>
+                  ) : <span className="ascolta-player-icona is-vuota" aria-hidden="true" />}
+                </div>
               </div>
 
               <div className="ascolta-player-fondo">
@@ -459,6 +484,17 @@ export default function PlayerVetrina({
                   {informazioni}
                 </section>
               </div>
+            )}
+
+            {scegliSfondo && (
+              <ScegliSfondo
+                fuocoIniziale={sfondo.fuoco || 'centro'}
+                onChiudi={() => setScegliSfondo(false)}
+                onConferma={async campi => {
+                  setSfondoNuovo(await onCambiaSfondo(campi))
+                  setScegliSfondo(false)
+                }}
+              />
             )}
           </div>,
           document.body

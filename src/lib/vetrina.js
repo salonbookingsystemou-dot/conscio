@@ -336,6 +336,36 @@ export async function salvaSchedaVetrina(id, campi, tagIds) {
   }
 }
 
+// Dal player di Ascolta il facilitatore cambia solo lo sfondo, senza aprire la scheda.
+export async function salvaSfondoVetrina(slug, campi) {
+  const sfondo = {
+    sfondo_tipo: campi.sfondo_tipo || null,
+    sfondo_fonte: campi.sfondo_fonte || null,
+    sfondo_url: testoONull(campi.sfondo_url),
+    sfondo_poster_url: testoONull(campi.sfondo_poster_url),
+    sfondo_fonte_id: testoONull(campi.sfondo_fonte_id),
+    sfondo_autore: testoONull(campi.sfondo_autore),
+    sfondo_autore_link: testoONull(campi.sfondo_autore_link),
+    sfondo_fuoco: campi.sfondo_fuoco || 'centro'
+  }
+  const { data, error } = await supabase
+    .from('tracce')
+    .update({ ...sfondo, aggiornato_il: new Date().toISOString() })
+    .eq('slug', slug)
+    .select('id')
+  if (error) throw error
+  if (!data?.length) throw new Error('Non è stato possibile salvare lo sfondo.')
+  return {
+    tipo: sfondo.sfondo_tipo,
+    fonte: sfondo.sfondo_fonte,
+    url: sfondo.sfondo_url,
+    poster_url: sfondo.sfondo_poster_url,
+    autore: sfondo.sfondo_autore,
+    autore_link: sfondo.sfondo_autore_link,
+    fuoco: sfondo.sfondo_fuoco
+  }
+}
+
 export async function leggiStatistiche() {
   const da = new Date()
   da.setDate(da.getDate() - 27)

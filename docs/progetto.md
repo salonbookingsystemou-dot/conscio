@@ -54,6 +54,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 18/10/2026 · Cambiare lo sfondo dal player di Ascolta (da Claude Code)
+Nel player a schermo intero di `/ascolta`, chi è entrato come facilitatore vede in alto a destra, accanto a «Condividi», un pulsante con l’icona di un’immagine («Cambia lo sfondo»). Apre lo stesso «Scegli lo sfondo» della Libreria (dal telefono, Unsplash, Pexels, punto di inquadratura) e con «Usa come sfondo» salva subito: `salvaSfondoVetrina` in `src/lib/vetrina.js` aggiorna solo le colonne `sfondo_*` della traccia (per slug), il player mostra il nuovo sfondo senza ricaricare e compare «Sfondo aggiornato.». I visitatori non vedono il pulsante. L’anteprima dei link condivisi prende la nuova copertina alla build successiva (al più tardi la mattina dopo). Il file dello sfondo precedente, se caricato, resta in Storage. Nessuna modifica al database né ai dati raccolti.
+
 ### 17/10/2026 · Onde dell'ascolto nel player di Ascolta (da Claude Code)
 Nel player a schermo intero, quando la traccia è in play, tre cerchi sottili si allargano piano dal terzo superiore dello schermo e svaniscono, uno ogni 3 secondi (ciclo di 9 s). In pausa l'overlay sfuma in 1,6 s e l'animazione si ferma dove si trova; con «riduci movimento» non compare. Solo CSS, nessun tocco intercettato, ignorato dai lettori di schermo. Riferimento: canvas «Conscio · Player Ascolta», variante «solo onde». Nessuna modifica al database né ai dati raccolti.
 
