@@ -8,6 +8,13 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>Conscio</title>
+    <script>
+      // Instagram (link nel profilo) codifica il # in %23. Il service worker serve
+      // questa pagina anche su /%23/...: si torna a /#/... prima di caricare l'app.
+      if (/^\/%23\//i.test(location.pathname)) {
+        location.replace('/#/' + decodeURIComponent(location.pathname.slice(5)) + location.search)
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
