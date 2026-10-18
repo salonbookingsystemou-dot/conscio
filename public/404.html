@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Pagina non trovata</title>
     <script>
+      // Instagram (link nel profilo) codifica il # in %23: /%23/ascolta torna a /#/ascolta.
+      if (/^\/%23\//i.test(location.pathname)) {
+        location.replace('/#/' + decodeURIComponent(location.pathname.slice(5)) + location.search)
+      }
       var percorso = location.pathname.replace(/\/+$/, '') || '/'
       if (percorso === '/ascolta' || percorso.indexOf('/ascolta/') === 0) {
         location.replace('/#/ascolta' + percorso.slice('/ascolta'.length) + location.search)

@@ -54,6 +54,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 18/10/2026 · Link di Ascolta nel profilo Instagram (da Claude Code)
+Instagram, nei link del profilo, codifica il `#` in `%23`: `conscio.mnesti.it/#/ascolta` diventava `/%23/ascolta` e GitHub Pages rispondeva con la pagina «non trovata». Il link da usare su Instagram (e ovunque) è `https://conscio.mnesti.it/ascolta/`, la pagina statica già generata da `scripts/pagine-condivisione.mjs`, con anteprima e rimando a `/#/ascolta`. Per i link già pubblicati, `public/404.html` ora riporta `/%23/...` a `/#/...`. Nessuna modifica al database.
+
 ### 18/10/2026 · Cambiare lo sfondo dal player di Ascolta (da Claude Code)
 Nel player a schermo intero di `/ascolta`, chi è entrato come facilitatore vede in alto a destra, accanto a «Condividi», un pulsante con l’icona di un’immagine («Cambia lo sfondo»). Apre lo stesso «Scegli lo sfondo» della Libreria (dal telefono, Unsplash, Pexels, punto di inquadratura) e con «Usa come sfondo» salva subito: `salvaSfondoVetrina` in `src/lib/vetrina.js` aggiorna solo le colonne `sfondo_*` della traccia (per slug), il player mostra il nuovo sfondo senza ricaricare e compare «Sfondo aggiornato.». I visitatori non vedono il pulsante. L’anteprima dei link condivisi prende la nuova copertina alla build successiva (al più tardi la mattina dopo). Il file dello sfondo precedente, se caricato, resta in Storage. Nessuna modifica al database né ai dati raccolti.
 
