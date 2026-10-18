@@ -2,7 +2,6 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import CardTracciaAudio, { formattaTempo } from './CardTracciaAudio.jsx'
 import ScegliSfondo from './ScegliSfondo.jsx'
-import { etichettaVoce } from '../lib/vetrina.js'
 
 export const FUOCO = { centro: 'center', alto: 'center top', basso: 'center bottom' }
 const SALTO = 15
@@ -11,11 +10,6 @@ function movimentoRidotto() {
   if (typeof window === 'undefined') return false
   const riduci = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
   return Boolean(riduci || navigator.connection?.saveData)
-}
-
-function voceBreve(voce) {
-  if (voce?.tipo === 'sintetica') return 'Voce sintetica'
-  return etichettaVoce(voce)
 }
 
 function etichetteTag(traccia) {
@@ -264,7 +258,6 @@ export default function PlayerVetrina({
   const idInfo = useId()
   const sfondo = sfondoNuovo || traccia.sfondo || {}
   const autore = traccia.autore?.nome
-  const voce = voceBreve(traccia.voce)
   const minuti = traccia.durata_minuti ? `${traccia.durata_minuti} min` : ''
   const etichette = etichetteTag(traccia)
 
@@ -332,7 +325,7 @@ export default function PlayerVetrina({
             <h2>{traccia.titolo}</h2>
             <div className="ascolta-palco-piede">
               <p className="ascolta-meta">
-                {[minuti, autore, voce].filter(Boolean).join(' · ')}
+                {[minuti, autore].filter(Boolean).join(' · ')}
               </p>
               <button
                 ref={playRef}
@@ -403,10 +396,8 @@ export default function PlayerVetrina({
                   </ul>
                 )}
                 <h2 id={idTitolo} className="ascolta-player-titolo">{traccia.titolo}</h2>
-                {(autore || voce) && (
-                  <p className="ascolta-player-meta">
-                    {[autore && `Testo di ${autore}`, voce].filter(Boolean).join(' · ')}
-                  </p>
+                {autore && (
+                  <p className="ascolta-player-meta">Testo di {autore}</p>
                 )}
                 <Avanzamento posizione={posizione} durata={durata} vaiA={stato.vaiA} />
                 <p className="ascolta-player-tempi">
