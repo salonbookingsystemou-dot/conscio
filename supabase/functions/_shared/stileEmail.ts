@@ -7,6 +7,7 @@ export const EMAIL = {
   muted: '#6B6553',
   border: '#E9E3D3',
   accent: '#3F5443',
+  accentSoft: '#E8ECE3',
   ochre: '#A8763E',
   fontBody: "'Public Sans',Helvetica,Arial,sans-serif",
   fontDisplay: "'Source Serif 4',Georgia,'Times New Roman',serif"
