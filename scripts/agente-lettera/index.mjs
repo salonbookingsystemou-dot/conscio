@@ -25,7 +25,8 @@ import { componiNotifica, inviaNotifica } from './notifica.mjs'
 import { scrivi, seleziona, smista, verifica } from './passi.mjs'
 import { daiFeed, daPubmed, daRicercaWeb, leggiPagina, rispondeOk } from './raccogli.mjs'
 import { clientSupabase, hashGiaVisti } from './supabase.mjs'
-import { hashUrl, invioPrevisto, leggiParoleVietate, lunediDi, normalizzaUrl, oggiItalia } from './testi.mjs'
+import { hashUrl } from './hash.mjs'
+import { invioPrevisto, leggiParoleVietate, lunediDi, normalizzaUrl, oggiItalia } from './testi.mjs'
 
 const QUI = dirname(fileURLToPath(import.meta.url))
 const env = process.env
@@ -235,14 +236,21 @@ async function invia() {
   if (!env.CRON_SECRET) throw new Error('CRON_SECRET mancante')
   const res = await fetch(`${db.base}/functions/v1/invia-lettera`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-cron-secret': env.CRON_SECRET },
+    // La funzione decide da sé con x-cron-secret; l'Authorization serve solo a passare il controllo JWT del gateway.
+    headers: {
+      'Content-Type': 'application/json',
+      'x-cron-secret': env.CRON_SECRET,
+      Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+      apikey: env.SUPABASE_SERVICE_ROLE_KEY
+    },
     body: JSON.stringify({ bozza_id: bozza.id }),
     signal: AbortSignal.timeout(300_000)
   })
   const corpo = await res.json().catch(() => ({}))
   log(`invia-lettera: ${res.status} ${JSON.stringify(corpo)}`)
   if (!res.ok || corpo.ok === false) {
-    if (corpo.motivo === 'NON_PROGRAMMATA') return // bloccata o già partita nel frattempo: niente da fare
+    // Bloccata, già partita nel frattempo o invio automatico spento: niente da fare.
+    if (['NON_PROGRAMMATA', 'INVIO_AUTOMATICO_SPENTO'].includes(corpo.motivo)) return
     throw new Error(`invio non riuscito: ${corpo.motivo || res.status} ${corpo.errore || ''}`.trim())
   }
 }

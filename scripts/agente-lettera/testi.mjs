@@ -1,6 +1,6 @@
-// Funzioni pure su testi, URL, date e feed. Nessuna rete.
+// Funzioni pure su testi, URL, date e feed. Nessuna rete e nessun modulo di Node:
+// controlli.mjs e questo file si usano anche nella scheda del facilitatore (Vite).
 
-import { createHash } from 'node:crypto'
 import { FUSO, ORA_INVIO, PAROLE_TEMA } from './config.mjs'
 
 const ENTITA = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', rsquo: '’', lsquo: '‘', rdquo: '”', ldquo: '“', hellip: '…', ndash: '–', mdash: '—', egrave: 'è', eacute: 'é', agrave: 'à', ograve: 'ò', ugrave: 'ù', igrave: 'ì' }
@@ -116,10 +116,6 @@ export function normalizzaUrl(url) {
   } catch {
     return ''
   }
-}
-
-export function hashUrl(url) {
-  return createHash('sha256').update(normalizzaUrl(url)).digest('hex')
 }
 
 export function dominioDi(url) {

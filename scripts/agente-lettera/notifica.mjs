@@ -5,7 +5,7 @@ import { escapeHtml, htmlConCorpo, testoConFirma } from '../../supabase/function
 import { EMAIL } from '../../supabase/functions/_shared/stileEmail.ts'
 import { SITO } from './config.mjs'
 
-const LINK_SCHEDA = `${SITO}/#/admin/comunicazioni?scheda=lettera`
+const LINK_SCHEDA = `${SITO}/#/admin/comunicazioni?voce=lettera`
 
 export function oraItaliana(istante) {
   return new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit' }).format(new Date(istante))

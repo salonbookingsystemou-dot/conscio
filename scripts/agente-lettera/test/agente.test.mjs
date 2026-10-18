@@ -7,8 +7,9 @@ import { meditazioneDaTraccia, scegliMeditazione, svgSovrapposto } from '../medi
 import { nuovoConto, TettoSuperato } from '../modello.mjs'
 import { componiNotifica } from '../notifica.mjs'
 import { pulisciCandidati } from '../index.mjs'
+import { hashUrl } from '../hash.mjs'
 import {
-  dataDaEta, estraiJson, fontePerUrl, hashUrl, invioPrevisto, istanteItalia, leggiFeedXml, leggiParoleVietate,
+  dataDaEta, estraiJson, fontePerUrl, invioPrevisto, istanteItalia, leggiFeedXml, leggiParoleVietate,
   lunediDi, normalizzaUrl, parlaDelTema, testoDaHtml, trovaParoleVietate
 } from '../testi.mjs'
 import { composiLettera, dataLunga, giovediDi } from '../../../supabase/functions/_shared/letteraSettimanale.ts'
