@@ -54,6 +54,7 @@ alter table impostazioni_sito add column if not exists invio_automatico boolean 
 create or replace function tocca_bozza_lettera()
 returns trigger
 language plpgsql
+set search_path = public
 as $$
 begin
   new.aggiornata_il := now();
