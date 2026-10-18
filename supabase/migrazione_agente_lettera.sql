@@ -86,24 +86,7 @@ revoke all on fonti_lettera, bozze_lettera, notizie_lettera from anon;
 grant select, insert, update, delete on fonti_lettera, bozze_lettera to authenticated;
 grant select on notizie_lettera to authenticated;
 
--- Il facilitatore accende o spegne l'invio automatico dalla scheda «Lettera settimanale».
-create or replace function imposta_invio_automatico(p_acceso boolean)
-returns boolean
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
-  if not is_facilitatore() then
-    raise exception 'NON_AUTORIZZATO';
-  end if;
-  update impostazioni_sito set invio_automatico = p_acceso, aggiornato_il = now() where id = 1;
-  return p_acceso;
-end;
-$$;
-
-revoke all on function imposta_invio_automatico(boolean) from public;
-grant execute on function imposta_invio_automatico(boolean) to authenticated;
+-- L'interruttore «Invio automatico» si cambia dalla scheda: il facilitatore aggiorna già impostazioni_sito via RLS.
 
 -- Pulizia: le notizie già viste servono solo a non ripetersi. Dopo 6 mesi si tolgono.
 create or replace function pulisci_notizie_lettera()
