@@ -338,14 +338,7 @@ export default function Ascolta() {
             <StatoVuoto titolo="Non ci sono ancora meditazioni pubblicate" />
           )}
           <Invito impostazioni={impostazioni} slug={slugInvito} />
-          {!slug && (
-            <>
-              <IscrizioneLettera />
-              <p className="ascolta-nota">
-                Le voci sono sintetiche, salvo dove indicato. L’email serve solo per i messaggi che scegli.
-              </p>
-            </>
-          )}
+          {!slug && <IscrizioneLettera />}
         </>
       )}
     </main>
