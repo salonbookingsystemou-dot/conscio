@@ -16,7 +16,7 @@ export const ORGANIZZAZIONE = {
 export const TITOLARE = {
   nome: 'Dimitri Grassi',
   ruolo: 'Vicepresidente ASD Hanuman',
-  indirizzo: 'via San Leonardo 10, Ariano Irpino (AV)',
+  indirizzo: 'via San Leonardo 14, Ariano Irpino (AV)',
   contesto: 'Studio in Discipline Psicosociali, Università Telematica Internazionale Uninettuno',
   email: EMAIL_CONTATTO,
   sito: SITO_APP,

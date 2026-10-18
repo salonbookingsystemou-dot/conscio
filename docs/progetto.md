@@ -58,6 +58,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 18/10/2026 · Indirizzo: Via San Leonardo 14 (da Claude Code)
+Dimitri ha confermato il numero civico 14. Corretto nella firma delle email (`_shared/firmaEmail.ts`), nel footer del sito e nell’indirizzo del titolare (`TITOLARE.indirizzo` in `src/lib/contatti.js`, usato dalle informative), che dicevano 10. Ridistribuite le funzioni che usano la firma: `porta`, `invia-comunicazione`, `invia-lettera`, `invia-incoraggiamento-pratica`, `notifica-inattivita`, `promemoria-pausa`, `promemoria-questionari`, `avvisa-segnalazione-checkin`, ognuna con la sua impostazione JWT di prima. Nessuna modifica al database.
+
 ### 18/10/2026 · Box «Restiamo in contatto» come nel mockup (da Claude Code)
 Nuovo titolo «Una lettera a settimana, niente di più» (va a capo dopo la virgola) e un testo che spiega le due liste. Campo email con segnaposto «nome@esempio.it», etichette in `--ink`, caselle senza riquadro con titolo e descrizione, «Iscrivimi» a tutta larghezza. Stesse liste, consensi e comportamento di prima. Nessuna modifica al database.
 

@@ -4,7 +4,7 @@ import { EMAIL } from './stileEmail.ts'
 const MARCHIO_EMAIL = 'https://conscio.mnesti.it/email/conscio-email-2x.png'
 const SITO_HANUMAN = 'https://www.hanumanstudio.it/'
 const FIRMA_TESTO =
-  'Conscio è un progetto dell’Associazione ADS Hanuman, Via San Leonardo 10, Ariano Irpino (AV) — hanumanstudio.it — tutti i diritti sono riservati'
+  'Conscio è un progetto dell’Associazione ADS Hanuman, Via San Leonardo 14, Ariano Irpino (AV) — hanumanstudio.it — tutti i diritti sono riservati'
 
 export function escapeHtml(testo: string): string {
   return testo
@@ -18,7 +18,7 @@ export function firmaHtml(): string {
     `<div style="margin-top:28px;padding-top:20px;border-top:1px solid ${EMAIL.border};">`,
     `<img src="${MARCHIO_EMAIL}" width="199" height="45" alt="Conscio" style="display:block;border:0;width:199px;height:45px;">`,
     `<p style="margin:12px 0 0;font-family:${EMAIL.fontBody};font-size:12px;line-height:1.5;color:${EMAIL.muted};">`,
-    'Conscio è un progetto dell’Associazione ADS Hanuman, Via San Leonardo 10, Ariano Irpino (AV) — ',
+    'Conscio è un progetto dell’Associazione ADS Hanuman, Via San Leonardo 14, Ariano Irpino (AV) — ',
     `<a href="${SITO_HANUMAN}" style="color:${EMAIL.accent};text-decoration:underline;">hanumanstudio.it</a>`,
     ' — tutti i diritti sono riservati',
     '</p>',

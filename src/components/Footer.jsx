@@ -9,7 +9,7 @@ export default function Footer() {
       <div className="site-footer-firma">
         <Marchio variante="orizzontale" altezza={28} />
         <p>
-          Conscio è un progetto dell’Associazione ADS Hanuman, Via San Leonardo 10, Ariano Irpino (AV) —{' '}
+          Conscio è un progetto dell’Associazione ADS Hanuman, Via San Leonardo 14, Ariano Irpino (AV) —{' '}
           <a href={SITO_HANUMAN} target="_blank" rel="noopener noreferrer">hanumanstudio.it</a>
           {' '}— tutti i diritti sono riservati
         </p>
