@@ -5301,6 +5301,51 @@ body:has(.splash) {
   font-size: var(--fs-display);
   line-height: var(--lh-display);
 }
+.ascolta-citazione {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+  margin: 0;
+}
+.ascolta-citazione-segno {
+  display: block;
+  fill: var(--faint);
+}
+.ascolta-citazione blockquote {
+  margin: 0;
+}
+.ascolta-testa .ascolta-citazione blockquote p {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-citazione-lunga);
+  line-height: 1.25;
+  color: var(--ink);
+  text-wrap: balance;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+.ascolta-citazione.is-breve blockquote p {
+  font-size: var(--fs-citazione-breve);
+}
+.ascolta-citazione.is-media blockquote p {
+  font-size: var(--fs-citazione-media);
+}
+.ascolta-citazione figcaption {
+  display: flex;
+  flex-direction: column;
+}
+.ascolta-citazione-autore {
+  font-size: var(--fs-body);
+  font-weight: 600;
+  color: var(--ink);
+}
+.ascolta-citazione cite {
+  font-style: italic;
+  font-size: var(--fs-small);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
 .ascolta-testa p,
 .ascolta-descrizione {
   margin: 0;

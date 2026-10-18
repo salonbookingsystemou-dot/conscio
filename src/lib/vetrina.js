@@ -45,6 +45,7 @@ function avvisa() {
 export function invalidaVetrina() {
   cacheImpostazioni = null
   voloImpostazioni = null
+  cacheCitazione = undefined
   avvisa()
 }
 
@@ -69,6 +70,24 @@ export async function leggiImpostazioniPubbliche() {
 export function vetrinaAperta() {
   if (cacheImpostazioni) return Promise.resolve(cacheImpostazioni.vetrina_attiva === true)
   return leggiImpostazioniPubbliche().then(dati => dati.vetrina_attiva === true)
+}
+
+// Una citazione al giorno, la stessa per tutti. Errori e assenza danno null: la pagina mostra l'intestazione di sempre.
+let cacheCitazione
+let voloCitazione = null
+
+export function caricaCitazione() {
+  if (cacheCitazione !== undefined) return Promise.resolve(cacheCitazione)
+  if (!voloCitazione) {
+    voloCitazione = supabase.rpc('vetrina_citazione').then(({ data, error }) => {
+      if (error) return null
+      cacheCitazione = (Array.isArray(data) ? data[0] : data) || null
+      return cacheCitazione
+    }).catch(() => null).finally(() => {
+      voloCitazione = null
+    })
+  }
+  return voloCitazione
 }
 
 export async function leggiElenco() {

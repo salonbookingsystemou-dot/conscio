@@ -89,6 +89,10 @@
   --fs-meta: 13px;
   --fs-caption: 12px;
   --fs-eyebrow: 11px;
+  /* Citazione in testa ad Ascolta: scala con la lunghezza del testo. */
+  --fs-citazione-breve: 26px;
+  --fs-citazione-media: 23px;
+  --fs-citazione-lunga: 21px;
   --ls-eyebrow: 0.12em;
   --ls-table: 0.06em;
   --lh-display: 1.1;

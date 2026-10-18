@@ -5,6 +5,7 @@ import { useAuth } from '../lib/auth.jsx'
 import StatoAttesa from '../components/StatoAttesa.jsx'
 import StatoVuoto from '../components/StatoVuoto.jsx'
 import {
+  caricaCitazione,
   etichettaLicenza,
   etichettaVoce,
   eventoVetrina,
@@ -26,6 +27,29 @@ function etichettaFonte(url) {
   }
 }
 
+
+function classeCitazione(testo) {
+  if (testo.length <= 45) return 'is-breve'
+  if (testo.length <= 70) return 'is-media'
+  return 'is-lunga'
+}
+
+function Citazione({ citazione }) {
+  const testo = citazione.quote_text.trim()
+  const conCaporali = /^«[\s\S]*»$/.test(testo) ? testo : `«${testo}»`
+  return (
+    <figure className={`ascolta-citazione ${classeCitazione(testo)}`}>
+      <svg className="ascolta-citazione-segno" viewBox="0 0 28 22" width="28" height="22" aria-hidden="true" focusable="false">
+        <path d="M0 22V13.2C0 5.6 4.2 1.2 11 0l1.3 3.1C8.3 4.4 6.3 7 6.1 10.6H12V22H0Zm16 0V13.2C16 5.6 20.2 1.2 27 0l1 3.1c-4 1.3-6 3.9-6.2 7.5H28V22H16Z" />
+      </svg>
+      <blockquote><p>{conCaporali}</p></blockquote>
+      <figcaption>
+        <span className="ascolta-citazione-autore">{citazione.author}</span>
+        <cite>{citazione.book_title}</cite>
+      </figcaption>
+    </figure>
+  )
+}
 
 function Invito({ impostazioni, slug }) {
   if (!impostazioni) return null
@@ -116,6 +140,17 @@ export default function Ascolta() {
   const [traccia, setTraccia] = useState(null)
   const [avviso, setAvviso] = useState('')
   const [tentativo, setTentativo] = useState(0)
+  const [citazione, setCitazione] = useState(null)
+
+  // Solo nella vista elenco; finché non arriva resta l'intestazione di sempre.
+  useEffect(() => {
+    if (slug) return undefined
+    let vivo = true
+    caricaCitazione().then(dati => {
+      if (vivo) setCitazione(dati?.quote_text ? dati : null)
+    })
+    return () => { vivo = false }
+  }, [slug])
 
   useEffect(() => {
     let vivo = true
@@ -271,10 +306,19 @@ export default function Ascolta() {
       {stato === 'pronta' && (!slug || voceMostrata) && (
         <>
           <header className="ascolta-testa">
-            <h1>E se ti fermassi un momento?</h1>
-            <p>
-              Dedica del tempo alla meditazione tutte le volte che senti il bisogno di tornare in contatto con te stessə.
-            </p>
+            {!slug && citazione ? (
+              <>
+                <h1 className="visually-hidden">Ascolta</h1>
+                <Citazione citazione={citazione} />
+              </>
+            ) : (
+              <>
+                <h1>E se ti fermassi un momento?</h1>
+                <p>
+                  Dedica del tempo alla meditazione tutte le volte che senti il bisogno di tornare in contatto con te stessə.
+                </p>
+              </>
+            )}
           </header>
           {voceMostrata?.audio_url && player(voceMostrata, voceMostrata.slug === evidenza?.slug)}
           {slug && traccia && !traccia.audio_url && (

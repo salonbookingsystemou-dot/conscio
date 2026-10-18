@@ -45,7 +45,7 @@ flowchart TB
 | I tuoi dati | `/dati` | `IdentitaCodice`, card Export e Reset, `DialogConferma` |
 | Segnala | `/segnala` | `SegnalaProblema` (con campo trappola anti-spam) |
 | Accedi | `/accedi` | login facilitatore (card + 2 campi) |
-| Ascolta | `/ascolta` | card della meditazione della settimana con play rotondo (`PlayerVetrina`), invito al percorso. Tre stati: caricamento, «La sezione non è ancora aperta», errore |
+| Ascolta | `/ascolta` | in testa la citazione del giorno (`vetrina_citazione`: testo in serif con dimensione per lunghezza `is-breve`/`is-media`/`is-lunga`, autore, libro in `cite`; `h1` «Ascolta» solo per i lettori di schermo). Senza citazione (in arrivo, errore, nessuna) resta l’intestazione «E se ti fermassi un momento?». Poi card della meditazione della settimana con play rotondo (`PlayerVetrina`), invito al percorso. Tre stati: caricamento, «La sezione non è ancora aperta», errore |
 | Meditazione | `/ascolta/:slug` | card con play (`PlayerVetrina`), scheda (testo, licenza, fonte, voce), condivisione, «Ascolta un’altra» |
 
 Le tavole di riferimento sono in `docs/mockup/ascolta-*.png`. La vetrina usa il guscio del partecipante anche se il facilitatore è entrato. Nell’header di Ascolta resta solo il logo, senza menu. Il link in nav delle altre pagine compare solo con la vetrina accesa. La barra bassa non ha la voce Ascolta.

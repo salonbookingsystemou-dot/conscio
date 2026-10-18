@@ -54,6 +54,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 18/10/2026 · Citazione in testa ad Ascolta (da Claude Code)
+In `/ascolta` (solo la vista elenco, non `/ascolta/:slug`) l’intestazione mostra una citazione dalla tabella `quotes`: testo, autore e libro, con un segno di virgolette discreto e la dimensione del testo che scala con la lunghezza (token `--fs-citazione-*`). Una al giorno, uguale per tutti, a rotazione stabile sulle citazioni attive in italiano. Arriva dalla nuova RPC `vetrina_citazione` (`supabase/migrazione_citazione_vetrina.sql`, `security definer`, eseguibile da anon e authenticated) che restituisce solo testo, autore e libro e niente con la vetrina spenta. **La tabella `quotes` resta chiusa ad `anon`**; `scegli_citazione`, `quote_sent_log` e l’email di incoraggiamento non cambiano. Senza citazione (caricamento, errore, nessuna) resta l’intestazione di prima. Le anteprime social di `/ascolta` non cambiano. Nessun dato raccolto.
+
 ### 18/10/2026 · Link di Ascolta nel profilo Instagram (da Claude Code)
 Instagram, nei link del profilo, codifica il `#` in `%23`: `conscio.mnesti.it/#/ascolta` diventava `/%23/ascolta` e GitHub Pages rispondeva con la pagina «non trovata». Il link da usare su Instagram (e ovunque) è `https://conscio.mnesti.it/ascolta/`, la pagina statica già generata da `scripts/pagine-condivisione.mjs`, con anteprima e rimando a `/#/ascolta`. Per i link già pubblicati, `public/404.html` e `index.html` (servito dal service worker a chi ha già aperto l’app) ora riportano `/%23/...` a `/#/...`. Nessuna modifica al database.
 
