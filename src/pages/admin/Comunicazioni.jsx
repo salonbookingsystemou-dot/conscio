@@ -7,6 +7,8 @@ import PaginaAdmin from '../../components/admin/PaginaAdmin.jsx'
 import { ElencoPannello, PannelloDettaglio } from '../../components/admin/Pannelli.jsx'
 import { IconaPosta } from '../../components/admin/IconeAdmin.jsx'
 import { useSnackbar } from '../../components/admin/Snackbar.jsx'
+import LetteraSettimanale from '../../components/admin/LetteraSettimanale.jsx'
+import { leggiConteggiLettera } from '../../lib/lettera.js'
 
 const TIPI = [
   { id: 'reminder_t3', label: 'Promemoria T3 (follow-up)' },
@@ -138,10 +140,11 @@ export default function Comunicazioni() {
   const [errLetturaPausa, setErrLetturaPausa] = useState(null)
   const [caricato, setCaricato] = useState(false)
   const [errLettura, setErrLettura] = useState(null)
+  const [conteggiLettera, setConteggiLettera] = useState(null)
   const [search, setSearch] = useSearchParams()
   const { mostra } = useSnackbar()
 
-  // La voce aperta sta nell'indirizzo: id di una comunicazione, «nuova», «inattivita» o «pausa».
+  // La voce aperta sta nell'indirizzo: id di una comunicazione, «nuova», «inattivita», «pausa» o «lettera».
   const voce = search.get('voce') || ''
   const filtro = FILTRI.some(f => f.id === search.get('filtro')) ? search.get('filtro') : 'tutte'
 
@@ -169,6 +172,7 @@ export default function Comunicazioni() {
       supabase.from('promemoria_pausa').select('id, riferimento, inviata_il, utenti(codice_partecipante)').order('inviata_il', { ascending: false }),
       supabase.rpc('candidati_pausa_pratica')
     ])
+    leggiConteggiLettera().then(setConteggiLettera).catch(() => setConteggiLettera(null))
     setCaricato(true)
     setErrLettura(cicliRes.error || comRes.error
       ? 'Non è stato possibile leggere i cicli o le comunicazioni. Ricarica la pagina.'
@@ -572,6 +576,7 @@ export default function Comunicazioni() {
   else if (aperta) dettaglio = { titolo: aperta.oggetto || etichettaTipo(aperta.tipo), sopratitolo: `Inviata il ${data(aperta.data_invio)}` }
   else if (voce === 'inattivita') dettaglio = { titolo: 'Inattività · da remoto', sopratitolo: 'Email automatica' }
   else if (voce === 'pausa') dettaglio = { titolo: 'Pausa di pratica', sopratitolo: 'Email automatica' }
+  else if (voce === 'lettera') dettaglio = { titolo: 'Lettera settimanale', sopratitolo: 'Restiamo in contatto' }
 
   function modulo() {
     return (
@@ -793,6 +798,29 @@ export default function Comunicazioni() {
               <ul className="elenco-righe">{AUTOMATICHE.map(rigaAutomatica)}</ul>
             </div>
           )}
+          {filtro === 'tutte' && (
+            <div className="elenco-gruppo">
+              <h2 className="elenco-gruppo-titolo">Restiamo in contatto</h2>
+              <ul className="elenco-righe">
+                <li>
+                  <button
+                    type="button"
+                    className="riga-elenco riga-cliccabile"
+                    aria-current={voce === 'lettera' ? 'true' : undefined}
+                    onClick={() => apri('lettera')}
+                  >
+                    <span className="riga-elenco-testi">
+                      <span className="riga-elenco-titolo">Lettera settimanale</span>
+                      <span className="riga-elenco-meta">Iscritti da Ascolta, separati dai partecipanti</span>
+                    </span>
+                    {conteggiLettera && (
+                      <Badge tono="ok">{conteggiLettera.lettera} {conteggiLettera.lettera === 1 ? 'iscritto' : 'iscritti'}</Badge>
+                    )}
+                  </button>
+                </li>
+              </ul>
+            </div>
+          )}
           {mostraGruppo('inviate') && (
             <div className="elenco-gruppo">
               <h2 className="elenco-gruppo-titolo">Inviate</h2>
@@ -817,6 +845,7 @@ export default function Comunicazioni() {
         {aperta && !inModifica && inviata(aperta)}
         {voce === 'inattivita' && dettaglioInattivita()}
         {voce === 'pausa' && dettaglioPausa()}
+        {voce === 'lettera' && <LetteraSettimanale onCambio={setConteggiLettera} />}
       </PannelloDettaglio>
 
       <DialogConferma

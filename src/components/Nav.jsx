@@ -20,7 +20,8 @@ export default function Nav() {
     caricamento
   } = usePartecipante()
   const { pathname } = useLocation()
-  const paginaAscolta = pathname === '/ascolta' || pathname.startsWith('/ascolta/')
+  // Le pagine della lettera hanno il guscio di Ascolta: solo il logo, senza menu.
+  const paginaAscolta = pathname === '/ascolta' || pathname.startsWith('/ascolta/') || pathname.startsWith('/lettera/')
   const [aperto, setAperto] = useState(false)
   const menuId = useId()
   const vetrinaAperta = useVetrinaAperta()

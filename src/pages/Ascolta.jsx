@@ -4,6 +4,7 @@ import PlayerVetrina, { Credito, IconaCaso } from '../components/PlayerVetrina.j
 import { useAuth } from '../lib/auth.jsx'
 import StatoAttesa from '../components/StatoAttesa.jsx'
 import StatoVuoto from '../components/StatoVuoto.jsx'
+import IscrizioneLettera from '../components/IscrizioneLettera.jsx'
 import {
   caricaCitazione,
   etichettaLicenza,
@@ -337,6 +338,14 @@ export default function Ascolta() {
             <StatoVuoto titolo="Non ci sono ancora meditazioni pubblicate" />
           )}
           <Invito impostazioni={impostazioni} slug={slugInvito} />
+          {!slug && (
+            <>
+              <IscrizioneLettera />
+              <p className="ascolta-nota">
+                Le voci sono sintetiche, salvo dove indicato. L’email serve solo per i messaggi che scegli.
+              </p>
+            </>
+          )}
         </>
       )}
     </main>

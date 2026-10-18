@@ -1,5 +1,7 @@
-// Porta unica per Entra, Iscrizione, recupero codice e Accedi facilitatore.
+// Porta unica per Entra, Iscrizione, recupero codice, Accedi facilitatore e «Restiamo in contatto».
 // Applica tetti tentativi per IP (hash) prima delle RPC / Auth.
+// Distribuire con --no-verify-jwt: l'uscita con un clic dei client di posta arriva senza Authorization.
+// Le azioni del facilitatore (notifica_idoneita) controllano il JWT da sole.
 // Richiede: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY.
 // Opzionale per email codice: RESEND_API_KEY, RESEND_FROM.
 // Opzionale per l'analisi automatica delle segnalazioni:
@@ -7,6 +9,13 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { htmlConFirma, testoConFirma } from '../_shared/firmaEmail.ts'
+import {
+  emailConferma,
+  emailPreferenze,
+  REPLY_TO_LETTERA,
+  VERSIONE_TESTO_LETTERA,
+  type Lista
+} from '../_shared/emailLettera.ts'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -324,6 +333,87 @@ function testoAvvisoIscrizione(opts: {
   ].join('\n')
 }
 
+// ── «Restiamo in contatto» ────────────────────────────────────────────────
+// Gli iscritti alla lettera sono separati dai partecipanti: qui non si leggono utenti né iscrizioni.
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const SETTE_GIORNI_MS = 7 * 24 * 60 * 60 * 1000
+const DIECI_MINUTI_MS = 10 * 60 * 1000
+
+type RigaLettera = {
+  id: string
+  stato: 'in_attesa' | 'confermato' | 'cancellato'
+  avviso_ciclo: boolean
+  lettera: boolean
+  conferma_inviata_il: string | null
+  token_uscita: string
+}
+
+function listeAttive(r: { avviso_ciclo: boolean; lettera: boolean }): Lista[] {
+  return (['avviso_ciclo', 'lettera'] as Lista[]).filter((l) => r[l])
+}
+
+// Inviata da porta: è un'email di servizio, senza List-Unsubscribe.
+async function inviaEmailLettera(to: string, email: { oggetto: string; testo: string; html: string }) {
+  const apiKey = Deno.env.get('RESEND_API_KEY')
+  if (!apiKey) return false
+  const from = Deno.env.get('RESEND_FROM') || 'Percorso MBSR <noreply@mnesti.it>'
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from,
+        to: [to],
+        reply_to: REPLY_TO_LETTERA,
+        subject: email.oggetto,
+        text: email.testo,
+        html: email.html
+      })
+    })
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+/** Una riga cancellata tiene solo email, stato e data: serve a non scrivere più a chi è uscito. */
+function campiCancellato() {
+  return {
+    stato: 'cancellato',
+    avviso_ciclo: false,
+    avviso_ciclo_consenso_il: null,
+    lettera: false,
+    lettera_consenso_il: null,
+    token_conferma_hash: null,
+    token_conferma_scade: null,
+    conferma_inviata_il: null,
+    confermato_il: null,
+    ultimo_ciclo_avvisato: null,
+    cancellato_il: new Date().toISOString()
+  }
+}
+
+// deno-lint-ignore no-explicit-any
+async function esciLettera(admin: any, tokenUscita: string, lista: Lista | null) {
+  const { data: riga } = await admin
+    .from('iscritti_lettera')
+    .select('id, stato, avviso_ciclo, lettera')
+    .eq('token_uscita', tokenUscita)
+    .maybeSingle()
+  // Link sconosciuto o già usato: per chi clicca il risultato è lo stesso, non riceve più nulla.
+  if (!riga || riga.stato === 'cancellato') return { ok: true, liste: [] as Lista[] }
+  const resta = lista
+    ? listeAttive({ ...riga, [lista]: false })
+    : []
+  const patch = resta.length === 0 || riga.stato !== 'confermato'
+    ? campiCancellato()
+    : { [lista as Lista]: false, [`${lista}_consenso_il`]: null }
+  const { error } = await admin.from('iscritti_lettera').update(patch).eq('id', riga.id)
+  if (error) return { ok: false, motivo: 'errore' }
+  return { ok: true, liste: resta }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   if (req.method !== 'POST') return json({ error: 'METODO_NON_CONSENTITO' }, 405)
@@ -337,6 +427,31 @@ Deno.serve(async (req) => {
 
   const admin = createClient(url, serviceKey)
   const chiaveIp = await hashChiave(ipDaRichiesta(req))
+
+  // Uscita con un clic dai client di posta (RFC 8058): POST con List-Unsubscribe=One-Click
+  // e il token nella query string. Arriva senza Authorization: porta va distribuita con --no-verify-jwt.
+  const query = new URL(req.url).searchParams
+  if (query.get('azione') === 'esci_lettera') {
+    const token = (query.get('u') || '').trim()
+    const lista = query.get('lista')
+    if (!UUID.test(token)) return new Response('Link non valido', { status: 400, headers: cors })
+    const { error: limite } = await admin.rpc('assert_limite', {
+      p_azione: 'esci_lettera',
+      p_chiave: chiaveIp,
+      p_max: 60,
+      p_secondi: 3600
+    })
+    if (limite) return new Response('Troppi tentativi', { status: 429, headers: cors })
+    const esito = await esciLettera(
+      admin,
+      token,
+      lista === 'avviso_ciclo' || lista === 'lettera' ? lista : null
+    )
+    return new Response(esito.ok ? 'Iscrizione cancellata' : 'Errore', {
+      status: esito.ok ? 200 : 500,
+      headers: { ...cors, 'Content-Type': 'text/plain; charset=utf-8' }
+    })
+  }
 
   let corpo: Record<string, unknown>
   try {
@@ -802,6 +917,134 @@ Deno.serve(async (req) => {
     })
     if (error) return json({ error: 'ERRORE' }, 500)
     return json({ ok: true })
+  }
+
+  // Risposta sempre { ok: true }: nuova, in attesa, confermata o cancellata non si distinguono.
+  if (azione === 'iscrivi_lettera') {
+    const honeypot = typeof corpo.sito_web === 'string' ? corpo.sito_web.trim() : ''
+    if (honeypot) return json({ ok: true })
+
+    const email = typeof corpo.email === 'string' ? corpo.email.trim().toLowerCase() : ''
+    const scelte = { avviso_ciclo: corpo.avviso_ciclo === true, lettera: corpo.lettera === true }
+    if (!emailValida(email)) return json({ error: 'EMAIL_NON_VALIDA' }, 400)
+    if (!scelte.avviso_ciclo && !scelte.lettera) return json({ error: 'NESSUNA_LISTA' }, 400)
+
+    const blocco = await limita('iscrivi_lettera', chiaveIp, 5, 3600)
+    if (blocco) return blocco
+
+    try {
+      await admin.rpc('pulisci_iscritti_lettera')
+
+      const { data: riga } = await admin
+        .from('iscritti_lettera')
+        .select('id, stato, avviso_ciclo, lettera, conferma_inviata_il, token_uscita')
+        .eq('email', email)
+        .maybeSingle() as { data: RigaLettera | null }
+
+      const ora = new Date()
+      const oraIso = ora.toISOString()
+      const consensi = {
+        avviso_ciclo: scelte.avviso_ciclo,
+        avviso_ciclo_consenso_il: scelte.avviso_ciclo ? oraIso : null,
+        lettera: scelte.lettera,
+        lettera_consenso_il: scelte.lettera ? oraIso : null,
+        versione_testo: VERSIONE_TESTO_LETTERA
+      }
+      const recente = (quando: string | null) =>
+        Boolean(quando) && ora.getTime() - new Date(quando as string).getTime() < DIECI_MINUTI_MS
+
+      if (!riga || riga.stato === 'cancellato' || riga.stato === 'in_attesa') {
+        // In attesa: le scelte si aggiornano sempre, la conferma si reinvia al più una volta ogni 10 minuti.
+        const reinvia = !riga || riga.stato === 'cancellato' || !recente(riga.conferma_inviata_il)
+        const { token, hash } = await nuovoToken()
+        const campi = {
+          ...consensi,
+          stato: 'in_attesa',
+          cancellato_il: null,
+          confermato_il: null,
+          ...(reinvia
+            ? {
+                token_conferma_hash: hash,
+                token_conferma_scade: new Date(ora.getTime() + SETTE_GIORNI_MS).toISOString(),
+                conferma_inviata_il: oraIso
+              }
+            : {})
+        }
+        const { error } = riga
+          ? await admin.from('iscritti_lettera').update(campi).eq('id', riga.id)
+          : await admin.from('iscritti_lettera').insert({ email, ...campi })
+        if (error) console.warn('iscrivi_lettera', error.message)
+        else if (reinvia) await inviaEmailLettera(email, emailConferma(token, listeAttive(scelte)))
+      } else {
+        // Confermato: si aggiungono solo le liste nuove, con la loro data di consenso.
+        const nuove = listeAttive(scelte).filter((l) => !riga[l])
+        if (nuove.length > 0) {
+          const patch: Record<string, unknown> = { versione_testo: VERSIONE_TESTO_LETTERA }
+          for (const l of nuove) {
+            patch[l] = true
+            patch[`${l}_consenso_il`] = oraIso
+          }
+          const avvisa = !recente(riga.conferma_inviata_il)
+          if (avvisa) patch.conferma_inviata_il = oraIso
+          const { error } = await admin.from('iscritti_lettera').update(patch).eq('id', riga.id)
+          if (error) console.warn('iscrivi_lettera', error.message)
+          else if (avvisa) {
+            await inviaEmailLettera(
+              email,
+              emailPreferenze(riga.token_uscita, listeAttive({
+                avviso_ciclo: riga.avviso_ciclo || scelte.avviso_ciclo,
+                lettera: riga.lettera || scelte.lettera
+              }))
+            )
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('iscrivi_lettera', err instanceof Error ? err.message : err)
+    }
+    return json({ ok: true })
+  }
+
+  if (azione === 'conferma_lettera') {
+    const blocco = await limita('conferma_lettera', chiaveIp, 30, 3600)
+    if (blocco) return blocco
+
+    const token = typeof corpo.token === 'string' ? corpo.token.trim() : ''
+    if (!/^[0-9a-f]{64}$/i.test(token)) return json({ ok: false, motivo: 'scaduto' })
+
+    const { data: riga } = await admin
+      .from('iscritti_lettera')
+      .select('id, avviso_ciclo, lettera')
+      .eq('token_conferma_hash', await hashChiave(token.toLowerCase()))
+      .eq('stato', 'in_attesa')
+      .gt('token_conferma_scade', new Date().toISOString())
+      .maybeSingle()
+    if (!riga) return json({ ok: false, motivo: 'scaduto' })
+
+    const { error } = await admin
+      .from('iscritti_lettera')
+      .update({
+        stato: 'confermato',
+        confermato_il: new Date().toISOString(),
+        token_conferma_hash: null,
+        token_conferma_scade: null
+      })
+      .eq('id', riga.id)
+      .eq('stato', 'in_attesa')
+    if (error) return json({ error: 'ERRORE' }, 500)
+    return json({ ok: true, liste: listeAttive(riga) })
+  }
+
+  if (azione === 'esci_lettera') {
+    const blocco = await limita('esci_lettera', chiaveIp, 60, 3600)
+    if (blocco) return blocco
+
+    const token = typeof corpo.token_uscita === 'string' ? corpo.token_uscita.trim() : ''
+    if (!UUID.test(token)) return json({ ok: false, motivo: 'link_non_valido' })
+    const lista = corpo.lista === 'avviso_ciclo' || corpo.lista === 'lettera' ? corpo.lista : null
+    const esito = await esciLettera(admin, token, lista)
+    if (!esito.ok) return json({ error: 'ERRORE' }, 500)
+    return json(esito)
   }
 
   if (azione === 'prova_firma') {

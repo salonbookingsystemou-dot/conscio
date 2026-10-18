@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { supabase } from '../../../lib/supabaseClient'
 import DialogConferma from '../../../components/DialogConferma.jsx'
+import AvvisoCicloLettera from '../../../components/admin/AvvisoCicloLettera.jsx'
 import { eIdoneo, eRemoto, etichettaAvanzamento, linkIncontroValido } from '../../../lib/cicli.js'
 
 export default function Panoramica() {
@@ -165,6 +166,8 @@ export default function Panoramica() {
           </div>
         </div>
       </section>
+
+      <AvvisoCicloLettera ciclo={ciclo} />
 
       <footer className="dash-ciclo-pericolo">
         <div>

@@ -28,6 +28,14 @@ const DOCS = {
     titolo: 'Uso dei punteggi PSS-10 e FFMQ-I',
     badge: 'Protocollo',
     lead: 'Limiti di lettura dei numeri per chi partecipa e per chi conduce il percorso. Non è un uso clinico.'
+  },
+  lettera: {
+    titolo: '«Restiamo in contatto»: avviso del ciclo e lettera',
+    badge: 'Art. 13 GDPR',
+    lead: 'Come usiamo la tua email se scegli l’avviso del prossimo ciclo o la lettera settimanale in Ascolta. È separato dal percorso e dallo studio pilota.',
+    // Cambiando questo testo, aggiorna anche VERSIONE_TESTO_LETTERA in supabase/functions/_shared/emailLettera.ts.
+    data: '18 ottobre 2026',
+    torna: { a: '/ascolta', etichetta: 'Torna ad Ascolta' }
   }
 }
 
@@ -88,6 +96,12 @@ function Informativa() {
           il percorso. Non c’è account e non si usa il codice. L’indirizzo IP serve
           solo al limite di richieste, come per il resto dell’app, e resta un hash
           non collegato alla traccia.
+        </li>
+        <li>
+          <strong>Avviso del prossimo ciclo e lettera settimanale</strong> (facoltativi, da Ascolta):
+          art. 6, par. 1, lett. a) GDPR — consenso, distinto per ciascuna delle due liste. Sono dati
+          separati dal percorso e dallo studio: dettagli in{' '}
+          <Link to="/documenti/lettera">«Restiamo in contatto»</Link>.
         </li>
       </ul>
       <p>
@@ -424,12 +438,99 @@ function ModuloB() {
   )
 }
 
+function DocLettera() {
+  return (
+    <>
+      <h3>1. Chi tratta i dati</h3>
+      <p>
+        {TITOLARE.nome}, {TITOLARE.ruolo}, {TITOLARE.indirizzo}. Recapito: {MAIL}.
+      </p>
+
+      <h3>2. Quali dati</h3>
+      <p>
+        Il tuo indirizzo email, le liste che hai scelto, la data in cui hai dato ciascun consenso e la
+        versione di questo testo, la data della conferma ed eventualmente quella dell’uscita. Per la
+        conferma e l’uscita usiamo due codici casuali; del codice di conferma salviamo solo un’impronta.
+      </p>
+      <p>
+        Non chiediamo il nome. Non salviamo l’indirizzo IP in chiaro: serve solo, come impronta non
+        reversibile, a limitare le richieste ripetute. Non registriamo se apri le email o se clicchi i link.
+      </p>
+
+      <h3>3. Per cosa</h3>
+      <ul>
+        <li>
+          <strong>Avviso del prossimo ciclo:</strong> una sola email quando si aprono le iscrizioni a un
+          nuovo ciclo del percorso. Per ogni ciclo l’avviso arriva una volta.
+        </li>
+        <li>
+          <strong>Lettera settimanale:</strong> notizie, studi ed eventi di mindfulness in Italia e nel
+          mondo, circa una volta alla settimana.
+        </li>
+      </ul>
+      <p>
+        Usiamo l’indirizzo solo per la lista o le liste che hai scelto, e per le email di servizio
+        collegate: la conferma dell’iscrizione e l’avviso se cambi le tue preferenze.
+      </p>
+
+      <h3>4. Su quale base</h3>
+      <p>
+        Il tuo consenso (art. 6, par. 1, lett. a) GDPR), dato separatamente per ciascuna lista e confermato
+        dal link che ti mandiamo per email. Senza conferma non ti scriviamo. Puoi revocarlo in qualsiasi
+        momento con un clic, dal link in fondo a ogni email: non servono accesso né altre conferme. La
+        revoca non tocca quello che è stato inviato prima.
+      </p>
+
+      <h3>5. Chi li vede</h3>
+      <ul>
+        <li>
+          chi conduce il percorso, che vede solo quanti sono gli iscritti a ciascuna lista, non gli
+          indirizzi;
+        </li>
+        <li>il fornitore del database (Supabase), con server in Europa;</li>
+        <li>
+          il fornitore che spedisce le email, Resend, che riceve l’indirizzo e il testo del messaggio per
+          recapitarlo. Resend può trattare dati fuori dall’Unione europea, in particolare negli Stati Uniti:
+          il trasferimento avviene secondo le sue condizioni, con le garanzie previste dal GDPR (decisione di
+          adeguatezza o clausole contrattuali tipo).
+        </li>
+      </ul>
+
+      <h3>6. Quanto tempo li teniamo</h3>
+      <ul>
+        <li>Una richiesta non confermata si cancella dopo 7 giorni.</li>
+        <li>Finché resti iscritto, teniamo i dati del punto 2.</li>
+        <li>
+          Quando esci da tutte le liste resta solo l’indirizzo, segnato come cancellato, con la data
+          dell’uscita: serve a non scriverti più. Se ti iscrivi di nuovo, ricevi una nuova conferma.
+          Per cancellare anche questo, scrivi a {MAIL}.
+        </li>
+      </ul>
+
+      <h3>7. Separato dallo studio</h3>
+      <p>
+        Chi si iscrive all’avviso o alla lettera non diventa partecipante del percorso. Questi dati stanno
+        in un archivio a parte e non vengono mai collegati al codice partecipante, alle iscrizioni ai cicli,
+        ai questionari, ai check-in o al diario di pratica dello studio pilota, anche se usi la stessa email.
+      </p>
+
+      <h3>8. I tuoi diritti</h3>
+      <p>
+        Puoi chiedere accesso, correzione, cancellazione, limitazione e portabilità scrivendo a {MAIL}, e
+        presentare reclamo al <a href={GARANTE_URL} target="_blank" rel="noopener noreferrer">Garante per la
+        protezione dei dati personali</a>.
+      </p>
+    </>
+  )
+}
+
 const CORPI = {
   informativa: Informativa,
   'modulo-a': ModuloA,
   'modulo-b': ModuloB,
   diritti: Diritti,
-  'uso-punteggi': UsoPunteggi
+  'uso-punteggi': UsoPunteggi,
+  lettera: DocLettera
 }
 
 export default function Documento() {
@@ -447,12 +548,12 @@ export default function Documento() {
         <Corpo />
       </div>
       <p className="hint">
-        Testo del 12 ottobre 2026, per il pilota. Un avvocato, un DPO o il
+        Testo del {meta.data || '12 ottobre 2026'}, per il pilota. Un avvocato, un DPO o il
         comitato etico di ateneo possono ancora rileggerlo; i contenuti operativi
         (titolare, basi, diritti, strumenti) sono quelli usati in applicazione.
       </p>
       <div className="doc-azioni">
-        <Link className="btn" to="/iscrizione">Torna all’iscrizione</Link>
+        <Link className="btn" to={meta.torna?.a || '/iscrizione'}>{meta.torna?.etichetta || 'Torna all’iscrizione'}</Link>
         {slug !== 'informativa' && (
           <Link className="btn btn-ghost" to="/documenti/informativa">Informativa privacy</Link>
         )}

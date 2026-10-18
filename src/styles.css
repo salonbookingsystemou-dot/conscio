@@ -5906,3 +5906,106 @@ body:has(.splash) {
 @media (prefers-reduced-motion: reduce) {
   .ascolta-sfondo video { display: none; }
 }
+
+/* «Restiamo in contatto»: box in Ascolta e pagine /lettera/* */
+.stato-attesa.is-inline {
+  display: inline-flex;
+  gap: var(--space-8);
+  margin: 0;
+  color: inherit;
+  font-size: inherit;
+}
+.stato-attesa.is-inline .stato-attesa-anello {
+  width: 16px;
+  height: 16px;
+  border-color: color-mix(in srgb, currentColor 30%, transparent);
+  border-top-color: currentColor;
+}
+.ascolta-lettera {
+  margin-top: var(--space-16);
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
+}
+.ascolta-lettera h2 {
+  margin: 0 0 var(--space-8);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-section);
+  line-height: var(--lh-title);
+}
+.ascolta-lettera-testo {
+  margin: 0 0 var(--space-20);
+  color: var(--ink-2);
+}
+.ascolta-lettera .field input[type="email"] {
+  font-size: 16px;
+}
+.ascolta-lettera-scelte {
+  min-width: 0;
+  margin: 0 0 var(--space-20);
+  padding: 0;
+  border: 0;
+}
+.ascolta-lettera-scelte legend {
+  margin-bottom: var(--space-8);
+  padding: 0;
+  font-size: var(--fs-meta);
+  color: var(--ink-soft);
+}
+.ascolta-lettera-scelta:last-of-type {
+  margin-bottom: 0;
+}
+.ascolta-lettera-scelta label {
+  cursor: pointer;
+}
+.ascolta-lettera-scelta strong {
+  font-size: var(--fs-body);
+}
+.ascolta-lettera-modulo > .btn {
+  min-width: 140px;
+}
+.ascolta-lettera-nota {
+  margin: var(--space-12) 0 0;
+  font-size: var(--fs-caption);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+.ascolta-lettera-inviata {
+  padding: var(--space-16) var(--space-20);
+  border-radius: var(--radius-tile);
+  background: var(--surface);
+}
+.ascolta-lettera-inviata p {
+  margin: 0 0 var(--space-8);
+  overflow-wrap: anywhere;
+}
+.ascolta-lettera-inviata-titolo {
+  font-family: var(--font-display);
+  font-size: var(--fs-item);
+}
+.ascolta-lettera-altra {
+  margin-left: calc(-1 * var(--space-16));
+}
+.ascolta-nota {
+  margin: var(--space-24) 0 0;
+  font-size: var(--fs-caption);
+  color: var(--muted);
+  text-align: center;
+}
+.lettera-pagina h1 {
+  margin: 0 0 var(--space-12);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-display);
+  line-height: var(--lh-display);
+}
+.lettera-pagina p {
+  margin: 0 0 var(--space-16);
+}
+.lettera-liste {
+  margin: 0 0 var(--space-16);
+  padding-left: var(--space-20);
+}
+.lettera-liste li {
+  margin-bottom: var(--space-8);
+}

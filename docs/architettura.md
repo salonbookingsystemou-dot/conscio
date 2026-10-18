@@ -57,7 +57,8 @@ flowchart LR
 | Route | Guardia | Pagina |
 |---|---|---|
 | `/` | — | Splash |
-| `/iscrizione`, `/entra`, `/segnala`, `/dati`, `/documenti/:slug`, `/ascolta`, `/ascolta/:slug` | pubbliche | Iscrizione, Entra, Segnala, IMieiDati, Documento (informative), Ascolta |
+| `/iscrizione`, `/entra`, `/segnala`, `/dati`, `/documenti/:slug`, `/ascolta`, `/ascolta/:slug` | pubbliche | Iscrizione, Entra, Segnala, IMieiDati, Documento (informative, anche `lettera`), Ascolta |
+| `/lettera/conferma?t=`, `/lettera/esci?u=&lista=` | pubbliche, guscio di Ascolta | `pages/Lettera.jsx`: doppia conferma e uscita di «Restiamo in contatto» |
 | `/onboarding`, `/questionari` | `SoloRegistrato` | Onboarding, Questionari (T0–T3) |
 | `/programma`, `/pratica`, `/checkin`, `/comunicazioni` | `SoloPercorso` | Programma (tracce, informali, note), LogPratica (storico), Checkin, Avvisi (`Comunicazioni.jsx`, solo partecipante) |
 | `/accedi` | — | login facilitatore → `/admin/cicli` |
@@ -110,9 +111,12 @@ erDiagram
 | Dati di pratica | `log_pratica`, `checkin_settimanali` |
 | Misure | `questionari`, `item`, `risposte` (PSS-10, FFMQ-I · T0–T3) |
 | Comunicazione | `comunicazioni`, `notifiche_inattivita`, `promemoria_questionari`, `promemoria_pausa`, `quotes`, `quote_sent_log` |
+| «Restiamo in contatto» (separato dallo studio) | `iscritti_lettera` (email `citext`, liste `avviso_ciclo` e `lettera` con data di consenso, `versione_testo`, stato `in_attesa`/`confermato`/`cancellato`, hash del token di conferma con scadenza a 7 giorni, `token_uscita`, `ultimo_ciclo_avvisato`; nessun accesso da anon né authenticated), `lettere_inviate` (storico degli invii, lettura per il facilitatore). Nessun collegamento con `utenti`, `iscrizioni`, codici, risposte o `log_pratica` |
 | Sistema | `limiti_richieste` (tetti per IP hashato), `splash_sito`, `impostazioni_sito` (vetrina spenta di default), `statistiche_vetrina` (conteggi aggregati per traccia e giorno, senza identificativi), `backfill_collegamenti_tracce`, `segnalazioni_problema` (testo collegato all’account, solo per l’avviso di chiusura; niente codice né email verso l’agente; esito `risolta`/`non_risolta`, link alla pull request, `archiviata_il` per «Da fare») |
 
 **Accesso:** nessuna tabella dei partecipanti è leggibile dal client anonimo. Il partecipante passa solo da RPC `security definer` con `p_codice` (es. `programma_del_partecipante`, `registra_ascolto_formale`, `salva_risposte_questionario`, `salva_checkin`, `esporta_dati_del_partecipante`, `resetta_dati_del_partecipante`). Il facilitatore (`is_facilitatore()`) legge tabelle via RLS e usa RPC pseudonime (`risposte_pseudonime`, `log_pratica_pseudonimi`, `segnalazioni_difficili_aperte`, `segnalazioni_problema_da_vedere` + `archivia_segnalazione_problema`: testo, pagina, date ed esito, mai codice né email).
+
+Gli iscritti di «Restiamo in contatto» (avviso del prossimo ciclo e lettera settimanale) non sono partecipanti: `iscritti_lettera` si legge e si scrive solo dalle Edge Function con il service role; il facilitatore vede i conteggi con `lettera_conteggi(p_ciclo_id)` (confermati per lista, in attesa, usciti negli ultimi 30 giorni e, con un ciclo, quanti riceverebbero il suo avviso; mai le email) e lo storico in `lettere_inviate`. `pulisci_iscritti_lettera()` (solo service role) cancella le richieste non confermate scadute; la chiama `porta` a ogni iscrizione.
 
 La vetrina pubblica, spenta finché `impostazioni_sito.vetrina_attiva` non è vero, si legge solo dalle RPC `vetrina_elenco`, `vetrina_traccia`, `vetrina_in_evidenza`, `vetrina_impostazioni` e `vetrina_citazione` (anon, solo tracce con `pubblica`). `vetrina_citazione` restituisce solo testo, autore e libro di una citazione attiva in italiano, la stessa per tutti nello stesso giorno (rotazione stabile su `quotes`), e un insieme vuoto con la vetrina spenta; la tabella `quotes` resta leggibile solo dal service role. I conteggi passano da `porta` (`evento-vetrina`) a `registra_evento_vetrina`, eseguibile solo da `service_role`. Non scrivono in `log_pratica`. `programma_del_partecipante` continua a leggere solo le colonne che già nominava.
 
@@ -122,7 +126,8 @@ Lo schema vive in `supabase/schema.sql` + ~45 `migrazione_*.sql` (l'ultimo file 
 
 | Funzione | Innesco | Fa | Servizi |
 |---|---|---|---|
-| `porta` | app (Entra, Iscrizione, recupero codice, Accedi, Segnala, conteggi Ascolta) e l’agente a fine correzione | rate limit per IP, iscrizione, stato codice, invio codice, avvio analisi segnalazione, chiusura con esito (risolta: email a gestore e partecipante; non risolta: solo al gestore), `evento-vetrina` | Resend, webhook Cursor |
+| `porta` (distribuita con `--no-verify-jwt`) | app (Entra, Iscrizione, recupero codice, Accedi, Segnala, conteggi Ascolta, «Restiamo in contatto»), l’agente a fine correzione e i client di posta (uscita con un clic) | rate limit per IP, iscrizione, stato codice, invio codice, avvio analisi segnalazione, chiusura con esito (risolta: email a gestore e partecipante; non risolta: solo al gestore), `evento-vetrina`; `iscrivi_lettera` (5 all’ora per IP, risposta sempre `{ ok: true }`, email di conferma), `conferma_lettera`, `esci_lettera` (anche `POST ?azione=esci_lettera&u=…&lista=…` con `List-Unsubscribe=One-Click`, RFC 8058) | Resend, webhook Cursor |
+| `invia-lettera` | facilitatore (Comunicazioni → Lettera settimanale; ciclo in reclutamento → Avviso del prossimo ciclo) | lettera (`tipo: 'lettera'`) o avviso di un ciclo (`tipo: 'avviso_ciclo'`, `ciclo_id`) agli iscritti confermati; un’email a testa con `POST /emails/batch` (100 per chiamata, 0,6 s tra le chiamate), link di uscita e header `List-Unsubscribe`; con `prova` solo al facilitatore; registra in `lettere_inviate` e, per l’avviso, `ultimo_ciclo_avvisato` | Resend |
 | `invia-comunicazione` | facilitatore | email ai destinatari del ciclo (o solo remoti) | Resend |
 | `invia-incoraggiamento-pratica` | trigger su INSERT `log_pratica` (`tipo='giorno'`) | email con giorno 1–56 + citazione della settimana | Resend |
 | `avvisa-segnalazione-checkin` | trigger su `checkin_settimanali` | avviso al facilitatore (solo codice e settimana), con link a `#/admin/cicli` | Resend |
@@ -132,7 +137,7 @@ Lo schema vive in `supabase/schema.sql` + ~45 `migrazione_*.sql` (l'ultimo file 
 | `genera-voce` | facilitatore (`/admin/tracce/nuova?modo=genera`) | sintesi vocale delle tracce | ElevenLabs |
 | `cerca-sfondi` | facilitatore | ricerca foto Unsplash e foto/video Pexels; alla scelta, download Unsplash e copia del file Pexels nel bucket | Unsplash, Pexels |
 
-Condivisi in `functions/_shared/`: stile e firma email, testo di incoraggiamento, curiosità mindfulness.
+Condivisi in `functions/_shared/`: stile e firma email, testo di incoraggiamento, curiosità mindfulness, email di «Restiamo in contatto» (`emailLettera.ts`: conferma, preferenze, piede di uscita, header `List-Unsubscribe`, `VERSIONE_TESTO_LETTERA`).
 
 ## 5. Flussi chiave
 
@@ -142,7 +147,8 @@ Condivisi in `functions/_shared/`: stile e firma email, testo di incoraggiamento
 4. **Check-in settimanale:** consenso separato (`dai_consenso_checkin`) → `salva_checkin` (non modificabile) → se esperienza difficile, avviso al facilitatore.
 5. **Questionari:** finestre T0/T1/T2/T3 calcolate lato DB (`timepoint_in_finestra`); punteggi calcolati in `lib/scoring.js`.
 6. **Diritti GDPR:** `/dati` → export e reset tramite RPC; `ritira_partecipante` / `ritira_inattivo` lato facilitatore/cron.
-7. **Genera da script:** ogni paragrafo è una richiesta a `genera-voce`, in sequenza. Con i modelli che agganciano (v2, v4, Flash) passano gli ultimi 3 ID di richiesta dei paragrafi precedenti e l’inizio del successivo, con un seme unico per la traccia. Gli ID valgono 2 ore: l’editor non manda quelli dei paragrafi generati da più di 110 minuti e avvisa di rigenerare dall’inizio; un paragrafo che torna senza aggancio ha il badge «Senza aggancio» (`agganciato` e `generato_il` nella ricetta, versione 3). Stabilità regolabile su v2 (predefinita 0,62) e v4 (0,85). Il file finale (`lib/tracciaFinale.js`): loudness BS.1770 sulla voce, poi un tappeto di fondo continuo (rumore rosa 80 Hz–4 kHz con seme fisso, `LETTO_DB` −66 dBFS RMS, dissolvenza di 1 s ai bordi) sotto campane, voce e pause, così il suono non va mai a zero; MP3 codificato una volta, a blocchi. `aggiungiCampane` (file caricati) non mette il tappeto.
+7. **Restiamo in contatto:** box in Ascolta → `porta` (`iscrivi_lettera`) → riga `in_attesa` + email di conferma → `/lettera/conferma` (`conferma_lettera`) → `confermato`. Invii da `invia-lettera`; uscita da `/lettera/esci` (un clic sul pulsante) o dal client di posta (POST one-click a `porta`). Uscendo da tutte le liste resta solo email, stato e data.
+8. **Genera da script:** ogni paragrafo è una richiesta a `genera-voce`, in sequenza. Con i modelli che agganciano (v2, v4, Flash) passano gli ultimi 3 ID di richiesta dei paragrafi precedenti e l’inizio del successivo, con un seme unico per la traccia. Gli ID valgono 2 ore: l’editor non manda quelli dei paragrafi generati da più di 110 minuti e avvisa di rigenerare dall’inizio; un paragrafo che torna senza aggancio ha il badge «Senza aggancio» (`agganciato` e `generato_il` nella ricetta, versione 3). Stabilità regolabile su v2 (predefinita 0,62) e v4 (0,85). Il file finale (`lib/tracciaFinale.js`): loudness BS.1770 sulla voce, poi un tappeto di fondo continuo (rumore rosa 80 Hz–4 kHz con seme fisso, `LETTO_DB` −66 dBFS RMS, dissolvenza di 1 s ai bordi) sotto campane, voce e pause, così il suono non va mai a zero; MP3 codificato una volta, a blocchi. `aggiungiCampane` (file caricati) non mette il tappeto.
 
 ## 6. Deploy e configurazione
 

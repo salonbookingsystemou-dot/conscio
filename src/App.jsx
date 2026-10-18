@@ -25,6 +25,7 @@ import PullToRefresh from './components/PullToRefresh.jsx'
 import ConfineErrori from './components/ConfineErrori.jsx'
 import Segnala from './pages/Segnala.jsx'
 import Ascolta from './pages/Ascolta.jsx'
+import Lettera from './pages/Lettera.jsx'
 import Cicli from './pages/admin/Cicli.jsx'
 import Ciclo from './pages/admin/Ciclo.jsx'
 import Panoramica from './pages/admin/ciclo/Panoramica.jsx'
@@ -87,6 +88,8 @@ export default function App() {
           <Route path="/entra" element={<Entra />} />
           <Route path="/segnala" element={<Segnala />} />
           <Route path="/ascolta/:slug?" element={<Ascolta />} />
+          <Route path="/lettera/conferma" element={<Lettera passo="conferma" />} />
+          <Route path="/lettera/esci" element={<Lettera passo="esci" />} />
           <Route path="/onboarding" element={<SoloRegistrato><Onboarding /></SoloRegistrato>} />
           <Route path="/questionari" element={<SoloRegistrato><Questionari /></SoloRegistrato>} />
           <Route path="/pratica" element={<SoloPercorso><LogPratica /></SoloPercorso>} />
