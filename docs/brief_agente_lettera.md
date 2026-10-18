@@ -89,7 +89,7 @@ Ogni passo è una funzione separata, testabile con dati finti.
    Una voce `da_controllare` si toglie e si riprova con la riserva successiva, una volta sola.
 7. **Controlli e programmazione** (sez. 4): se passano, stato `programmata` con `invio_previsto_il`; altrimenti `da_rivedere`.
 8. **Salvataggio e notifica**: riga in `bozze_lettera`, notizie in `notizie_lettera`, email a `FACILITATORE_EMAIL` via Resend con `stileEmail.ts`:
-   - `programmata`: «La lettera parte oggi alle 17:00 · N notizie» con anteprima e link a `#/admin/comunicazioni?scheda=lettera`;
+   - `programmata`: «La lettera parte oggi alle 17:00 · N notizie» con anteprima e link a `#/admin/comunicazioni?voce=lettera`;
    - `da_rivedere`: «La lettera di questa settimana non parte da sola» con il motivo.
 
 Il modello risponde sempre in JSON con schema fisso; lo script valida lo schema e riprova una volta se non torna.
