@@ -1,0 +1,40 @@
+# Parole che non possono comparire nella lettera (titolo, sunto, «perché conta», oggetto, introduzione).
+# Una per riga, confronto per parola intera e senza maiuscole. Con una sola di queste la lettera non parte da sola.
+# Linguaggio del progetto: «pratica», «percorso», «partecipanti», mai termini clinici né promesse di efficacia.
+# «cura» da sola no: compare in «a cura di» e «prendersi cura».
+cure
+curare
+cura l'ansia
+cura lo stress
+guarisce
+guarire
+guarigione
+terapia
+terapie
+terapeutico
+terapeutica
+terapeutici
+terapeutiche
+paziente
+pazienti
+sintomo
+sintomi
+disturbo
+disturbi
+diagnosi
+trattamento
+trattamenti
+farmaco
+farmaci
+malattia
+malattie
+patologia
+patologie
+miracoloso
+miracolosa
+rivoluzionario
+rivoluzionaria
+garantito
+garantisce
+elimina lo stress
+sconfigge
