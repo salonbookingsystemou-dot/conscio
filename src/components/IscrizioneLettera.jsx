@@ -64,7 +64,11 @@ export default function IscrizioneLettera() {
   return (
     <section className="card ascolta-lettera" aria-labelledby={titoloId}>
       <p className="ascolta-sopracciglio">Restiamo in contatto</p>
-      <h2 id={titoloId}>Ti scriviamo solo quello che scegli</h2>
+      <h2 id={titoloId}>Una lettera a settimana, <span>niente di più</span></h2>
+      <p className="ascolta-lettera-testo">
+        Ti avvisiamo quando si aprono le iscrizioni al prossimo ciclo e, se vuoi, ogni settimana ti scriviamo
+        cosa succede nel mondo della mindfulness, in Italia e altrove.
+      </p>
 
       {stato === 'inviata' ? (
         <div className="ascolta-lettera-inviata" role="status">
@@ -79,11 +83,7 @@ export default function IscrizioneLettera() {
         </div>
       ) : (
         <form className="ascolta-lettera-modulo" onSubmit={invia} noValidate>
-          <p className="ascolta-lettera-testo">
-            Un avviso quando si apre un nuovo ciclo, una lettera alla settimana, o tutte e due.
-          </p>
-
-          <div className="field">
+          <div className="field ascolta-lettera-campo">
             <label htmlFor={`${id}-email`}>La tua email</label>
             <input
               ref={campoEmail}
@@ -91,6 +91,7 @@ export default function IscrizioneLettera() {
               type="email"
               autoComplete="email"
               inputMode="email"
+              placeholder="nome@esempio.it"
               value={form.email}
               disabled={invio}
               aria-invalid={errori.email ? 'true' : undefined}
@@ -107,7 +108,7 @@ export default function IscrizioneLettera() {
           >
             <legend>Cosa vuoi ricevere</legend>
             {['avviso_ciclo', 'lettera'].map((lista, i) => (
-              <div key={lista} className={`consenso-box ascolta-lettera-scelta${form[lista] ? ' is-on' : ''}`}>
+              <div key={lista} className="ascolta-lettera-scelta">
                 <label>
                   <input
                     ref={i === 0 ? primaScelta : undefined}
@@ -118,7 +119,7 @@ export default function IscrizioneLettera() {
                   />
                   <span>
                     <strong>{LISTE[lista].titolo}</strong>
-                    <span className="hint">{LISTE[lista].riga}</span>
+                    <span className="ascolta-lettera-riga">{LISTE[lista].riga}</span>
                   </span>
                 </label>
               </div>

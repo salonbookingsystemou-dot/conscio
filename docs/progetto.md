@@ -58,6 +58,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 18/10/2026 · Box «Restiamo in contatto» come nel mockup (da Claude Code)
+Nuovo titolo «Una lettera a settimana, niente di più» (va a capo dopo la virgola) e un testo che spiega le due liste. Campo email con segnaposto «nome@esempio.it», etichette in `--ink`, caselle senza riquadro con titolo e descrizione, «Iscrivimi» a tutta larghezza. Stesse liste, consensi e comportamento di prima. Nessuna modifica al database.
+
 ### 18/10/2026 · Footer con la firma delle email (da Claude Code)
 Tolta da Ascolta la nota «Le voci sono sintetiche, salvo dove indicato. L’email serve solo per i messaggi che scegli.». Il footer di tutte le pagine pubbliche e del partecipante mostra ora la stessa firma delle email ai partecipanti (`_shared/firmaEmail.ts`): marchio orizzontale, «Conscio è un progetto dell’Associazione ADS Hanuman, Via San Leonardo 10, Ariano Irpino (AV) — hanumanstudio.it — tutti i diritti sono riservati», con «Segnala un problema» sotto. Al posto della scritta «A.S.D. HANUMAN». Nessuna modifica al database.
 
