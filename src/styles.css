@@ -83,6 +83,14 @@ a:not([class]):hover { color: var(--ink); }
   color: inherit;
   text-decoration: none;
 }
+.site-footer-segnala {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+.site-footer-segnala svg {
+  flex: 0 0 auto;
+}
 .site-footer-nome a:hover {
   text-decoration: underline;
   color: var(--moss-dark);
