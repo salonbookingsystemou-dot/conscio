@@ -102,7 +102,8 @@ as $$
   select count(*)::int from tolte;
 $$;
 
-revoke all on function pulisci_notizie_lettera() from public;
+-- Solo il service role (lo script): Supabase dà EXECUTE ad anon e authenticated in modo esplicito, va tolto a loro.
+revoke all on function pulisci_notizie_lettera() from public, anon, authenticated;
 
 -- Fonti iniziali, controllate il 18/10/2026: feed RSS di Mindful.org, Greater Good e ANSA Salute rispondono;
 -- quello della Harvard Gazette no (resta la ricerca sul dominio). Lo script le controlla a ogni esecuzione (feed che risponde, dominio raggiungibile)
