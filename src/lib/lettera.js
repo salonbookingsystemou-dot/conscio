@@ -170,3 +170,28 @@ export function prossimoInvio(settimana) {
   giovedi.setUTCDate(giovedi.getUTCDate() + 3)
   return istanteItalia(giovedi.toISOString().slice(0, 10), 17, 0)
 }
+
+/** «Genera lettera»: chiede a GitHub di far partire l'agente. Risponde subito; la bozza arriva in pochi minuti. */
+export async function avviaGenerazioneLettera() {
+  const { data, error } = await supabase.functions.invoke('genera-lettera', { body: {} })
+  if (data && typeof data === 'object') return data
+  const risposta = error?.context
+  if (risposta && typeof risposta.json === 'function') {
+    try {
+      const parsed = await risposta.json()
+      if (parsed && typeof parsed === 'object') return parsed
+    } catch {
+      /* corpo non json */
+    }
+  }
+  throw error || new Error('AVVIO_NON_RIUSCITO')
+}
+
+export function messaggioGenerazione(esito) {
+  if (esito?.ok) return null
+  if (esito?.motivo === 'GITHUB_NON_CONFIGURATO') return 'Manca il collegamento con GitHub sul server (segreto GH_DISPATCH_TOKEN).'
+  if (esito?.motivo === 'GITHUB_TOKEN_NON_VALIDO') return 'GitHub ha rifiutato il collegamento: il token è scaduto o non ha il permesso sulle Actions.'
+  if (esito?.motivo === 'GIA_INVIATA') return 'La lettera di questa settimana è già partita.'
+  if (esito?.error === 'NON_AUTORIZZATO') return 'Serve l’accesso del facilitatore.'
+  return esito?.errore ? `Non è partita: ${esito.errore}.` : 'Non è partita. Riprova tra un momento.'
+}

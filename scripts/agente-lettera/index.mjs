@@ -87,7 +87,7 @@ async function genera({ asciutto, forza }) {
   log(`candidati: ${grezzi.length} (feed ${feed.candidati.length}, PubMed ${pubmed.candidati.length}, ricerca ${web.candidati.length})`)
 
   // 2. Pulizia
-  const giaVisti = await hashGiaVisti(db, grezzi.map((c) => hashUrl(c.url)))
+  const giaVisti = await hashGiaVisti(db, grezzi.map((c) => hashUrl(c.url)), esistente?.id || null)
   const candidati = pulisciCandidati(grezzi, giaVisti)
   log(`dopo la pulizia: ${candidati.length}`)
 

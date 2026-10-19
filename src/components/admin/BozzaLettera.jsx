@@ -9,6 +9,8 @@ import Badge from './Badge.jsx'
 import { useSnackbar } from './Snackbar.jsx'
 import {
   aggiornaFonteLettera,
+  avviaGenerazioneLettera,
+  messaggioGenerazione,
   controllaBozzaClient,
   esitoInvio,
   impostaInvioAutomatico,
@@ -183,6 +185,8 @@ export default function BozzaLettera() {
   const [occupato, setOccupato] = useState(false)
   const [confermaInvio, setConfermaInvio] = useState(false)
   const [anteprima, setAnteprima] = useState(false)
+  const [generazione, setGenerazione] = useState(null) // istante in cui è partita, finché la bozza non arriva
+  const [confermaGenera, setConfermaGenera] = useState(false)
 
   async function carica() {
     try {
@@ -203,6 +207,31 @@ export default function BozzaLettera() {
       .then(imp => setInvito({ titolo: imp.cta_titolo, testo: imp.iscrizioni_aperte ? imp.cta_testo : imp.cta_testo_senza_ciclo }))
       .catch(() => setInvito(null))
   }, [])
+
+  // Dopo «Genera lettera» si guarda ogni 20 secondi se la bozza è arrivata (il job dura pochi minuti).
+  useEffect(() => {
+    if (!generazione) return undefined
+    const inizio = generazione
+    const timer = setInterval(async () => {
+      try {
+        const b = await leggiBozzaLettera()
+        if (b && new Date(b.aggiornata_il).getTime() >= inizio - 5000) {
+          setBozza(b)
+          setModifica({ ...b })
+          setGenerazione(null)
+          mostra({ testo: 'La lettera è pronta' })
+          return
+        }
+      } catch {
+        /* si riprova al giro dopo */
+      }
+      if (Date.now() - inizio > 12 * 60_000) {
+        setGenerazione(null)
+        setErrore('La lettera non è ancora arrivata. Controlla l’email: se la preparazione si è fermata, lì trovi il motivo.')
+      }
+    }, 20_000)
+    return () => clearInterval(timer)
+  }, [generazione, mostra])
 
   const diversa = useMemo(() => {
     if (!bozza || !modifica) return false
@@ -368,6 +397,26 @@ export default function BozzaLettera() {
     }
   }
 
+  async function genera() {
+    setErrore(null)
+    setConfermaGenera(false)
+    setOccupato(true)
+    try {
+      const esito = await avviaGenerazioneLettera()
+      const problema = messaggioGenerazione(esito)
+      if (problema) setErrore(problema)
+      else {
+        setGenerazione(Date.now())
+        mostra({ testo: 'Preparazione avviata · pronta in qualche minuto' })
+      }
+    } catch {
+      setErrore('Non è partita. Riprova tra un momento.')
+    }
+    setOccupato(false)
+  }
+
+  const puoGenerare = !bozza || !dellaSettimana || ['da_rivedere', 'programmata', 'bloccata', 'scartata'].includes(bozza.stato)
+
   const html = anteprima && modifica
     ? composiLettera({ bozza: modifica, invito, linkUscita: 'https://conscio.mnesti.it/#/lettera/esci' }).html
     : ''
@@ -385,10 +434,25 @@ export default function BozzaLettera() {
         Se tutti i controlli passano, alle 17 parte da sola. Spento, la lettera si prepara ma resta qui da inviare a mano.
       </p>
 
+      {generazione
+        ? <StatoAttesa etichetta="Preparo la lettera: cerco le notizie, scrivo i sunti e li controllo. Ci vogliono alcuni minuti…" />
+        : puoGenerare && (
+          <p className="lettera-genera">
+            <button
+              type="button"
+              className={bozza && dellaSettimana ? 'btn btn-text' : 'btn'}
+              disabled={occupato}
+              onClick={() => (bozza && dellaSettimana ? setConfermaGenera(true) : genera())}
+            >
+              {bozza && dellaSettimana ? 'Rigenera la lettera' : 'Genera lettera'}
+            </button>
+          </p>
+          )}
+
       {!bozza || !dellaSettimana
         ? (
           <StatoVuoto titolo="Nessuna lettera questa settimana">
-            La prossima si prepara giovedì mattina. {bozza ? `L’ultima è della settimana del ${new Date(bozza.settimana).toLocaleDateString('it-IT')}.` : ''}
+            La prossima si prepara da sola giovedì mattina, oppure adesso con «Genera lettera». {bozza ? `L’ultima è della settimana del ${new Date(bozza.settimana).toLocaleDateString('it-IT')}.` : ''}
           </StatoVuoto>
           )
         : (
@@ -492,6 +556,18 @@ export default function BozzaLettera() {
           </div>
         </AdminDialogo>
       )}
+
+      <DialogConferma
+        aperto={confermaGenera}
+        titolo="Rigenerare la lettera?"
+        confermaEtichetta="Rigenera"
+        occupato={occupato}
+        onConferma={genera}
+        onAnnulla={() => setConfermaGenera(false)}
+      >
+        L’agente prepara una lettera nuova da capo e sostituisce questa: le modifiche fatte a mano si perdono.
+        Può scegliere di nuovo le stesse notizie, mai quelle delle settimane passate.
+      </DialogConferma>
 
       <DialogConferma
         aperto={confermaInvio}
