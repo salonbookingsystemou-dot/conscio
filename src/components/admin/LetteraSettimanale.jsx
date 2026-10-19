@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import DialogConferma from '../DialogConferma.jsx'
 import { useSnackbar } from './Snackbar.jsx'
+import BozzaLettera from './BozzaLettera.jsx'
 import { esitoInvio, inviaLettera, leggiConteggiLettera, leggiLettereInviate } from '../../lib/lettera.js'
 
 function data(valore) {
@@ -83,6 +84,12 @@ export default function LetteraSettimanale({ onCambio }) {
         ? <p className="avviso-errore" role="alert">{errLettura}</p>
         : <ConteggiLettera conteggi={conteggi} />}
 
+      <BozzaLettera />
+
+      <section className="com-sezione">
+        <h3>Scrivi una lettera a mano</h3>
+        <p className="hint">Per un messaggio fuori dal giovedì. Non sostituisce la lettera della settimana.</p>
+      </section>
       <form className="com-modulo" onSubmit={e => { e.preventDefault(); if (pronto) setConferma(true); else setErrore('Servono oggetto e testo.') }}>
         <div className="field">
           <label htmlFor="lettera-oggetto">Oggetto</label>

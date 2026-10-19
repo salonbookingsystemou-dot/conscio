@@ -11,3 +11,7 @@ supabase/.temp
 ACCESSO-FACILITATORE.txt
 .resend-key
 INCOLLA-CHIAVE-RESEND.txt
+
+# Agente della lettera: moduli del job e prove a secco
+scripts/agente-lettera/node_modules/
+scripts/agente-lettera/uscita/

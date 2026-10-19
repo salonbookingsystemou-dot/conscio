@@ -1,0 +1,111 @@
+name: Lettera settimanale
+
+# Agente redazionale della lettera (docs/brief_agente_lettera.md).
+# Giovedì 05:00 UTC prepara la bozza (07:00 in Italia d'estate, 06:00 d'inverno);
+# giovedì 15:00 UTC la spedisce se è ancora programmata (17:00 / 16:00).
+on:
+  schedule:
+    - cron: '0 5 * * 4'
+    - cron: '0 15 * * 4'
+  workflow_dispatch:
+    inputs:
+      comando:
+        description: 'Cosa fare'
+        type: choice
+        options: [genera, invia, genera a secco]
+        default: genera
+      forza:
+        description: 'Rifai la bozza anche se è già programmata'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lettera-settimanale
+  cancel-in-progress: false
+
+jobs:
+  genera:
+    if: github.event.schedule == '0 5 * * 4' || (github.event_name == 'workflow_dispatch' && inputs.comando != 'invia')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Dice solo se ogni segreto c'è, mai il valore.
+      - name: Controlla i segreti
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SUPABASE_FUNCTIONS_URL: ${{ secrets.SUPABASE_FUNCTIONS_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM: ${{ secrets.RESEND_FROM }}
+          FACILITATORE_EMAIL: ${{ secrets.FACILITATORE_EMAIL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          mancano=0
+          for nome in ANTHROPIC_API_KEY SUPABASE_FUNCTIONS_URL SUPABASE_SERVICE_ROLE_KEY RESEND_API_KEY RESEND_FROM FACILITATORE_EMAIL CRON_SECRET; do
+            if [ -n "${!nome}" ]; then echo "ok      $nome"; else echo "MANCA   $nome"; mancano=1; fi
+          done
+          if [ "$mancano" = 1 ]; then echo "::error::Mancano dei segreti: aggiungili in Settings → Secrets and variables → Actions."; exit 1; fi
+      # Solo per la miniatura della meditazione; se non si installa la lettera usa lo sfondo così com'è.
+      - name: Installa sharp
+        run: npm install --prefix scripts/agente-lettera --no-save --no-package-lock sharp@0.33.5 || echo "sharp non installato"
+      - name: Prepara la lettera
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_FUNCTIONS_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM: ${{ secrets.RESEND_FROM }}
+          FACILITATORE_EMAIL: ${{ secrets.FACILITATORE_EMAIL }}
+        run: |
+          ARGOMENTI=""
+          if [ "${{ inputs.comando }}" = "genera a secco" ]; then ARGOMENTI="--asciutto"; fi
+          if [ "${{ inputs.forza }}" = "true" ]; then ARGOMENTI="$ARGOMENTI --forza"; fi
+          node scripts/agente-lettera/index.mjs genera $ARGOMENTI
+      - name: Conserva la prova a secco
+        if: inputs.comando == 'genera a secco'
+        uses: actions/upload-artifact@v4
+        with:
+          name: lettera-a-secco
+          path: scripts/agente-lettera/uscita/
+
+  invia:
+    if: github.event.schedule == '0 15 * * 4' || (github.event_name == 'workflow_dispatch' && inputs.comando == 'invia')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Dice solo se ogni segreto c'è, mai il valore.
+      - name: Controlla i segreti
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SUPABASE_FUNCTIONS_URL: ${{ secrets.SUPABASE_FUNCTIONS_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM: ${{ secrets.RESEND_FROM }}
+          FACILITATORE_EMAIL: ${{ secrets.FACILITATORE_EMAIL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          mancano=0
+          for nome in ANTHROPIC_API_KEY SUPABASE_FUNCTIONS_URL SUPABASE_SERVICE_ROLE_KEY RESEND_API_KEY RESEND_FROM FACILITATORE_EMAIL CRON_SECRET; do
+            if [ -n "${!nome}" ]; then echo "ok      $nome"; else echo "MANCA   $nome"; mancano=1; fi
+          done
+          if [ "$mancano" = 1 ]; then echo "::error::Mancano dei segreti: aggiungili in Settings → Secrets and variables → Actions."; exit 1; fi
+      - name: Spedisci la lettera programmata
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_FUNCTIONS_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM: ${{ secrets.RESEND_FROM }}
+          FACILITATORE_EMAIL: ${{ secrets.FACILITATORE_EMAIL }}
+        run: node scripts/agente-lettera/index.mjs invia

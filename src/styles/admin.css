@@ -2986,3 +2986,209 @@
   cursor: default;
   opacity: 0.5;
 }
+
+/* Lettera della settimana preparata dall'agente (components/admin/BozzaLettera.jsx) */
+.lettera-settimana,
+.lettera-bozza {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+}
+
+.lettera-settimana > .hint,
+.lettera-stato {
+  margin: 0;
+}
+
+.lettera-motivi {
+  margin: 0;
+  padding-left: var(--space-20);
+  font-size: var(--fs-small);
+  color: var(--ink-2);
+}
+
+.lettera-motivi li + li {
+  margin-top: var(--space-4);
+}
+
+.lettera-voci {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lettera-voce {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  padding: var(--space-16) var(--space-18);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-tile);
+  background: var(--surface);
+}
+
+.lettera-voce .field {
+  margin: 0;
+}
+
+.lettera-voce-testa,
+.lettera-voce-piede {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8) var(--space-12);
+}
+
+.lettera-voce-sezione {
+  margin: 0;
+  font-size: var(--fs-eyebrow);
+  font-weight: 600;
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.lettera-voce-nota {
+  margin: 0;
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+  font-size: var(--fs-small);
+  color: var(--ink-2);
+}
+
+.lettera-voce-piede {
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--border-soft);
+  font-size: var(--fs-meta);
+}
+
+.lettera-voce-piede a {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--accent);
+}
+
+.lettera-voce-azioni {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.lettera-pratica {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-10);
+  padding: var(--space-16) var(--space-18);
+  border-radius: var(--radius-tile);
+  background: var(--accent-soft);
+}
+
+.lettera-pratica .field {
+  align-self: stretch;
+  margin: 0;
+}
+
+.lettera-meditazione {
+  display: flex;
+  align-items: center;
+  gap: var(--space-14);
+}
+
+.lettera-meditazione img {
+  width: 120px;
+  max-width: 40%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
+.lettera-meditazione-titolo {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-item);
+}
+
+.lettera-meditazione .hint {
+  margin: var(--space-2) 0 0;
+}
+
+.lettera-azioni {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.lettera-dettagli {
+  padding-top: var(--space-10);
+  border-top: 1px solid var(--border-soft);
+}
+
+.lettera-dettagli summary {
+  cursor: pointer;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.lettera-dettagli[open] summary {
+  margin-bottom: var(--space-12);
+}
+
+.lettera-resoconto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.lettera-resoconto .hint {
+  margin: 0;
+}
+
+.lettera-fonti {
+  overflow-x: auto;
+}
+
+.lettera-fonti table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-small);
+}
+
+.lettera-fonti th {
+  padding: var(--space-6) var(--space-8);
+  text-align: left;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  letter-spacing: var(--ls-table);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.lettera-fonti td {
+  padding: var(--space-8);
+  border-top: 1px solid var(--border-soft);
+  vertical-align: top;
+}
+
+.lettera-fonte-nome {
+  display: block;
+}
+
+.lettera-fonti .hint {
+  display: block;
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-caption);
+}
+
+.lettera-anteprima iframe {
+  display: block;
+  width: 100%;
+  height: min(70vh, 720px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}

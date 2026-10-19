@@ -8,6 +8,7 @@ import { ElencoPannello, PannelloDettaglio } from '../../components/admin/Pannel
 import { IconaPosta } from '../../components/admin/IconeAdmin.jsx'
 import { useSnackbar } from '../../components/admin/Snackbar.jsx'
 import LetteraSettimanale from '../../components/admin/LetteraSettimanale.jsx'
+import Badge from '../../components/admin/Badge.jsx'
 import { leggiConteggiLettera } from '../../lib/lettera.js'
 
 const TIPI = [
@@ -108,15 +109,6 @@ function formNuova(cicloId = '') {
     testo: MODELLI.reminder_t3.testo,
     invia_ora: false
   }
-}
-
-function Badge({ tono, children }) {
-  return (
-    <span className={`controllo-stato is-${tono}`}>
-      <span className="controllo-stato-punto" aria-hidden="true" />
-      {children}
-    </span>
-  )
 }
 
 export default function Comunicazioni() {

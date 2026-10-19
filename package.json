@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build && node scripts/pagine-condivisione.mjs",
     "preview": "vite preview",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist",
+    "test:lettera": "node --test scripts/agente-lettera/test/*.test.mjs"
   },
   "dependencies": {
     "@breezystack/lamejs": "^1.2.7",
