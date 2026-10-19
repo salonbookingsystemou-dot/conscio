@@ -135,6 +135,7 @@ Lo schema vive in `supabase/schema.sql` + ~45 `migrazione_*.sql` (l'ultimo file 
 | `notifica-inattivita` | cron GitHub 07:00 UTC / bottone facilitatore | avvisi e ritiro iscritti remoti inattivi (15+15 gg) | Resend |
 | `promemoria-questionari` | cron GitHub 07:30 UTC | promemoria T3 (apertura e −7 gg) | Resend |
 | `promemoria-pausa` | cron GitHub 07:15 UTC / bottone facilitatore | email a chi non ascolta una traccia da tre giorni di fila | Resend |
+| `genera-lettera` | facilitatore (Comunicazioni → Lettera settimanale → «Genera lettera» / «Rigenera la lettera») | lancia il job GitHub `lettera-agente.yml` con `comando: genera` (e `forza` se la bozza della settimana c’è già); rifiuta se la lettera è già partita | GitHub (`GH_DISPATCH_TOKEN`) |
 | `genera-voce` | facilitatore (`/admin/tracce/nuova?modo=genera`) | sintesi vocale delle tracce | ElevenLabs |
 | `cerca-sfondi` | facilitatore | ricerca foto Unsplash e foto/video Pexels; alla scelta, download Unsplash e copia del file Pexels nel bucket | Unsplash, Pexels |
 

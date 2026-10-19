@@ -58,13 +58,17 @@ export function clientSupabase({ url, chiave }) {
   }
 }
 
-/** Gli URL già visti tra quelli dati (per non ripetere notizie). */
-export async function hashGiaVisti(db, hashes) {
+/**
+ * Gli URL già visti tra quelli dati (per non ripetere notizie).
+ * Rigenerando una bozza si ignorano le notizie viste proprio da quella bozza: possono tornare.
+ */
+export async function hashGiaVisti(db, hashes, bozzaDaIgnorare = null) {
+  const filtroBozza = bozzaDaIgnorare ? `&or=(bozza_id.is.null,bozza_id.neq.${bozzaDaIgnorare})` : ''
   const visti = new Set()
   for (let i = 0; i < hashes.length; i += 100) {
     const blocco = hashes.slice(i, i + 100)
     if (!blocco.length) continue
-    const righe = await db.seleziona('notizie_lettera', `select=url_hash&url_hash=in.(${blocco.join(',')})`)
+    const righe = await db.seleziona('notizie_lettera', `select=url_hash&url_hash=in.(${blocco.join(',')})${filtroBozza}`)
     for (const r of righe || []) visti.add(r.url_hash)
   }
   return visti
