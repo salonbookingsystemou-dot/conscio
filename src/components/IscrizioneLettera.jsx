@@ -1,6 +1,7 @@
 import { useId, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import StatoAttesa from './StatoAttesa.jsx'
+import imgCerchio from '../assets/cerchio-persone.webp'
 import { emailValida, iscriviLettera, LISTE } from '../lib/lettera.js'
 
 const VUOTO = { email: '', avviso_ciclo: false, lettera: false }
@@ -63,11 +64,13 @@ export default function IscrizioneLettera() {
 
   return (
     <section className="card ascolta-lettera" aria-labelledby={titoloId}>
+      {/* Tratto trasparente usato come maschera: prende il colore dal tema */}
+      <div className="ascolta-lettera-illustrazione" style={{ '--img': `url(${imgCerchio})` }} aria-hidden="true" />
       <p className="ascolta-sopracciglio">Restiamo in contatto</p>
-      <h2 id={titoloId}>Una lettera a settimana, <span>niente di più</span></h2>
+      <h2 id={titoloId}>Una lettera a settimana per non perderti le notizie che contano</h2>
       <p className="ascolta-lettera-testo">
-        Ti avvisiamo quando si aprono le iscrizioni al prossimo ciclo e, se vuoi, ogni settimana ti scriviamo
-        cosa succede nel mondo della mindfulness, in Italia e altrove.
+        Ti avvisiamo quando si aprono le iscrizioni al prossimo ciclo e ti raccontiamo cosa succede nel mondo
+        della mindfulness, in Italia e nel resto del mondo, selezionando le fonti più autorevoli del settore.
       </p>
 
       {stato === 'inviata' ? (

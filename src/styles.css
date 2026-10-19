@@ -387,8 +387,6 @@ a:not([class]):hover { color: var(--ink); }
   font-weight: 600;
   background: var(--tint);
 }
-.nav-tonalita { display: none; }
-.nav-tonalita-desktop { display: none; }
 .nav-links .nav-sep { display: none; }
 .nav-links .nav-secondaria { color: var(--ink-soft); }
 .nav-identita { display: none; }
@@ -413,7 +411,6 @@ a:not([class]):hover { color: var(--ink); }
     padding-bottom: 0;
     justify-content: flex-end;
   }
-  .nav-tonalita-desktop { display: block; }
 }
 
 .card {
@@ -3622,13 +3619,6 @@ button.cal-giorno { cursor: pointer; }
   .nav-links > a.active {
     box-shadow: inset 3px 0 0 var(--moss);
   }
-  .nav-tonalita {
-    display: flex;
-    justify-content: center;
-    padding: 16px 12px 4px;
-    margin-top: 8px;
-    border-top: 1px solid var(--border);
-  }
   .nav-links .nav-sep {
     display: block;
     height: 1px;
@@ -3930,13 +3920,6 @@ body:has(.splash) {
   align-items: center;
   gap: 10px;
 }
-.ruota-etichetta {
-  margin: 0;
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ochre);
-}
 .ruota-disco {
   position: relative;
   width: 112px;
@@ -3990,57 +3973,6 @@ body:has(.splash) {
   opacity: 0.35;
   cursor: default;
   text-decoration: none;
-}
-.ruota-compatta {
-  position: relative;
-}
-.ruota-apri {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  margin: 0;
-  padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  background: var(--surface);
-  cursor: pointer;
-}
-.ruota-apri:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--moss) 45%, transparent);
-  outline-offset: 2px;
-}
-.ruota-apri-anello {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: conic-gradient(from 0deg, hsl(0 72% 52%), hsl(60 72% 52%), hsl(120 72% 48%), hsl(180 72% 46%), hsl(240 72% 56%), hsl(300 72% 52%), hsl(360 72% 52%));
-}
-.ruota-apri-nucleo {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--moss);
-  box-shadow: 0 0 0 1.5px var(--surface);
-  transform: translate(-50%, -50%);
-}
-.ruota-compatta.is-open .ruota-apri {
-  border-color: var(--moss);
-}
-.ruota-popover {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  z-index: 60;
-  padding: 14px 16px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-tile);
-  background: var(--surface);
-  box-shadow: 0 10px 28px color-mix(in srgb, var(--ink) 12%, transparent);
 }
 
 /* Vista pratica settimanale (partecipante) */
@@ -5314,8 +5246,7 @@ body:has(.splash) {
   margin-bottom: var(--space-28);
 }
 .ascolta-testa h1,
-.ascolta h2,
-.ascolta-invito h2 {
+.ascolta h2 {
   font-family: var(--font-display);
   font-weight: 400;
   line-height: var(--lh-title);
@@ -5880,19 +5811,6 @@ body:has(.splash) {
 .ascolta-foglio .ascolta-condividi .btn {
   flex: 1 1 0;
 }
-.ascolta-foglio .ascolta-invito {
-  margin: var(--space-16) 0 0;
-  border: 0;
-  box-shadow: none;
-  background: var(--surface-muted);
-}
-.ascolta-foglio .ascolta-invito h2 {
-  font-size: var(--fs-item);
-}
-.ascolta-foglio .ascolta-invito p:not(.ascolta-sopracciglio) {
-  font-size: var(--fs-small);
-  color: var(--muted);
-}
 
 .ascolta-scheda-pubblica .ascolta-credito {
   margin: 0;
@@ -5912,20 +5830,6 @@ body:has(.splash) {
 }
 .ascolta-scheda-pubblica dd {
   margin: var(--space-4) 0 0;
-}
-.ascolta-invito {
-  display: flex;
-  flex-direction: column;
-}
-.ascolta-invito h2 {
-  margin: 0 0 var(--space-8);
-  font-size: var(--fs-section);
-}
-.ascolta-invito p {
-  margin: 0 0 var(--space-20);
-}
-.ascolta-invito .btn {
-  align-self: flex-start;
 }
 @media (prefers-reduced-motion: reduce) {
   .ascolta-sfondo video { display: none; }
@@ -5950,16 +5854,21 @@ body:has(.splash) {
   background: var(--accent-soft);
   border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
 }
+.ascolta-lettera-illustrazione {
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 900 / 677;
+  margin: 0 auto var(--space-20);
+  background: var(--ink-2);
+  -webkit-mask: var(--img) center / contain no-repeat;
+  mask: var(--img) center / contain no-repeat;
+}
 .ascolta-lettera h2 {
   margin: 0 0 var(--space-12);
   font-family: var(--font-display);
   font-weight: 400;
   font-size: var(--fs-section);
   line-height: var(--lh-title);
-}
-/* «niente di più» va a capo tutto insieme, come nel mockup */
-.ascolta-lettera h2 span {
-  white-space: nowrap;
 }
 .ascolta-lettera-testo {
   margin: 0 0 var(--space-24);

@@ -4,7 +4,6 @@ import { useAuth } from '../lib/auth.jsx'
 import { usePartecipante } from '../lib/partecipante.jsx'
 import Marchio from './Marchio.jsx'
 import { apriInvitoHome, appGiaInHome } from '../lib/invitoHome.js'
-import RuotaTonalita from './RuotaTonalita.jsx'
 import OreAscolto from './OreAscolto.jsx'
 import useVetrinaAperta from '../lib/useVetrinaAperta.js'
 
@@ -136,9 +135,6 @@ export default function Nav() {
         {paginaAscolta ? null : (
         <div className="topbar-azioni">
           {registrato && <OreAscolto minuti={minutiAscolto} />}
-          <div className="nav-tonalita-desktop">
-            <RuotaTonalita variante="compatta" />
-          </div>
           <button
             type="button"
             className="nav-toggle"
@@ -174,9 +170,6 @@ export default function Nav() {
           </p>
         )}
         {voci}
-        <div className="nav-tonalita">
-          <RuotaTonalita variante="piena" />
-        </div>
       </nav>
       </>
       )}

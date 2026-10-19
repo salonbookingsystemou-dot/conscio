@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import EditorSplash, { AnteprimaSplash } from '../../components/EditorSplash.jsx'
 import EditorVetrina from '../../components/EditorVetrina.jsx'
+import RuotaTonalita from '../../components/RuotaTonalita.jsx'
 import PaginaAdmin from '../../components/admin/PaginaAdmin.jsx'
 import { AreaPrincipale, PannelloSupporto } from '../../components/admin/Pannelli.jsx'
 
@@ -26,7 +27,7 @@ export default function Sito() {
   return (
     <PaginaAdmin
       titolo="Sito"
-      meta="La prima schermata e la pagina pubblica «E se ti fermassi un momento?»."
+      meta="La prima schermata, la pagina pubblica «E se ti fermassi un momento?» e la tonalità dell’app."
       azione={(
         <Link className="btn btn-ghost" to="/ascolta" target="_blank" rel="noopener noreferrer">
           Apri «E se ti fermassi un momento?»
@@ -37,6 +38,7 @@ export default function Sito() {
       <AreaPrincipale>
         <EditorSplash onCambio={setSplash} />
         <EditorVetrina onSalvata={vetrinaSalvata} />
+        <RuotaTonalita />
       </AreaPrincipale>
       <PannelloSupporto etichetta="Anteprima">
         <div className="filtri-chip" role="group" aria-label="Quale anteprima">

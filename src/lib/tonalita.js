@@ -1,6 +1,8 @@
 import { COLORI } from './colori.js'
 
-const CHIAVE = 'conscio-tonalita'
+// Copia locale della tonalità del sito, solo per il primo disegno prima che arrivi quella vera.
+// Chiave nuova: le vecchie scelte personali ('conscio-tonalita') non valgono più.
+const CHIAVE = 'conscio-tonalita-sito'
 
 export const HUE_DEFAULT = 142.5
 

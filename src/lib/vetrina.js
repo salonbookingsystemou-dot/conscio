@@ -234,6 +234,19 @@ export async function salvaImpostazioniSito(campi) {
   invalidaVetrina()
 }
 
+// null = tonalità predefinita. Vale per tutti: il provider la rilegge dopo invalidaVetrina.
+export async function salvaTonalitaSito(hue) {
+  const { error } = await supabase
+    .from('impostazioni_sito')
+    .update({
+      tonalita: hue == null ? null : (Math.round(Number(hue) * 10) / 10) % 360,
+      aggiornato_il: new Date().toISOString()
+    })
+    .eq('id', 1)
+  if (error) throw error
+  invalidaVetrina()
+}
+
 export async function leggiTag() {
   const { data, error } = await supabase
     .from('tag')

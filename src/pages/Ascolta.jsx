@@ -52,21 +52,6 @@ function Citazione({ citazione }) {
   )
 }
 
-function Invito({ impostazioni, slug }) {
-  if (!impostazioni) return null
-  const aperte = impostazioni.iscrizioni_aperte === true
-  return (
-    <section className="card ascolta-invito">
-      <p className="ascolta-sopracciglio">Il percorso</p>
-      <h2>{impostazioni.cta_titolo}</h2>
-      <p>{aperte ? impostazioni.cta_testo : impostazioni.cta_testo_senza_ciclo}</p>
-      <Link className="btn" to="/iscrizione" onClick={() => eventoVetrina(slug, 'cta')}>
-        Iscriviti al prossimo ciclo
-      </Link>
-    </section>
-  )
-}
-
 function Scheda({ traccia, onCondiviso, avviso }) {
   const licenza = etichettaLicenza(traccia.licenza)
   const voce = etichettaVoce(traccia.voce)
@@ -134,7 +119,6 @@ export default function Ascolta() {
   // Vero quando si arriva da «Sorprendimi» premuto nel player a schermo intero.
   const schermoIntero = Boolean(location.state?.schermoIntero)
   const [stato, setStato] = useState('attesa')
-  const [impostazioni, setImpostazioni] = useState(null)
   const [elenco, setElenco] = useState([])
   const [evidenza, setEvidenza] = useState(null)
   const [audioEvidenza, setAudioEvidenza] = useState(null)
@@ -161,7 +145,6 @@ export default function Ascolta() {
     leggiImpostazioniPubbliche()
       .then(async dati => {
         if (!vivo) return
-        setImpostazioni(dati)
         if (!dati?.vetrina_attiva) {
           setStato('chiusa')
           return
@@ -264,17 +247,11 @@ export default function Ascolta() {
           setAvviso('Sfondo aggiornato.')
           return sfondo
         } : undefined}
-        informazioni={(
-          <>
-            <Scheda traccia={voce} onCondiviso={condividiVoce} avviso={avviso} />
-            <Invito impostazioni={impostazioni} slug={voce.slug} />
-          </>
-        )}
+        informazioni={<Scheda traccia={voce} onCondiviso={condividiVoce} avviso={avviso} />}
       />
     )
   }
 
-  const slugInvito = traccia?.slug || evidenza?.slug || elenco[0]?.slug || ''
   // Con o senza slug la pagina ha lo stesso impianto: intestazione, una meditazione, Sorprendimi, invito.
   // Mentre arriva la meditazione scelta da «Sorprendimi» resta quella di prima, così il player non si chiude.
   const voceMostrata = slug ? (traccia || audioEvidenza) : audioEvidenza
@@ -337,7 +314,6 @@ export default function Ascolta() {
           {!slug && elenco.length === 0 && (
             <StatoVuoto titolo="Non ci sono ancora meditazioni pubblicate" />
           )}
-          <Invito impostazioni={impostazioni} slug={slugInvito} />
           {!slug && <IscrizioneLettera />}
         </>
       )}

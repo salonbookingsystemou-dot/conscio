@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { HUE_DEFAULT } from '../lib/tonalita.js'
 import { useTonalita } from '../lib/tonalita.jsx'
+import { salvaTonalitaSito } from '../lib/vetrina.js'
+import { useSnackbar } from './admin/Snackbar.jsx'
 
 function hueDaPunto(el, clientX, clientY) {
   const r = el.getBoundingClientRect()
@@ -86,59 +88,62 @@ function Disco({ hue, onChange, id }) {
   )
 }
 
-export default function RuotaTonalita({ variante = 'piena' }) {
-  const { hue, imposta, reset, predefinita } = useTonalita()
-  const [aperto, setAperto] = useState(false)
-  const radice = useRef(null)
+/** Tonalità dell'app, in Sito: si vede subito su questo schermo, vale per tutti quando si salva. */
+export default function RuotaTonalita() {
+  const { hue, anteprima, ripristina, predefinita, modificata } = useTonalita()
+  const [salvando, setSalvando] = useState(false)
+  const [errore, setErrore] = useState('')
+  const { mostra } = useSnackbar()
+  const daRipristinare = useRef(ripristina)
+  daRipristinare.current = ripristina
 
-  useEffect(() => {
-    if (!aperto) return undefined
-    function fuori(e) {
-      if (!radice.current?.contains(e.target)) setAperto(false)
-    }
-    function tasto(e) {
-      if (e.key === 'Escape') setAperto(false)
-    }
-    document.addEventListener('pointerdown', fuori)
-    document.addEventListener('keydown', tasto)
-    return () => {
-      document.removeEventListener('pointerdown', fuori)
-      document.removeEventListener('keydown', tasto)
-    }
-  }, [aperto])
+  // Uscendo da Sito senza salvare torna la tonalità pubblicata.
+  useEffect(() => () => daRipristinare.current(), [])
 
-  const corpo = (
-    <div className="ruota-corpo">
-      <p className="ruota-etichetta">Tonalità</p>
-      <Disco hue={hue} onChange={imposta} />
-      <button
-        type="button"
-        className="ruota-reset"
-        onClick={reset}
-        disabled={predefinita}
-      >
-        Predefinita
-      </button>
-    </div>
-  )
-
-  if (variante === 'piena') {
-    return <div className="ruota ruota-piena">{corpo}</div>
+  async function salva() {
+    setErrore('')
+    setSalvando(true)
+    try {
+      await salvaTonalitaSito(predefinita ? null : hue)
+      mostra({ testo: 'Tonalità salvata: ora la vedono tutti' })
+    } catch {
+      setErrore('Non è stato possibile salvare la tonalità.')
+    } finally {
+      setSalvando(false)
+    }
   }
 
   return (
-    <div ref={radice} className={`ruota ruota-compatta${aperto ? ' is-open' : ''}`}>
-      <button
-        type="button"
-        className="ruota-apri"
-        aria-expanded={aperto}
-        aria-label="Scegli la tonalità dell’app"
-        onClick={() => setAperto(v => !v)}
-      >
-        <span className="ruota-apri-anello" aria-hidden="true" />
-        <span className="ruota-apri-nucleo" aria-hidden="true" />
-      </button>
-      {aperto && <div className="ruota-popover">{corpo}</div>}
-    </div>
+    <section className="card">
+      <h3>Tonalità</h3>
+      <p className="hint">
+        Il colore dell’app per tutti: partecipanti, visitatori di «E se ti fermassi un momento?» e area facilitatore.
+        Gira la ruota per vederla qui, poi salva.
+      </p>
+      <div className="ruota ruota-piena">
+        <div className="ruota-corpo">
+          <Disco hue={hue} onChange={anteprima} />
+          <button
+            type="button"
+            className="ruota-reset"
+            onClick={() => anteprima(HUE_DEFAULT)}
+            disabled={predefinita}
+          >
+            Predefinita
+          </button>
+        </div>
+      </div>
+      {errore && <p className="avviso-errore" role="alert">{errore}</p>}
+      <div className="azioni">
+        <button type="button" className="btn" onClick={salva} disabled={salvando || !modificata}>
+          {salvando ? 'Salvataggio…' : 'Salva tonalità'}
+        </button>
+        {modificata && (
+          <button type="button" className="btn btn-ghost" onClick={ripristina} disabled={salvando}>
+            Annulla
+          </button>
+        )}
+      </div>
+    </section>
   )
 }
