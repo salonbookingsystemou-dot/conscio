@@ -5447,6 +5447,38 @@ body:has(.splash) {
 .ascolta-palco a {
   color: var(--surface);
 }
+.ascolta-palco-sorprendi {
+  position: absolute;
+  z-index: 2;
+  top: var(--space-16);
+  right: var(--space-16);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-height: 40px;
+  padding: 0 var(--space-16);
+  border: 1px solid color-mix(in srgb, var(--surface) 35%, transparent);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--ink) 35%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: var(--surface);
+  font: inherit;
+  font-size: var(--fs-small);
+  font-weight: 500;
+  cursor: pointer;
+}
+.ascolta-palco-sorprendi:hover {
+  background: color-mix(in srgb, var(--ink) 50%, transparent);
+}
+.ascolta-palco-sorprendi:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+.ascolta-palco-sorprendi svg {
+  width: 18px;
+  height: 18px;
+}
 .ascolta-palco-piede {
   display: flex;
   align-items: flex-end;

@@ -320,6 +320,11 @@ export default function PlayerVetrina({
         {stato.audio}
         <section className="ascolta-palco">
           <Sfondo sfondo={sfondo} conVideo={!aperto} />
+          {onSorprendi && (
+            <button type="button" className="ascolta-palco-sorprendi" onClick={() => onSorprendi()}>
+              <IconaCaso /> Sorprendimi
+            </button>
+          )}
           <div className="ascolta-palco-testo">
             {inEvidenza && <p className="ascolta-sopracciglio">Spunto per una pausa</p>}
             <h2>{traccia.titolo}</h2>

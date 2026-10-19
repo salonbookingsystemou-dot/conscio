@@ -187,7 +187,9 @@ export default function Ascolta() {
   }, [slug, tentativo])
 
   function sorprendi(daSchermoIntero = false) {
-    const scelte = elenco.filter(voce => voce.slug && voce.slug !== slug)
+    // Senza slug esclude la meditazione in evidenza, che è già davanti.
+    const attuale = slug || audioEvidenza?.slug
+    const scelte = elenco.filter(voce => voce.slug && voce.slug !== attuale)
     if (!scelte.length) return
     const prossima = scelte[Math.floor(Math.random() * scelte.length)]
     navigate(`/ascolta/${prossima.slug}`, daSchermoIntero ? { state: { schermoIntero: true } } : undefined)
@@ -252,12 +254,12 @@ export default function Ascolta() {
     )
   }
 
-  // Con o senza slug la pagina ha lo stesso impianto: intestazione, una meditazione, Sorprendimi, invito.
+  // Con o senza slug la pagina ha lo stesso impianto: intestazione, una meditazione (con Sorprendimi nell'anteprima), lettera.
   // Mentre arriva la meditazione scelta da «Sorprendimi» resta quella di prima, così il player non si chiude.
   const voceMostrata = slug ? (traccia || audioEvidenza) : audioEvidenza
-  const mostraSorprendi = slug
-    ? elenco.some(voce => voce.slug && voce.slug !== slug)
-    : elenco.length > 1
+  // Fuori dall'anteprima solo per una scheda senza audio, che non ha il player.
+  const mostraSorprendi = slug && traccia && !traccia.audio_url
+    && elenco.some(voce => voce.slug && voce.slug !== slug)
 
   return (
     <main className="ascolta">
