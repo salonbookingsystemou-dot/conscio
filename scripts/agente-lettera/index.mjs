@@ -17,7 +17,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { composiLettera } from '../../supabase/functions/_shared/letteraSettimanale.ts'
-import { MAX_CARATTERI_PAGINA, MIN_VOCI } from './config.mjs'
+import { GIORNI_VALIDITA, MAX_CARATTERI_PAGINA, MAX_VOCI, MIN_VOCI } from './config.mjs'
 import { controllaBozza } from './controlli.mjs'
 import { meditazioneDaTraccia, preparaMiniatura, scegliMeditazione } from './meditazione.mjs'
 import { nuovoConto } from './modello.mjs'
@@ -26,7 +26,7 @@ import { scrivi, seleziona, smista, verifica } from './passi.mjs'
 import { daiFeed, daPubmed, daRicercaWeb, leggiPagina, rispondeOk } from './raccogli.mjs'
 import { clientSupabase, hashGiaVisti } from './supabase.mjs'
 import { hashUrl } from './hash.mjs'
-import { invioPrevisto, leggiParoleVietate, lunediDi, normalizzaUrl, oggiItalia } from './testi.mjs'
+import { giorniTra, invioPrevisto, leggiParoleVietate, lunediDi, normalizzaUrl, oggiItalia } from './testi.mjs'
 
 const QUI = dirname(fileURLToPath(import.meta.url))
 const env = process.env
@@ -98,6 +98,7 @@ async function genera({ asciutto, forza }) {
   let introduzione = ''
   let notaSelezione = ''
   let riserve = []
+  const statoPagina = {}
   // Un errore del modello o un tetto superato non buttano via il lavoro: la bozza si salva ferma, con il motivo.
   try {
   if (candidati.length) {
@@ -114,23 +115,43 @@ async function genera({ asciutto, forza }) {
         n.testo = p.testo
         n.stato_http = p.stato
       }
+      for (const n of [...sel.scelte, ...sel.riserve]) if (n.testo) statoPagina[n.url] = n.stato_http
       const leggibili = sel.scelte.filter((n) => n.testo)
+      const riserveLeggibili = sel.riserve.filter((n) => n.testo)
       for (const n of sel.scelte.filter((x) => !x.testo)) scartati.push({ ...n, motivo: `pagina non leggibile (${n.stato_http})` })
+      const scarta = (v, motivo) => scartati.push({ url: v.url, titolo: v.titolo, fonte: v.fonte, data: v.data, motivo })
+      // Una notizia senza data o fuori dai giorni ammessi non entra: la data vera spesso si scopre solo leggendo la pagina.
+      const recente = (v) => {
+        if (!v.data) return scarta(v, 'senza data'), false
+        const eta = giorniTra(v.data, oggi)
+        if (eta > GIORNI_VALIDITA || eta < -1) return scarta(v, `fuori periodo (${v.data})`), false
+        return true
+      }
       if (leggibili.length) {
         const w = await scrivi({ notizie: leggibili, linea, conto, chiave })
         oggetto = w.oggetto
         introduzione = w.introduzione
-        // 6. Verifica, con una riserva al posto di ogni voce dubbia (una volta sola)
-        voci = await verifica({ voci: w.voci, linea, conto, chiave })
-        const dubbie = voci.filter((v) => v.verifica !== 'verificata')
-        const disponibili = riserve.filter((r) => r.testo)
-        if (dubbie.length && disponibili.length) {
-          const sostitute = disponibili.slice(0, dubbie.length)
-          const r = await scrivi({ notizie: sostitute, linea, conto, chiave, soloVoci: true })
-          const verificate = await verifica({ voci: r.voci, linea, conto, chiave })
-          for (const d of dubbie) scartati.push({ url: d.url, titolo: d.titolo, fonte: d.fonte, data: d.data, motivo: `verifica: ${d.nota_verifica}` })
-          voci = [...voci.filter((v) => v.verifica === 'verificata'), ...verificate]
+        const attese = Math.min(MAX_VOCI, w.voci.length)
+        // 6. Verifica sulla fonte
+        let attuali = w.voci.filter(recente)
+        if (attuali.length) attuali = await verifica({ voci: attuali, linea, conto, chiave })
+        let buone = attuali.filter((v) => v.verifica === 'verificata')
+        let dubbie = attuali.filter((v) => v.verifica !== 'verificata')
+        // Al posto di ogni voce tolta o dubbia, una riserva (una volta sola).
+        const servono = attese - buone.length
+        if (servono > 0 && riserveLeggibili.length) {
+          const r = await scrivi({ notizie: riserveLeggibili.slice(0, servono), linea, conto, chiave, soloVoci: true })
+          let nuove = r.voci.filter(recente)
+          if (nuove.length) nuove = await verifica({ voci: nuove, linea, conto, chiave })
+          const nuoveBuone = nuove.filter((v) => v.verifica === 'verificata')
+          for (const v of nuove.filter((x) => x.verifica !== 'verificata')) scarta(v, `verifica: ${v.nota_verifica}`)
+          buone = [...buone, ...nuoveBuone]
+          // Le dubbie restano solo se mancano ancora voci: così Dimitri le vede e può correggerle.
+          const posti = Math.max(0, attese - buone.length)
+          for (const d of dubbie.slice(posti)) scarta(d, `verifica: ${d.nota_verifica}`)
+          dubbie = dubbie.slice(0, posti)
         }
+        voci = [...buone, ...dubbie]
       }
     }
   }
@@ -153,7 +174,8 @@ async function genera({ asciutto, forza }) {
 
   // 7. Controlli
   const linkOk = {}
-  for (const v of voci) linkOk[v.url] = await rispondeOk(v.url)
+  // La pagina letta poco fa con risposta 200 vale come link funzionante: molti siti rifiutano i controlli automatici.
+  for (const v of voci) linkOk[v.url] = statoPagina[v.url] === 200 || (await rispondeOk(v.url))
   const [impostazioni] = await db.seleziona('impostazioni_sito', 'select=invio_automatico&id=eq.1')
   const giaInviate = await db.seleziona('bozze_lettera', `select=id&settimana=eq.${settimana}&stato=in.(in_invio,inviata)`)
   const bozza = {
