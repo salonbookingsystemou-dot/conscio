@@ -59,6 +59,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 19/10/2026 · Ascolta: «Sorprendimi» nell'anteprima e pagine delle meditazioni come la principale (da Claude Code)
+«Sorprendimi» è una pillola in alto a destra sulla card del player (`.ascolta-palco-sorprendi`) e non più un pulsante sotto la card. Resta fuori dalla card solo per una scheda senza audio. Su `/ascolta` non ripropone la meditazione in evidenza. Anche `/ascolta/:slug` ora ha la citazione del giorno in testa (letta una volta, non a ogni cambio di meditazione) e il box «Restiamo in contatto» in fondo, come `/ascolta`. Le pagine statiche per le anteprime dei link (`scripts/pagine-condivisione.mjs`) non cambiano: rimandano subito all'app. Nessuna modifica al database.
+
 ### 19/10/2026 · «Restiamo in contatto»: un solo consenso per le due liste (da Claude Code)
 Titolo del box «Mindfulness, dal mondo. Ogni settimana». Tolto il blocco «Cosa vuoi ricevere»: si lascia solo l'email e «Iscrivimi» iscrive sia all'avviso del prossimo ciclo sia alla lettera settimanale (decisione di Dimitri). **La regola cambia:** non più un consenso separato per lista, ma un consenso unico, dato iscrivendosi (il testo del box nomina tutte e due) e confermato dal link nell'email, che elenca le due liste. L'uscita resta per lista. Informativa `/documenti/lettera` aggiornata (testo del 19/10/2026, `VERSIONE_TESTO_LETTERA = '2026-10-19'`), e la riga che la richiama nell'informativa principale. `porta` va ridistribuita perché salvi la nuova versione. Nessuna modifica al database.
 

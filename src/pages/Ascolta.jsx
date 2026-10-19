@@ -127,15 +127,15 @@ export default function Ascolta() {
   const [tentativo, setTentativo] = useState(0)
   const [citazione, setCitazione] = useState(null)
 
-  // Solo nella vista elenco; finché non arriva resta l'intestazione di sempre.
+  // Una al giorno, uguale anche nelle pagine delle meditazioni: si legge una volta sola.
+  // Finché non arriva resta l'intestazione di sempre.
   useEffect(() => {
-    if (slug) return undefined
     let vivo = true
     caricaCitazione().then(dati => {
       if (vivo) setCitazione(dati?.quote_text ? dati : null)
     })
     return () => { vivo = false }
-  }, [slug])
+  }, [])
 
   useEffect(() => {
     let vivo = true
@@ -254,7 +254,7 @@ export default function Ascolta() {
     )
   }
 
-  // Con o senza slug la pagina ha lo stesso impianto: intestazione, una meditazione (con Sorprendimi nell'anteprima), lettera.
+  // Con o senza slug la pagina ha lo stesso impianto: citazione, una meditazione (con Sorprendimi nell'anteprima), lettera.
   // Mentre arriva la meditazione scelta da «Sorprendimi» resta quella di prima, così il player non si chiude.
   const voceMostrata = slug ? (traccia || audioEvidenza) : audioEvidenza
   // Fuori dall'anteprima solo per una scheda senza audio, che non ha il player.
@@ -286,7 +286,7 @@ export default function Ascolta() {
       {stato === 'pronta' && (!slug || voceMostrata) && (
         <>
           <header className="ascolta-testa">
-            {!slug && citazione ? (
+            {citazione ? (
               <>
                 <h1 className="visually-hidden">Ascolta</h1>
                 <Citazione citazione={citazione} />
@@ -316,7 +316,7 @@ export default function Ascolta() {
           {!slug && elenco.length === 0 && (
             <StatoVuoto titolo="Non ci sono ancora meditazioni pubblicate" />
           )}
-          {!slug && <IscrizioneLettera />}
+          <IscrizioneLettera />
         </>
       )}
     </main>
