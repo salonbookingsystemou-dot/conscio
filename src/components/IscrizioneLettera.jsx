@@ -2,59 +2,47 @@ import { useId, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import StatoAttesa from './StatoAttesa.jsx'
 import imgCerchio from '../assets/cerchio-persone.webp'
-import { emailValida, iscriviLettera, LISTE } from '../lib/lettera.js'
+import { emailValida, iscriviLettera } from '../lib/lettera.js'
 
-const VUOTO = { email: '', avviso_ciclo: false, lettera: false }
-
-// «Restiamo in contatto» in Ascolta. Le due liste hanno consensi separati e partono non spuntate.
+// «Restiamo in contatto» in Ascolta. Un solo consenso per le due liste (avviso del ciclo e lettera),
+// descritte nel testo del box e nell'email di conferma; ognuna ha poi il suo link per uscire.
 export default function IscrizioneLettera() {
   const id = useId()
-  const [form, setForm] = useState(VUOTO)
-  const [errori, setErrori] = useState({})
+  const [email, setEmail] = useState('')
+  const [errore, setErrore] = useState('')
   const [stato, setStato] = useState('modulo')
   const [erroreRete, setErroreRete] = useState('')
   const [inviataA, setInviataA] = useState('')
   const campoEmail = useRef(null)
-  const primaScelta = useRef(null)
 
-  function aggiorna(patch) {
-    setForm(f => ({ ...f, ...patch }))
-    setErrori(e => ({
-      ...e,
-      ...('email' in patch ? { email: '' } : {}),
-      ...('avviso_ciclo' in patch || 'lettera' in patch ? { liste: '' } : {})
-    }))
-  }
 
   async function invia(e) {
     e.preventDefault()
     setErroreRete('')
-    const email = form.email.trim()
-    const nuovi = {
-      email: emailValida(email) ? '' : 'Controlla l’indirizzo email.',
-      liste: form.avviso_ciclo || form.lettera ? '' : 'Scegli almeno una delle due opzioni.'
+    const indirizzo = email.trim()
+    if (!emailValida(indirizzo)) {
+      setErrore('Controlla l’indirizzo email.')
+      campoEmail.current?.focus()
+      return
     }
-    setErrori(nuovi)
-    if (nuovi.email) { campoEmail.current?.focus(); return }
-    if (nuovi.liste) { primaScelta.current?.focus(); return }
+    setErrore('')
 
     setStato('invio')
     try {
-      await iscriviLettera({ email, avviso_ciclo: form.avviso_ciclo, lettera: form.lettera })
-      setInviataA(email)
+      await iscriviLettera({ email: indirizzo, avviso_ciclo: true, lettera: true })
+      setInviataA(indirizzo)
       setStato('inviata')
     } catch (err) {
       setStato('modulo')
-      if (err?.code === 'EMAIL_NON_VALIDA') setErrori({ email: 'Controlla l’indirizzo email.' })
-      else if (err?.code === 'NESSUNA_LISTA') setErrori({ liste: 'Scegli almeno una delle due opzioni.' })
+      if (err?.code === 'EMAIL_NON_VALIDA') setErrore('Controlla l’indirizzo email.')
       else if (err?.code === 'TROPPI_TENTATIVI') setErroreRete('Hai fatto molte richieste in poco tempo. Riprova tra un’ora.')
       else setErroreRete('Non è stato possibile completare l’iscrizione. Riprova.')
     }
   }
 
   function altraEmail() {
-    setForm({ ...VUOTO, avviso_ciclo: form.avviso_ciclo, lettera: form.lettera })
-    setErrori({})
+    setEmail('')
+    setErrore('')
     setStato('modulo')
     window.setTimeout(() => campoEmail.current?.focus(), 0)
   }
@@ -67,7 +55,7 @@ export default function IscrizioneLettera() {
       {/* Tratto trasparente usato come maschera: prende il colore dal tema */}
       <div className="ascolta-lettera-illustrazione" style={{ '--img': `url(${imgCerchio})` }} aria-hidden="true" />
       <p className="ascolta-sopracciglio">Restiamo in contatto</p>
-      <h2 id={titoloId}>Una lettera a settimana per non perderti le notizie che contano</h2>
+      <h2 id={titoloId}>Mindfulness, dal mondo. Ogni settimana</h2>
       <p className="ascolta-lettera-testo">
         Ti avvisiamo quando si aprono le iscrizioni al prossimo ciclo e ti raccontiamo cosa succede nel mondo
         della mindfulness, in Italia e nel resto del mondo, selezionando le fonti più autorevoli del settore.
@@ -95,40 +83,14 @@ export default function IscrizioneLettera() {
               autoComplete="email"
               inputMode="email"
               placeholder="nome@esempio.it"
-              value={form.email}
+              value={email}
               disabled={invio}
-              aria-invalid={errori.email ? 'true' : undefined}
-              aria-describedby={errori.email ? `${id}-email-errore` : undefined}
-              onChange={e => aggiorna({ email: e.target.value })}
+              aria-invalid={errore ? 'true' : undefined}
+              aria-describedby={errore ? `${id}-email-errore` : undefined}
+              onChange={e => { setEmail(e.target.value); setErrore('') }}
             />
-            {errori.email && <p className="campo-errore" id={`${id}-email-errore`}>{errori.email}</p>}
+            {errore && <p className="campo-errore" id={`${id}-email-errore`}>{errore}</p>}
           </div>
-
-          <fieldset
-            className="ascolta-lettera-scelte"
-            aria-describedby={errori.liste ? `${id}-liste-errore` : undefined}
-            disabled={invio}
-          >
-            <legend>Cosa vuoi ricevere</legend>
-            {['avviso_ciclo', 'lettera'].map((lista, i) => (
-              <div key={lista} className="ascolta-lettera-scelta">
-                <label>
-                  <input
-                    ref={i === 0 ? primaScelta : undefined}
-                    type="checkbox"
-                    checked={form[lista]}
-                    aria-invalid={errori.liste ? 'true' : undefined}
-                    onChange={e => aggiorna({ [lista]: e.target.checked })}
-                  />
-                  <span>
-                    <strong>{LISTE[lista].titolo}</strong>
-                    <span className="ascolta-lettera-riga">{LISTE[lista].riga}</span>
-                  </span>
-                </label>
-              </div>
-            ))}
-            {errori.liste && <p className="campo-errore" id={`${id}-liste-errore`}>{errori.liste}</p>}
-          </fieldset>
 
           {erroreRete && <p className="avviso-errore" role="alert">{erroreRete}</p>}
 

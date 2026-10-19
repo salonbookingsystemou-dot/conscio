@@ -32,9 +32,9 @@ const DOCS = {
   lettera: {
     titolo: '«Restiamo in contatto»: avviso del ciclo e lettera',
     badge: 'Art. 13 GDPR',
-    lead: 'Come usiamo la tua email se scegli l’avviso del prossimo ciclo o la lettera settimanale in Ascolta. È separato dal percorso e dallo studio pilota.',
+    lead: 'Come usiamo la tua email se ti iscrivi in Ascolta all’avviso del prossimo ciclo e alla lettera settimanale. È separato dal percorso e dallo studio pilota.',
     // Cambiando questo testo, aggiorna anche VERSIONE_TESTO_LETTERA in supabase/functions/_shared/emailLettera.ts.
-    data: '18 ottobre 2026',
+    data: '19 ottobre 2026',
     torna: { a: '/ascolta', etichetta: 'Torna ad Ascolta' }
   }
 }
@@ -99,7 +99,7 @@ function Informativa() {
         </li>
         <li>
           <strong>Avviso del prossimo ciclo e lettera settimanale</strong> (facoltativi, da Ascolta):
-          art. 6, par. 1, lett. a) GDPR — consenso, distinto per ciascuna delle due liste. Sono dati
+          art. 6, par. 1, lett. a) GDPR — consenso, revocabile anche per una sola delle due liste. Sono dati
           separati dal percorso e dallo studio: dettagli in{' '}
           <Link to="/documenti/lettera">«Restiamo in contatto»</Link>.
         </li>
@@ -448,8 +448,8 @@ function DocLettera() {
 
       <h3>2. Quali dati</h3>
       <p>
-        Il tuo indirizzo email, le liste che hai scelto, la data in cui hai dato ciascun consenso e la
-        versione di questo testo, la data della conferma ed eventualmente quella dell’uscita. Per la
+        Il tuo indirizzo email, le liste attive, la data del consenso e la versione di
+        questo testo, la data della conferma ed eventualmente quella dell’uscita. Per la
         conferma e l’uscita usiamo due codici casuali; del codice di conferma salviamo solo un’impronta.
       </p>
       <p>
@@ -469,15 +469,16 @@ function DocLettera() {
         </li>
       </ul>
       <p>
-        Usiamo l’indirizzo solo per la lista o le liste che hai scelto, e per le email di servizio
-        collegate: la conferma dell’iscrizione e l’avviso se cambi le tue preferenze.
+        Iscrivendoti ricevi tutte e due. Usiamo l’indirizzo solo per queste liste e per le email di
+        servizio collegate: la conferma dell’iscrizione e l’avviso se cambi le tue preferenze.
       </p>
 
       <h3>4. Su quale base</h3>
       <p>
-        Il tuo consenso (art. 6, par. 1, lett. a) GDPR), dato separatamente per ciascuna lista e confermato
-        dal link che ti mandiamo per email. Senza conferma non ti scriviamo. Puoi revocarlo in qualsiasi
-        momento con un clic, dal link in fondo a ogni email: non servono accesso né altre conferme. La
+        Il tuo consenso (art. 6, par. 1, lett. a) GDPR), dato iscrivendoti e confermato dal link che ti
+        mandiamo per email. Senza conferma non ti scriviamo. Puoi revocarlo in qualsiasi momento con un
+        clic, anche per una sola delle due liste, dal link in fondo a ogni email: non servono accesso né
+        altre conferme. La
         revoca non tocca quello che è stato inviato prima.
       </p>
 

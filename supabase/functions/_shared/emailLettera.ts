@@ -7,7 +7,7 @@ import { escapeHtml, htmlConCorpo, testoConFirma } from './firmaEmail.ts'
 export const SITO = 'https://conscio.mnesti.it'
 export const REPLY_TO_LETTERA = 'contact@wordpresschef.it'
 // Data dell'informativa «Restiamo in contatto» (/documenti/lettera): si salva con ogni consenso.
-export const VERSIONE_TESTO_LETTERA = '2026-10-18'
+export const VERSIONE_TESTO_LETTERA = '2026-10-19'
 
 export type Lista = 'avviso_ciclo' | 'lettera'
 

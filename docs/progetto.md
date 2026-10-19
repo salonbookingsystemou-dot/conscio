@@ -26,7 +26,8 @@ Chiunque cambi qualcosa di importante aggiorna la sezione **Registro delle modif
   (per i dati sul benessere: consenso esplicito, art. 9 GDPR).
 - Gli iscritti a «Restiamo in contatto» (avviso del prossimo ciclo e lettera settimanale) **non sono partecipanti**:
   `iscritti_lettera` non si collega mai a `utenti`, `iscrizioni`, codici, risposte o `log_pratica`, e il facilitatore vede
-  solo conteggi. Ogni lista ha il suo consenso, con doppia conferma e uscita con un clic. Cambiando l’informativa
+  solo conteggi. Dal 19/10/2026 un solo consenso iscrive a tutte e due le liste, con doppia conferma; l’uscita
+  con un clic resta per lista. Cambiando l’informativa
   `/documenti/lettera` si aggiorna `VERSIONE_TESTO_LETTERA` in `supabase/functions/_shared/emailLettera.ts`.
 - Per la divulgazione si usano solo dati aggregati. Niente sottogruppi piccoli, niente dati individuali.
   Le citazioni dei partecipanti richiedono un consenso specifico (non ancora implementato).
@@ -57,6 +58,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 | T3 (follow-up) | da 4 a 8 settimane dopo la fine |
 
 ## Registro delle modifiche
+
+### 19/10/2026 · «Restiamo in contatto»: un solo consenso per le due liste (da Claude Code)
+Titolo del box «Mindfulness, dal mondo. Ogni settimana». Tolto il blocco «Cosa vuoi ricevere»: si lascia solo l'email e «Iscrivimi» iscrive sia all'avviso del prossimo ciclo sia alla lettera settimanale (decisione di Dimitri). **La regola cambia:** non più un consenso separato per lista, ma un consenso unico, dato iscrivendosi (il testo del box nomina tutte e due) e confermato dal link nell'email, che elenca le due liste. L'uscita resta per lista. Informativa `/documenti/lettera` aggiornata (testo del 19/10/2026, `VERSIONE_TESTO_LETTERA = '2026-10-19'`), e la riga che la richiama nell'informativa principale. `porta` va ridistribuita perché salvi la nuova versione. Nessuna modifica al database.
 
 ### 19/10/2026 · Box «Restiamo in contatto»: illustrazione e testi nuovi; via «Vuoi unirti al percorso?» (da Claude Code)
 In cima al box c'è l'illustrazione del cerchio di persone (`src/assets/cerchio-persone.webp`, solo tratto su fondo trasparente, usata come maschera e colorata con `--ink-2`, quindi segue il tema). Titolo «Una lettera a settimana per non perderti le notizie che contano» e testo «Ti avvisiamo quando si aprono le iscrizioni al prossimo ciclo e ti raccontiamo cosa succede nel mondo della mindfulness, in Italia e nel resto del mondo, selezionando le fonti più autorevoli del settore.». Tolto da Ascolta il blocco «Il percorso» / «Vuoi unirti al percorso MBSR?» (componente `Invito`), sia in fondo all'elenco sia nella scheda di una meditazione. I campi dei suoi testi restano per ora nell'editor della vetrina in admin, ma non si vedono più sul sito. Nessuna modifica al database.
