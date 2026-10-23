@@ -405,10 +405,35 @@ export default function Programma() {
     || lezioni.find(l => l.numero_settimana === limite)
     || lezioni[0]
 
+  // Su iPhone la striscia orizzontale non porta la settimana aperta in vista
+  // (scrollIntoView scorre la pagina, che è tagliata di lato). Si scorre solo il
+  // contenitore; se le settimane vanno a capo, si porta in vista quella aperta.
   useEffect(() => {
-    const attiva = pillsRef.current?.querySelector('.settimana-pill.is-on')
-    attiva?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
-  }, [settimana, aperto])
+    const contenitore = pillsRef.current
+    if (!contenitore) return undefined
+    let fermo = false
+    const id = requestAnimationFrame(() => {
+      if (fermo) return
+      const attiva = contenitore.querySelector('.settimana-pill.is-on')
+      if (!attiva) return
+      const scorre = contenitore.scrollWidth > contenitore.clientWidth + 1
+      if (scorre) {
+        const sinistra = attiva.getBoundingClientRect().left
+          - contenitore.getBoundingClientRect().left
+          + contenitore.scrollLeft
+        contenitore.scrollTo({ left: Math.max(0, sinistra - 2), behavior: 'auto' })
+        return
+      }
+      const r = attiva.getBoundingClientRect()
+      if (r.top < 0 || r.bottom > window.innerHeight) {
+        attiva.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'auto' })
+      }
+    })
+    return () => {
+      fermo = true
+      cancelAnimationFrame(id)
+    }
+  }, [settimana, aperto, lezioni.length])
 
   const inizioCiclo = parseISODate(ciclo?.data_inizio)
   const inizioSettimana = inizioCiclo && corrente

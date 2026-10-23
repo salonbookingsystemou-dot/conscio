@@ -1465,12 +1465,15 @@
 
   .editor-settimane {
     flex-direction: row;
-    overflow-x: auto;
+    flex-wrap: wrap;
+    overflow: visible;
+    min-width: 0;
   }
 
   .editor-settimane-voce {
-    flex: 0 0 auto;
-    min-width: 7.5rem;
+    flex: 1 1 calc(50% - var(--space-4));
+    max-width: calc(50% - var(--space-4));
+    min-width: 0;
   }
 }
 
