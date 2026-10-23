@@ -405,9 +405,9 @@ export default function Programma() {
     || lezioni.find(l => l.numero_settimana === limite)
     || lezioni[0]
 
-  // Su iPhone la striscia orizzontale non porta la settimana aperta in vista
-  // (scrollIntoView scorre la pagina, che è tagliata di lato). Si scorre solo il
-  // contenitore; se le settimane vanno a capo, si porta in vista quella aperta.
+  // Su telefono le settimane stanno in griglia. Se resta una striscia (tra 641 e 719px)
+  // si scorre solo quel contenitore: scrollIntoView sposterebbe la pagina di lato,
+  // e il bordo la taglia. In griglia si porta in vista la settimana aperta, sopra la barra.
   useEffect(() => {
     const contenitore = pillsRef.current
     if (!contenitore) return undefined
@@ -416,7 +416,9 @@ export default function Programma() {
       if (fermo) return
       const attiva = contenitore.querySelector('.settimana-pill.is-on')
       if (!attiva) return
-      const scorre = contenitore.scrollWidth > contenitore.clientWidth + 1
+      const stile = getComputedStyle(contenitore)
+      const inGriglia = stile.display === 'grid' || stile.flexWrap === 'wrap'
+      const scorre = !inGriglia && contenitore.scrollWidth > contenitore.clientWidth + 1
       if (scorre) {
         const sinistra = attiva.getBoundingClientRect().left
           - contenitore.getBoundingClientRect().left
@@ -425,8 +427,12 @@ export default function Programma() {
         return
       }
       const r = attiva.getBoundingClientRect()
-      if (r.top < 0 || r.bottom > window.innerHeight) {
-        attiva.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'auto' })
+      const barra = document.querySelector('.barra-bassa')
+      const limiteBasso = (barra ? barra.getBoundingClientRect().top : window.innerHeight) - 8
+      if (r.top < 8) {
+        window.scrollBy({ top: r.top - 8, behavior: 'auto' })
+      } else if (r.bottom > limiteBasso) {
+        window.scrollBy({ top: r.bottom - limiteBasso, behavior: 'auto' })
       }
     })
     return () => {

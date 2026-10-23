@@ -1819,20 +1819,23 @@ a:not([class]):hover { color: var(--ink); }
   }
 }
 
-/* Sotto i 640px la striscia orizzontale lascia fuori le settimane oltre la seconda,
-   e su iPhone non si riesce a scorrerla. Vanno a capo: due per riga, tre da 480px. */
+/* Sotto i 640px la striscia orizzontale lascia fuori le settimane pari (2, 4, 6, 8):
+   su iPhone la larghezza min(11.5rem, 72vw) non cede e il bordo della pagina taglia
+   la seconda colonna. La griglia dà a ogni settimana una colonna della pagina. */
 @media (max-width: 640px) {
   .settimane-pills {
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     overflow: visible;
     scroll-snap-type: none;
+    -webkit-overflow-scrolling: auto;
     touch-action: auto;
     padding: 0 0 14px;
   }
   .settimana-pill {
-    flex: 1 1 calc((100% - 10px) / 2);
-    width: calc((100% - 10px) / 2);
-    max-width: calc((100% - 10px) / 2);
+    flex: none;
+    width: 100%;
+    max-width: 100%;
     min-width: 0;
     scroll-snap-align: none;
     padding: 10px;
@@ -1840,10 +1843,8 @@ a:not([class]):hover { color: var(--ink); }
   .sett-riga { flex-wrap: wrap; }
 }
 @media (min-width: 480px) and (max-width: 640px) {
-  .settimana-pill {
-    flex-basis: calc((100% - 20px) / 3);
-    width: calc((100% - 20px) / 3);
-    max-width: calc((100% - 20px) / 3);
+  .settimane-pills {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
