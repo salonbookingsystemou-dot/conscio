@@ -59,6 +59,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 23/10/2026 · La settimana 6 si vede sul telefono stretto (da Cursor)
+Nella pagina Settimana, sotto i 640px le settimane non scorrono più in una striscia orizzontale (su iPhone da 320px restavano fuori, e la settimana in corso non veniva portata in vista). Ora vanno a capo, due per riga e tre da 480px, così la settimana 6 è sulla pagina. Nell’editor del programma, sul telefono, l’elenco delle settimane fa lo stesso. Nessuna modifica al database.
+
 ### 19/10/2026 · Ascolta: «Sorprendimi» nell'anteprima e pagine delle meditazioni come la principale (da Claude Code)
 «Sorprendimi» è una pillola in alto a destra sulla card del player (`.ascolta-palco-sorprendi`) e non più un pulsante sotto la card. Resta fuori dalla card solo per una scheda senza audio. Su `/ascolta` non ripropone la meditazione in evidenza. Anche `/ascolta/:slug` ora ha la citazione del giorno in testa (letta una volta, non a ogni cambio di meditazione) e il box «Restiamo in contatto» in fondo, come `/ascolta`. Le pagine statiche per le anteprime dei link (`scripts/pagine-condivisione.mjs`) non cambiano: rimandano subito all'app. Nessuna modifica al database.
 
