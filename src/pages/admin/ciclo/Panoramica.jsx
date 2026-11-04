@@ -3,7 +3,7 @@ import { useNavigate, useOutletContext } from 'react-router-dom'
 import { supabase } from '../../../lib/supabaseClient'
 import DialogConferma from '../../../components/DialogConferma.jsx'
 import AvvisoCicloLettera from '../../../components/admin/AvvisoCicloLettera.jsx'
-import { eIdoneo, eRemoto, etichettaAvanzamento, linkIncontroValido } from '../../../lib/cicli.js'
+import { eIdoneo, eRemoto, etichettaAvanzamento, inAttesaDiEsito, linkIncontroValido } from '../../../lib/cicli.js'
 
 export default function Panoramica() {
   const { ciclo, iscrizioni, aggiornaCiclo } = useOutletContext()
@@ -24,7 +24,7 @@ export default function Panoramica() {
     return {
       idoneiPresenza,
       idoneiRemoti,
-      inAttesa: iscrizioni.length - idoneiPresenza - idoneiRemoti,
+      inAttesa: iscrizioni.filter(inAttesaDiEsito).length,
       posti,
       pctPosti: Math.min(100, Math.round((idoneiPresenza / posti) * 100)),
       avanzamento: etichettaAvanzamento(ciclo)

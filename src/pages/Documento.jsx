@@ -58,7 +58,8 @@ function Informativa() {
         <li>
           <strong>Iscrizione e accesso</strong> (email, ciclo, codice, consenso A):
           art. 6, par. 1, lett. b) GDPR — misure precontrattuali e gestione della
-          partecipazione che hai chiesto.
+          partecipazione che hai chiesto. L’email serve anche a confermare l’iscrizione:
+          il codice arriva solo lì e il primo ingresso con quel codice vale come conferma.
         </li>
         <li>
           <strong>Comunicazioni operative</strong> (esito screening, avvisi, promemoria):
@@ -82,7 +83,9 @@ function Informativa() {
         </li>
         <li>
           <strong>Prove di consenso e sicurezza dell’app</strong>: art. 6, par. 1, lett. c)
-          e f) GDPR — dimostrare i consensi e tenere l’applicazione utilizzabile.
+          e f) GDPR — dimostrare i consensi e tenere l’applicazione utilizzabile. Per
+          limitare gli abusi conserviamo un’impronta non reversibile dell’indirizzo email
+          e dell’indirizzo IP, solo per il tempo dei limiti alle richieste (al massimo due giorni).
         </li>
         <li>
           <strong>Segnalazioni di problemi</strong> (facoltative): art. 6, par. 1,
@@ -113,6 +116,7 @@ function Informativa() {
       <ul>
         <li>indirizzo email (solo per le comunicazioni del percorso);</li>
         <li>codice partecipante (es. MBSR-7K2Q8N3P);</li>
+        <li>data di conferma dell’email, cioè del primo ingresso con il codice;</li>
         <li>ciclo scelto oppure richiesta di iscrizione solo da remoto (senza ciclo in corso), data di iscrizione e modalità di fruizione;</li>
         <li>accettazione del Modulo A e, se la dai, del Modulo B;</li>
         <li>risposte ai questionari PSS-10 e FFMQ-I nei momenti T0, T1, T2 e T3;</li>
@@ -193,7 +197,8 @@ function Informativa() {
 
       <h3>5. Quanto tempo li teniamo</h3>
       <p>
-        L’email resta per la durata del ciclo. Dopo la chiusura del ciclo, se non
+        Le iscrizioni non confermate (nessun ingresso con il codice ricevuto per email)
+        si cancellano dopo 7 giorni. L’email resta per la durata del ciclo. Dopo la chiusura del ciclo, se non
         restano edizioni aperte, viene separata dal record (non più usata per
         scriverti) entro 90 giorni. I dati legati al codice restano per l’analisi
         del pilota. Se chiedi di uscire, non raccogliamo altri dati; quanto già

@@ -1,4 +1,4 @@
-import { ESITI, MODALITA, eIdoneo, eRemoto, eRitirato, faseIdoneo } from '../lib/cicli.js'
+import { ESITI, MODALITA, eConfermata, eIdoneo, eRemoto, eRitirato, faseIdoneo } from '../lib/cicli.js'
 import { IconaAltro } from './admin/IconeAdmin.jsx'
 import MenuAzioni from './admin/MenuAzioni.jsx'
 
@@ -42,11 +42,15 @@ export default function RigaIscrizione({
   const codice = i.utenti?.codice_partecipante || '—'
   const libera = Boolean(cicli)
   const ritirato = eRitirato(i)
+  const confermata = eConfermata(i)
   const idoneo = eIdoneo(i)
   const fase = idoneo && !ritirato ? faseIdoneo(i, timepoints, ciclo) : null
   const esito = ESITI.find(e => e.id === (i.esito_screening || 'in_attesa'))
 
   const dettagli = [
+    !confermata && !ritirato
+      ? 'Non è ancora entrata con il codice: senza il primo ingresso l’iscrizione si cancella dopo 7 giorni'
+      : null,
     ritirato
       ? 'Dati anonimi conservati a fini statistici'
       : fase ? fase.dettaglio.replace(/^Idoneo · /, '') : `Screening: ${(esito?.label || 'in attesa').toLowerCase()}`,
@@ -66,6 +70,12 @@ export default function RigaIscrizione({
             <span className={`dash-stato is-${fase.tono}`}>
               <span className="dash-stato-dot" aria-hidden="true" />
               {fase.etichetta}
+            </span>
+          )}
+          {!confermata && !ritirato && (
+            <span className="dash-stato is-attesa">
+              <span className="dash-stato-dot" aria-hidden="true" />
+              Email da confermare
             </span>
           )}
           {ritirato && <span className="dash-stato is-chiuso">Ritirato</span>}

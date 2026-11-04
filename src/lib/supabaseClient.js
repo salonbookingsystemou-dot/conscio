@@ -117,17 +117,3 @@ export function dimenticaCodiceRicordato() {
     /* archivio non disponibile */
   }
 }
-
-// Genera un codice partecipante pseudonimizzato, es. "MBSR-7K2Q8N3P"
-export function generaCodicePartecipante() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-  const bytes = new Uint8Array(8)
-  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-    crypto.getRandomValues(bytes)
-  } else {
-    for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256)
-  }
-  let code = ''
-  for (let i = 0; i < 8; i++) code += chars[bytes[i] % chars.length]
-  return `MBSR-${code}`
-}

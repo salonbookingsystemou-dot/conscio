@@ -20,9 +20,16 @@ export const MODALITA = [
 const MESI_CORTI = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic']
 
 const COLONNE_CICLO = 'id, nome_ciclo, data_inizio, data_fine, stato, posti_totali, link_incontro'
-const COLONNE_ISCRIZIONE = 'id, esito_screening, modalita_fruizione, ciclo_id, utenti(codice_partecipante, email, stato_screening, onboarding_completato)'
+const COLONNE_ISCRIZIONE = 'id, esito_screening, modalita_fruizione, ciclo_id, utenti(codice_partecipante, email, stato_screening, onboarding_completato, email_confermata_il)'
+
+// Un'iscrizione conta solo dopo il primo ingresso con il codice ricevuto per email.
+// Finché non è confermata resta fuori da posti, numeri chiave, badge e filtro «Idonei».
+export function eConfermata(iscrizione) {
+  return Boolean(iscrizione.utenti?.email_confermata_il)
+}
 
 export function eIdoneo(iscrizione) {
+  if (!eConfermata(iscrizione)) return false
   return iscrizione.esito_screening === 'idoneo' || iscrizione.utenti?.stato_screening === 'idoneo'
 }
 
@@ -35,7 +42,7 @@ export function eRitirato(iscrizione) {
 }
 
 export function inAttesaDiEsito(iscrizione) {
-  return !eIdoneo(iscrizione) && !eRitirato(iscrizione)
+  return eConfermata(iscrizione) && !eIdoneo(iscrizione) && !eRitirato(iscrizione)
 }
 
 // Fase più avanzata raggiunta da un idoneo lungo il percorso.
@@ -296,7 +303,7 @@ const EVENTO_DA_FARE = 'conscio:da-fare'
 export async function contaDaFare() {
   const [seg, iscr, prob] = await Promise.all([
     supabase.rpc('segnalazioni_difficili_aperte'),
-    supabase.from('iscrizioni').select('esito_screening, utenti(stato_screening)'),
+    supabase.from('iscrizioni').select('esito_screening, utenti(stato_screening, email_confermata_il)'),
     supabase.rpc('segnalazioni_problema_da_vedere')
   ])
   const segnalazioni = seg.error ? 0 : (seg.data || []).length
