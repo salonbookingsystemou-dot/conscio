@@ -71,6 +71,12 @@ Dal brief del 4/11 (decisione di Dimitri: il codice non compare più a video). *
 - **Cron:** la pulizia gira dentro `notifica-inattivita` (07:00 UTC), prima degli avvisi.
 Rimasto fuori: la verifica anti-bot (ALTCHA, da valutare tra un mese). Export, reset, consensi e questionari non cambiano. **Ordine di messa in linea:** migrazione → push su `main` (l'interfaccia legge `email_confermata_il`) → `porta` e `notifica-inattivita` ridistribuite a mano (`--no-verify-jwt` per entrambe). Un'app rimasta in cache che non manda `t0` riceve un errore generico finché non si aggiorna.
 
+### 23/10/2026 · La settimana 6 resta visibile anche se la striscia non va a capo (da Cursor)
+Sul telefono da 320px la correzione precedente (settimane che vanno a capo) non bastava: la larghezza della pillola non cedeva e la seconda colonna, dov’è la settimana 6, restava fuori dallo schermo. Ora, sotto i 640px, le settimane sono una griglia (due colonne, tre da 480px), e lo stesso vale per l’elenco nell’editor del programma. Nessuna modifica al database.
+
+### 23/10/2026 · La settimana 6 si vede sul telefono stretto (da Cursor)
+Nella pagina Settimana, sotto i 640px le settimane non scorrono più in una striscia orizzontale (su iPhone da 320px restavano fuori, e la settimana in corso non veniva portata in vista). Ora vanno a capo, due per riga e tre da 480px, così la settimana 6 è sulla pagina. Nell’editor del programma, sul telefono, l’elenco delle settimane fa lo stesso. Nessuna modifica al database.
+
 ### 19/10/2026 · Ascolta: «Sorprendimi» nell'anteprima e pagine delle meditazioni come la principale (da Claude Code)
 «Sorprendimi» è una pillola in alto a destra sulla card del player (`.ascolta-palco-sorprendi`) e non più un pulsante sotto la card. Resta fuori dalla card solo per una scheda senza audio. Su `/ascolta` non ripropone la meditazione in evidenza. Anche `/ascolta/:slug` ora ha la citazione del giorno in testa (letta una volta, non a ogni cambio di meditazione) e il box «Restiamo in contatto» in fondo, come `/ascolta`. Le pagine statiche per le anteprime dei link (`scripts/pagine-condivisione.mjs`) non cambiano: rimandano subito all'app. Nessuna modifica al database.
 

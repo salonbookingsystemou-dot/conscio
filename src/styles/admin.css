@@ -1464,13 +1464,17 @@
   }
 
   .editor-settimane {
-    flex-direction: row;
-    overflow-x: auto;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+    min-width: 0;
   }
 
   .editor-settimane-voce {
-    flex: 0 0 auto;
-    min-width: 7.5rem;
+    flex: none;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 }
 

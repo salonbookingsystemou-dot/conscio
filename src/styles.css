@@ -1790,6 +1790,35 @@ a:not([class]):hover { color: var(--ink); }
   }
 }
 
+/* Sotto i 640px la striscia orizzontale lascia fuori le settimane pari (2, 4, 6, 8):
+   su iPhone la larghezza min(11.5rem, 72vw) non cede e il bordo della pagina taglia
+   la seconda colonna. La griglia dà a ogni settimana una colonna della pagina. */
+@media (max-width: 640px) {
+  .settimane-pills {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+    scroll-snap-type: none;
+    -webkit-overflow-scrolling: auto;
+    touch-action: auto;
+    padding: 0 0 14px;
+  }
+  .settimana-pill {
+    flex: none;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    scroll-snap-align: none;
+    padding: 10px;
+  }
+  .sett-riga { flex-wrap: wrap; }
+}
+@media (min-width: 480px) and (max-width: 640px) {
+  .settimane-pills {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 .chip-riga { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip {
   border: 1px solid var(--border);
