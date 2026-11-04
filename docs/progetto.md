@@ -29,6 +29,10 @@ Chiunque cambi qualcosa di importante aggiorna la sezione **Registro delle modif
   solo conteggi. Dal 19/10/2026 un solo consenso iscrive a tutte e due le liste, con doppia conferma; l’uscita
   con un clic resta per lista. Cambiando l’informativa
   `/documenti/lettera` si aggiorna `VERSIONE_TESTO_LETTERA` in `supabase/functions/_shared/emailLettera.ts`.
+- Un'iscrizione al percorso conta solo quando è confermata: **il primo ingresso con il codice ricevuto per email
+  vale come conferma** (`utenti.email_confermata_il`). Il codice non compare mai a video all'iscrizione; le
+  iscrizioni non confermate non contano nei posti e nei numeri e si cancellano dopo 7 giorni se non hanno dati.
+  Email confrontate e limitate sempre in forma normalizzata (`normalizza_email` / `_shared/normalizzaEmail.ts`).
 - Per la divulgazione si usano solo dati aggregati. Niente sottogruppi piccoli, niente dati individuali.
   Le citazioni dei partecipanti richiedono un consenso specifico (non ancora implementato).
 
@@ -58,6 +62,14 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 | T3 (follow-up) | da 4 a 8 settimane dopo la fine |
 
 ## Registro delle modifiche
+
+### 4/11/2026 · Iscrizione: conferma dell'email e protezione dallo spam (da Claude Code)
+Dal brief del 4/11 (decisione di Dimitri: il codice non compare più a video). **La regola: il primo ingresso con il codice ricevuto per email vale come conferma.** Un'iscrizione conta solo da lì: prima non occupa posti, non entra nei numeri chiave, nel badge di Cicli né nella coda di `iscrivi_partecipante`, e dopo 7 giorni senza risposte, log o check-in si cancella.
+- **Database** (`supabase/migrazione_conferma_email.sql`, **da applicare**): `utenti.email_confermata_il` con backfill su `creato_il` (gli iscritti di oggi restano confermati); `normalizza_email` (minuscole; Gmail e Googlemail senza punti e senza «+…») usata per riconoscere un'email già iscritta; `iscrivi_partecipante` con la stessa firma; `partecipante_per_email`, `conferma_email_partecipante` (idempotente), `pulisci_iscrizioni_non_confermate`, `pulisci_limiti_richieste`, tutte solo service role. Prova senza effetti in `supabase/prova_conferma_email.sql`.
+- **`porta`:** il codice si genera nel server (prima lo creava il browser, che quindi lo conosceva comunque) e parte solo per email («Il tuo codice per Conscio», pulsante Entra, scadenza; il codice non va nell'URL). `iscrivi` e «Recupera il codice» rispondono sempre `{ ok: true }`: email nuova → codice; già iscritta e non confermata → stesso codice; confermata → «Hai già un codice per Conscio»; richiesta scartata → niente. Campo trappola e 3 secondi minimi (scarto silenzioso, nel log senza email né IP); 1 invio ogni 10 minuti e 3 al giorno per email normalizzata; domini usa-e-getta e MX solo all'iscrizione; oltre 50 iscrizioni in 24 ore un avviso al giorno a `FACILITATORE_EMAIL`. L'avviso «Nuova iscrizione» al facilitatore parte alla conferma, non più all'invio del modulo. Il limite per IP dell'iscrizione era già 3 all'ora: resta così.
+- **Interfaccia:** «Controlla la tua casella» al posto del codice copiabile; Entra dice «iscrizione confermata» anche con lo screening in attesa; badge «Email da confermare» negli elenchi del facilitatore. Informativa: conferma, cancellazione a 7 giorni, impronta di email e IP solo per il tempo dei limiti (prima le righe di `limiti_richieste` restavano per sempre: ora la pulizia del mattino toglie quelle scadute).
+- **Cron:** la pulizia gira dentro `notifica-inattivita` (07:00 UTC), prima degli avvisi.
+Rimasto fuori: la verifica anti-bot (ALTCHA, da valutare tra un mese). Export, reset, consensi e questionari non cambiano. **Ordine di messa in linea:** migrazione → push su `main` (l'interfaccia legge `email_confermata_il`) → `porta` e `notifica-inattivita` ridistribuite a mano (`--no-verify-jwt` per entrambe). Un'app rimasta in cache che non manda `t0` riceve un errore generico finché non si aggiorna.
 
 ### 19/10/2026 · Ascolta: «Sorprendimi» nell'anteprima e pagine delle meditazioni come la principale (da Claude Code)
 «Sorprendimi» è una pillola in alto a destra sulla card del player (`.ascolta-palco-sorprendi`) e non più un pulsante sotto la card. Resta fuori dalla card solo per una scheda senza audio. Su `/ascolta` non ripropone la meditazione in evidenza. Anche `/ascolta/:slug` ora ha la citazione del giorno in testa (letta una volta, non a ogni cambio di meditazione) e il box «Restiamo in contatto» in fondo, come `/ascolta`. Le pagine statiche per le anteprime dei link (`scripts/pagine-condivisione.mjs`) non cambiano: rimandano subito all'app. Nessuna modifica al database.
