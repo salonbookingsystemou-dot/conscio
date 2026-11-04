@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   chiamaPorta,
   supabase,
-  supabaseConfigurato,
-  generaCodicePartecipante,
-  memorizzaCodiceRicordato
+  supabaseConfigurato
 } from '../lib/supabaseClient'
 import Disclaimer from '../components/Disclaimer.jsx'
 import BoxCodicePrivacy from '../components/BoxCodicePrivacy.jsx'
@@ -70,30 +69,6 @@ function IconaPercorso({ id }) {
   )
 }
 
-function IconaCopia() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <rect
-        x="8.2"
-        y="8.2"
-        width="10.4"
-        height="12"
-        rx="2"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-      />
-      <path
-        d="M15.6 8.2V6.4A2.2 2.2 0 0 0 13.4 4.2H5.8A2.2 2.2 0 0 0 3.6 6.4v11.2A2.2 2.2 0 0 0 5.8 19.8h1.8"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      />
-    </svg>
-  )
-}
-
 function IconaPosta() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -119,95 +94,51 @@ function IconaPosta() {
   )
 }
 
-function IconaCopiato() {
+// Il codice non compare a video: arriva solo per email. Entrare con quel codice
+// dimostra che la casella è della persona e conferma l'iscrizione.
+function ConfermaIscrizione({ email, soloRemoto }) {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        d="M5.4 12.4 10 17l8.6-9.2"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
+    <div className="conferma-iscrizione">
+      <div className="card card-conferma">
+        <h2>Iscrizione ricevuta</h2>
 
-function ConfermaIscrizione({ codice, email, soloRemoto }) {
-  const [copiato, setCopiato] = useState(false)
-
-  async function copiaCodice() {
-    const testo = String(codice || '').trim()
-    if (!testo) return
-    try {
-      await navigator.clipboard.writeText(testo)
-    } catch {
-      const campo = document.createElement('textarea')
-      campo.value = testo
-      campo.setAttribute('readonly', '')
-      campo.style.position = 'fixed'
-      campo.style.opacity = '0'
-      document.body.appendChild(campo)
-      campo.select()
-      document.execCommand('copy')
-      document.body.removeChild(campo)
-    }
-    setCopiato(true)
-    window.setTimeout(() => setCopiato(false), 2200)
-  }
-
-  return (
-    <div className="card card-conferma">
-      <h2>Iscrizione ricevuta</h2>
-      <p className="lead">Attendi l’approvazione della tua candidatura</p>
-
-      <div className="conferma-codice-blocco">
-        <div className="conferma-codice">
-          <p className="codice-enfasi">{codice}</p>
-          <button
-            type="button"
-            className="conferma-copia"
-            onClick={copiaCodice}
-            aria-label={copiato ? 'Codice copiato' : 'Copia il codice negli appunti'}
-          >
-            {copiato ? <IconaCopiato /> : <IconaCopia />}
-          </button>
+        <div className="conferma-casella" role="status">
+          <IconaPosta />
+          <div>
+            <p className="conferma-casella-titolo">Controlla la tua casella.</p>
+            <p>
+              Ti abbiamo scritto{email ? <> a <strong className="conferma-casella-email">{email}</strong></> : null} con
+              il tuo codice. Non lo trovi? Guarda nello spam
+              o <Link to="/entra" state={{ recupera: true }}>richiedilo di nuovo</Link>.
+            </p>
+          </div>
         </div>
-        <p className="conferma-codice-nota" aria-live="polite">
-          {copiato ? 'Codice copiato.' : 'Copia e conservalo'}
-        </p>
+
+        <ol className="conferma-flusso">
+          <li className="is-ora">
+            <strong>Entra con il codice</strong>
+            <p>
+              Aprilo dall’email ed entra: così confermi l’iscrizione.
+              Se non entri entro 7 giorni l’iscrizione viene cancellata.
+            </p>
+          </li>
+          <li>
+            <strong>Attendi l’approvazione</strong>
+            <p>
+              Ti scriviamo con l’esito. Fino ad allora le sezioni restano chiuse.
+            </p>
+          </li>
+          <li>
+            <strong>Poi inizi</strong>
+            <p>
+              {soloRemoto
+                ? 'Con l’idoneità entri col codice: onboarding, T0 e le settimane al tuo ritmo. Non occupi un posto in aula.'
+                : 'Con l’idoneità entri col codice: onboarding, T0 e poi le settimane del percorso.'}
+            </p>
+          </li>
+        </ol>
       </div>
-
-      <ol className="conferma-flusso">
-        <li className="is-fatto">
-          <strong>Hai il codice</strong>
-          <p>
-            È la tua chiave per entrare. Te lo abbiamo inviato anche all’email
-            di iscrizione; non useremo il tuo nome.
-          </p>
-        </li>
-        <li className="is-ora">
-          <strong>Ora attendi l’approvazione</strong>
-          <p>
-            Ti scriviamo con l’esito{email ? ` a ${email}` : ''}.
-            Controlla anche lo spam. Fino ad allora le sezioni restano chiuse.
-          </p>
-        </li>
-        <li>
-          <strong>Poi inizi</strong>
-          <p>
-            {soloRemoto
-              ? 'Con l’idoneità entri col codice: onboarding, T0 e le settimane al tuo ritmo. Non occupi un posto in aula.'
-              : 'Con l’idoneità entri col codice: onboarding, T0 e poi le settimane del percorso.'}
-          </p>
-        </li>
-      </ol>
-
-      <p className="conferma-invito">
-        <IconaPosta />
-        <span>Controlla la tua casella di posta</span>
-      </p>
+      <BoxCodicePrivacy />
     </div>
   )
 }
@@ -253,7 +184,8 @@ export default function Iscrizione() {
   })
   const [stato, setStato] = useState(null)
   const [errore, setErrore] = useState(null)
-  const [codiceGenerato, setCodiceGenerato] = useState(null)
+  // Istante di apertura del modulo: porta scarta gli invii arrivati in meno di 3 secondi.
+  const [t0] = useState(() => Date.now())
 
   useEffect(() => {
     supabase
@@ -274,48 +206,40 @@ export default function Iscrizione() {
       return
     }
 
-    for (let tentativo = 0; tentativo < 3; tentativo++) {
-      const codice = generaCodicePartecipante()
-      try {
-        const data = await chiamaPorta({
-          azione: 'iscrivi',
-          email: form.email,
-          ciclo_id: form.solo_remoto ? null : form.ciclo_id,
-          solo_remoto: form.solo_remoto,
-          codice,
-          consenso_a: form.consenso_modulo_a,
-          consenso_b: form.consenso_modulo_b,
-          sito_web: form.sito_web
-        })
-        if (data?.ok) {
-          const assegnato = data.codice || codice
-          memorizzaCodiceRicordato(assegnato)
-          setCodiceGenerato(assegnato)
-          setStato('ok')
-          return
-        }
-        setErrore('Si è verificato un errore. Riprova.')
-        setStato(null)
-        return
-      } catch (err) {
-        const testo = err?.code || err?.message || ''
-        if (testo.includes('CODICE_DUPLICATO') && tentativo < 2) continue
-        if (testo.includes('TROPPI_TENTATIVI')) setErrore('Troppi tentativi. Riprova tra qualche minuto.')
-        else if (testo.includes('CODA_ISCRIZIONI_PIENA')) setErrore('Le richieste in coda sono al completo. Riprova più tardi.')
-        else if (testo.includes('CICLO_PIENO')) setErrore('I posti idonei di questo ciclo sono già al completo.')
-        else if (testo.includes('EMAIL_GIA_ISCRITTA')) setErrore('Questa email è già iscritta.')
-        else if (testo.includes('CICLO_NON_DISPONIBILE')) setErrore('Il ciclo non è più in reclutamento.')
-        else setErrore('Si è verificato un errore. Riprova.')
-        setStato(null)
+    try {
+      const data = await chiamaPorta({
+        azione: 'iscrivi',
+        email: form.email,
+        ciclo_id: form.solo_remoto ? null : form.ciclo_id,
+        solo_remoto: form.solo_remoto,
+        consenso_a: form.consenso_modulo_a,
+        consenso_b: form.consenso_modulo_b,
+        sito_web: form.sito_web,
+        t0,
+        t_invio: Date.now()
+      })
+      if (data?.ok) {
+        setStato('ok')
         return
       }
+      setErrore('Non è stato possibile completare l’iscrizione. Riprova.')
+      setStato(null)
+    } catch (err) {
+      const testo = err?.code || err?.message || ''
+      if (testo.includes('EMAIL_TEMPORANEA')) setErrore('Usa un indirizzo email personale, non temporaneo.')
+      else if (testo.includes('EMAIL_NON_VALIDA')) setErrore('Controlla l’indirizzo email.')
+      else if (testo.includes('TROPPI_TENTATIVI')) setErrore('Troppi tentativi. Riprova tra qualche minuto.')
+      else if (testo.includes('CODA_ISCRIZIONI_PIENA')) setErrore('Le richieste in coda sono al completo. Riprova più tardi.')
+      else if (testo.includes('CICLO_PIENO')) setErrore('I posti idonei di questo ciclo sono già al completo.')
+      else if (testo.includes('CICLO_NON_DISPONIBILE')) setErrore('Il ciclo non è più in reclutamento.')
+      else setErrore('Non è stato possibile completare l’iscrizione. Riprova.')
+      setStato(null)
     }
   }
 
   if (stato === 'ok') {
     return (
       <ConfermaIscrizione
-        codice={codiceGenerato}
         email={form.email.trim()}
         soloRemoto={form.solo_remoto}
       />
@@ -351,7 +275,7 @@ export default function Iscrizione() {
         <header className="iscrizione-testata">
           <h2 id="iscrizione-titolo">Iscriviti</h2>
           <p className="lead">
-            Compila i campi qui sotto: riceverai un codice personale da conservare.
+            Compila i campi qui sotto: riceverai per email un codice personale da conservare.
           </p>
         </header>
         <form className="iscrizione-form" onSubmit={handleSubmit}>
@@ -414,7 +338,7 @@ export default function Iscrizione() {
               onChange={e => setForm({ ...form, email: e.target.value })}
             />
             <p className="hint">
-              Serve solo per inviarti il codice e le comunicazioni del gruppo.
+              Serve per inviarti il codice, confermare l’iscrizione e scriverti le comunicazioni del gruppo.
             </p>
             <div className="campo-trappola" aria-hidden="true">
               <label htmlFor="sito_web">Sito web</label>

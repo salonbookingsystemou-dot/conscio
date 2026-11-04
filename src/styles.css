@@ -1506,47 +1506,39 @@ a:not([class]):hover { color: var(--ink); }
   color: var(--moss-dark);
   font-weight: 600;
 }
-.conferma-codice-blocco { margin-bottom: 28px; }
-.conferma-codice {
+.conferma-casella {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-.conferma-codice .codice-enfasi {
-  margin: 0;
-}
-.conferma-copia {
-  flex: 0 0 44px;
-  width: 44px;
-  height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 18px 0 28px;
+  padding: 16px 18px;
   border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--moss);
-  cursor: pointer;
+  background: var(--accent-soft);
+  color: var(--ink);
+  text-align: left;
+  font-size: 15px;
+  line-height: 1.45;
 }
-.conferma-copia svg {
+.conferma-casella svg {
+  flex: 0 0 22px;
   width: 22px;
   height: 22px;
-}
-.conferma-copia:hover,
-.conferma-copia:focus-visible {
-  background: color-mix(in srgb, var(--moss) 12%, transparent);
+  margin-top: 1px;
   color: var(--moss-dark);
 }
-.conferma-copia:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--moss) 45%, transparent);
-  outline-offset: 2px;
+.conferma-casella > div { min-width: 0; }
+.conferma-casella p { margin: 0; }
+.conferma-casella p.conferma-casella-titolo {
+  margin-bottom: 4px;
+  font-weight: 600;
+  color: var(--moss-dark);
 }
-.conferma-codice-nota {
-  margin: 6px 0 0;
-  font-size: 13px;
-  color: var(--ink-soft);
-  text-align: center;
+.conferma-casella-email { overflow-wrap: anywhere; }
+.conferma-iscrizione {
+  display: grid;
+  gap: 20px;
+  max-width: 34rem;
+  margin-inline: auto;
 }
 .conferma-flusso {
   list-style: none;
@@ -1599,27 +1591,6 @@ a:not([class]):hover { color: var(--ink); }
   color: var(--ink-soft);
   font-size: 15px;
   line-height: 1.45;
-}
-.conferma-invito {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  margin: 28px 0 0;
-  padding: 16px 0 0;
-  border-top: 1px solid var(--border);
-  color: var(--moss-dark);
-  font-size: 15px;
-  font-weight: 500;
-  line-height: 1.35;
-  cursor: default;
-}
-.conferma-invito svg {
-  flex: 0 0 22px;
-  width: 22px;
-  height: 22px;
-  color: var(--moss);
 }
 .card-domanda { padding: 32px 28px; }
 

@@ -8,7 +8,10 @@
 // CURSOR_AUTOFIX_WEBHOOK_URL, CURSOR_AUTOFIX_WEBHOOK_KEY.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { htmlConFirma, testoConFirma } from '../_shared/firmaEmail.ts'
+import { escapeHtml, htmlConCorpo, htmlConFirma, testoConFirma } from '../_shared/firmaEmail.ts'
+import { EMAIL } from '../_shared/stileEmail.ts'
+import { dominioEmail, normalizzaEmail } from '../_shared/normalizzaEmail.ts'
+import { dominioUsaEGetta } from '../_shared/dominiUsaEGetta.ts'
 import {
   emailConferma,
   emailPreferenze,
@@ -114,6 +117,7 @@ async function inviaEmail(opts: {
   to: string
   oggetto: string
   testo: string
+  html?: string
   replyTo?: string
 }): Promise<boolean> {
   const apiKey = Deno.env.get('RESEND_API_KEY')
@@ -132,7 +136,7 @@ async function inviaEmail(opts: {
         reply_to: opts.replyTo || REPLY_TO,
         subject: opts.oggetto,
         text: testoConFirma(opts.testo),
-        html: htmlConFirma(opts.testo)
+        html: opts.html || htmlConFirma(opts.testo)
       })
     })
     return res.ok
@@ -241,51 +245,136 @@ function testoChiusuraGestore(opts: {
   ].join('\n')
 }
 
-function inviaCodiceEmail(opts: {
-  to: string
-  codice: string
-  oggetto: string
-  testo: string
-}): Promise<boolean> {
-  return inviaEmail({
-    to: opts.to,
-    oggetto: opts.oggetto,
-    testo: opts.testo
-  })
-}
+// ── Email con il codice ────────────────────────────────────────────────────
+// Il codice arriva solo per email e non va mai nell'URL: il pulsante porta a Entra,
+// dove la persona lo scrive. Il primo ingresso con il codice conferma l'iscrizione.
 
-function testoRecupero(codice: string): string {
-  return [
+type TipoEmailCodice = 'nuovo' | 'gia_iscritto' | 'recupero'
+
+function emailCodice(codice: string, tipo: TipoEmailCodice) {
+  const oggetto = tipo === 'gia_iscritto' ? 'Hai già un codice per Conscio' : 'Il tuo codice per Conscio'
+  const apertura =
+    tipo === 'gia_iscritto'
+      ? 'qualcuno ha chiesto di iscriversi a Conscio con questa email, ma hai già un codice. Eccolo:'
+      : tipo === 'recupero'
+        ? 'hai chiesto di ricevere di nuovo il tuo codice per Conscio. Eccolo:'
+        : 'ecco il tuo codice per Conscio:'
+  const istruzione =
+    tipo === 'nuovo'
+      ? 'Entra con questo codice: così confermi che questa casella è tua e completi l’iscrizione.'
+      : 'Usalo nella pagina Entra: non serve iscriversi di nuovo.'
+  const scadenza = tipo === 'nuovo' ? 'Se non entri entro 7 giorni l’iscrizione viene cancellata.' : ''
+  const conserva =
+    'Conservalo: ti servirà a ogni accesso. Nel percorso ti riconosci solo con questo codice, non con il tuo nome.'
+  const avviso = 'Se non sei stato tu, ignora questa email.'
+
+  const testo = [
     'Ciao,',
     '',
-    'Hai chiesto di ricevere di nuovo il tuo codice partecipante per il Percorso MBSR.',
+    apertura,
     '',
-    `Il tuo codice è: ${codice}`,
+    codice,
     '',
-    'Usalo nella pagina Entra dell’app. Conservalo in un posto sicuro.',
-    'Se non hai fatto tu questa richiesta, puoi ignorare questo messaggio.',
+    istruzione,
+    `Entra: ${LINK_ENTRA}`,
     '',
-    `Per assistenza: ${REPLY_TO}`,
+    ...(scadenza ? [scadenza, ''] : []),
+    conserva,
     '',
-    '— Percorso MBSR'
+    avviso
   ].join('\n')
+
+  const p = (t: string, stile = '') => `<p style="margin:0 0 14px;${stile}">${escapeHtml(t)}</p>`
+  const nota = `font-size:14px;color:${EMAIL.muted};`
+  const html = htmlConCorpo(
+    [
+      p('Ciao,'),
+      p(apertura),
+      `<p style="margin:20px 0;padding:16px 20px;border-radius:12px;background:${EMAIL.accentSoft};`,
+      `font-family:${EMAIL.fontDisplay};font-size:26px;font-weight:600;letter-spacing:0.06em;`,
+      `color:${EMAIL.ink};text-align:center;">${escapeHtml(codice)}</p>`,
+      p(istruzione),
+      `<p style="margin:24px 0;"><a href="${LINK_ENTRA}" style="display:inline-block;padding:12px 22px;`,
+      `border-radius:12px;background:${EMAIL.accent};color:${EMAIL.surface};font-family:${EMAIL.fontBody};`,
+      'font-size:16px;font-weight:600;text-decoration:none;">Entra</a></p>',
+      scadenza ? p(scadenza, 'font-weight:600;') : '',
+      p(conserva, nota),
+      p(avviso, nota)
+    ].join('')
+  )
+  return { oggetto, testo, html }
 }
 
-function testoIscrizione(codice: string): string {
-  return [
-    'Ciao,',
-    '',
-    'La tua iscrizione al Percorso MBSR è stata registrata.',
-    '',
-    `Il tuo codice partecipante è: ${codice}`,
-    '',
-    'Conservalo: ti servirà per entrare nell’app dopo lo screening.',
-    'Non condividiamo il tuo nome: nel percorso ti riconosci solo con questo codice.',
-    '',
-    `Per assistenza: ${REPLY_TO}`,
-    '',
-    '— Percorso MBSR'
-  ].join('\n')
+function inviaCodiceEmail(to: string, codice: string, tipo: TipoEmailCodice): Promise<boolean> {
+  const email = emailCodice(codice, tipo)
+  return inviaEmail({ to, oggetto: email.oggetto, testo: email.testo, html: email.html })
+}
+
+/** Codice generato qui, non nel browser: chi si iscrive lo legge solo nell'email. */
+function nuovoCodicePartecipante(): string {
+  const caratteri = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  const bytes = new Uint8Array(8)
+  crypto.getRandomValues(bytes)
+  let codice = ''
+  for (const b of bytes) codice += caratteri[b % caratteri.length]
+  return `MBSR-${codice}`
+}
+
+// ── Filtri anti-bot per iscrizione e recupero ──────────────────────────────
+
+const TEMPO_MINIMO_MS = 3000
+
+/**
+ * Campo trappola e tempo di compilazione. Il browser manda `t0` (apertura del modulo)
+ * e `t_invio` (invio), entrambi dal suo orologio: la differenza non dipende da quanto
+ * l'orologio del telefono è avanti o indietro rispetto al server.
+ */
+function controlloModulo(corpo: Record<string, unknown>): 'ok' | 'trappola' | 'troppo_veloce' | 'senza_tempo' {
+  const trappola = typeof corpo.sito_web === 'string' ? corpo.sito_web.trim() : ''
+  if (trappola) return 'trappola'
+  const t0 = Number(corpo.t0)
+  const tInvio = Number(corpo.t_invio)
+  if (!Number.isFinite(t0) || !Number.isFinite(tInvio) || t0 <= 0) return 'senza_tempo'
+  if (tInvio - t0 < TEMPO_MINIMO_MS) return 'troppo_veloce'
+  return 'ok'
+}
+
+/** Annota lo scarto senza email né IP. */
+function annotaScarto(azione: string, motivo: string) {
+  console.log('richiesta_scartata', JSON.stringify({ azione, motivo }))
+}
+
+async function risolviMx(dominio: string): Promise<'ha_mx' | 'senza_mx' | 'sconosciuto'> {
+  const resolveDns = (Deno as unknown as {
+    resolveDns?: (nome: string, tipo: 'MX') => Promise<unknown[]>
+  }).resolveDns
+  if (typeof resolveDns !== 'function') return 'sconosciuto'
+  let timer: number | undefined
+  try {
+    const risposta = await Promise.race([
+      resolveDns(dominio, 'MX'),
+      new Promise<null>((r) => {
+        timer = setTimeout(() => r(null), 3000)
+      })
+    ])
+    if (risposta === null) return 'sconosciuto'
+    return Array.isArray(risposta) && risposta.length > 0 ? 'ha_mx' : 'senza_mx'
+  } catch (err) {
+    // Dominio inesistente o senza MX: NotFound. Rete, permessi o altro: non si sa.
+    return err instanceof Deno.errors.NotFound ? 'senza_mx' : 'sconosciuto'
+  } finally {
+    if (timer !== undefined) clearTimeout(timer)
+  }
+}
+
+/**
+ * Vero solo se il dominio di sicuro non riceve posta. Se il runtime non risolve i DNS,
+ * se la risoluzione fallisce o se fallisce anche per gmail.com (resolver in difficoltà),
+ * si lascia passare.
+ */
+async function dominioSenzaPosta(dominio: string): Promise<boolean> {
+  if ((await risolviMx(dominio)) !== 'senza_mx') return false
+  return (await risolviMx('gmail.com')) === 'ha_mx'
 }
 
 const LINK_ENTRA = 'https://conscio.mnesti.it/#/entra'
@@ -321,7 +410,7 @@ function testoAvvisoIscrizione(opts: {
       ? `Ciclo: ${opts.nomeCiclo}`
       : 'Ciclo: in presenza'
   return [
-    'Nuova iscrizione al Percorso MBSR.',
+    'Nuova iscrizione al Percorso MBSR, confermata: la persona è entrata con il codice ricevuto per email.',
     '',
     `Email: ${opts.email}`,
     `Codice: ${opts.codice}`,
@@ -477,6 +566,95 @@ Deno.serve(async (req) => {
     return null
   }
 
+  /** Invii per indirizzo (iscrizione e recupero insieme): 1 ogni 10 minuti, 3 al giorno. */
+  async function invioPermesso(email: string): Promise<boolean> {
+    const chiave = await hashChiave(normalizzaEmail(email))
+    const dieci = await admin.rpc('assert_limite', {
+      p_azione: 'invio_codice_10min',
+      p_chiave: chiave,
+      p_max: 1,
+      p_secondi: 600
+    })
+    if (dieci.error) return false
+    const giorno = await admin.rpc('assert_limite', {
+      p_azione: 'invio_codice_giorno',
+      p_chiave: chiave,
+      p_max: 3,
+      p_secondi: 86400
+    })
+    return !giorno.error
+  }
+
+  async function partecipantePerEmail(email: string) {
+    const { data, error } = await admin.rpc('partecipante_per_email', { p_email: email })
+    if (error) throw new Error('LETTURA_NON_RIUSCITA')
+    const riga = Array.isArray(data) ? data[0] : null
+    return riga && typeof riga.codice === 'string' && typeof riga.email === 'string'
+      ? (riga as { email: string; codice: string; confermata: boolean; ha_iscrizione: boolean })
+      : null
+  }
+
+  /** Oltre 50 iscrizioni in 24 ore: una sola email al facilitatore al giorno. L'iscrizione va avanti. */
+  async function controllaVolumeIscrizioni() {
+    const da = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    const { count, error } = await admin
+      .from('utenti')
+      .select('id', { count: 'exact', head: true })
+      .eq('ruolo', 'partecipante')
+      .gte('creato_il', da)
+    if (error || (count ?? 0) <= 50) return
+    const { error: giaAvvisato } = await admin.rpc('assert_limite', {
+      p_azione: 'allarme_iscrizioni',
+      p_chiave: 'globale',
+      p_max: 1,
+      p_secondi: 86400
+    })
+    if (giaAvvisato) return
+    await inviaEmail({
+      to: Deno.env.get('FACILITATORE_EMAIL') || REPLY_TO,
+      oggetto: 'Molte iscrizioni nelle ultime 24 ore: controlla',
+      testo: [
+        `Nelle ultime 24 ore ci sono state ${count} iscrizioni al percorso.`,
+        '',
+        'Potrebbe essere spam. Le iscrizioni non confermate non contano nei posti e si cancellano',
+        'da sole dopo 7 giorni; se il numero continua a crescere, valuta una verifica in più sul modulo.',
+        '',
+        'Non riceverai un altro avviso come questo prima di domani.',
+        '',
+        '— App Conscio'
+      ].join('\n')
+    })
+  }
+
+  /** Avviso al facilitatore quando un'iscrizione si conferma (primo ingresso con il codice). */
+  async function avvisaIscrizioneConfermata(codice: string) {
+    const { data: utente } = await admin
+      .from('utenti')
+      .select('email, codice_partecipante, iscrizioni(ciclo_id)')
+      .ilike('codice_partecipante', escapeIlike(codice))
+      .maybeSingle()
+    if (!utente?.email || !utente.codice_partecipante) return
+    const iscrizione = Array.isArray(utente.iscrizioni) ? utente.iscrizioni[0] : utente.iscrizioni
+    const cicloId = (iscrizione as { ciclo_id?: string | null } | null | undefined)?.ciclo_id || null
+    const soloRemoto = !cicloId
+    let nomeCiclo: string | null = null
+    if (cicloId) {
+      const { data: ciclo } = await admin.from('cicli').select('nome_ciclo').eq('id', cicloId).maybeSingle()
+      nomeCiclo = typeof ciclo?.nome_ciclo === 'string' ? ciclo.nome_ciclo : null
+    }
+    await inviaEmail({
+      to: REPLY_TO,
+      oggetto: soloRemoto ? 'Nuova iscrizione — solo da remoto' : 'Nuova iscrizione — Percorso MBSR',
+      testo: testoAvvisoIscrizione({
+        email: utente.email,
+        codice: utente.codice_partecipante,
+        soloRemoto,
+        nomeCiclo
+      }),
+      replyTo: utente.email
+    })
+  }
+
   if (azione === 'stato') {
     const blocco = await limita('entra', chiaveIp, 20, 900)
     if (blocco) return blocco
@@ -486,114 +664,120 @@ Deno.serve(async (req) => {
 
     const { data, error } = await admin.rpc('stato_accesso_codice', { p_codice: codice })
     if (error) return json({ error: messaggioErrore(error) }, 400)
-    return json({ stato: data || 'non_trovato' })
+    const stato = data || 'non_trovato'
+
+    // Entrare con il codice ricevuto per email dimostra che la casella è della persona:
+    // vale come conferma, anche se lo screening è ancora in attesa.
+    if (stato !== 'non_trovato') {
+      const { data: confermataOra, error: errConferma } = await admin.rpc('conferma_email_partecipante', {
+        p_codice: codice
+      })
+      if (errConferma) console.warn('conferma_email', errConferma.message)
+      else if (confermataOra === true) await avvisaIscrizioneConfermata(codice)
+    }
+    return json({ stato })
   }
 
   if (azione === 'iscrivi') {
-    const honeypot = typeof corpo.sito_web === 'string' ? corpo.sito_web.trim() : ''
-    if (honeypot) return json({ error: 'ERRORE' }, 400)
+    // Risposta sempre { ok: true } per email nuove, già iscritte e richieste scartate:
+    // a video non si capisce mai se un indirizzo è iscritto.
+    const modulo = controlloModulo(corpo)
+    if (modulo === 'senza_tempo') return json({ error: 'VERSIONE_VECCHIA' }, 400)
+    if (modulo !== 'ok') {
+      annotaScarto('iscrivi', modulo)
+      return json({ ok: true })
+    }
+
+    const email = typeof corpo.email === 'string' ? corpo.email.trim() : ''
+    if (!emailValida(email)) return json({ error: 'EMAIL_NON_VALIDA' }, 400)
+    const dominio = dominioEmail(email)
+    if (dominioUsaEGetta(dominio)) return json({ error: 'EMAIL_TEMPORANEA' }, 400)
+    if (await dominioSenzaPosta(dominio)) return json({ error: 'EMAIL_NON_VALIDA' }, 400)
 
     const bloccoOra = await limita('iscrivi_ora', chiaveIp, 3, 3600)
     if (bloccoOra) return bloccoOra
     const bloccoGiorno = await limita('iscrivi_giorno', chiaveIp, 10, 86400)
     if (bloccoGiorno) return bloccoGiorno
 
-    const email = typeof corpo.email === 'string' ? corpo.email.trim() : ''
-    const ciclo_id = typeof corpo.ciclo_id === 'string' ? corpo.ciclo_id.trim() : ''
-    const codice = typeof corpo.codice === 'string' ? corpo.codice.trim() : ''
-    const consenso_a = Boolean(corpo.consenso_a)
-    const consenso_b = Boolean(corpo.consenso_b)
-    const solo_remoto = Boolean(corpo.solo_remoto)
-
-    const { data, error } = await admin.rpc('iscrivi_partecipante', {
-      p_email: email,
-      p_ciclo_id: solo_remoto || !ciclo_id ? null : ciclo_id,
-      p_codice: codice,
-      p_consenso_a: consenso_a,
-      p_consenso_b: consenso_b,
-      p_solo_remoto: solo_remoto
-    })
-    if (error) {
-      const codiceErr = messaggioErrore(error)
-      const status = codiceErr === 'TROPPI_TENTATIVI' ? 429 : 400
-      return json({ error: codiceErr }, status)
+    let esistente
+    try {
+      esistente = await partecipantePerEmail(email)
+    } catch {
+      return json({ error: 'ERRORE' }, 500)
     }
 
-    const assegnato =
-      data && typeof data === 'object' && 'codice' in data && typeof (data as { codice: unknown }).codice === 'string'
-        ? (data as { codice: string }).codice
-        : codice
-    if (emailValida(email) && assegnato) {
-      let nomeCiclo: string | null = null
-      if (!solo_remoto && ciclo_id) {
-        const { data: ciclo } = await admin
-          .from('cicli')
-          .select('nome_ciclo')
-          .eq('id', ciclo_id)
-          .maybeSingle()
-        nomeCiclo = typeof ciclo?.nome_ciclo === 'string' ? ciclo.nome_ciclo : null
+    if (esistente?.ha_iscrizione) {
+      // Già iscritta: nessun secondo utente. Non confermata → stesso codice di nuovo;
+      // confermata → «Hai già un codice per Conscio». Sempre nei limiti per indirizzo.
+      if (await invioPermesso(esistente.email)) {
+        await inviaCodiceEmail(esistente.email, esistente.codice, esistente.confermata ? 'gia_iscritto' : 'nuovo')
+      } else {
+        annotaScarto('iscrivi', 'limite_email')
       }
-      // Best effort: l’iscrizione resta valida anche se Resend fallisce.
-      await Promise.all([
-        inviaCodiceEmail({
-          to: email,
-          codice: assegnato,
-          oggetto: 'Il tuo codice partecipante — Percorso MBSR',
-          testo: testoIscrizione(assegnato)
-        }),
-        inviaEmail({
-          to: REPLY_TO,
-          oggetto: solo_remoto
-            ? 'Nuova iscrizione — solo da remoto'
-            : 'Nuova iscrizione — Percorso MBSR',
-          testo: testoAvvisoIscrizione({
-            email,
-            codice: assegnato,
-            soloRemoto: solo_remoto,
-            nomeCiclo
-          }),
-          replyTo: email
-        })
-      ])
+      return json({ ok: true })
     }
 
-    return json(data ?? { ok: true })
+    const ciclo_id = typeof corpo.ciclo_id === 'string' ? corpo.ciclo_id.trim() : ''
+    const solo_remoto = Boolean(corpo.solo_remoto)
+    let codice = ''
+    for (let tentativo = 0; tentativo < 3; tentativo++) {
+      const candidato = nuovoCodicePartecipante()
+      const { error } = await admin.rpc('iscrivi_partecipante', {
+        p_email: email,
+        p_ciclo_id: solo_remoto || !ciclo_id ? null : ciclo_id,
+        p_codice: candidato,
+        p_consenso_a: Boolean(corpo.consenso_a),
+        p_consenso_b: Boolean(corpo.consenso_b),
+        p_solo_remoto: solo_remoto
+      })
+      if (!error) {
+        codice = candidato
+        break
+      }
+      const codiceErr = messaggioErrore(error)
+      if (codiceErr === 'CODICE_DUPLICATO') continue
+      // Due richieste insieme per la stessa email: la prima ha già scritto.
+      if (codiceErr === 'EMAIL_GIA_ISCRITTA') return json({ ok: true })
+      return json({ error: codiceErr }, codiceErr === 'TROPPI_TENTATIVI' ? 429 : 400)
+    }
+    if (!codice) return json({ error: 'ERRORE' }, 500)
+
+    // Best effort: se Resend fallisce, la persona chiede di nuovo il codice da Entra.
+    if (await invioPermesso(email)) await inviaCodiceEmail(email, codice, 'nuovo')
+    else annotaScarto('iscrivi', 'limite_email')
+    await controllaVolumeIscrizioni()
+
+    return json({ ok: true })
   }
 
   if (azione === 'recupera') {
-    const honeypot = typeof corpo.sito_web === 'string' ? corpo.sito_web.trim() : ''
-    if (honeypot) return json({ ok: true, messaggio: MSG_RECUPERA_OK })
+    const modulo = controlloModulo(corpo)
+    if (modulo === 'senza_tempo') return json({ error: 'VERSIONE_VECCHIA' }, 400)
+    if (modulo !== 'ok') {
+      annotaScarto('recupera', modulo)
+      return json({ ok: true, messaggio: MSG_RECUPERA_OK })
+    }
 
-    const emailRaw = typeof corpo.email === 'string' ? corpo.email.trim().toLowerCase() : ''
+    const emailRaw = typeof corpo.email === 'string' ? corpo.email.trim() : ''
     if (!emailValida(emailRaw)) return json({ error: 'EMAIL_MANCANTE' }, 400)
 
     const bloccoIp = await limita('recupera_ip', chiaveIp, 5, 3600)
     if (bloccoIp) return bloccoIp
-    const chiaveEmail = await hashChiave(`recupera:${emailRaw}`)
-    const bloccoEmail = await limita('recupera_email', chiaveEmail, 3, 86400)
-    if (bloccoEmail) return bloccoEmail
 
     // Risposta sempre uguale: niente enumerazione email ↔ codice a schermo.
-    const { data: trovati } = await admin
-      .from('utenti')
-      .select('codice_partecipante, email')
-      .eq('ruolo', 'partecipante')
-      .ilike('email', escapeIlike(emailRaw))
-      .not('email', 'is', null)
-      .limit(3)
-
-    const match = (trovati || []).find(
-      (u: { email?: string | null; codice_partecipante?: string | null }) =>
-        (u.email || '').trim().toLowerCase() === emailRaw && Boolean(u.codice_partecipante)
-    )
-
-    if (match?.codice_partecipante) {
-      await inviaCodiceEmail({
-        to: emailRaw,
-        codice: match.codice_partecipante,
-        oggetto: 'Recupero codice partecipante — Percorso MBSR',
-        testo: testoRecupero(match.codice_partecipante)
-      })
+    let trovato = null
+    try {
+      trovato = await partecipantePerEmail(emailRaw)
+    } catch {
+      trovato = null
+    }
+    if (trovato) {
+      if (await invioPermesso(trovato.email)) {
+        // Chi non ha ancora confermato riceve la stessa email dell'iscrizione, con la scadenza.
+        await inviaCodiceEmail(trovato.email, trovato.codice, trovato.confermata ? 'recupero' : 'nuovo')
+      } else {
+        annotaScarto('recupera', 'limite_email')
+      }
     }
 
     return json({ ok: true, messaggio: MSG_RECUPERA_OK })

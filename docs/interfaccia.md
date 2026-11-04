@@ -39,7 +39,7 @@ flowchart TB
 | Schermata | Route | Blocchi |
 |---|---|---|
 | Splash | `/` | hero + CTA (`.splash-*`) |
-| Iscrizione | `/iscrizione` | presentazione percorso e cicli, modulo con consensi A e B separati, `Disclaimer`, `BoxCodicePrivacy`, conferma con codice copiabile (`ConfermaIscrizione`) |
+| Iscrizione | `/iscrizione` | presentazione percorso e cicli, modulo con consensi A e B separati (campo trappola e `t0`), `Disclaimer`, `BoxCodicePrivacy`. Dopo l’invio `ConfermaIscrizione`: **nessun codice a video**, riquadro `role="status"` «Controlla la tua casella» (`.conferma-casella`, con l’email e «richiedilo di nuovo» verso Recupera il codice), i tre passi (entra con il codice entro 7 giorni, approvazione, inizio) e `BoxCodicePrivacy`. Errori: email temporanea, indirizzo da controllare, rete |
 | Entra | `/entra` | campo codice, `BoxCodicePrivacy`, `Disclaimer`, «Recupera il codice» |
 | Documento | `/documenti/:slug` | informative a sezioni numerate (`.doc`) |
 | I tuoi dati | `/dati` | `IdentitaCodice`, card Export e Reset, `DialogConferma` |
@@ -71,7 +71,7 @@ Tutto sotto `/admin`; le vecchie rotte (`/dashboard`, `/percorso…`, `/lezioni`
 | Cicli (home) | `/admin/cicli` (`?nuovo=1` apre il modulo «Nuovo ciclo», dal rail) | flusso. Barra: «Esporta dati aggregati». «Da fare» (segnalazioni difficili con «Segna come gestita» → snackbar; segnalazioni di problemi dell’app con stato In lavorazione / Risolta / Non risolta, esito dell’agente e link alla pull request, «Archivia» → snackbar con «Annulla»; iscrizioni in attesa per ciclo; senza niente da fare il blocco non compare), card KPI (`.dash-kpi-card`), tabella cicli, «Percorsi individuali da remoto» (`RigaIscrizione`, `#remoti-liberi`), link «Questionari · tutti i cicli» |
 | Spazio del ciclo | `/admin/cicli/:id/…` | barra della pagina (`Ciclo.jsx`): «← Cicli», nome, stato, date, selettore che cambia ciclo tenendo la scheda (contesto); schede `.pagina-scheda` legate alla rotta (`role="tablist"`, `aria-current`) |
 | · Panoramica | `…/panoramica` | numeri del ciclo, date e stato, posti in presenza, link incontro, con il ciclo in reclutamento «Avviso del prossimo ciclo» (`AvvisoCicloLettera`: «Avvisa gli iscritti (N)», testo precompilato e modificabile, prova a me, invio con `DialogConferma`), «Zona delicata» (elimina con `DialogConferma`) |
-| · Iscritti | `…/iscritti` | filtri a pillola (`.filtri-chip`): tutte, in attesa di esito, idonei, in presenza, da remoto; righe `RigaIscrizione` (esito, modalità, ritiro) |
+| · Iscritti | `…/iscritti` | filtri a pillola (`.filtri-chip`): tutte, in attesa di esito, idonei, in presenza, da remoto; righe `RigaIscrizione` (esito, modalità, ritiro). Le iscrizioni non confermate compaiono solo in «Tutte», con il badge «Email da confermare», e restano fuori da posti, numeri e badge finché la persona non entra con il codice |
 | · Programma | `…/programma` | 9 card settimana (`.percorso-griglia`); avviso «N tracce da guardare» → `/admin/tracce?ciclo=…&filtro=da-guardare` |
 | · Settimana | `…/programma/settimana/:n` | `EditorSettimana`: lezione + esercizi, `SelettoreTraccia`, dialoghi di modifica |
 | · Pratica | `…/pratica` | `SchedaPratica` del ciclo: quattro numeri, barre per giorno colorate per tono, mappa del percorso, informali |

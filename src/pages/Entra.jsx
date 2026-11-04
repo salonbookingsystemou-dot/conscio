@@ -40,6 +40,8 @@ export default function Entra() {
   const [msgRecupero, setMsgRecupero] = useState(null)
   const [errRecupero, setErrRecupero] = useState(null)
   const [invioRecupero, setInvioRecupero] = useState(false)
+  // Istante di apertura della pagina: porta scarta le richieste arrivate in meno di 3 secondi.
+  const [t0] = useState(() => Date.now())
 
   useEffect(() => {
     if (location.hash === '#recupera') setMostraRecupero(true)
@@ -63,7 +65,7 @@ export default function Entra() {
     } catch (err) {
       if (err?.message === 'SCREENING_IN_ATTESA' || err?.code === 'SCREENING_IN_ATTESA') {
         memorizzaCodiceRicordato(codice)
-        setErrore('Il codice è riconosciuto. L’accesso alle altre sezioni si apre dopo l’esito idoneo dello screening.')
+        setErrore('Il codice è riconosciuto e la tua iscrizione è confermata. L’accesso alle altre sezioni si apre dopo l’esito idoneo dello screening.')
       } else if (err?.code === 'TROPPI_TENTATIVI' || err?.message === 'TROPPI_TENTATIVI') {
         setErrore('Troppi tentativi. Riprova tra qualche minuto.')
       } else {
@@ -88,7 +90,9 @@ export default function Entra() {
       const data = await chiamaPorta({
         azione: 'recupera',
         email: emailRecupero.trim(),
-        sito_web: sitoWebRecupero
+        sito_web: sitoWebRecupero,
+        t0,
+        t_invio: Date.now()
       })
       setMsgRecupero(
         data?.messaggio ||
@@ -115,7 +119,7 @@ export default function Entra() {
         <Disclaimer />
         <div className="card entra-box">
           <p className="entra-box-nota">
-            Le sezioni del percorso si aprono solo con il codice ricevuto all’iscrizione,
+            Le sezioni del percorso si aprono solo con il codice ricevuto per email all’iscrizione,
             e solo dopo l’esito idoneo dello screening. Non serve un account.
           </p>
           <form className="entra-box-form" onSubmit={handleSubmit}>

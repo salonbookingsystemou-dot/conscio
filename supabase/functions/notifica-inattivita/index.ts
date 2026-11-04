@@ -2,6 +2,7 @@
 // Auth: JWT del facilitatore, oppure header x-cron-secret = CRON_SECRET.
 // Deploy: supabase functions deploy notifica-inattivita --no-verify-jwt
 // Secret: CRON_SECRET, RESEND_API_KEY, opzionale RESEND_FROM.
+// Ogni mattina pulisce anche le iscrizioni non confermate (7 giorni, senza dati) e i limiti scaduti.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { htmlConFirma, testoConFirma } from '../_shared/firmaEmail.ts'
@@ -175,6 +176,18 @@ Deno.serve(async (req) => {
   if (!cronOk && !facOk) return json({ error: 'NON_AUTORIZZATO' }, 401)
 
   const admin = createClient(url, serviceKey)
+
+  // Pulizia del mattino, prima degli avvisi e indipendente da Resend: iscrizioni mai
+  // confermate da più di 7 giorni e senza dati, e limiti alle richieste già scaduti.
+  const { data: nonConfermate, error: errPulizia } = await admin.rpc('pulisci_iscrizioni_non_confermate')
+  if (errPulizia) console.warn('pulisci_iscrizioni_non_confermate', errPulizia.message)
+  const { error: errLimiti } = await admin.rpc('pulisci_limiti_richieste')
+  if (errLimiti) console.warn('pulisci_limiti_richieste', errLimiti.message)
+  const pulizia = {
+    n_iscrizioni_cancellate: errPulizia ? null : Number(nonConfermate) || 0,
+    errore_pulizia: Boolean(errPulizia || errLimiti)
+  }
+
   const { data: candidati, error: errCand } = await admin.rpc('candidati_inattivita_remoto')
   if (errCand) return json({ error: 'CANDIDATI_NON_LEGGIBILI', dettaglio: errCand.message }, 500)
 
@@ -185,7 +198,7 @@ Deno.serve(async (req) => {
   )
 
   if (!Deno.env.get('RESEND_API_KEY')) {
-    return json({ ok: false, motivo: 'RESEND_NON_CONFIGURATO', n_previsti: lista.length })
+    return json({ ok: false, motivo: 'RESEND_NON_CONFIGURATO', n_previsti: lista.length, ...pulizia })
   }
 
   let inviate = 0
@@ -227,7 +240,8 @@ Deno.serve(async (req) => {
       n_previsti: lista.length,
       n_inviate: inviate,
       n_errori: errori,
-      tipi: perTipo
+      tipi: perTipo,
+      ...pulizia
     }, 500)
   }
 
@@ -281,6 +295,7 @@ Deno.serve(async (req) => {
     n_errori: errori,
     n_chiusure: chiuse,
     n_errori_chiusura: erroriChiusura,
-    tipi: perTipo
+    tipi: perTipo,
+    ...pulizia
   })
 })
