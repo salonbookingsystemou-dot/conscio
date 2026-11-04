@@ -241,3 +241,25 @@ $$;
 
 revoke all on function public.pulisci_iscrizioni_non_confermate() from public, anon, authenticated;
 grant execute on function public.pulisci_iscrizioni_non_confermate() to service_role;
+
+-- 7. Pulizia dei limiti scaduti (solo service role) ─────────────────────────
+-- limiti_richieste tiene l'impronta di IP ed email: la conserviamo solo per il tempo
+-- dei limiti. La finestra più lunga in uso è un giorno, quindi una riga iniziata da
+-- più di un giorno è già scaduta e si può togliere. Gira ogni mattina con la pulizia sopra.
+create or replace function public.pulisci_limiti_richieste()
+returns integer
+language plpgsql
+security definer
+set search_path to 'public'
+as $$
+declare
+  v_n int;
+begin
+  delete from limiti_richieste where finestra_inizio < now() - interval '1 day';
+  get diagnostics v_n = row_count;
+  return v_n;
+end;
+$$;
+
+revoke all on function public.pulisci_limiti_richieste() from public, anon, authenticated;
+grant execute on function public.pulisci_limiti_richieste() to service_role;
