@@ -13,7 +13,7 @@ import StatoAttesa from '../components/StatoAttesa.jsx'
 const ETICHETTE = {
   T0: { titolo: 'T0 — Inizio', sottotitolo: 'Prima di partire e durante la settimana 1' },
   T1: { titolo: 'T1 — Metà percorso', sottotitolo: 'Settimane 4 e 5' },
-  T2: { titolo: 'T2 — Fine percorso', sottotitolo: 'Dalla settimana 8 a due settimane dopo la fine' },
+  T2: { titolo: 'T2 — Fine percorso', sottotitolo: 'Dalla fine della settimana 8 a due settimane dopo la fine' },
   T3: { titolo: 'T3 — Follow-up', sottotitolo: 'Da 4 a 8 settimane dopo la fine del percorso' }
 }
 
@@ -28,7 +28,7 @@ function dataEstesa(iso) {
 
 function scadenzaTimepoint(tp) {
   if (tp.stato === 'aperto' && tp.chiude_il) return `Aperto fino al ${dataEstesa(tp.chiude_il)}`
-  if (tp.id === 'T3' && tp.stato === 'in_attesa' && tp.apre_il) return `Si apre il ${dataEstesa(tp.apre_il)}`
+  if ((tp.id === 'T2' || tp.id === 'T3') && tp.stato === 'in_attesa' && tp.apre_il) return `Si apre il ${dataEstesa(tp.apre_il)}`
   return null
 }
 

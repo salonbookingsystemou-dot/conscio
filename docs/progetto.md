@@ -58,10 +58,16 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 |---|---|
 | T0 | dall'iscrizione alla settimana 1 |
 | T1 | settimane 4-5 |
-| T2 | dalla settimana 8 a 14 giorni dopo la fine |
+| T2 | dalla fine della settimana 8 (o dal giorno dopo la fine del ciclo, se arriva prima) a 14 giorni dopo la fine |
 | T3 (follow-up) | da 4 a 8 settimane dopo la fine |
 
 ## Registro delle modifiche
+
+### 6/11/2026 · Il T2 si apre alla fine dell'ottava settimana (da Claude Code)
+Prima il T2 si apriva il primo giorno della settimana 8 e, come ogni questionario aperto e non compilato, bloccava Settimana, Storico e Check-in: nell'ultima settimana non si poteva più praticare (Gruppo pilota 18/9 - 6/11: la settimana 8 cade il 6/11, ultimo giorno del ciclo). Ora il T2 si apre il giorno dopo la fine della pratica, cioè il primo tra il giorno dopo `data_fine` e il giorno dopo la settimana 8 (`data_inizio + 56`); si chiude come prima 14 giorni dopo la fine. Gruppo pilota: dal 7/11 al 20/11.
+- **Database** (`supabase/migrazione_t2_fine_settimana_8.sql`): nuova `apertura_t2(inizio, fine)`; `timepoint_in_finestra` e `stato_questionari_del_partecipante` la usano (T2 «in attesa» fino all'apertura, con `apre_il`). `salva_risposte_questionario` non cambia: rifiuta il T2 prima dell'apertura tramite `timepoint_in_finestra`.
+- **Interfaccia:** Questionari mostra «Si apre il …» anche per il T2 e la nuova finestra; `timepointRaggiunti` in `src/lib/cicli.js` conta il T2 dalla stessa data.
+**Migrazione applicata il 6/11/2026** (da Claude Code): per il Gruppo pilota `apertura_t2` dà 7/11 e oggi il T2 risulta non aperto, quindi la pratica non è più bloccata. Due persone avevano già compilato il T2 il 6/11: le risposte restano valide e il loro T2 resta «compilato». Frontend non ancora pubblicato.
 
 ### 4/11/2026 · Iscrizione: conferma dell'email e protezione dallo spam (da Claude Code)
 Dal brief del 4/11 (decisione di Dimitri: il codice non compare più a video). **La regola: il primo ingresso con il codice ricevuto per email vale come conferma.** Un'iscrizione conta solo da lì: prima non occupa posti, non entra nei numeri chiave, nel badge di Cicli né nella coda di `iscrivi_partecipante`, e dopo 7 giorni senza risposte, log o check-in si cancella.
