@@ -131,7 +131,7 @@ export function etichettaStato(stato) {
 
 // Timepoint che la persona ha già potuto compilare, anche a finestra chiusa.
 // Finestre dello schema: T0 fino alla settimana 1, T1 nelle 4-5,
-// T2 dalla settimana 8 a 14 giorni dopo la fine, T3 da 4 a 8 settimane dopo la fine.
+// T2 dalla fine della settimana 8 (o dal giorno dopo la fine, se arriva prima) a 14 giorni dopo la fine, T3 da 4 a 8 settimane dopo la fine.
 // Il T0 resta nel conteggio dopo la settimana 1.
 export function timepointRaggiunti(ciclo) {
   if (!ciclo) return ['T0']
@@ -142,7 +142,8 @@ export function timepointRaggiunti(ciclo) {
   const sett = settimanaCiclo(ciclo.data_inizio)
   const lista = ['T0']
   if (dopoFine || sett >= 4) lista.push('T1')
-  if (dopoFine || sett >= 8) lista.push('T2')
+  const apreT2 = inizio ? (fine && fine < addDays(inizio, 55) ? addDays(fine, 1) : addDays(inizio, 56)) : null
+  if (dopoFine || (apreT2 && oggi && oggi >= apreT2)) lista.push('T2')
   if (fine && oggi && oggi >= addDays(fine, 28)) lista.push('T3')
   return lista
 }
