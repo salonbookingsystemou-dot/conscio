@@ -51,14 +51,20 @@ async function leggiQuestionarioDaCompilare(codice) {
   return aperto?.id || null
 }
 
-// Dal giorno 57 (il giorno dopo l'apertura della conclusione) la sequenza di fine percorso
-// non si rimanda più: finché non è conclusa, le pagine di pratica portano lì.
+// La sequenza di fine percorso è un passaggio obbligato, non un'opzione: finché non è
+// conclusa, le pagine di pratica portano lì. Scatta il giorno 56 appena sono salvate le
+// annotazioni di quel giorno (prima si pratica come sempre), e dal giorno 57 in ogni caso.
 async function leggiConclusioneDaFare(codice) {
   const { data, error } = await supabase.rpc('stato_conclusione_del_partecipante', { p_codice: codice })
   if (error || !data) return false
   const s = typeof data === 'string' ? JSON.parse(data) : data
   if (!s.disponibile || s.completata || !s.giorno) return false
-  return oggiLocaleISO() > String(s.giorno).slice(0, 10)
+  const giorno = String(s.giorno).slice(0, 10)
+  const oggi = oggiLocaleISO()
+  if (oggi > giorno) return true
+  if (oggi < giorno) return false
+  const { data: log } = await supabase.rpc('log_pratica_del_partecipante', { p_codice: codice })
+  return (log || []).some(r => r.tipo === 'giorno' && String(r.data).slice(0, 10) >= giorno)
 }
 
 async function leggiStatoPercorso(codice) {
