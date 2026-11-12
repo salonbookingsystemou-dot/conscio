@@ -63,6 +63,12 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 12/11/2026 · Dal giorno 57 la conclusione è obbligatoria; poi Settimana parte dalla settimana 1 (da Claude Code)
+Decisione di Dimitri: dal giorno 57 chi entra nell'app e non ha concluso la sequenza di fine percorso ci viene portato; chi l'ha conclusa trova Settimana aperta sulla prima settimana.
+- **Rinvio:** `lib/partecipante.jsx` legge `stato_conclusione_del_partecipante` e calcola `conclusioneDaFare` (disponibile, non conclusa, oggi dopo il giorno di conclusione). `SoloPercorso` porta a `/conclusione` da Settimana, Storico e Check-in, prima ancora dei questionari; Avvisi resta aperto. Vale all'apertura dell'app (Splash → Settimana), dopo l'ingresso con il codice e a ogni pagina di pratica. Il giorno 56 resta «Più tardi».
+- **Dopo la conclusione:** Settimana sceglie la settimana 1 invece della settimana corrente; l'etichetta diventa «Percorso concluso · settimana N di 8». Le altre settimane restano tutte selezionabili.
+- Nessuna modifica al database.
+
 ### 12/11/2026 · Sequenza di conclusione del percorso dal giorno 56 (da Claude Code)
 Decisioni di Dimitri del 12/11: quattro passi nell'ordine congratulazioni → T2 → valutazione → condivisione; valutazione con stelle («Come valuti l'esperienza del percorso MBSR?»), «Lo consiglieresti?» (sì / forse / no) e «Cosa ti porti a casa di questa esperienza?» (facoltativo); il link condiviso porta all'iscrizione; il T2 si compila dal giorno 56.
 - **Quando parte:** salvando le annotazioni del giorno 56 (o di un giorno successivo) Settimana porta a `/conclusione`. Chi non le registra trova in Settimana la card «Chiudi il tuo percorso»; dal giorno 57 il T2 aperto blocca la pratica e `SoloPercorso` porta alla sequenza invece che a Questionari. Il giorno 56 si può rimandare («Più tardi»), dopo no finché il T2 è da compilare.

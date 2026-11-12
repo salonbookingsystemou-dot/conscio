@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { chiamaPorta, dimenticaCodice, leggiCodice, memorizzaCodice, supabase, supabaseConfigurato } from './supabaseClient'
 import { pulisciAscoltoLocale, sommaMinutiAscoltati } from './ascolto.js'
 import { sommaMinutiTracce } from './oreAscolto.js'
+import { oggiLocaleISO } from './date.js'
 
 function chiudiSessioneLocale(codiceAperto) {
   pulisciAscoltoLocale(codiceAperto || leggiCodice())
@@ -17,6 +18,7 @@ const PartecipanteContext = createContext({
   t0Completo: false,
   percorsoPronto: false,
   questionarioDaCompilare: null,
+  conclusioneDaFare: false,
   aggiornaAscolto: async () => {},
   aggiornaPercorso: async () => {},
   entra: async () => {},
@@ -49,19 +51,30 @@ async function leggiQuestionarioDaCompilare(codice) {
   return aperto?.id || null
 }
 
+// Dal giorno 57 (il giorno dopo l'apertura della conclusione) la sequenza di fine percorso
+// non si rimanda più: finché non è conclusa, le pagine di pratica portano lì.
+async function leggiConclusioneDaFare(codice) {
+  const { data, error } = await supabase.rpc('stato_conclusione_del_partecipante', { p_codice: codice })
+  if (error || !data) return false
+  const s = typeof data === 'string' ? JSON.parse(data) : data
+  if (!s.disponibile || s.completata || !s.giorno) return false
+  return oggiLocaleISO() > String(s.giorno).slice(0, 10)
+}
+
 async function leggiStatoPercorso(codice) {
   if (!codice || !supabaseConfigurato) {
-    return { onboarding: false, t0: false, pronto: false, daCompilare: null }
+    return { onboarding: false, t0: false, pronto: false, daCompilare: null, conclusione: false }
   }
   const { data, error } = await supabase.rpc('stato_pronto_percorso', { p_codice: codice })
-  if (error || !data) return { onboarding: false, t0: false, pronto: false, daCompilare: null }
+  if (error || !data) return { onboarding: false, t0: false, pronto: false, daCompilare: null, conclusione: false }
   const payload = typeof data === 'string' ? JSON.parse(data) : data
   const pronto = Boolean(payload.pronto)
   return {
     onboarding: Boolean(payload.onboarding),
     t0: Boolean(payload.t0),
     pronto,
-    daCompilare: pronto ? await leggiQuestionarioDaCompilare(codice) : null
+    daCompilare: pronto ? await leggiQuestionarioDaCompilare(codice) : null,
+    conclusione: pronto ? await leggiConclusioneDaFare(codice) : false
   }
 }
 
@@ -74,6 +87,7 @@ export function PartecipanteProvider({ children }) {
   const [t0Completo, setT0Completo] = useState(false)
   const [percorsoPronto, setPercorsoPronto] = useState(false)
   const [questionarioDaCompilare, setQuestionarioDaCompilare] = useState(null)
+  const [conclusioneDaFare, setConclusioneDaFare] = useState(false)
   const ascoltoSeq = useRef(0)
 
   const applicaPercorso = useCallback(stato => {
@@ -81,6 +95,7 @@ export function PartecipanteProvider({ children }) {
     setT0Completo(Boolean(stato.t0))
     setPercorsoPronto(Boolean(stato.pronto))
     setQuestionarioDaCompilare(stato.daCompilare || null)
+    setConclusioneDaFare(Boolean(stato.conclusione))
   }, [])
 
   const aggiornaAscolto = useCallback(async (valore = codice) => {
@@ -179,6 +194,7 @@ export function PartecipanteProvider({ children }) {
       t0Completo,
       percorsoPronto,
       questionarioDaCompilare,
+      conclusioneDaFare,
       aggiornaAscolto,
       aggiornaPercorso,
       entra,
@@ -194,8 +210,9 @@ export function usePartecipante() {
 }
 
 /** Destinazione dopo login in base allo stato del percorso. */
-export function destinazionePartecipante({ onboarding, t0, pronto, daCompilare }, richiesta) {
-  if (pronto && daCompilare) return daCompilare === 'T2' ? '/conclusione' : '/questionari'
+export function destinazionePartecipante({ onboarding, t0, pronto, daCompilare, conclusione }, richiesta) {
+  if (pronto && (conclusione || daCompilare === 'T2')) return '/conclusione'
+  if (pronto && daCompilare) return '/questionari'
   if (pronto) {
     if (richiesta && richiesta !== '/entra' && richiesta !== '/onboarding') return richiesta
     return '/programma'

@@ -6,7 +6,8 @@ import StatoAttesa from './StatoAttesa.jsx'
 
 /**
  * Blocca Settimana / Storico / Avvisi finché onboarding + T0 non sono completi.
- * Con `pratica`, blocca anche finché c'è un questionario (T1, T2, T3) aperto e non compilato.
+ * Con `pratica`, blocca anche finché c'è un questionario (T1, T2, T3) aperto e non compilato
+ * e, dal giorno 57, finché la sequenza di fine percorso non è conclusa.
  */
 export default function SoloPercorso({ children, pratica = true }) {
   const { caricamento: authLoad, facilitatore } = useAuth()
@@ -18,6 +19,7 @@ export default function SoloPercorso({ children, pratica = true }) {
     t0Completo,
     percorsoPronto,
     questionarioDaCompilare,
+    conclusioneDaFare,
     aggiornaPercorso
   } = usePartecipante()
   const location = useLocation()
@@ -32,6 +34,9 @@ export default function SoloPercorso({ children, pratica = true }) {
   if (facilitatore) return children
   if (!registrato) {
     return <Navigate to="/entra" replace state={{ da: location.pathname }} />
+  }
+  if (percorsoPronto && pratica && conclusioneDaFare) {
+    return <Navigate to="/conclusione" replace state={{ da: location.pathname }} />
   }
   if (percorsoPronto && pratica && questionarioDaCompilare) {
     // Il T2 si compila dentro la sequenza di fine percorso.
