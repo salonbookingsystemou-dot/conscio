@@ -41,11 +41,11 @@ function giorniTra(da, a) {
   return Math.round((a - da) / GIORNO_MS)
 }
 
-/** Durata dal primo all'ultimo giorno compresi; senza data di fine, inizio + 62. */
+/** Durata dal primo all'ultimo giorno compresi; senza data di fine, inizio + 55. */
 export function periodoCiclo(ciclo) {
   const inizio = parseISODate(ciclo?.data_inizio)
   if (!inizio) return null
-  const fine = parseISODate(ciclo.data_fine) || addDays(inizio, 62)
+  const fine = parseISODate(ciclo.data_fine) || addDays(inizio, 55)
   const oggi = parseISODate(oggiLocaleISO())
   const durata = Math.max(1, giorniTra(inizio, fine) + 1)
   const trascorsi = Math.max(0, Math.min(durata, giorniTra(inizio, oggi) + 1))

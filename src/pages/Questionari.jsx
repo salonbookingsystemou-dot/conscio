@@ -78,11 +78,6 @@ function etichettaSettimana(n, dataInizio, personale) {
     }
     return 'Il ciclo non è ancora iniziato.'
   }
-  if (n === 9) {
-    return personale
-      ? 'Sei nella settimana intensiva (9) del tuo percorso.'
-      : 'Sei nella settimana intensiva (9).'
-  }
   return personale
     ? `Sei nella settimana ${n} del tuo percorso.`
     : `Sei nella settimana ${n} del ciclo.`

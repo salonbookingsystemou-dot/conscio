@@ -80,7 +80,7 @@ export function linkIncontroValido(valore) {
 export function etichettaPeriodo(inizioIso, fineIso) {
   const inizio = parseISODate(inizioIso)
   if (!inizio) return '—'
-  const fine = parseISODate(fineIso) || addDays(inizio, 62)
+  const fine = parseISODate(fineIso) || addDays(inizio, 55)
   const a = `${inizio.getDate()} ${MESI_CORTI[inizio.getMonth()]}`
   const b = `${fine.getDate()} ${MESI_CORTI[fine.getMonth()]} ${fine.getFullYear()}`
   return `${a} — ${b}`
@@ -91,7 +91,7 @@ function settimanaCiclo(inizioIso) {
   if (!inizio) return 0
   const oggi = parseISODate(oggiLocaleISO())
   if (oggi < inizio) return 0
-  return Math.max(1, Math.min(9, Math.floor((oggi - inizio) / (7 * 24 * 60 * 60 * 1000)) + 1))
+  return Math.max(1, Math.min(8, Math.floor((oggi - inizio) / (7 * 24 * 60 * 60 * 1000)) + 1))
 }
 
 function etichettaAttesaInizio(inizioIso) {
@@ -116,7 +116,6 @@ export function etichettaAvanzamento(ciclo) {
       tono: 'attesa'
     }
   }
-  if (sett >= 9) return { testo: 'Settimana intensiva / fine', pct: 95, tono: 'attivo' }
   return {
     testo: `Settimana ${sett} di 8`,
     pct: Math.round((sett / 8) * 100),
@@ -137,7 +136,7 @@ export function timepointRaggiunti(ciclo) {
   if (!ciclo) return ['T0']
   const oggi = parseISODate(oggiLocaleISO())
   const inizio = parseISODate(ciclo.data_inizio)
-  const fine = parseISODate(ciclo.data_fine) || (inizio ? addDays(inizio, 62) : null)
+  const fine = parseISODate(ciclo.data_fine) || (inizio ? addDays(inizio, 55) : null)
   const dopoFine = ciclo.stato === 'concluso' || (fine && oggi && oggi > fine)
   const sett = settimanaCiclo(ciclo.data_inizio)
   const lista = ['T0']

@@ -363,7 +363,7 @@ export function analizzaCanali(canali, fs, { durataFile } = {}) {
 }
 
 export function etichettaSettimana(numero) {
-  return numero === 9 ? 'Intensiva' : `Settimana ${numero}`
+  return `Settimana ${numero}`
 }
 
 // ── Esito salvato per traccia ───────────────────────────────────────────────
