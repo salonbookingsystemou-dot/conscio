@@ -336,7 +336,7 @@ function TaskFormale({
 
 export default function Programma() {
   const { facilitatore } = useAuth()
-  const { codice, registrato, aggiornaAscolto } = usePartecipante()
+  const { codice, registrato, aggiornaAscolto, aggiornaPercorso } = usePartecipante()
   const [lezioni, setLezioni] = useState([])
   const [ciclo, setCiclo] = useState(null)
   const [tutteSessioni, setTutteSessioni] = useState([])
@@ -567,7 +567,7 @@ export default function Programma() {
   }
 
   // Sequenza di fine percorso: dal giorno 56, finché non è conclusa.
-  const conclusioneDaFare = !facilitatore && conclusione?.disponibile && !conclusione.completata
+  const conclusioneAperta = !facilitatore && conclusione?.disponibile && !conclusione.completata
 
   const badgeSettimana = corrente
     ? conclusione?.completata
@@ -589,19 +589,6 @@ export default function Programma() {
       )}
       {registrato && invio && !aperto && <StatoAttesa etichetta="Caricamento del programma…" />}
       {errore && <p className="campo-errore" role="alert">{errore}</p>}
-
-      {aperto && conclusioneDaFare && (
-        <div className="card card-conclusione">
-          <p className="badge">Fine percorso</p>
-          <h3>Chiudi il tuo percorso</h3>
-          <p className="hint">Quattro passi: un momento per te, il questionario T2, la tua valutazione e un invito da condividere.</p>
-          <div className="azioni">
-            <Link className="btn btn-avanti" to="/conclusione">
-              {conclusione.congratulazioni ? 'Riprendi' : 'Inizia'}
-            </Link>
-          </div>
-        </div>
-      )}
 
       {aperto && <CardCheckin codice={codice} />}
 
@@ -740,11 +727,13 @@ export default function Programma() {
                 data={dataPratica}
                 annotazioni={corrente.annotazioni_giorno || []}
                 puoRegistrare={ascoltoOk}
-                onSalvato={() => {
+                onSalvato={async () => {
                   aggiornaAscolto()
-                  // Annotazioni del giorno 56 (o successive): parte la sequenza di conclusione.
-                  if (conclusioneDaFare && conclusione.giorno && dataPratica >= String(conclusione.giorno).slice(0, 10)) {
-                    navigate('/conclusione')
+                  // Annotazioni del giorno 56 (o successive): la sequenza di conclusione diventa
+                  // obbligatoria; aggiornaPercorso lo fa sapere a SoloPercorso, che non lascia più uscire.
+                  if (conclusioneAperta && conclusione.giorno && dataPratica >= String(conclusione.giorno).slice(0, 10)) {
+                    await aggiornaPercorso(codice.trim())
+                    navigate('/conclusione', { replace: true })
                     return
                   }
                   caricaProgramma(codice.trim())

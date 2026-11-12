@@ -63,6 +63,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 12/11/2026 · «Chiudi il tuo percorso» è un passaggio obbligato (da Claude Code)
+Decisione di Dimitri: quando si verificano le condizioni la sequenza di fine percorso non è un'opzione. Tolte la card «Chiudi il tuo percorso» in Settimana e «Più tardi» nei passi. `conclusioneDaFare` (in `lib/partecipante.jsx`) ora vale anche il giorno 56, appena risultano le annotazioni di quel giorno (`log_pratica_del_partecipante`, tipo `giorno`); dal giorno 57 in ogni caso. Prima delle annotazioni il giorno 56 si pratica come sempre. Salvando le annotazioni, Settimana aggiorna lo stato e porta alla sequenza; da lì Settimana, Storico e Check-in riportano alla sequenza finché non è conclusa (Questionari e Avvisi restano aperti). Nessuna modifica al database.
+
 ### 12/11/2026 · Feedback di fine percorso nella dashboard esistente (da Claude Code)
 Decisione di Dimitri: niente scheda nuova, i feedback stanno nelle schermate che ci sono già.
 - **Questionari del ciclo:** la sezione «Valutazione del percorso» mostra chi arriva in fondo (sequenza aperta, T2, valutazione, link condiviso, conclusa, su N idonei con email confermata), la media e la distribuzione delle stelle, «lo consiglierebbero» e le frasi con codice, stelle, consiglio e data, con filtro Tutte · 4–5 · 3 · 1–2 stelle (le basse con bordo ocra). Con «Tutti i cicli» include i percorsi da remoto senza ciclo.

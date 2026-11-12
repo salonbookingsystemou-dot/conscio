@@ -3,7 +3,6 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
 import { usePartecipante } from '../lib/partecipante.jsx'
 import { costruisciStorico } from '../lib/storico.js'
-import { oggiLocaleISO } from '../lib/date.js'
 import CampoNota from '../components/CampoNota.jsx'
 import StatoAttesa from '../components/StatoAttesa.jsx'
 
@@ -135,8 +134,6 @@ export default function Conclusione({ anteprima = false }) {
   if (!stato || passo == null) return <StatoAttesa etichetta="Caricamento…" />
   if (!stato.disponibile) return <Navigate to="/programma" replace />
 
-  // Il giorno 56 il T2 non blocca ancora la pratica: si può rimandare.
-  const puoRimandare = anteprima || (stato.giorno && oggiLocaleISO() <= String(stato.giorno).slice(0, 10))
 
   async function salvaPasso(nome) {
     if (anteprima) return true
@@ -227,10 +224,6 @@ export default function Conclusione({ anteprima = false }) {
   const idPasso = PASSI[passo]
   const avanzamento = Math.round((Math.min(passo, PASSI.length) / PASSI.length) * 100)
 
-  const rimanda = puoRimandare && passo < PASSI.length && (
-    <Link className="btn btn-ghost" to="/programma">Più tardi</Link>
-  )
-
   return (
     <div className="onboarding conclusione">
       {anteprima && (
@@ -280,7 +273,6 @@ export default function Conclusione({ anteprima = false }) {
           </p>
           {errore && <p className="campo-errore" role="alert">{errore}</p>}
           <div className="azioni">
-            {rimanda}
             <button className="btn btn-avanti" type="button" disabled={invio} onClick={() => avanti('congratulazioni')}>
               Continua
             </button>
@@ -304,7 +296,6 @@ export default function Conclusione({ anteprima = false }) {
             </p>
           )}
           <div className="azioni">
-            {rimanda}
             <button
               className="btn btn-avanti"
               type="button"
@@ -368,7 +359,6 @@ export default function Conclusione({ anteprima = false }) {
 
           {errore && <p className="campo-errore" role="alert">{errore}</p>}
           <div className="azioni">
-            {rimanda}
             <button className="btn btn-ghost" type="button" disabled={invio} onClick={saltaValutazione}>
               Preferisco non rispondere
             </button>
