@@ -44,7 +44,8 @@ async function leggiQuestionarioDaCompilare(codice) {
   const { data, error } = await supabase.rpc('stato_questionari_del_partecipante', { p_codice: codice })
   if (error || !data) return null
   const payload = typeof data === 'string' ? JSON.parse(data) : data
-  const aperto = (payload.timepoints || []).find(tp => tp.id !== 'T0' && tp.stato === 'aperto')
+  // `blocca` è false il giorno in cui si apre il T2 (giorno 56): quel giorno si pratica ancora.
+  const aperto = (payload.timepoints || []).find(tp => tp.id !== 'T0' && tp.stato === 'aperto' && tp.blocca !== false)
   return aperto?.id || null
 }
 
@@ -194,7 +195,7 @@ export function usePartecipante() {
 
 /** Destinazione dopo login in base allo stato del percorso. */
 export function destinazionePartecipante({ onboarding, t0, pronto, daCompilare }, richiesta) {
-  if (pronto && daCompilare) return '/questionari'
+  if (pronto && daCompilare) return daCompilare === 'T2' ? '/conclusione' : '/questionari'
   if (pronto) {
     if (richiesta && richiesta !== '/entra' && richiesta !== '/onboarding') return richiesta
     return '/programma'

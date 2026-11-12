@@ -56,6 +56,7 @@ Le tavole di riferimento sono in `docs/mockup/ascolta-*.png`. La vetrina usa il 
 |---|---|---|
 | Onboarding | `/onboarding` | Benvenuto, `AvvisoDatiPseudonimi`, atteggiamenti della mindfulness (card), `CampoNota` |
 | Questionari | `/questionari` | flusso a passi `scelta → avviso → domanda → esito`; `ScalaLikert`, `Disclaimer`, esito con `IndicatoreOrientamento` (non clinico) |
+| Conclusione | `/conclusione` | sequenza di fine percorso dal giorno 56, stile Onboarding (`.onboarding`, `.progress`, «Passo N di 4»): congratulazioni con `.storico-contatori` → T2 (apre Questionari con `daConclusione`, l'esito torna qui) → valutazione (`Stelle` locale `.stelle`, chip Sì/Forse/No, `CampoNota` facoltativo) → condivisione (`wa.me` con il link a `/#/iscrizione`, «Copia il link») → «Grazie». «Più tardi» solo il giorno 56. In Settimana la card `.card-conclusione` «Chiudi il tuo percorso» finché non è conclusa |
 | Settimana | `/programma` | intestazione settimana, `CalendarioPratica`, «Da fare ogni giorno» con `CardTracciaAudio` (formali) scaricabili per l’ascolto senza rete, `GuidaMeditazione`, «Pratiche informali» (spunta), «Annotazioni del giorno» con `TonoEsperienza` + `CampoNota`, `VoceLog`, `CardCheckin`, invito all'incontro remoto |
 | Storico | `/pratica` | `StoricoGiornate` (contatori + una riga per giornata: barra minuti colorata dal tono, `TonoIcon`, nota) |
 | Check-in | `/checkin` | consenso separato → cursori (stress, sonno, presenza) → ostacoli → momenti difficili → grazie / già registrato |

@@ -5975,3 +5975,28 @@ body:has(.splash) {
 .lettera-liste li {
   margin-bottom: var(--space-8);
 }
+
+/* Conclusione del percorso (/conclusione) */
+.conclusione .item-block { border: 0; padding: 0; margin: 0 0 18px; }
+.conclusione .item-block legend { font-weight: 600; margin-bottom: 10px; }
+.stelle { display: flex; gap: 6px; }
+.stella {
+  width: 48px;
+  height: 48px;
+  padding: 6px;
+  border: 0;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--border-strong);
+}
+.stella svg { width: 100%; height: 100%; fill: currentColor; }
+.stella.is-on { color: var(--ochre); }
+.stella:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.stelle-etichetta { margin: 6px 0 0; min-height: 1.4em; }
+.conclusione-condividi { flex-wrap: wrap; }
+.dash-valutazioni { margin-bottom: 16px; }
+.dash-valutazioni h4 { margin: 16px 0 8px; }
+.dash-valutazioni-testi { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.dash-valutazioni-testi li { border-top: 1px solid var(--border-soft); padding-top: 10px; }
+.dash-valutazioni-testi p { margin: 0; }

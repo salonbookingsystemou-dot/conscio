@@ -12,6 +12,7 @@ import {
 import { ASSE_GRAFICO, COLORI, COLORI_STRUMENTO } from '../../../lib/colori.js'
 import { calcolaKpi, esportaAggregati } from '../../../lib/cicli.js'
 import { EMAIL_CONTATTO, STRUMENTI } from '../../../lib/contatti.js'
+import ValutazioniPercorso from '../../../components/admin/ValutazioniPercorso.jsx'
 
 // Metadata per la lettura intuitiva dei questionari (nessuna interpretazione clinica).
 const INFO_STRUMENTO = {
@@ -383,6 +384,8 @@ export default function Questionari() {
           ))}
         </div>
       )}
+
+      <ValutazioniPercorso cicloId={ciclo.id} tutti={tutti} />
 
       <div className="dash-q-lista">
         {raggruppati.map(part => <SchedaCodice key={part.codice} part={part} />)}

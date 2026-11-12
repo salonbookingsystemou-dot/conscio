@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { supabase, supabaseConfigurato } from '../lib/supabaseClient'
 import { useAuth } from '../lib/auth.jsx'
 import { usePartecipante } from '../lib/partecipante.jsx'
@@ -348,15 +348,19 @@ export default function Programma() {
   const [aperto, setAperto] = useState(false)
   const [tickAscolto, setTickAscolto] = useState(0)
   const [occupatoInformale, setOccupatoInformale] = useState(null)
+  const [conclusione, setConclusione] = useState(null)
   const pillsRef = useRef(null)
+  const navigate = useNavigate()
 
   async function caricaProgramma(codicePulito) {
     await sincronizzaAscoltiLocaliVersoServer(codicePulito)
-    const [{ data, error }, { data: cicloData }, { data: log }] = await Promise.all([
+    const [{ data, error }, { data: cicloData }, { data: log }, { data: fine }] = await Promise.all([
       supabase.rpc('programma_del_partecipante', { p_codice: codicePulito }),
       supabase.rpc('ciclo_del_partecipante', { p_codice: codicePulito }),
-      supabase.rpc('log_pratica_del_partecipante', { p_codice: codicePulito })
+      supabase.rpc('log_pratica_del_partecipante', { p_codice: codicePulito }),
+      supabase.rpc('stato_conclusione_del_partecipante', { p_codice: codicePulito })
     ])
+    setConclusione(fine ? (typeof fine === 'string' ? JSON.parse(fine) : fine) : null)
     if (error || !data) {
       setErrore(error?.message?.includes('CODICE_NON_TROVATO')
         ? 'Codice non riconosciuto.'
@@ -551,6 +555,9 @@ export default function Programma() {
     setOccupatoInformale(null)
   }
 
+  // Sequenza di fine percorso: dal giorno 56, finché non è conclusa.
+  const conclusioneDaFare = !facilitatore && conclusione?.disponibile && !conclusione.completata
+
   const badgeSettimana = corrente
     ? `Questa settimana · ${corrente.numero_settimana} di 8`
     : null
@@ -569,6 +576,19 @@ export default function Programma() {
       )}
       {registrato && invio && !aperto && <StatoAttesa etichetta="Caricamento del programma…" />}
       {errore && <p className="campo-errore" role="alert">{errore}</p>}
+
+      {aperto && conclusioneDaFare && (
+        <div className="card card-conclusione">
+          <p className="badge">Fine percorso</p>
+          <h3>Chiudi il tuo percorso</h3>
+          <p className="hint">Quattro passi: un momento per te, il questionario T2, la tua valutazione e un invito da condividere.</p>
+          <div className="azioni">
+            <Link className="btn btn-avanti" to="/conclusione">
+              {conclusione.congratulazioni ? 'Riprendi' : 'Inizia'}
+            </Link>
+          </div>
+        </div>
+      )}
 
       {aperto && <CardCheckin codice={codice} />}
 
@@ -701,8 +721,13 @@ export default function Programma() {
                 annotazioni={corrente.annotazioni_giorno || []}
                 puoRegistrare={ascoltoOk}
                 onSalvato={() => {
-                  caricaProgramma(codice.trim())
                   aggiornaAscolto()
+                  // Annotazioni del giorno 56 (o successive): parte la sequenza di conclusione.
+                  if (conclusioneDaFare && conclusione.giorno && dataScelta >= String(conclusione.giorno).slice(0, 10)) {
+                    navigate('/conclusione')
+                    return
+                  }
+                  caricaProgramma(codice.trim())
                 }}
               />
             </div>

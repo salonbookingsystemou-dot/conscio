@@ -137,6 +137,14 @@ function Informativa() {
           ascoltata per intero, ti scriviamo. Conserviamo la data dell’invio e il giorno
           a cui si riferisce, per non riscriverti per la stessa pausa;
         </li>
+        <li>
+          valutazione di fine percorso, dal giorno 56 e facoltativa: stelle da 1 a 5 sull’esperienza,
+          se consiglieresti il percorso (sì, forse, no) ed eventuale testo su cosa ti porti a casa,
+          con le date in cui hai visto i passi della conclusione. Se tocchi «Condividi su WhatsApp»
+          registriamo solo che hai condiviso, non con chi: il messaggio contiene soltanto il link
+          all’iscrizione. Chi conduce il percorso legge la valutazione con il tuo codice; fuori
+          dall’app usiamo solo dati aggregati e non citiamo le tue frasi senza un consenso specifico;
+        </li>
         <li>eventuali materiali di documentazione social, solo con Modulo B;</li>
         <li>
           segnalazioni di problemi dell’app, solo se decidi di inviarne una: il testo che

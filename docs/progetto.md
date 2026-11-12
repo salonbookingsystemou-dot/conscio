@@ -58,10 +58,20 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 |---|---|
 | T0 | dall'iscrizione alla settimana 1 |
 | T1 | settimane 4-5 |
-| T2 | dalla fine della settimana 8 (o dal giorno dopo la fine del ciclo, se arriva prima) a 14 giorni dopo la fine |
+| T2 | dal giorno 56 (o dall'ultimo giorno del ciclo, se arriva dopo) a 14 giorni dopo la fine; blocca la pratica solo dal giorno dopo l'apertura |
 | T3 (follow-up) | da 4 a 8 settimane dopo la fine |
 
 ## Registro delle modifiche
+
+### 12/11/2026 · Sequenza di conclusione del percorso dal giorno 56 (da Claude Code)
+Decisioni di Dimitri del 12/11: quattro passi nell'ordine congratulazioni → T2 → valutazione → condivisione; valutazione con stelle («Come valuti l'esperienza del percorso MBSR?»), «Lo consiglieresti?» (sì / forse / no) e «Cosa ti porti a casa di questa esperienza?» (facoltativo); il link condiviso porta all'iscrizione; il T2 si compila dal giorno 56.
+- **Quando parte:** salvando le annotazioni del giorno 56 (o di un giorno successivo) Settimana porta a `/conclusione`. Chi non le registra trova in Settimana la card «Chiudi il tuo percorso»; dal giorno 57 il T2 aperto blocca la pratica e `SoloPercorso` porta alla sequenza invece che a Questionari. Il giorno 56 si può rimandare («Più tardi»), dopo no finché il T2 è da compilare.
+- **T2 dal giorno 56:** `apertura_t2` = il più tardi tra `inizio + 55` e `data_fine` (prima: giorno 57). Il giorno dell'apertura il T2 non blocca (`blocca: false` in `stato_questionari_del_partecipante`, letto da `lib/partecipante.jsx`), così chi non ha ancora praticato quel giorno può farlo. `timepointRaggiunti` usa la stessa regola: chiusa la differenza tra database e frontend annotata qui sotto. Gruppo pilota (inizio 18/9, fine 6/11): T2 aperto dal 12/11 invece che dal 13/11.
+- **Database** (`supabase/migrazione_conclusione_percorso.sql`): tabella `conclusioni_percorso` (RLS senza policy), `giorno_conclusione` (interna), `stato_conclusione_del_partecipante`, `salva_passo_conclusione`, `salva_valutazione_percorso`, `valutazioni_percorso_pseudonime` (facilitatore); `esporta_dati_del_partecipante` e `resetta_dati_del_partecipante` includono la conclusione.
+- **Interfaccia:** `pages/Conclusione.jsx` (stile Onboarding), card in Settimana, Questionari apre subito il T2 se arriva dalla conclusione e dall'esito torna lì; facilitatore: `components/admin/ValutazioniPercorso.jsx` nella scheda Questionari del ciclo (numero, media stelle, «lo consiglierebbe», frasi con codice).
+**Migrazione applicata il 12/11/2026** (da Claude Code). Verifica sugli idonei: Gruppo pilota con giorno di conclusione 12/11, T2 aperto per 6 persone e già compilato da 2, `blocca` falso oggi; due percorsi da remoto in attesa (22/11 e 18/12), uno concluso l'11/11 con T2 compilato. `giorno_conclusione` non è eseguibile da anon, RLS attiva sulla tabella. **Finché il nuovo frontend non è pubblicato**, il sito in linea non legge `blocca` e quindi il 12/11 il T2 ferma la pratica del Gruppo pilota già dal giorno 56.
+In sviluppo `/#/anteprima/conclusione` mostra la sequenza con dati finti (rotta presente solo con `import.meta.env.DEV`).
+- **Dati:** nuova categoria aggiunta all'informativa (sezione 3). Base giuridica: come per i questionari, il consenso del Modulo A; la valutazione è facoltativa. Le frasi «cosa ti porti a casa» non si citano fuori dall'app senza un consenso specifico (non ancora implementato).
 
 ### 12/11/2026 · Il percorso si chiude con l'ottava settimana: tolta la settimana intensiva (da Claude Code)
 Decisione di Dimitri: niente più nona settimana «intensiva» o giornata intensiva. Senza `data_fine` la fine predefinita passa da `data_inizio + 62` (9 settimane) a `data_inizio + 55` (ultimo giorno della settimana 8) e la settimana corrente si ferma a 8. Le date di fine già salvate non cambiano (Gruppo pilota 18/9 - 6/11). Al 12/11 nessuna lezione e nessun check-in usano la settimana 9.
