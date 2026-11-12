@@ -34,7 +34,9 @@ export default function SoloPercorso({ children, pratica = true }) {
     return <Navigate to="/entra" replace state={{ da: location.pathname }} />
   }
   if (percorsoPronto && pratica && questionarioDaCompilare) {
-    return <Navigate to="/questionari" replace state={{ da: location.pathname }} />
+    // Il T2 si compila dentro la sequenza di fine percorso.
+    const dove = questionarioDaCompilare === 'T2' ? '/conclusione' : '/questionari'
+    return <Navigate to={dove} replace state={{ da: location.pathname }} />
   }
   if (percorsoPronto) return children
 

@@ -13,7 +13,7 @@ import StatoAttesa from '../components/StatoAttesa.jsx'
 const ETICHETTE = {
   T0: { titolo: 'T0 — Inizio', sottotitolo: 'Prima di partire e durante la settimana 1' },
   T1: { titolo: 'T1 — Metà percorso', sottotitolo: 'Settimane 4 e 5' },
-  T2: { titolo: 'T2 — Fine percorso', sottotitolo: 'Dalla fine della settimana 8 a due settimane dopo la fine' },
+  T2: { titolo: 'T2 — Fine percorso', sottotitolo: 'Dal giorno 56 a due settimane dopo la fine' },
   T3: { titolo: 'T3 — Follow-up', sottotitolo: 'Da 4 a 8 settimane dopo la fine del percorso' }
 }
 
@@ -96,6 +96,8 @@ export default function Questionari() {
   const location = useLocation()
   const navigate = useNavigate()
   const daOnboarding = Boolean(location.state?.daOnboarding)
+  // Arrivo dalla sequenza di fine percorso: si apre subito il T2 e alla fine si torna lì.
+  const daConclusione = Boolean(location.state?.daConclusione)
   const forzatoT0 = daOnboarding || (onboardingCompleto && !t0Completo)
   const autoAvvioRef = useRef(false)
 
@@ -241,6 +243,15 @@ export default function Questionari() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [piano, forzatoT0, passo])
 
+  useEffect(() => {
+    if (!piano || !daConclusione || autoAvvioRef.current || passo !== 'scelta') return
+    const t2 = (piano.timepoints || []).find(tp => tp.id === 'T2')
+    autoAvvioRef.current = true
+    if (t2?.stato === 'aperto') iniziaTimepoint(t2)
+    else navigate('/conclusione', { replace: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [piano, daConclusione, passo])
+
   function rispondi(id, valore) {
     setRisposte(prev => ({ ...prev, [id]: valore }))
   }
@@ -357,7 +368,12 @@ export default function Questionari() {
           </div>
         ) : (
           <div className="azioni esito-azioni">
-            {percorsoPronto && !questionarioDaCompilare && (
+            {timepoint === 'T2' && percorsoPronto && (
+              <Link className="btn btn-avanti" to="/conclusione">
+                Continua la conclusione del percorso
+              </Link>
+            )}
+            {timepoint !== 'T2' && percorsoPronto && !questionarioDaCompilare && (
               <Link className="btn btn-avanti" to="/programma">
                 Torna alla settimana di pratica
               </Link>
