@@ -1,5 +1,5 @@
 -- Chiude gli insert pubblici e applica il tetto posti.
--- Poi crea il ciclo pilota e le 8 settimane + giornata intensiva.
+-- Poi crea il ciclo pilota e le 8 settimane (la giornata intensiva è stata tolta il 12/11/2026).
 
 drop policy if exists "iscrizione pubblica" on utenti;
 drop policy if exists "iscrizione pubblica ciclo" on iscrizioni;
@@ -115,11 +115,7 @@ cross join (values
   (8, 'Cosa resta della pratica',
    'Pratica seduta; ripresa del body scan.',
    'Scrivere come si intende continuare dopo le otto settimane.',
-   NULL),
-  (9, 'Giornata intensiva',
-   'Sequenza di body scan, seduta, movimento e camminata, in silenzio.',
-   'Pasti e pause in consapevolezza.',
-   'Si svolge di solito intorno alla sesta settimana.')
+   NULL)
 ) as v(numero_settimana, tema, pratiche_formali, pratiche_informali, materiali)
 where c.nome_ciclo = 'Ciclo pilota'
   and not exists (
@@ -138,7 +134,6 @@ select l.id, 'a_casa',
     when 6 then 'Pratica seduta quotidiana; notare i pensieri ricorrenti.'
     when 7 then 'Scegliere e mantenere una pratica formale ogni giorno.'
     when 8 then 'Pratica formale e nota su come continuare.'
-    when 9 then 'Partecipare alla giornata intensiva, se prevista.'
   end
 from lezioni l
 join cicli c on c.id = l.ciclo_id

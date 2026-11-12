@@ -194,6 +194,18 @@ export default function Conclusione({ anteprima = false }) {
     setStato(s => ({ ...s, condivisione: true }))
   }
 
+  // La valutazione è facoltativa: si può passare oltre senza lasciare dati.
+  // Il passo resta da fare finché la sequenza non è conclusa (riaprendo la pagina si ripropone).
+  function saltaValutazione() {
+    setErrore(null)
+    setStelle(0)
+    setConsiglio('')
+    setPortoACasa('')
+    const aggiornato = { ...stato, valutazione: true }
+    setStato(aggiornato)
+    setPasso(primoPassoDaFare(aggiornato))
+  }
+
   async function copiaLink() {
     try {
       await navigator.clipboard.writeText(urlIscrizione())
@@ -316,7 +328,9 @@ export default function Conclusione({ anteprima = false }) {
       {idPasso === 'valutazione' && (
         <form className="card conclusione-valutazione" onSubmit={inviaValutazione}>
           <h2>Valuta l’esperienza</h2>
-          <p className="hint">Le risposte restano legate al tuo codice, come il resto del percorso.</p>
+          <p className="hint">
+            È facoltativa. Le risposte restano legate al tuo codice, come il resto del percorso.
+          </p>
 
           <fieldset className="item-block">
             <legend>Come valuti l’esperienza del percorso MBSR?</legend>
@@ -355,6 +369,9 @@ export default function Conclusione({ anteprima = false }) {
           {errore && <p className="campo-errore" role="alert">{errore}</p>}
           <div className="azioni">
             {rimanda}
+            <button className="btn btn-ghost" type="button" disabled={invio} onClick={saltaValutazione}>
+              Preferisco non rispondere
+            </button>
             <button className="btn btn-avanti" type="submit" disabled={invio || !stelle || !consiglio}>
               {invio ? 'Salvataggio…' : 'Invia la valutazione'}
             </button>

@@ -63,6 +63,12 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 12/11/2026 · Correzioni dalla revisione della fine percorso (da Claude Code)
+- **Valutazione davvero facoltativa:** dal giorno 57 la sequenza è obbligatoria, quindi senza un'uscita la valutazione lo diventava di fatto, contro l'informativa. Ora c'è «Preferisco non rispondere»: si passa alla condivisione senza salvare niente; finché la sequenza non è conclusa, riaprendola la valutazione si ripropone.
+- **Ascolti dopo la fine sulla data di oggi:** a percorso concluso, o dopo il giorno 56, Settimana registrava ascolti, spunte e annotazioni sul giorno scelto nel calendario della settimana (per la settimana 1 del Gruppo pilota: 18/9), falsando giorni di pratica, Storico e scheda Pratica. Ora `dataPratica` è sempre oggi, il calendario della settimana non compare e un avviso lo spiega. Il database accetta ancora qualsiasi data (`registra_ascolto_formale`, `spunta_informale`, `salva_annotazione_giorno`): al 12/11 risultano 227 righe su 1281 con data precedente al salvataggio, 7 di oltre una settimana (forse ascolti offline sincronizzati dopo: da verificare).
+- **Installazione da zero:** `schema.sql` (vincolo 1-8 e testo del T2) e `migrazione_reclutamento.sql` (niente più settimana 9) non fanno più fallire `migrazione_percorso_8_settimane.sql`.
+- Nessuna modifica al database in linea.
+
 ### 12/11/2026 · Dal giorno 57 la conclusione è obbligatoria; poi Settimana parte dalla settimana 1 (da Claude Code)
 Decisione di Dimitri: dal giorno 57 chi entra nell'app e non ha concluso la sequenza di fine percorso ci viene portato; chi l'ha conclusa trova Settimana aperta sulla prima settimana.
 - **Rinvio:** `lib/partecipante.jsx` legge `stato_conclusione_del_partecipante` e calcola `conclusioneDaFare` (disponibile, non conclusa, oggi dopo il giorno di conclusione). `SoloPercorso` porta a `/conclusione` da Settimana, Storico e Check-in, prima ancora dei questionari; Avvisi resta aperto. Vale all'apertura dell'app (Splash → Settimana), dopo l'ingresso con il codice e a ogni pagina di pratica. Il giorno 56 resta «Più tardi».
