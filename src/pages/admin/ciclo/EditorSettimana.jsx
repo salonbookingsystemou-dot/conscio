@@ -4,7 +4,7 @@ import { supabase } from '../../../lib/supabaseClient'
 import { SelettoreTraccia } from '../../../components/LibreriaTracce.jsx'
 import { elencaTracce } from '../../../lib/tracce'
 
-const NUMERI_SETTIMANA = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+const NUMERI_SETTIMANA = [1, 2, 3, 4, 5, 6, 7, 8]
 const SCHEDE = [
   { id: 'tema', etichetta: 'Tema' },
   { id: 'formali', etichetta: 'Pratiche formali' },
@@ -12,7 +12,7 @@ const SCHEDE = [
 ]
 
 function etichettaSettimana(numero) {
-  return numero === 9 ? 'Intensiva' : `Settimana ${numero}`
+  return `Settimana ${numero}`
 }
 
 function eFormale(esercizio) {
@@ -479,7 +479,7 @@ export default function EditorSettimana() {
                     required
                     value={tema.titolo}
                     onChange={e => setTema({ ...tema, titolo: e.target.value })}
-                    placeholder={n === 9 ? 'Giornata intensiva' : `Tema settimana ${n}`}
+                    placeholder={`Tema settimana ${n}`}
                   />
                 </div>
                 <div className="field">

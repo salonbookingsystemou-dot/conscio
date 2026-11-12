@@ -223,7 +223,7 @@ function primo(valore) {
 
 export function etichettaCollegamentoTraccia(voce) {
   const n = Number(voce?.numeroSettimana)
-  const sett = n === 9 ? 'Intensiva' : `Settimana ${n || '?'}`
+  const sett = `Settimana ${n || '?'}`
   const pratica = voce?.descrizione || 'pratica'
   return voce?.cicloNome
     ? `${sett} (${voce.cicloNome}) → ${pratica}`

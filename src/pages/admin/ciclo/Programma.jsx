@@ -4,10 +4,10 @@ import { supabase } from '../../../lib/supabaseClient'
 import { riepilogoCiclo } from '../../../lib/controlloTracce'
 import StatoAttesa from '../../../components/StatoAttesa.jsx'
 
-const NUMERI_SETTIMANA = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+const NUMERI_SETTIMANA = [1, 2, 3, 4, 5, 6, 7, 8]
 
 function etichettaSettimana(numero) {
-  return numero === 9 ? 'Intensiva' : `Settimana ${numero}`
+  return `Settimana ${numero}`
 }
 
 function settimanaPronta(lezione) {

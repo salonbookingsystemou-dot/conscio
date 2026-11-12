@@ -47,7 +47,6 @@ function daSegnalare(tipo: unknown, record: CheckinRecord, precedente: CheckinRe
 }
 
 function etichettaSettimana(n: number | undefined): string {
-  if (n === 9) return 'settimana intensiva'
   return n ? `settimana ${n}` : 'settimana non indicata'
 }
 

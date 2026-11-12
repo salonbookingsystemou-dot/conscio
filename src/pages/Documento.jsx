@@ -370,7 +370,7 @@ function ModuloA() {
         <li>
           Ho capito che questo è un percorso di pratica di consapevolezza
           (mindfulness) a scopo di ricerca, in gruppo, della durata di otto
-          settimane, con eventuale giornata intensiva. L’appuntamento settimanale
+          settimane. L’appuntamento settimanale
           è di norma in presenza. Posso chiedere in iscrizione di fruire solo da
           remoto, senza legarmi al ciclo in corso. Non è un percorso
           terapeutico, non è una presa in carico psicologica e non è condotto da

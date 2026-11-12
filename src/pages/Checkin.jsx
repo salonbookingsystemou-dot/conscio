@@ -16,7 +16,7 @@ import ChiediCodice from '../components/ChiediCodice.jsx'
 import StatoAttesa from '../components/StatoAttesa.jsx'
 
 function etichettaSettimana(n) {
-  return n === 9 ? 'Settimana intensiva' : `Settimana ${n}`
+  return `Settimana ${n}`
 }
 
 function Cursore({ titolo, valore, onChange, minimo, massimo, disabilitato }) {

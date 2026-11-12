@@ -26,7 +26,7 @@ import {
 } from '../lib/ascolto.js'
 
 function etichettaSettimana(numero) {
-  return numero === 9 ? 'Intensiva' : `Settimana ${numero}`
+  return `Settimana ${numero}`
 }
 
 function linkIncontroSicuro(valore) {
@@ -364,7 +364,7 @@ export default function Programma() {
       return false
     }
     const payload = typeof data === 'string' ? JSON.parse(data) : data
-    const apertaFino = Math.max(1, Math.min(9, payload.settimana_corrente || 1))
+    const apertaFino = Math.max(1, Math.min(8, payload.settimana_corrente || 1))
     const lezioniCaricate = payload.lezioni || []
     memorizzaAscoltiDaProgramma(codicePulito, lezioniCaricate)
     aggiornaAscolto(codicePulito)
@@ -552,9 +552,7 @@ export default function Programma() {
   }
 
   const badgeSettimana = corrente
-    ? corrente.numero_settimana === 9
-      ? 'Giornata intensiva'
-      : `Questa settimana · ${corrente.numero_settimana} di 8`
+    ? `Questa settimana · ${corrente.numero_settimana} di 8`
     : null
 
   return (
@@ -615,7 +613,7 @@ export default function Programma() {
                     {inCorso && <span className="sett-ora">in corso</span>}
                     {bloccata && <span className="sett-lock">chiusa</span>}
                   </span>
-                  <span className="sett-tema">{l.tema || (n === 9 ? 'Giornata intensiva' : `Settimana ${n}`)}</span>
+                  <span className="sett-tema">{l.tema || `Settimana ${n}`}</span>
                 </button>
               )
             })}

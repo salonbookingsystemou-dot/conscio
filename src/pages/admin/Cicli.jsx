@@ -276,7 +276,7 @@ export default function Cicli() {
                         <span className="badge" title={emailPerCodice.get(s.codice_partecipante) || 'Nessuna email registrata'}>
                           {s.codice_partecipante}
                         </span>
-                        <span>{s.settimana === 9 ? 'Settimana intensiva' : `Settimana ${s.settimana}`}</span>
+                        <span>{`Settimana ${s.settimana}`}</span>
                         {s.creato_il && (
                           <span>· {new Date(s.creato_il).toLocaleDateString('it-IT')}</span>
                         )}
