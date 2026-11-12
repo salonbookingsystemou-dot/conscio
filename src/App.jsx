@@ -12,6 +12,7 @@ import Entra from './pages/Entra.jsx'
 import Accedi from './pages/Accedi.jsx'
 import Questionari from './pages/Questionari.jsx'
 import Conclusione from './pages/Conclusione.jsx'
+import AnteprimaValutazioni from './pages/admin/AnteprimaValutazioni.jsx'
 import LogPratica from './pages/LogPratica.jsx'
 import Comunicazioni from './pages/Comunicazioni.jsx'
 import Programma from './pages/Programma.jsx'
@@ -95,6 +96,7 @@ export default function App() {
           <Route path="/questionari" element={<SoloRegistrato><Questionari /></SoloRegistrato>} />
           <Route path="/conclusione" element={<SoloRegistrato><Conclusione /></SoloRegistrato>} />
           {import.meta.env.DEV && <Route path="/anteprima/conclusione" element={<Conclusione anteprima />} />}
+          {import.meta.env.DEV && <Route path="/anteprima/valutazioni" element={<AnteprimaValutazioni />} />}
           <Route path="/pratica" element={<SoloPercorso><LogPratica /></SoloPercorso>} />
           <Route path="/programma" element={<SoloPercorso><Programma /></SoloPercorso>} />
           <Route path="/checkin" element={<SoloPercorso><Checkin /></SoloPercorso>} />

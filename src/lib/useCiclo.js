@@ -48,6 +48,7 @@ export default function useCiclo(cicloId) {
     tutteIscrizioni: dati?.iscrizioni || [],
     punteggi: dati?.punteggi || [],
     log: dati?.log || [],
+    valutazioni: dati?.valutazioni || [],
     ricarica,
     aggiornaCiclo
   }
