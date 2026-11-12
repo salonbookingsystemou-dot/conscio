@@ -5,6 +5,7 @@ import DialogConferma from '../../components/DialogConferma.jsx'
 import PaginaAdmin from '../../components/admin/PaginaAdmin.jsx'
 import { useSnackbar } from '../../components/admin/Snackbar.jsx'
 import RigaIscrizione, { IntestazioneIscrizioni } from '../../components/RigaIscrizione.jsx'
+import { formattaMedia, riepilogoValutazioni } from '../../lib/valutazioni.js'
 import {
   ESITO_PROBLEMA,
   archiviaProblema,
@@ -62,6 +63,7 @@ export default function Cicli() {
 
   const kpi = useMemo(() => calcolaKpi(iscrizioni, cicli, punteggi), [iscrizioni, cicli, punteggi])
   const sessioni = useMemo(() => contaSessioni(dati?.log || []), [dati])
+  const valutazione = useMemo(() => riepilogoValutazioni(dati?.valutazioni || []), [dati])
   const timepoints = useMemo(() => timepointsPerCodice(punteggi), [punteggi])
   const cicloPerId = useMemo(() => new Map(cicli.map(c => [c.id, c])), [cicli])
   const remotiLiberi = useMemo(() => iscrizioni.filter(i => !i.ciclo_id), [iscrizioni])
@@ -192,7 +194,7 @@ export default function Cicli() {
         <button
           className="btn btn-ghost"
           type="button"
-          onClick={() => esportaAggregati({ ciclo: null, kpi, punteggi, logN: dati?.log.length || 0 })}
+          onClick={() => esportaAggregati({ ciclo: null, kpi, punteggi, logN: dati?.log.length || 0, valutazioni: valutazione })}
         >
           Esporta dati aggregati
         </button>
@@ -371,7 +373,7 @@ export default function Cicli() {
           </section>
         )}
 
-        <div className="dash-kpi">
+        <div className="dash-kpi is-cinque">
           <article className="dash-kpi-card">
             <p className="dash-kpi-label">Partecipanti attivi</p>
             <p className="dash-kpi-valore">{kpi.attivi}</p>
@@ -393,6 +395,17 @@ export default function Cicli() {
             <p className="dash-kpi-valore">
               {sessioni === 0 ? '0' : `${sessioni} session${sessioni === 1 ? 'e' : 'i'}`}
             </p>
+          </article>
+          <article className="dash-kpi-card">
+            <p className="dash-kpi-label">Valutazione del percorso</p>
+            <p className="dash-kpi-valore">
+              {valutazione.valutazioni ? <>{formattaMedia(valutazione.media)} <span className="hint">su 5</span></> : '—'}
+            </p>
+            {valutazione.valutazioni > 0 && cicli[0] && (
+              <Link className="dash-kpi-link" to={`/admin/cicli/${cicli[0].id}/questionari?tutti=1`}>
+                {valutazione.valutazioni} {valutazione.valutazioni === 1 ? 'valutazione' : 'valutazioni'} · dettagli
+              </Link>
+            )}
           </article>
         </div>
 

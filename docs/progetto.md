@@ -63,6 +63,13 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 12/11/2026 · Feedback di fine percorso nella dashboard esistente (da Claude Code)
+Decisione di Dimitri: niente scheda nuova, i feedback stanno nelle schermate che ci sono già.
+- **Questionari del ciclo:** la sezione «Valutazione del percorso» mostra chi arriva in fondo (sequenza aperta, T2, valutazione, link condiviso, conclusa, su N idonei con email confermata), la media e la distribuzione delle stelle, «lo consiglierebbero» e le frasi con codice, stelle, consiglio e data, con filtro Tutte · 4–5 · 3 · 1–2 stelle (le basse con bordo ocra). Con «Tutti i cicli» include i percorsi da remoto senza ciclo.
+- **Home Cicli:** quinta card «Valutazione del percorso» con la media e il link a Questionari · tutti i cicli.
+- **Export aggregati** (home e Questionari): `valutazione_percorso` con soli numeri (valutazioni, media, distribuzione, consigli, condivisioni, concluse), mai le frasi.
+- `valutazioni_percorso_pseudonime` ora si legge con gli altri dati della dashboard (`leggiDatiCicli`). In sviluppo `/#/anteprima/valutazioni` mostra la sezione con dati finti. Nessuna modifica al database.
+
 ### 12/11/2026 · Correzioni dalla revisione della fine percorso (da Claude Code)
 - **Valutazione davvero facoltativa:** dal giorno 57 la sequenza è obbligatoria, quindi senza un'uscita la valutazione lo diventava di fatto, contro l'informativa. Ora c'è «Preferisco non rispondere»: si passa alla condivisione senza salvare niente; finché la sequenza non è conclusa, riaprendola la valutazione si ripropone.
 - **Ascolti dopo la fine sulla data di oggi:** a percorso concluso, o dopo il giorno 56, Settimana registrava ascolti, spunte e annotazioni sul giorno scelto nel calendario della settimana (per la settimana 1 del Gruppo pilota: 18/9), falsando giorni di pratica, Storico e scheda Pratica. Ora `dataPratica` è sempre oggi, il calendario della settimana non compare e un avviso lo spiega. Il database accetta ancora qualsiasi data (`registra_ascolto_formale`, `spunta_informale`, `salva_annotazione_giorno`): al 12/11 risultano 227 righe su 1281 con data precedente al salvataggio, 7 di oltre una settimana (forse ascolti offline sincronizzati dopo: da verificare).

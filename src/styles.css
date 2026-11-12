@@ -6000,3 +6000,19 @@ body:has(.splash) {
 .dash-valutazioni-testi { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .dash-valutazioni-testi li { border-top: 1px solid var(--border-soft); padding-top: 10px; }
 .dash-valutazioni-testi p { margin: 0; }
+.dash-valutazioni-testi li.is-basso { border-left: 3px solid var(--ochre); padding-left: 10px; }
+.dash-valutazioni .filtri-chip { margin-bottom: 12px; }
+.valut-griglia { display: grid; gap: 20px; grid-template-columns: 1fr; margin: 12px 0 8px; }
+@media (min-width: 840px) { .valut-griglia { grid-template-columns: 1fr 1fr; } }
+.valut-griglia h4 { margin: 0 0 8px; }
+.valut-griglia h4 + .valut-righe { margin-top: 0; }
+.valut-righe { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
+.valut-riga { display: grid; grid-template-columns: minmax(7.5rem, auto) 1fr auto; align-items: center; gap: 10px; font-size: var(--fs-small); }
+.valut-barra { height: 8px; border-radius: var(--radius-pill); background: var(--track); overflow: hidden; }
+.valut-barra-piena { display: block; height: 100%; border-radius: inherit; background: var(--moss); }
+.valut-barra-piena.is-basso { background: var(--ochre); }
+.valut-valore { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.valut-media { margin: 0 0 10px; }
+.dash-kpi.is-cinque { grid-template-columns: 1fr 1fr; }
+@media (min-width: 960px) { .dash-kpi.is-cinque { grid-template-columns: repeat(5, 1fr); } }
+.dash-kpi-link { display: inline-block; margin-top: 4px; font-size: var(--fs-meta); }

@@ -13,6 +13,7 @@ import { ASSE_GRAFICO, COLORI, COLORI_STRUMENTO } from '../../../lib/colori.js'
 import { calcolaKpi, esportaAggregati } from '../../../lib/cicli.js'
 import { EMAIL_CONTATTO, STRUMENTI } from '../../../lib/contatti.js'
 import ValutazioniPercorso from '../../../components/admin/ValutazioniPercorso.jsx'
+import { riepilogoValutazioni } from '../../../lib/valutazioni.js'
 
 // Metadata per la lettura intuitiva dei questionari (nessuna interpretazione clinica).
 const INFO_STRUMENTO = {
@@ -251,7 +252,7 @@ function SchedaCodice({ part }) {
 }
 
 export default function Questionari() {
-  const { ciclo, cicli, iscrizioni, tutteIscrizioni, punteggi, log } = useOutletContext()
+  const { ciclo, cicli, iscrizioni, tutteIscrizioni, punteggi, log, valutazioni } = useOutletContext()
   const [search, setSearch] = useSearchParams()
   const tutti = search.get('tutti') === '1'
 
@@ -333,7 +334,8 @@ export default function Questionari() {
       ciclo: tutti ? null : ciclo,
       kpi: calcolaKpi(tutti ? tutteIscrizioni : iscrizioni, cicli, punteggiVista),
       punteggi: punteggiVista,
-      logN: logVista.length
+      logN: logVista.length,
+      valutazioni: riepilogoValutazioni(tutti ? valutazioni : valutazioni.filter(r => r.ciclo_id === ciclo.id))
     })
   }
 
@@ -385,7 +387,13 @@ export default function Questionari() {
         </div>
       )}
 
-      <ValutazioniPercorso cicloId={ciclo.id} tutti={tutti} />
+      <ValutazioniPercorso
+        righe={valutazioni}
+        cicloId={ciclo.id}
+        tutti={tutti}
+        iscrizioni={tutti ? tutteIscrizioni : iscrizioni}
+        punteggi={punteggi}
+      />
 
       <div className="dash-q-lista">
         {raggruppati.map(part => <SchedaCodice key={part.codice} part={part} />)}

@@ -236,7 +236,7 @@ export function calcolaKpi(iscrizioni, cicli, punteggi) {
   }
 }
 
-export function esportaAggregati({ ciclo, kpi, punteggi, logN }) {
+export function esportaAggregati({ ciclo, kpi, punteggi, logN, valutazioni = null }) {
   const payload = {
     esportato_il: new Date().toISOString(),
     ciclo: ciclo?.nome_ciclo || null,
@@ -247,7 +247,9 @@ export function esportaAggregati({ ciclo, kpi, punteggi, logN }) {
       questionario: p.questionario,
       totale: p.punteggio?.totale ?? null
     })),
-    log_n: logN
+    log_n: logN,
+    // Solo numeri della valutazione di fine percorso: mai le frasi.
+    valutazione_percorso: valutazioni
   }
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
@@ -272,7 +274,8 @@ export async function leggiDatiCicli({ notifiche = false, segnalazioni = false, 
       ? supabase.from('notifiche_inattivita').select('tipo, inviata_il, utenti(codice_partecipante)')
       : Promise.resolve({ data: [] }),
     segnalazioni ? supabase.rpc('segnalazioni_difficili_aperte') : Promise.resolve({ data: [] }),
-    problemi ? supabase.rpc('segnalazioni_problema_da_vedere') : Promise.resolve({ data: [] })
+    problemi ? supabase.rpc('segnalazioni_problema_da_vedere') : Promise.resolve({ data: [] }),
+    supabase.rpc('valutazioni_percorso_pseudonime')
   ]
   const risultati = await Promise.allSettled(richieste)
   const errori = new Set()
@@ -292,6 +295,7 @@ export async function leggiDatiCicli({ notifiche = false, segnalazioni = false, 
     notifiche: dato(4, 'notifiche'),
     segnalazioni: dato(5, 'segnalazioni'),
     problemi: dato(6, 'problemi'),
+    valutazioni: dato(7, 'valutazioni'),
     errori
   }
 }
