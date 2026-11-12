@@ -57,7 +57,7 @@ create table tracce (
 create table lezioni (
   id uuid primary key default gen_random_uuid(),
   ciclo_id uuid references cicli(id) on delete cascade,
-  numero_settimana int not null check (numero_settimana between 1 and 9), -- 8 settimane + eventuale giornata intensiva
+  numero_settimana int not null check (numero_settimana between 1 and 8), -- 8 settimane
   tema text,
   sottotitolo text,
   pratiche_formali text,
@@ -460,7 +460,7 @@ begin
       'quando', case v_tp
         when 'T0' then 'Dall’iscrizione alla settimana 1'
         when 'T1' then 'Settimane 4 e 5'
-        when 'T2' then 'Settimane 8 e 9 (fine e intensiva)'
+        when 'T2' then 'Dal giorno 56 a due settimane dopo la fine'
         else 'Dopo la fine del ciclo'
       end
     ));

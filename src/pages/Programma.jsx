@@ -475,14 +475,22 @@ export default function Programma() {
   const formali = esercizi.filter(eFormale)
   const informali = esercizi.filter(eInformale)
 
+  // Dopo la conclusione (o dopo l'ultimo giorno) si riascoltano le settimane passate:
+  // ascolti, spunte e annotazioni vanno sulla data di oggi, mai sui giorni del percorso.
+  const oltrePercorso = Boolean(
+    conclusione?.completata
+    || (conclusione?.giorno && oggiLocaleISO() > String(conclusione.giorno).slice(0, 10))
+  )
+  const dataPratica = oltrePercorso ? oggiLocaleISO() : dataScelta
+
   const ascoltoOk = useMemo(() => {
     if (!codice || !corrente) return false
-    return almenoUnFormaleAscoltatoNelGiorno(formali, codice.trim(), dataScelta)
+    return almenoUnFormaleAscoltatoNelGiorno(formali, codice.trim(), dataPratica)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [codice, corrente, dataScelta, formali, tickAscolto])
+  }, [codice, corrente, dataPratica, formali, tickAscolto])
 
   function segnaAscoltoNelGiorno(esercizio, data, secondi) {
-    const giorno = String(data || dataScelta).slice(0, 10)
+    const giorno = String(data || dataPratica).slice(0, 10)
     const minuti = Math.max(1, Math.round((Number(secondi) || 0) / 60))
     if (esercizio?.id && giorno) {
       setLezioni(prev => prev.map(l => ({
@@ -504,7 +512,7 @@ export default function Programma() {
   }
 
   function applicaSpuntaLocale(esercizio, fatto) {
-    const giorno = String(dataScelta).slice(0, 10)
+    const giorno = String(dataPratica).slice(0, 10)
     setLezioni(prev => prev.map(l => ({
       ...l,
       esercizi: (l.esercizi || []).map(e => {
@@ -545,7 +553,7 @@ export default function Programma() {
     const { error } = await supabase.rpc('spunta_informale', {
       p_codice: codice.trim(),
       p_esercizio_id: esercizio.id,
-      p_data: dataScelta,
+      p_data: dataPratica,
       p_fatto: fatto
     })
     if (error) {
@@ -653,7 +661,14 @@ export default function Programma() {
               <h2 className="settimana-titolo">{corrente.tema || `Settimana ${corrente.numero_settimana}`}</h2>
               {corrente.sottotitolo && <p className="lead settimana-sottotitolo">{corrente.sottotitolo}</p>}
 
-              {inizioSettimana && (
+              {oltrePercorso && (
+                <p className="questionari-avviso">
+                  Il percorso è concluso: puoi riascoltare le pratiche di ogni settimana.
+                  Ascolti e annotazioni si registrano con la data di oggi.
+                </p>
+              )}
+
+              {inizioSettimana && !oltrePercorso && (
                 <CalendarioPratica
                   titolo="Questa settimana"
                   inizio={formatISODate(inizioSettimana)}
@@ -673,10 +688,10 @@ export default function Programma() {
                   <div className="lista-task">
                     {formali.map(ex => (
                       <TaskFormale
-                        key={`${ex.id}-${dataScelta}`}
+                        key={`${ex.id}-${dataPratica}`}
                         esercizio={ex}
                         codice={codice.trim()}
-                        data={dataScelta}
+                        data={dataPratica}
                         aggiornaAscolto={aggiornaAscolto}
                         onCompletoGiorno={() => setTickAscolto(t => t + 1)}
                         onAscolto={segnaAscoltoNelGiorno}
@@ -692,7 +707,7 @@ export default function Programma() {
                   <p className="hint">Tocca per spuntare quelle fatte oggi.</p>
                   <div className="chip-riga chip-informali">
                     {informali.map(ex => {
-                      const fatta = spuntatoNelGiorno(ex, dataScelta)
+                      const fatta = spuntatoNelGiorno(ex, dataPratica)
                       const volte = (ex.log || []).filter(r => r.tipo === 'informale').length
                       return (
                         <button
@@ -720,15 +735,15 @@ export default function Programma() {
               )}
 
               <AnnotazioniGiorno
-                key={dataScelta}
+                key={dataPratica}
                 codice={codice}
-                data={dataScelta}
+                data={dataPratica}
                 annotazioni={corrente.annotazioni_giorno || []}
                 puoRegistrare={ascoltoOk}
                 onSalvato={() => {
                   aggiornaAscolto()
                   // Annotazioni del giorno 56 (o successive): parte la sequenza di conclusione.
-                  if (conclusioneDaFare && conclusione.giorno && dataScelta >= String(conclusione.giorno).slice(0, 10)) {
+                  if (conclusioneDaFare && conclusione.giorno && dataPratica >= String(conclusione.giorno).slice(0, 10)) {
                     navigate('/conclusione')
                     return
                   }
