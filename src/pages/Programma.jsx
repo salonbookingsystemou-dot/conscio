@@ -360,7 +360,8 @@ export default function Programma() {
       supabase.rpc('log_pratica_del_partecipante', { p_codice: codicePulito }),
       supabase.rpc('stato_conclusione_del_partecipante', { p_codice: codicePulito })
     ])
-    setConclusione(fine ? (typeof fine === 'string' ? JSON.parse(fine) : fine) : null)
+    const statoFine = fine ? (typeof fine === 'string' ? JSON.parse(fine) : fine) : null
+    setConclusione(statoFine)
     if (error || !data) {
       setErrore(error?.message?.includes('CODICE_NON_TROVATO')
         ? 'Codice non riconosciuto.'
@@ -376,8 +377,10 @@ export default function Programma() {
     setCiclo(cicloData || null)
     setTutteSessioni(log || [])
     setLimite(apertaFino)
+    // Percorso concluso: Settimana si apre dalla prima settimana, per ripercorrere le pratiche.
+    const partenza = statoFine?.completata ? 1 : apertaFino
     setSettimana(prev => {
-      const scelta = prev ?? apertaFino
+      const scelta = prev ?? partenza
       return scelta > apertaFino ? apertaFino : scelta
     })
     setAperto(true)
@@ -559,7 +562,9 @@ export default function Programma() {
   const conclusioneDaFare = !facilitatore && conclusione?.disponibile && !conclusione.completata
 
   const badgeSettimana = corrente
-    ? `Questa settimana · ${corrente.numero_settimana} di 8`
+    ? conclusione?.completata
+      ? `Percorso concluso · settimana ${corrente.numero_settimana} di 8`
+      : `Questa settimana · ${corrente.numero_settimana} di 8`
     : null
 
   return (
