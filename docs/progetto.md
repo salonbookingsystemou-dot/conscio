@@ -63,6 +63,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 13/11/2026 · La dashboard legge tutte le risposte e tutta la pratica (da Claude Code)
+Supabase restituisce al massimo 1000 righe per richiesta, senza segnalare errori. Le risposte dei partecipanti erano 1176 e il registro della pratica 1298 righe, quindi la dashboard del facilitatore ne perdeva una parte. Nella home risultava «Questionari T2: 0 su 8» quando nel Gruppo pilota l'avevano compilato in 3 (MBSR-4KXG6FL7, MBSR-NH9HLADL, MBSR-NZFEG37Y). Anche le sessioni di pratica erano sottostimate. `leggiDatiCicli` (`src/lib/cicli.js`) ora legge `risposte_pseudonime` e `log_pratica_pseudonimi` a pagine da 1000, ordinate su tutte le colonne. Nessuna modifica al database.
+
 ### 12/11/2026 · «Chiudi il tuo percorso» è un passaggio obbligato (da Claude Code)
 Decisione di Dimitri: quando si verificano le condizioni la sequenza di fine percorso non è un'opzione. Tolte la card «Chiudi il tuo percorso» in Settimana e «Più tardi» nei passi. `conclusioneDaFare` (in `lib/partecipante.jsx`) ora vale anche il giorno 56, appena risultano le annotazioni di quel giorno (`log_pratica_del_partecipante`, tipo `giorno`); dal giorno 57 in ogni caso. Prima delle annotazioni il giorno 56 si pratica come sempre. Salvando le annotazioni, Settimana aggiorna lo stato e porta alla sequenza; da lì Settimana, Storico e Check-in riportano alla sequenza finché non è conclusa (Questionari e Avvisi restano aperti). Nessuna modifica al database.
 
