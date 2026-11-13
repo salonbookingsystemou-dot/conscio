@@ -260,6 +260,23 @@ export function esportaAggregati({ ciclo, kpi, punteggi, logN, valutazioni = nul
   URL.revokeObjectURL(url)
 }
 
+// Supabase restituisce al massimo 1000 righe per richiesta: oltre, le righe in
+// più spariscono senza errore (a novembre 2026 i T2 restavano fuori dai conteggi).
+// Legge a pagine con un ordine stabile su tutte le colonne usate.
+const PAGINA = 1000
+
+async function leggiRpcIntera(nome, ordine) {
+  const righe = []
+  for (let da = 0; ; da += PAGINA) {
+    let q = supabase.rpc(nome)
+    for (const colonna of ordine) q = q.order(colonna, { ascending: true, nullsFirst: true })
+    const { data, error } = await q.range(da, da + PAGINA - 1)
+    if (error) return { data: null, error }
+    righe.push(...(data || []))
+    if (!data || data.length < PAGINA) return { data: righe, error: null }
+  }
+}
+
 /**
  * Letture dell'area facilitatore. Ogni voce può mancare senza bloccare le
  * altre: `errori` dice quali non sono arrivate.
@@ -268,8 +285,11 @@ export async function leggiDatiCicli({ notifiche = false, segnalazioni = false, 
   const richieste = [
     supabase.from('cicli').select(COLONNE_CICLO).order('data_inizio', { ascending: false }),
     supabase.from('iscrizioni').select(COLONNE_ISCRIZIONE),
-    supabase.rpc('risposte_pseudonime'),
-    supabase.rpc('log_pratica_pseudonimi'),
+    leggiRpcIntera('risposte_pseudonime', ['codice_partecipante', 'timepoint', 'questionario', 'ordine']),
+    leggiRpcIntera('log_pratica_pseudonimi', [
+      'codice_partecipante', 'data', 'tipo', 'numero_settimana', 'esercizio',
+      'durata_minuti', 'tono_prima', 'tono_dopo', 'note'
+    ]),
     notifiche
       ? supabase.from('notifiche_inattivita').select('tipo, inviata_il, utenti(codice_partecipante)')
       : Promise.resolve({ data: [] }),
