@@ -2,7 +2,7 @@ import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
 import ConfineErrori from '../../components/ConfineErrori.jsx'
 import PaginaAdmin from '../../components/admin/PaginaAdmin.jsx'
 import StatoVuoto from '../../components/StatoVuoto.jsx'
-import { etichettaAvanzamento, etichettaPeriodo, etichettaStato } from '../../lib/cicli.js'
+import { etichettaAvanzamento, etichettaPeriodo, etichettaStato, statoCiclo } from '../../lib/cicli.js'
 import useCiclo from '../../lib/useCiclo.js'
 
 const SCHEDE = [
@@ -46,7 +46,7 @@ export default function Ciclo() {
       indietro={INDIETRO}
       meta={(
         <>
-          <span className={`badge badge-stato is-${ciclo.stato}`}>{etichettaStato(ciclo.stato)}</span>
+          <span className={`badge badge-stato is-${statoCiclo(ciclo)}`}>{etichettaStato(statoCiclo(ciclo))}</span>
           <span>
             {etichettaPeriodo(ciclo.data_inizio, ciclo.data_fine)}
             <span aria-hidden="true"> · </span>
@@ -59,7 +59,7 @@ export default function Ciclo() {
           <label htmlFor="ciclo-selettore">Altro ciclo</label>
           <select id="ciclo-selettore" value={cicloId} onChange={e => cambiaCiclo(e.target.value)}>
             {cicli.map(c => (
-              <option key={c.id} value={c.id}>{c.nome_ciclo} ({etichettaStato(c.stato)})</option>
+              <option key={c.id} value={c.id}>{c.nome_ciclo} ({etichettaStato(statoCiclo(c))})</option>
             ))}
           </select>
         </div>

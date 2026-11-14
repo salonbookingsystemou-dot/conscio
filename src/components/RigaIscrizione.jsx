@@ -31,7 +31,7 @@ export function IntestazioneIscrizioni({ libera = false }) {
 export default function RigaIscrizione({
   iscrizione: i,
   timepoints,
-  ciclo,
+  conclusa = false,
   cicli,
   notifiche = [],
   onEsito,
@@ -44,7 +44,7 @@ export default function RigaIscrizione({
   const ritirato = eRitirato(i)
   const confermata = eConfermata(i)
   const idoneo = eIdoneo(i)
-  const fase = idoneo && !ritirato ? faseIdoneo(i, timepoints, ciclo) : null
+  const fase = idoneo && !ritirato ? faseIdoneo(i, timepoints, conclusa) : null
   const esito = ESITI.find(e => e.id === (i.esito_screening || 'in_attesa'))
 
   const dettagli = [
