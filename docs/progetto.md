@@ -63,6 +63,15 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 14/11/2026 · Email «Manca un ultimo passo per chiudere il tuo percorso» (da Claude Code)
+Decisione di Dimitri: un'email automatica per chi è arrivato in fondo ma non ha chiuso la sequenza di fine percorso. Al 14/11 erano 6 persone: 3 del Gruppo pilota senza T2, 2 del Gruppo pilota ferme all'ultimo passo, 1 da remoto con T2 fatto.
+- **Chi la riceve:** chi è idoneo, non ritirato, con email e consenso, e si trova tra 2 e 30 giorni dopo il giorno di conclusione senza `completata_il`. La riceve una sola volta per percorso.
+- **Il testo:** il pulsante «Chiudi il tuo percorso» porta a `/#/conclusione` (senza sessione passa da `/entra` e poi torna lì). Sotto c'è il codice partecipante. A chi deve ancora fare il T2, e può ancora farlo, l'email nomina il questionario e un riquadro ocra indica la data di chiusura; gli altri leggono solo valutazione e saluto. Il mittente è quello delle altre email: la questione «Percorso MBSR» resta aperta.
+- **Database** (`supabase/migrazione_promemoria_conclusione.sql`): la tabella `promemoria_conclusione` (RLS, la legge il facilitatore) e la funzione `candidati_promemoria_conclusione`, non eseguibile da anon. `esporta_dati_del_partecipante` e `resetta_dati_del_partecipante` includono gli invii. L'informativa (sezione 3) è aggiornata.
+- **Funzione** `promemoria-conclusione` (`--no-verify-jwt`), template in `_shared/emailConclusione.ts` con `pulsanteHtml`, il primo pulsante HTML delle email, riusabile. Il facilitatore può chiamarla con `{ "anteprima": true }`, che restituisce i codici previsti, o con `{ "prova": true }`, che manda un esempio alla propria email senza registrarlo. Ogni invio manda un riepilogo dei codici a contact@wordpresschef.it.
+- **Cron** GitHub `promemoria-conclusione.yml` alle 07:45 UTC.
+**Applicata e distribuita il 14/11/2026** (da Claude Code): migrazione applicata; candidati verificati con il ruolo di servizio (i 6 attesi, T2 da fare corretto); anon senza accesso; funzione distribuita, risponde 401 senza autorizzazione. **Nessuna email mandata:** il primo invio parte con il cron dopo l'unione su `main`.
+
 ### 13/11/2026 · La dashboard legge tutte le risposte e tutta la pratica (da Claude Code)
 Supabase restituisce al massimo 1000 righe per richiesta, senza segnalare errori. Le risposte dei partecipanti erano 1176 e il registro della pratica 1298 righe, quindi la dashboard del facilitatore ne perdeva una parte. Nella home risultava «Questionari T2: 0 su 8» quando nel Gruppo pilota l'avevano compilato in 3 (MBSR-4KXG6FL7, MBSR-NH9HLADL, MBSR-NZFEG37Y). Anche le sessioni di pratica erano sottostimate. `leggiDatiCicli` (`src/lib/cicli.js`) ora legge `risposte_pseudonime` e `log_pratica_pseudonimi` a pagine da 1000, ordinate su tutte le colonne. Nessuna modifica al database.
 
