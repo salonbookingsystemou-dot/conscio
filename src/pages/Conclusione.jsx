@@ -187,8 +187,11 @@ export default function Conclusione({ anteprima = false }) {
       return
     }
     window.open(`https://wa.me/?text=${encodeURIComponent(testoWhatsApp())}`, '_blank', 'noopener')
+    // Nel database la condivisione chiude anche il percorso: spesso da WhatsApp
+    // non si torna a premere «Concludi». Il pulsante resta per chi torna.
     await salvaPasso('condivisione')
-    setStato(s => ({ ...s, condivisione: true }))
+    await aggiornaPercorso(codice)
+    setStato(s => ({ ...s, condivisione: true, completata: true }))
   }
 
   // La valutazione è facoltativa: si può passare oltre senza lasciare dati.
