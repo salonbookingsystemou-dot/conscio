@@ -257,7 +257,8 @@ export const GRUPPI_PARTECIPANTI = [
   { id: 'da_chiudere', etichetta: 'Da chiudere', nota: '8 settimane finite, chiusura aperta' },
   { id: 'partenza', etichetta: 'In partenza', nota: 'il percorso non è ancora iniziato' },
   { id: 'in_percorso', etichetta: 'In percorso', nota: `settimane in corso, pratica negli ultimi ${GIORNI_INATTIVITA} giorni` },
-  { id: 'inattivi', etichetta: 'Inattivi', nota: `settimane in corso, nessuna pratica da ${GIORNI_INATTIVITA} giorni` }
+  { id: 'inattivi', etichetta: 'Inattivi', nota: `settimane in corso, nessuna pratica da ${GIORNI_INATTIVITA} giorni` },
+  { id: 'ritirati', etichetta: 'Ritirati', nota: 'usciti dal percorso, restano solo dati anonimi' }
 ]
 
 /** Ultimo giorno con una riga di pratica, per codice. */
@@ -307,9 +308,13 @@ export function statiPartecipanti(iscrizioni, cicli, log, valutazioni, punteggi)
   const gruppi = Object.fromEntries(GRUPPI_PARTECIPANTI.map(g => [g.id, []]))
   let senzaT2 = 0
   for (const i of iscrizioni || []) {
-    if (!eIdoneo(i) || eRitirato(i)) continue
     const codice = i.utenti?.codice_partecipante
     if (!codice) continue
+    if (eRitirato(i)) {
+      gruppi.ritirati.push(codice)
+      continue
+    }
+    if (!eIdoneo(i)) continue
     const gruppo = gruppoPercorso({
       iscrizione: i,
       ciclo: i.ciclo_id ? cicloById.get(i.ciclo_id) : null,
@@ -320,7 +325,8 @@ export function statiPartecipanti(iscrizioni, cicli, log, valutazioni, punteggi)
     gruppi[gruppo].push(codice)
   }
   const totale = Object.values(gruppi).reduce((n, g) => n + g.length, 0)
-  return { totale, gruppi, senzaT2 }
+  const idonei = totale - gruppi.ritirati.length
+  return { totale, idonei, gruppi, senzaT2 }
 }
 
 export function calcolaKpi(iscrizioni, cicli, punteggi) {

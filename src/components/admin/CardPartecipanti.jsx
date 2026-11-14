@@ -3,11 +3,13 @@ import { GRUPPI_PARTECIPANTI } from '../../lib/cicli.js'
 /**
  * Card della home Cicli: gli idonei divisi per stato del percorso, con una barra
  * proporzionale e una legenda. Dati: statiPartecipanti (lib/cicli.js).
- * «In partenza» compare solo quando c'è qualcuno.
+ * Il totale comprende i ritirati, che hanno un loro tratto in fondo alla barra.
  */
 export default function CardPartecipanti({ stati }) {
-  const { totale, gruppi, senzaT2 } = stati
-  const visibili = GRUPPI_PARTECIPANTI.filter(g => g.id !== 'partenza' || gruppi.partenza.length > 0)
+  const { totale, idonei, gruppi, senzaT2 } = stati
+  // «In partenza» e «Ritirati» compaiono solo quando c'è qualcuno.
+  const visibili = GRUPPI_PARTECIPANTI.filter(g => !['partenza', 'ritirati'].includes(g.id) || gruppi[g.id].length > 0)
+  const ritirati = gruppi.ritirati.length
 
   function nota(g) {
     if (g.id === 'da_chiudere' && senzaT2 > 0) return `${g.nota} · ${senzaT2} senza T2`
@@ -23,7 +25,11 @@ export default function CardPartecipanti({ stati }) {
     <article className="dash-kpi-card dash-partecipanti" aria-labelledby="dash-partecipanti-titolo">
       <p className="dash-kpi-label" id="dash-partecipanti-titolo">Partecipanti</p>
       <p className="dash-kpi-valore">
-        {totale} <span className="dash-partecipanti-unita">{totale === 1 ? 'idoneo' : 'idonei'}</span>
+        {totale} <span className="dash-partecipanti-unita">
+          {ritirati > 0
+            ? `${totale === 1 ? 'iscritto' : 'iscritti'} · ${idonei} ${idonei === 1 ? 'idoneo' : 'idonei'}, ${ritirati} ${ritirati === 1 ? 'ritirato' : 'ritirati'}`
+            : idonei === 1 ? 'idoneo' : 'idonei'}
+        </span>
       </p>
 
       {totale > 0 && (
