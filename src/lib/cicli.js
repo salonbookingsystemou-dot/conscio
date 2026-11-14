@@ -45,13 +45,36 @@ export function inAttesaDiEsito(iscrizione) {
   return eConfermata(iscrizione) && !eIdoneo(iscrizione) && !eRitirato(iscrizione)
 }
 
+// Giorno di conclusione del ciclo, come fine_ciclo / apertura_t2 nel database:
+// il più tardi tra il giorno 56 e la data di fine.
+export function fineCiclo(ciclo) {
+  const inizio = parseISODate(ciclo?.data_inizio)
+  const fine = parseISODate(ciclo?.data_fine)
+  if (!inizio) return fine
+  const giorno56 = addDays(inizio, 55)
+  return fine && fine > giorno56 ? fine : giorno56
+}
+
+// Stato da mostrare: dal giorno dopo la fine il ciclo è «concluso» anche se il
+// database non è ancora stato allineato (lo fa chiudi_cicli_terminati ogni mattina).
+export function statoCiclo(ciclo) {
+  if (!ciclo) return null
+  if (ciclo.stato === 'concluso') return 'concluso'
+  const fine = fineCiclo(ciclo)
+  const oggi = parseISODate(oggiLocaleISO())
+  return fine && oggi && oggi > fine ? 'concluso' : ciclo.stato
+}
+
 // Fase più avanzata raggiunta da un idoneo lungo il percorso.
 // Ordine reale: Idoneo → Primo accesso → T0 → (settimane) → T1 → T2 → T3 → Concluso.
-export function faseIdoneo(iscrizione, timepoints, ciclo) {
+// «Concluso» vale per la persona (sequenza di fine percorso chiusa), non per il ciclo:
+// a ciclo finito restano visibili T2 e T3 di ognuno.
+export function faseIdoneo(iscrizione, timepoints, conclusa = false) {
   const tp = timepoints || new Set()
   const onboarding = Boolean(iscrizione.utenti?.onboarding_completato)
-  if (ciclo?.stato === 'concluso') {
-    return { etichetta: 'Concluso', tono: 'chiuso', dettaglio: 'Ciclo concluso.' }
+  if (conclusa) {
+    const dopo = tp.has('T3') ? ' · follow-up (T3) compilato' : tp.has('T2') ? ' · T2 compilato' : ''
+    return { etichetta: 'Concluso', tono: 'chiuso', dettaglio: `Percorso chiuso${dopo}.` }
   }
   if (tp.has('T3')) {
     return { etichetta: 'Follow-up (T3)', tono: 'avanzato', dettaglio: 'Questionario di follow-up (T3) compilato.' }
@@ -108,7 +131,7 @@ function etichettaAttesaInizio(inizioIso) {
 
 export function etichettaAvanzamento(ciclo) {
   const sett = settimanaCiclo(ciclo.data_inizio)
-  if (ciclo.stato === 'concluso') return { testo: 'Completato', pct: 100, tono: 'chiuso' }
+  if (statoCiclo(ciclo) === 'concluso') return { testo: 'Completato', pct: 100, tono: 'chiuso' }
   if (sett === 0) {
     return {
       testo: etichettaAttesaInizio(ciclo.data_inizio),
@@ -137,7 +160,7 @@ export function timepointRaggiunti(ciclo) {
   const oggi = parseISODate(oggiLocaleISO())
   const inizio = parseISODate(ciclo.data_inizio)
   const fine = parseISODate(ciclo.data_fine) || (inizio ? addDays(inizio, 55) : null)
-  const dopoFine = ciclo.stato === 'concluso' || (fine && oggi && oggi > fine)
+  const dopoFine = statoCiclo(ciclo) === 'concluso' || (fine && oggi && oggi > fine)
   const sett = settimanaCiclo(ciclo.data_inizio)
   const lista = ['T0']
   if (dopoFine || sett >= 4) lista.push('T1')

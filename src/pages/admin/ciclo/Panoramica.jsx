@@ -3,7 +3,7 @@ import { useNavigate, useOutletContext } from 'react-router-dom'
 import { supabase } from '../../../lib/supabaseClient'
 import DialogConferma from '../../../components/DialogConferma.jsx'
 import AvvisoCicloLettera from '../../../components/admin/AvvisoCicloLettera.jsx'
-import { eIdoneo, eRemoto, etichettaAvanzamento, inAttesaDiEsito, linkIncontroValido } from '../../../lib/cicli.js'
+import { eIdoneo, eRemoto, etichettaAvanzamento, inAttesaDiEsito, linkIncontroValido, statoCiclo } from '../../../lib/cicli.js'
 
 export default function Panoramica() {
   const { ciclo, iscrizioni, aggiornaCiclo } = useOutletContext()
@@ -107,11 +107,12 @@ export default function Panoramica() {
         <div className="dash-ciclo-campi">
           <div className="field">
             <label htmlFor="ciclo-stato">Stato</label>
-            <select id="ciclo-stato" value={ciclo.stato} onChange={e => aggiorna({ stato: e.target.value })}>
+            <select id="ciclo-stato" value={statoCiclo(ciclo)} onChange={e => aggiorna({ stato: e.target.value })}>
               <option value="reclutamento">reclutamento</option>
               <option value="attivo">attivo</option>
               <option value="concluso">concluso</option>
             </select>
+            <p className="hint">Dal giorno dopo la fine delle 8 settimane il ciclo passa da solo a «concluso».</p>
           </div>
           <div className="field">
             <label htmlFor="ciclo-inizio">Data di inizio</label>

@@ -63,6 +63,17 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 14/11/2026 · Un ciclo finito passa da solo a «concluso» (da Claude Code)
+Decisione di Dimitri: un ciclo concluso non deve risultare «attivo». Prima lo stato cambiava solo a mano, e il Gruppo pilota era ancora «attivo» con «Settimana 8 di 8».
+- **Regola:** la fine del ciclo è il giorno di conclusione delle 8 settimane (`fine_ciclo`, uguale ad `apertura_t2`): il più tardi tra il giorno 56 e la data di fine. Dal giorno dopo il ciclo è «concluso». «Reclutamento» e «attivo» restano scelte del facilitatore, perché il reclutamento apre le iscrizioni; un ciclo si può ancora chiudere prima.
+- **Database** (`supabase/migrazione_cicli_conclusi_automatici.sql`, applicata):
+  - il trigger `cicli_chiudi_se_finito` impedisce a un ciclo già finito di tornare «reclutamento» o «attivo», anche cambiando le date;
+  - `chiudi_cicli_terminati` è chiamata ogni mattina da `notifica-inattivita` nella pulizia delle 07:00 UTC (funzione ridistribuita, `--no-verify-jwt`);
+  - il Gruppo pilota è passato a «concluso» (fine il 12/11).
+- **Interfaccia:** `statoCiclo` (`lib/cicli.js`) mostra «concluso» dal giorno dopo la fine anche prima del passaggio del mattino. Lo usano badge, selettore del ciclo, avanzamento («Completato») e Panoramica, dove compare una nota.
+- **Iscritti:** `faseIdoneo` non mostra più «Concluso» per tutti quando il ciclo è chiuso. Lo mostra solo a chi ha chiuso la sequenza di fine percorso (`valutazioni_percorso_pseudonime.completata`); gli altri restano sulla loro fase (T2, T3…).
+- Accesso, questionari, sequenza di conclusione e promemoria usano le date, non lo stato: non cambiano. I candidati dell'email di fine percorso restano 6. `separa_email_cicli_conclusi` aspetta comunque 90 giorni dalla fine. Nessun dato dei partecipanti nuovo.
+
 ### 14/11/2026 · Email «Manca un ultimo passo per chiudere il tuo percorso» (da Claude Code)
 Decisione di Dimitri: un'email automatica per chi è arrivato in fondo ma non ha chiuso la sequenza di fine percorso. Al 14/11 erano 6 persone: 3 del Gruppo pilota senza T2, 2 del Gruppo pilota ferme all'ultimo passo, 1 da remoto con T2 fatto.
 - **Chi la riceve:** chi è idoneo, non ritirato, con email e consenso, e si trova tra 2 e 30 giorni dopo il giorno di conclusione senza `completata_il`. La riceve una sola volta per percorso.

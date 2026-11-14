@@ -183,9 +183,13 @@ Deno.serve(async (req) => {
   if (errPulizia) console.warn('pulisci_iscrizioni_non_confermate', errPulizia.message)
   const { error: errLimiti } = await admin.rpc('pulisci_limiti_richieste')
   if (errLimiti) console.warn('pulisci_limiti_richieste', errLimiti.message)
+  // I cicli con le 8 settimane già finite passano a «concluso».
+  const { data: cicliChiusi, error: errCicli } = await admin.rpc('chiudi_cicli_terminati')
+  if (errCicli) console.warn('chiudi_cicli_terminati', errCicli.message)
   const pulizia = {
     n_iscrizioni_cancellate: errPulizia ? null : Number(nonConfermate) || 0,
-    errore_pulizia: Boolean(errPulizia || errLimiti)
+    n_cicli_conclusi: errCicli ? null : Number(cicliChiusi) || 0,
+    errore_pulizia: Boolean(errPulizia || errLimiti || errCicli)
   }
 
   const { data: candidati, error: errCand } = await admin.rpc('candidati_inattivita_remoto')

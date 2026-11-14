@@ -18,6 +18,7 @@ import {
   esitoProblema,
   esportaAggregati,
   etichettaAvanzamento,
+  statoCiclo,
   etichettaPeriodo,
   etichettaStato,
   impostaEsito,
@@ -64,6 +65,10 @@ export default function Cicli() {
   const kpi = useMemo(() => calcolaKpi(iscrizioni, cicli, punteggi), [iscrizioni, cicli, punteggi])
   const sessioni = useMemo(() => contaSessioni(dati?.log || []), [dati])
   const valutazione = useMemo(() => riepilogoValutazioni(dati?.valutazioni || []), [dati])
+  const conclusi = useMemo(
+    () => new Set((dati?.valutazioni || []).filter(v => v.completata).map(v => v.codice_partecipante)),
+    [dati]
+  )
   const timepoints = useMemo(() => timepointsPerCodice(punteggi), [punteggi])
   const cicloPerId = useMemo(() => new Map(cicli.map(c => [c.id, c])), [cicli])
   const remotiLiberi = useMemo(() => iscrizioni.filter(i => !i.ciclo_id), [iscrizioni])
@@ -435,7 +440,7 @@ export default function Cicli() {
                     <span className="hint">{etichettaPeriodo(c.data_inizio, c.data_fine)}</span>
                   </div>
                   <div>
-                    <span className={`badge badge-stato is-${c.stato}`}>{etichettaStato(c.stato)}</span>
+                    <span className={`badge badge-stato is-${statoCiclo(c)}`}>{etichettaStato(statoCiclo(c))}</span>
                   </div>
                   <div className="dash-riga-progresso">
                     <span>
@@ -495,7 +500,7 @@ export default function Cicli() {
                   key={i.id}
                   iscrizione={i}
                   timepoints={timepoints.get(i.utenti?.codice_partecipante)}
-                  ciclo={null}
+                  conclusa={conclusi.has(i.utenti?.codice_partecipante)}
                   cicli={cicli}
                   notifiche={notifichePerCodice.get(i.utenti?.codice_partecipante) || []}
                   onEsito={(isc, esito) => esegui(() => impostaEsito(isc, esito))}
