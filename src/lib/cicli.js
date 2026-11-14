@@ -65,33 +65,44 @@ export function statoCiclo(ciclo) {
   return fine && oggi && oggi > fine ? 'concluso' : ciclo.stato
 }
 
-// Fase più avanzata raggiunta da un idoneo lungo il percorso.
-// Ordine reale: Idoneo → Primo accesso → T0 → (settimane) → T1 → T2 → T3 → Concluso.
-// «Concluso» vale per la persona (sequenza di fine percorso chiusa), non per il ciclo:
-// a ciclo finito restano visibili T2 e T3 di ognuno.
-export function faseIdoneo(iscrizione, timepoints, conclusa = false) {
+function giornoBreve(iso) {
+  const d = parseISODate(iso)
+  return d ? `${d.getDate()} ${MESI_CORTI[d.getMonth()]}` : ''
+}
+
+// Questionario più avanti compilato, per i dettagli della riga.
+function avanzamentoQuestionari(iscrizione, tp) {
+  if (tp.has('T3')) return 'follow-up (T3) compilato'
+  if (tp.has('T2')) return 'T2 compilato'
+  if (tp.has('T1')) return 'T1 compilato'
+  if (tp.has('T0')) return 'T0 compilato'
+  if (iscrizione.utenti?.onboarding_completato) return 'primo accesso fatto, T0 da compilare'
+  return 'primo accesso non ancora fatto'
+}
+
+const FASI = {
+  completato: { etichetta: 'Percorso completato', tono: 'avanzato' },
+  da_chiudere: { etichetta: 'Da chiudere', tono: 'ambra' },
+  partenza: { etichetta: 'In partenza', tono: 'attesa' },
+  in_percorso: { etichetta: 'In percorso', tono: 'attivo' },
+  inattivi: { etichetta: 'Inattivo', tono: 'attesa' }
+}
+
+// Stato del percorso di un idoneo: lo stesso della card «Partecipanti»
+// (gruppoPercorso), con il questionario più avanti e l'ultima pratica nei dettagli.
+export function faseIdoneo(iscrizione, timepoints, { gruppo, ultimaPratica = '', inizio = null } = {}) {
   const tp = timepoints || new Set()
-  const onboarding = Boolean(iscrizione.utenti?.onboarding_completato)
-  if (conclusa) {
-    const dopo = tp.has('T3') ? ' · follow-up (T3) compilato' : tp.has('T2') ? ' · T2 compilato' : ''
-    return { etichetta: 'Concluso', tono: 'chiuso', dettaglio: `Percorso chiuso${dopo}.` }
-  }
-  if (tp.has('T3')) {
-    return { etichetta: 'Follow-up (T3)', tono: 'avanzato', dettaglio: 'Questionario di follow-up (T3) compilato.' }
-  }
-  if (tp.has('T2')) {
-    return { etichetta: 'A fine percorso (T2)', tono: 'avanti', dettaglio: 'Questionario di fine percorso (T2) compilato.' }
-  }
-  if (tp.has('T1')) {
-    return { etichetta: 'A metà (T1)', tono: 'avanti', dettaglio: 'Questionario di metà percorso (T1) compilato.' }
-  }
-  if (tp.has('T0')) {
-    return { etichetta: 'In percorso', tono: 'attivo', dettaglio: 'Questionario iniziale (T0) compilato: sta seguendo le settimane.' }
-  }
-  if (onboarding) {
-    return { etichetta: 'Primo accesso', tono: 'ambra', dettaglio: 'Primo accesso completato · questionario T0 ancora da compilare.' }
-  }
-  return { etichetta: 'Da avviare', tono: 'attesa', dettaglio: 'Idoneo · primo accesso non ancora fatto.' }
+  const fase = FASI[gruppo] || FASI.inattivi
+  const questionari = avanzamentoQuestionari(iscrizione, tp)
+  const pratica = ultimaPratica ? `ultima pratica il ${giornoBreve(ultimaPratica)}` : 'nessuna pratica registrata'
+  let dettaglio
+  if (gruppo === 'completato') dettaglio = `Sequenza finale chiusa · ${questionari}`
+  else if (gruppo === 'da_chiudere') {
+    dettaglio = `8 settimane finite, sequenza finale aperta · ${tp.has('T2') ? 'T2 compilato' : 'T2 da compilare'} · ${pratica}`
+  } else if (gruppo === 'partenza') dettaglio = `Inizia il ${giornoBreve(inizio)} · ${questionari}`
+  else if (gruppo === 'in_percorso') dettaglio = `${questionari} · ${pratica}`
+  else dettaglio = `${questionari} · ${ultimaPratica ? `nessuna pratica dal ${giornoBreve(ultimaPratica)}` : 'nessuna pratica registrata'}`
+  return { ...fase, dettaglio }
 }
 
 export function linkIncontroValido(valore) {
@@ -241,18 +252,49 @@ export const GRUPPI_PARTECIPANTI = [
   { id: 'inattivi', etichetta: 'Inattivi', nota: `settimane in corso, nessuna pratica da ${GIORNI_INATTIVITA} giorni` }
 ]
 
-export function statiPartecipanti(iscrizioni, cicli, log, valutazioni, punteggi) {
-  const cicloById = new Map((cicli || []).map(c => [c.id, c]))
-  const conclusi = new Set((valutazioni || []).filter(v => v.completata).map(v => v.codice_partecipante))
-  const conT2 = new Set((punteggi || []).filter(p => p.timepoint === 'T2').map(p => p.codice))
-  const ultimaPratica = new Map()
+/** Ultimo giorno con una riga di pratica, per codice. */
+export function ultimePratiche(log) {
+  const mappa = new Map()
   for (const r of log || []) {
     const iso = String(r.data || '').slice(0, 10)
     const cod = r.codice_partecipante
-    if (cod && iso && iso > (ultimaPratica.get(cod) || '')) ultimaPratica.set(cod, iso)
+    if (cod && iso && iso > (mappa.get(cod) || '')) mappa.set(cod, iso)
   }
+  return mappa
+}
+
+/** Codici con la sequenza di fine percorso chiusa. */
+export function codiciConclusi(valutazioni) {
+  return new Set((valutazioni || []).filter(v => v.completata).map(v => v.codice_partecipante))
+}
+
+/**
+ * Gruppo del percorso di un idoneo (vedi GRUPPI_PARTECIPANTI). `ciclo` è il ciclo
+ * dell'iscrizione; senza ciclo vale l'orologio personale del percorso da remoto.
+ */
+export function gruppoPercorso({ iscrizione, ciclo, conclusa, ultimaPratica }) {
+  const periodo = iscrizione?.ciclo_id ? ciclo : orologioPersonale(iscrizione)
+  const inizio = parseISODate(periodo?.data_inizio)
+  const fine = periodo ? fineCiclo(periodo) : null
   const oggi = parseISODate(oggiLocaleISO())
   const sogliaIso = formatISODate(addDays(oggi, -(GIORNI_INATTIVITA - 1)))
+  if (conclusa) return 'completato'
+  if (fine && oggi > fine) return 'da_chiudere'
+  if (inizio && oggi < inizio) return 'partenza'
+  if (inizio && (ultimaPratica || '') >= sogliaIso) return 'in_percorso'
+  return 'inattivi'
+}
+
+/** Inizio del percorso dell'iscrizione (ciclo o orologio personale), per «In partenza». */
+export function inizioPercorso(iscrizione, ciclo) {
+  return (iscrizione?.ciclo_id ? ciclo : orologioPersonale(iscrizione))?.data_inizio || null
+}
+
+export function statiPartecipanti(iscrizioni, cicli, log, valutazioni, punteggi) {
+  const cicloById = new Map((cicli || []).map(c => [c.id, c]))
+  const conclusi = codiciConclusi(valutazioni)
+  const conT2 = new Set((punteggi || []).filter(p => p.timepoint === 'T2').map(p => p.codice))
+  const ultima = ultimePratiche(log)
 
   const gruppi = Object.fromEntries(GRUPPI_PARTECIPANTI.map(g => [g.id, []]))
   let senzaT2 = 0
@@ -260,17 +302,13 @@ export function statiPartecipanti(iscrizioni, cicli, log, valutazioni, punteggi)
     if (!eIdoneo(i) || eRitirato(i)) continue
     const codice = i.utenti?.codice_partecipante
     if (!codice) continue
-    const ciclo = i.ciclo_id ? cicloById.get(i.ciclo_id) : orologioPersonale(i)
-    const inizio = parseISODate(ciclo?.data_inizio)
-    const fine = ciclo ? fineCiclo(ciclo) : null
-    let gruppo
-    if (conclusi.has(codice)) gruppo = 'completato'
-    else if (fine && oggi > fine) {
-      gruppo = 'da_chiudere'
-      if (!conT2.has(codice)) senzaT2 += 1
-    } else if (inizio && oggi < inizio) gruppo = 'partenza'
-    else if (inizio && (ultimaPratica.get(codice) || '') >= sogliaIso) gruppo = 'in_percorso'
-    else gruppo = 'inattivi'
+    const gruppo = gruppoPercorso({
+      iscrizione: i,
+      ciclo: i.ciclo_id ? cicloById.get(i.ciclo_id) : null,
+      conclusa: conclusi.has(codice),
+      ultimaPratica: ultima.get(codice)
+    })
+    if (gruppo === 'da_chiudere' && !conT2.has(codice)) senzaT2 += 1
     gruppi[gruppo].push(codice)
   }
   const totale = Object.values(gruppi).reduce((n, g) => n + g.length, 0)

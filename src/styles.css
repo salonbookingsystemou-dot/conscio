@@ -2120,32 +2120,27 @@ a:not([class]):hover { color: var(--ink); }
   background: currentColor;
   flex: 0 0 auto;
 }
-/* Da avviare: fermo, da sollecitare */
+/* Inattivo o in partenza */
 .dash-stato.is-attesa {
   background: color-mix(in srgb, var(--ink) 8%, var(--surface));
   color: var(--ink-soft);
 }
-/* Primo accesso fatto, T0 mancante */
+/* Da chiudere */
 .dash-stato.is-ambra {
   background: var(--tint-ochre);
   color: var(--ochre-strong);
 }
-/* In percorso (T0 fatto) */
+/* In percorso, con pratica recente */
 .dash-stato.is-attivo {
   background: var(--tint);
   color: var(--moss-strong);
 }
-/* Rilevazioni intermedie/finali (T1, T2) */
-.dash-stato.is-avanti {
-  background: color-mix(in srgb, var(--moss) 22%, var(--surface));
-  color: var(--moss-dark);
-}
-/* Follow-up (T3) */
+/* Percorso completato */
 .dash-stato.is-avanzato {
   background: var(--moss-dark);
   color: var(--on-accent);
 }
-/* Ciclo concluso */
+/* Ritirato */
 .dash-stato.is-chiuso {
   background: color-mix(in srgb, var(--moss-dark) 12%, var(--surface));
   color: color-mix(in srgb, var(--moss-dark) 80%, var(--ink));

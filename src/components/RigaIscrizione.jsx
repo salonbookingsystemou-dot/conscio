@@ -1,4 +1,4 @@
-import { ESITI, MODALITA, eConfermata, eIdoneo, eRemoto, eRitirato, faseIdoneo } from '../lib/cicli.js'
+import { ESITI, MODALITA, eConfermata, eIdoneo, eRemoto, eRitirato, faseIdoneo, gruppoPercorso, inizioPercorso } from '../lib/cicli.js'
 import { IconaAltro } from './admin/IconeAdmin.jsx'
 import MenuAzioni from './admin/MenuAzioni.jsx'
 
@@ -31,7 +31,9 @@ export function IntestazioneIscrizioni({ libera = false }) {
 export default function RigaIscrizione({
   iscrizione: i,
   timepoints,
+  ciclo = null,
   conclusa = false,
+  ultimaPratica = '',
   cicli,
   notifiche = [],
   onEsito,
@@ -44,7 +46,13 @@ export default function RigaIscrizione({
   const ritirato = eRitirato(i)
   const confermata = eConfermata(i)
   const idoneo = eIdoneo(i)
-  const fase = idoneo && !ritirato ? faseIdoneo(i, timepoints, conclusa) : null
+  const fase = idoneo && !ritirato
+    ? faseIdoneo(i, timepoints, {
+      gruppo: gruppoPercorso({ iscrizione: i, ciclo, conclusa, ultimaPratica }),
+      ultimaPratica,
+      inizio: inizioPercorso(i, ciclo)
+    })
+    : null
   const esito = ESITI.find(e => e.id === (i.esito_screening || 'in_attesa'))
 
   const dettagli = [
