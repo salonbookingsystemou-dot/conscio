@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabaseClient'
 import DialogConferma from '../../components/DialogConferma.jsx'
 import PaginaAdmin from '../../components/admin/PaginaAdmin.jsx'
+import CardPartecipanti from '../../components/admin/CardPartecipanti.jsx'
 import { useSnackbar } from '../../components/admin/Snackbar.jsx'
 import RigaIscrizione, { IntestazioneIscrizioni } from '../../components/RigaIscrizione.jsx'
 import { formattaMedia, riepilogoValutazioni } from '../../lib/valutazioni.js'
@@ -25,6 +26,7 @@ import {
   inAttesaDiEsito,
   leggiDatiCicli,
   ritira,
+  statiPartecipanti,
   timepointsPerCodice
 } from '../../lib/cicli.js'
 import { contaSessioni } from '../../lib/tono.js'
@@ -64,6 +66,11 @@ export default function Cicli() {
 
   const kpi = useMemo(() => calcolaKpi(iscrizioni, cicli, punteggi), [iscrizioni, cicli, punteggi])
   const sessioni = useMemo(() => contaSessioni(dati?.log || []), [dati])
+  const ascolti = useMemo(() => (dati?.log || []).filter(r => r.tipo === 'ascolto').length, [dati])
+  const stati = useMemo(
+    () => statiPartecipanti(iscrizioni, cicli, dati?.log || [], dati?.valutazioni || [], punteggi),
+    [iscrizioni, cicli, dati, punteggi]
+  )
   const valutazione = useMemo(() => riepilogoValutazioni(dati?.valutazioni || []), [dati])
   const conclusi = useMemo(
     () => new Set((dati?.valutazioni || []).filter(v => v.completata).map(v => v.codice_partecipante)),
@@ -378,11 +385,9 @@ export default function Cicli() {
           </section>
         )}
 
-        <div className="dash-kpi is-cinque">
-          <article className="dash-kpi-card">
-            <p className="dash-kpi-label">Partecipanti attivi</p>
-            <p className="dash-kpi-valore">{kpi.attivi}</p>
-          </article>
+        <CardPartecipanti stati={stati} />
+
+        <div className="dash-kpi">
           <article className="dash-kpi-card">
             <p className="dash-kpi-label">Iscrizioni in attesa</p>
             <p className="dash-kpi-valore is-attenzione">{kpi.inAttesa}</p>
@@ -396,9 +401,10 @@ export default function Cicli() {
             </p>
           </article>
           <article className="dash-kpi-card">
-            <p className="dash-kpi-label">Sessioni di pratica</p>
-            <p className="dash-kpi-valore">
-              {sessioni === 0 ? '0' : `${sessioni} session${sessioni === 1 ? 'e' : 'i'}`}
+            <p className="dash-kpi-label">Giorni di pratica</p>
+            <p className="dash-kpi-valore">{sessioni}</p>
+            <p className="dash-kpi-nota">
+              {ascolti} {ascolti === 1 ? 'ascolto' : 'ascolti'} · un giorno per persona con pratica formale
             </p>
           </article>
           <article className="dash-kpi-card">
