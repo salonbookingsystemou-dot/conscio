@@ -20,7 +20,7 @@ export const MODALITA = [
 const MESI_CORTI = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic']
 
 const COLONNE_CICLO = 'id, nome_ciclo, data_inizio, data_fine, stato, posti_totali, link_incontro'
-const COLONNE_ISCRIZIONE = 'id, esito_screening, modalita_fruizione, ciclo_id, utenti(codice_partecipante, email, stato_screening, onboarding_completato, email_confermata_il)'
+const COLONNE_ISCRIZIONE = 'id, esito_screening, modalita_fruizione, ciclo_id, data_inizio_pratica, utenti(codice_partecipante, email, stato_screening, onboarding_completato, email_confermata_il)'
 
 // Un'iscrizione conta solo dopo il primo ingresso con il codice ricevuto per email.
 // Finché non è confermata resta fuori da posti, numeri chiave, badge e filtro «Idonei».
@@ -217,6 +217,14 @@ export function codiciPerCiclo(iscrizioni) {
   return mappa
 }
 
+// Percorso da remoto senza ciclo: stesse finestre del ciclo, a partire dalla data
+// di inizio della pratica (come periodo_del_partecipante: fine = inizio + 55).
+// Senza data di inizio il percorso non è partito e conta solo il T0.
+function orologioPersonale(iscrizione) {
+  if (!iscrizione?.data_inizio_pratica) return null
+  return { data_inizio: iscrizione.data_inizio_pratica, data_fine: null, stato: 'attivo' }
+}
+
 export function calcolaKpi(iscrizioni, cicli, punteggi) {
   const attivi = iscrizioni.filter(eIdoneo).length
   const inAttesa = iscrizioni.filter(inAttesaDiEsito).length
@@ -237,7 +245,7 @@ export function calcolaKpi(iscrizioni, cicli, punteggi) {
     if (!eIdoneo(i)) continue
     const codice = i.utenti?.codice_partecipante
     if (!codice) continue
-    const raggiunti = timepointRaggiunti(i.ciclo_id ? cicloById.get(i.ciclo_id) : null)
+    const raggiunti = timepointRaggiunti(i.ciclo_id ? cicloById.get(i.ciclo_id) : orologioPersonale(i))
     for (const tp of raggiunti) {
       conteggi[tp].att += 1
       if (compilato[tp].has(codice)) conteggi[tp].fatti += 1
