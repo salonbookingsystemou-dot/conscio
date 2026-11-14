@@ -63,6 +63,9 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 14/11/2026 · Il conteggio dei questionari include i percorsi da remoto (da Claude Code)
+Dal controllo della dashboard Cicli, con i numeri ricalcolati dal database: «Questionari T2: 5 su 8» doveva essere 6 su 9. Per i percorsi da remoto senza ciclo, `calcolaKpi` considerava raggiunto solo il T0 e lasciava fuori MBSR-33CB9ULN, che ha finito l'11/11 e ha compilato il T2. Ora le finestre partono da `data_inizio_pratica` (`orologioPersonale` in `lib/cicli.js`, come `periodo_del_partecipante`: fine = inizio + 55); senza data di inizio conta ancora solo il T0. `COLONNE_ISCRIZIONE` legge anche `data_inizio_pratica`. Gli altri numeri erano giusti: in attesa 0; Gruppo pilota 6 in presenza e 2 da remoto; valutazione 4,5 su 4; 320 giorni con pratica formale per persona, con 737 ascolti. Restano da decidere due etichette: «Sessioni di pratica», che conta giorni e non sessioni, e «Partecipanti attivi», che conta tutti gli idonei, anche del ciclo concluso. Nessuna modifica al database.
+
 ### 14/11/2026 · Un ciclo finito passa da solo a «concluso» (da Claude Code)
 Decisione di Dimitri: un ciclo concluso non deve risultare «attivo». Prima lo stato cambiava solo a mano, e il Gruppo pilota era ancora «attivo» con «Settimana 8 di 8».
 - **Regola:** la fine del ciclo è il giorno di conclusione delle 8 settimane (`fine_ciclo`, uguale ad `apertura_t2`): il più tardi tra il giorno 56 e la data di fine. Dal giorno dopo il ciclo è «concluso». «Reclutamento» e «attivo» restano scelte del facilitatore, perché il reclutamento apre le iscrizioni; un ciclo si può ancora chiudere prima.
