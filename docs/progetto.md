@@ -63,6 +63,11 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 14/11/2026 · Ritirati nella card «Partecipanti» e date con l'articolo giusto (da Claude Code)
+- **Ritirati:** su richiesta di Dimitri la card li conta, con un tratto grigio in fondo alla barra e una voce in legenda («usciti dal percorso, restano solo dati anonimi»). Il totale diventa quello degli iscritti: al 14/11 sono 14, cioè 11 idonei e 3 ritirati (AQCPCRAZ, 6EUCF5JB, EL633ATT, tutti da remoto). La voce compare solo se ci sono ritirati.
+- **Date:** nelle righe degli iscritti, davanti a 8 e 11 ora si legge «l'11 nov» e «dall'8 nov», non più «il 11 nov».
+- Nessuna modifica al database.
+
 ### 14/11/2026 · Righe degli iscritti e card «Partecipanti» con lo stesso stato (da Claude Code)
 Dimitri ha segnalato un'incongruenza. La card contava MBSR-TVWWP2UG e MBSR-6VB8YG9A tra gli inattivi, mentre le loro righe dicevano «In percorso». MBSR-33CB9ULN era «Da chiudere» nella card e «A fine percorso (T2)» nella riga. Le righe mostravano il questionario più avanti; la card guardava fine delle 8 settimane, chiusura e pratica recente.
 - **Una regola sola:** `gruppoPercorso` in `lib/cicli.js` serve sia `statiPartecipanti` (la card) sia `faseIdoneo` (le righe). Il badge della riga dice:

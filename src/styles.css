@@ -2555,6 +2555,8 @@ a:not([class]):hover { color: var(--ink); }
 .dash-partecipanti-tratto.is-inattivi,
 .dash-partecipanti-campione.is-inattivi { background: var(--tono-nd); }
 .dash-partecipanti-campione.is-inattivi { border: 1px solid var(--tono-nd-bordo); box-sizing: border-box; }
+.dash-partecipanti-tratto.is-ritirati,
+.dash-partecipanti-campione.is-ritirati { background: var(--border-strong); }
 .dash-tabella {
   padding: 0;
   overflow: hidden;
