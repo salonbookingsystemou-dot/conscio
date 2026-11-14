@@ -70,6 +70,14 @@ function giornoBreve(iso) {
   return d ? `${d.getDate()} ${MESI_CORTI[d.getMonth()]}` : ''
 }
 
+// «il 9 nov» ma «l'11 nov», «dal 9 nov» ma «dall'8 nov»: 8 e 11 iniziano per vocale.
+function conArticolo(preposizione, iso) {
+  const giorno = parseISODate(iso)?.getDate()
+  const vocale = giorno === 8 || giorno === 11
+  const forme = { il: vocale ? 'l’' : 'il ', dal: vocale ? 'dall’' : 'dal ' }
+  return `${forme[preposizione]}${giornoBreve(iso)}`
+}
+
 // Questionario più avanti compilato, per i dettagli della riga.
 function avanzamentoQuestionari(iscrizione, tp) {
   if (tp.has('T3')) return 'follow-up (T3) compilato'
@@ -94,14 +102,14 @@ export function faseIdoneo(iscrizione, timepoints, { gruppo, ultimaPratica = '',
   const tp = timepoints || new Set()
   const fase = FASI[gruppo] || FASI.inattivi
   const questionari = avanzamentoQuestionari(iscrizione, tp)
-  const pratica = ultimaPratica ? `ultima pratica il ${giornoBreve(ultimaPratica)}` : 'nessuna pratica registrata'
+  const pratica = ultimaPratica ? `ultima pratica ${conArticolo('il', ultimaPratica)}` : 'nessuna pratica registrata'
   let dettaglio
   if (gruppo === 'completato') dettaglio = `Sequenza finale chiusa · ${questionari}`
   else if (gruppo === 'da_chiudere') {
     dettaglio = `8 settimane finite, sequenza finale aperta · ${tp.has('T2') ? 'T2 compilato' : 'T2 da compilare'} · ${pratica}`
-  } else if (gruppo === 'partenza') dettaglio = `Inizia il ${giornoBreve(inizio)} · ${questionari}`
+  } else if (gruppo === 'partenza') dettaglio = `Inizia ${conArticolo('il', inizio)} · ${questionari}`
   else if (gruppo === 'in_percorso') dettaglio = `${questionari} · ${pratica}`
-  else dettaglio = `${questionari} · ${ultimaPratica ? `nessuna pratica dal ${giornoBreve(ultimaPratica)}` : 'nessuna pratica registrata'}`
+  else dettaglio = `${questionari} · ${ultimaPratica ? `nessuna pratica ${conArticolo('dal', ultimaPratica)}` : 'nessuna pratica registrata'}`
   return { ...fase, dettaglio }
 }
 
