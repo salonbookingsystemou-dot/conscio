@@ -63,6 +63,14 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 14/11/2026 · La condivisione chiude il percorso (da Claude Code)
+Dimitri ha notato che nella card «Partecipanti» i completati erano 3, ma le valutazioni 4. MBSR-WD5ZRFZS e MBSR-NH9HLADL avevano fatto tutta la sequenza, condivisione su WhatsApp compresa, e non avevano premuto «Concludi». WhatsApp si apre e spesso non si torna nell'app. Restavano quindi «da chiudere»: l'app li avrebbe riportati alla sequenza e il 15/11 avrebbero ricevuto l'email «Manca un ultimo passo».
+- **Decisione di Dimitri:** la condivisione vale come chiusura. «Concludi senza condividere» resta per chi non condivide.
+- **Database** (`supabase/migrazione_condivisione_chiude_percorso.sql`, applicata): in `salva_passo_conclusione` il passo «condivisione» registra anche `completata_il`. Per i due casi aperti `completata_il` è stato impostato all'orario della loro condivisione.
+- **Interfaccia:** `Conclusione.jsx`, dopo la condivisione, aggiorna lo stato del percorso. Il pulsante «Concludi» resta per chi torna.
+- **Verificato:** i completati passano da 3 a 5 (4KXG6FL7, FRW58PLQ, NZFEG37Y, NH9HLADL, WD5ZRFZS). I candidati dell'email del 15/11 scendono da 6 a 4 (33CB9ULN, A33KETBJ, DNCBQP64, JUCBUUDH).
+- Nessuna nuova categoria di dati.
+
 ### 14/11/2026 · Card «Partecipanti» nella home Cicli (da Claude Code)
 Richiesta di Dimitri: «Partecipanti attivi: 11» non diceva a che punto fossero le persone. Ora una card a tutta riga mostra il totale degli idonei e li divide in gruppi che non si sovrappongono. C'è una barra proporzionale con la legenda, e passando sopra un gruppo compaiono i codici.
 - **I gruppi:**
