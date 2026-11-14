@@ -2481,6 +2481,85 @@ a:not([class]):hover { color: var(--ink); }
 .dash-kpi-valore.is-attenzione {
   color: var(--ochre);
 }
+.dash-kpi-nota {
+  margin: var(--space-4) 0 0;
+  font-size: var(--fs-caption);
+  color: var(--muted);
+}
+
+/* Card Partecipanti della home Cicli: totale, barra per stato e legenda. */
+.dash-partecipanti {
+  margin-bottom: var(--space-16);
+}
+.dash-partecipanti-unita {
+  font-family: var(--font-body);
+  font-size: var(--fs-small);
+  color: var(--muted);
+}
+.dash-partecipanti-barra {
+  display: flex;
+  gap: var(--space-2);
+  height: 14px;
+  margin: var(--space-16) 0 var(--space-14);
+  border-radius: var(--radius-pill);
+  background: var(--track);
+  overflow: hidden;
+}
+.dash-partecipanti-tratto {
+  flex-basis: 0;
+  min-width: 6px;
+}
+.dash-partecipanti-legenda {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-12) var(--space-16);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dash-partecipanti-legenda li {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.dash-partecipanti-voce {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-6);
+  font-size: var(--fs-meta);
+  color: var(--ink-2);
+}
+.dash-partecipanti-campione {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+.dash-partecipanti-numero {
+  font-family: var(--font-display);
+  font-size: var(--fs-section);
+  line-height: var(--lh-title);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.dash-partecipanti-numero.is-attenzione {
+  color: var(--ochre);
+}
+.dash-partecipanti-nota {
+  font-size: var(--fs-caption);
+  color: var(--muted);
+}
+.dash-partecipanti-tratto.is-completato,
+.dash-partecipanti-campione.is-completato { background: var(--accent); }
+.dash-partecipanti-tratto.is-da_chiudere,
+.dash-partecipanti-campione.is-da_chiudere { background: var(--ochre); }
+.dash-partecipanti-tratto.is-partenza,
+.dash-partecipanti-campione.is-partenza { background: var(--moss-pale); }
+.dash-partecipanti-tratto.is-in_percorso,
+.dash-partecipanti-campione.is-in_percorso { background: var(--moss-light); }
+.dash-partecipanti-tratto.is-inattivi,
+.dash-partecipanti-campione.is-inattivi { background: var(--tono-nd); }
+.dash-partecipanti-campione.is-inattivi { border: 1px solid var(--tono-nd-bordo); box-sizing: border-box; }
 .dash-tabella {
   padding: 0;
   overflow: hidden;
@@ -6013,6 +6092,4 @@ body:has(.splash) {
 .valut-barra-piena.is-basso { background: var(--ochre); }
 .valut-valore { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .valut-media { margin: 0 0 10px; }
-.dash-kpi.is-cinque { grid-template-columns: 1fr 1fr; }
-@media (min-width: 960px) { .dash-kpi.is-cinque { grid-template-columns: repeat(5, 1fr); } }
 .dash-kpi-link { display: inline-block; margin-top: 4px; font-size: var(--fs-meta); }

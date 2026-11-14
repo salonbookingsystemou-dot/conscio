@@ -63,6 +63,19 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 14/11/2026 · Card «Partecipanti» nella home Cicli (da Claude Code)
+Richiesta di Dimitri: «Partecipanti attivi: 11» non diceva a che punto fossero le persone. Ora una card a tutta riga mostra il totale degli idonei e li divide in gruppi che non si sovrappongono. C'è una barra proporzionale con la legenda, e passando sopra un gruppo compaiono i codici.
+- **I gruppi:**
+  - Percorso completato: sequenza finale chiusa.
+  - Da chiudere: 8 settimane finite e chiusura aperta, con quanti sono senza T2.
+  - In partenza: compare solo se c'è qualcuno.
+  - In percorso: settimane in corso e pratica negli ultimi 7 giorni.
+  - Inattivi: settimane in corso e nessuna pratica da 7 giorni, oppure percorso da remoto mai avviato.
+- **Come si calcola:** `statiPartecipanti` in `lib/cicli.js`. La fine del percorso è `fineCiclo` del ciclo; per i percorsi da remoto è l'orologio personale. Un percorso finito resta tra i «Da chiudere» anche se la persona non pratica da tempo.
+- **Al 14/11:** 11 idonei, di cui 3 completati, 6 da chiudere (3 senza T2), 0 in percorso e 2 inattivi.
+- **Le altre card:** stanno in una riga da quattro. «Sessioni di pratica» diventa «Giorni di pratica», con gli ascolti sotto: il numero era già quello dei giorni con pratica formale per persona. `kpi.attivi` resta nell'export aggregato.
+- Componente `components/admin/CardPartecipanti.jsx`, stili `.dash-partecipanti-*` con i token. Nessuna modifica al database.
+
 ### 14/11/2026 · Il conteggio dei questionari include i percorsi da remoto (da Claude Code)
 Dal controllo della dashboard Cicli, con i numeri ricalcolati dal database: «Questionari T2: 5 su 8» doveva essere 6 su 9. Per i percorsi da remoto senza ciclo, `calcolaKpi` considerava raggiunto solo il T0 e lasciava fuori MBSR-33CB9ULN, che ha finito l'11/11 e ha compilato il T2. Ora le finestre partono da `data_inizio_pratica` (`orologioPersonale` in `lib/cicli.js`, come `periodo_del_partecipante`: fine = inizio + 55); senza data di inizio conta ancora solo il T0. `COLONNE_ISCRIZIONE` legge anche `data_inizio_pratica`. Gli altri numeri erano giusti: in attesa 0; Gruppo pilota 6 in presenza e 2 da remoto; valutazione 4,5 su 4; 320 giorni con pratica formale per persona, con 737 ascolti. Restano da decidere due etichette: «Sessioni di pratica», che conta giorni e non sessioni, e «Partecipanti attivi», che conta tutti gli idonei, anche del ciclo concluso. Nessuna modifica al database.
 

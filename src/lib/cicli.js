@@ -225,6 +225,58 @@ function orologioPersonale(iscrizione) {
   return { data_inizio: iscrizione.data_inizio_pratica, data_fine: null, stato: 'attivo' }
 }
 
+// ── Partecipanti per stato del percorso ─────────────────────────────────────
+// Ogni idoneo sta in un solo gruppo, così la somma dà il totale:
+// completato (sequenza finale chiusa) → da chiudere (8 settimane finite) →
+// in partenza (prima dell'inizio) → in percorso / inattivi (settimane in corso,
+// con o senza pratica negli ultimi GIORNI_INATTIVITA giorni; senza data di inizio
+// il percorso da remoto non è partito e conta come inattivo).
+export const GIORNI_INATTIVITA = 7
+
+export const GRUPPI_PARTECIPANTI = [
+  { id: 'completato', etichetta: 'Percorso completato', nota: 'sequenza finale chiusa' },
+  { id: 'da_chiudere', etichetta: 'Da chiudere', nota: '8 settimane finite, chiusura aperta' },
+  { id: 'partenza', etichetta: 'In partenza', nota: 'il percorso non è ancora iniziato' },
+  { id: 'in_percorso', etichetta: 'In percorso', nota: `settimane in corso, pratica negli ultimi ${GIORNI_INATTIVITA} giorni` },
+  { id: 'inattivi', etichetta: 'Inattivi', nota: `settimane in corso, nessuna pratica da ${GIORNI_INATTIVITA} giorni` }
+]
+
+export function statiPartecipanti(iscrizioni, cicli, log, valutazioni, punteggi) {
+  const cicloById = new Map((cicli || []).map(c => [c.id, c]))
+  const conclusi = new Set((valutazioni || []).filter(v => v.completata).map(v => v.codice_partecipante))
+  const conT2 = new Set((punteggi || []).filter(p => p.timepoint === 'T2').map(p => p.codice))
+  const ultimaPratica = new Map()
+  for (const r of log || []) {
+    const iso = String(r.data || '').slice(0, 10)
+    const cod = r.codice_partecipante
+    if (cod && iso && iso > (ultimaPratica.get(cod) || '')) ultimaPratica.set(cod, iso)
+  }
+  const oggi = parseISODate(oggiLocaleISO())
+  const sogliaIso = formatISODate(addDays(oggi, -(GIORNI_INATTIVITA - 1)))
+
+  const gruppi = Object.fromEntries(GRUPPI_PARTECIPANTI.map(g => [g.id, []]))
+  let senzaT2 = 0
+  for (const i of iscrizioni || []) {
+    if (!eIdoneo(i) || eRitirato(i)) continue
+    const codice = i.utenti?.codice_partecipante
+    if (!codice) continue
+    const ciclo = i.ciclo_id ? cicloById.get(i.ciclo_id) : orologioPersonale(i)
+    const inizio = parseISODate(ciclo?.data_inizio)
+    const fine = ciclo ? fineCiclo(ciclo) : null
+    let gruppo
+    if (conclusi.has(codice)) gruppo = 'completato'
+    else if (fine && oggi > fine) {
+      gruppo = 'da_chiudere'
+      if (!conT2.has(codice)) senzaT2 += 1
+    } else if (inizio && oggi < inizio) gruppo = 'partenza'
+    else if (inizio && (ultimaPratica.get(codice) || '') >= sogliaIso) gruppo = 'in_percorso'
+    else gruppo = 'inattivi'
+    gruppi[gruppo].push(codice)
+  }
+  const totale = Object.values(gruppi).reduce((n, g) => n + g.length, 0)
+  return { totale, gruppi, senzaT2 }
+}
+
 export function calcolaKpi(iscrizioni, cicli, punteggi) {
   const attivi = iscrizioni.filter(eIdoneo).length
   const inAttesa = iscrizioni.filter(inAttesaDiEsito).length
