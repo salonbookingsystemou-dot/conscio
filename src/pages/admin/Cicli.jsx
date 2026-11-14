@@ -387,11 +387,14 @@ export default function Cicli() {
 
         <CardPartecipanti stati={stati} />
 
-        <div className="dash-kpi">
-          <article className="dash-kpi-card">
-            <p className="dash-kpi-label">Iscrizioni in attesa</p>
-            <p className="dash-kpi-valore is-attenzione">{kpi.inAttesa}</p>
-          </article>
+        {/* Le card a zero non compaiono: le iscrizioni in attesa solo quando ce ne sono. */}
+        <div className="dash-kpi is-adattiva">
+          {kpi.inAttesa > 0 && (
+            <article className="dash-kpi-card">
+              <p className="dash-kpi-label">Iscrizioni in attesa</p>
+              <p className="dash-kpi-valore is-attenzione">{kpi.inAttesa}</p>
+            </article>
+          )}
           <article className="dash-kpi-card">
             <p className="dash-kpi-label">
               {kpi.tpFocus ? `Questionari ${kpi.tpFocus}` : 'Questionari'}
