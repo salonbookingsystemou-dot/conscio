@@ -138,6 +138,11 @@ function Informativa() {
           a cui si riferisce, per non riscriverti per la stessa pausa;
         </li>
         <li>
+          promemoria di fine percorso: se due giorni dopo la fine del percorso non hai
+          ancora chiuso la sequenza di conclusione, ti scriviamo una volta. Conserviamo la
+          data dell’invio e il giorno di fine a cui si riferisce, per non riscriverti;
+        </li>
+        <li>
           valutazione di fine percorso, dal giorno 56 e facoltativa: stelle da 1 a 5 sull’esperienza,
           se consiglieresti il percorso (sì, forse, no) ed eventuale testo su cosa ti porti a casa,
           con le date in cui hai visto i passi della conclusione. Se tocchi «Condividi su WhatsApp»
@@ -295,7 +300,8 @@ function Diritti() {
       <p>
         Il file contiene email (se ancora presente), consensi, iscrizioni, item e
         valori dei questionari, note di pratica, check-in settimanali, le date dei
-        promemoria di pausa e le segnalazioni di problemi collegate al codice.
+        promemoria di pausa e di fine percorso, la conclusione del percorso e le segnalazioni
+        di problemi collegate al codice.
         Non contiene dati di altri.
       </p>
 
