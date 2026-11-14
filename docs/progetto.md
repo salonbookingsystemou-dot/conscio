@@ -63,6 +63,17 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 14/11/2026 · Righe degli iscritti e card «Partecipanti» con lo stesso stato (da Claude Code)
+Dimitri ha segnalato un'incongruenza. La card contava MBSR-TVWWP2UG e MBSR-6VB8YG9A tra gli inattivi, mentre le loro righe dicevano «In percorso». MBSR-33CB9ULN era «Da chiudere» nella card e «A fine percorso (T2)» nella riga. Le righe mostravano il questionario più avanti; la card guardava fine delle 8 settimane, chiusura e pratica recente.
+- **Una regola sola:** `gruppoPercorso` in `lib/cicli.js` serve sia `statiPartecipanti` (la card) sia `faseIdoneo` (le righe). Il badge della riga dice:
+  - «Percorso completato», verde scuro;
+  - «Da chiudere», ocra;
+  - «In percorso», verde;
+  - «Inattivo» e «In partenza», neutro.
+- **Dettagli della riga:** il questionario più avanti e la pratica. Per esempio «8 settimane finite, sequenza finale aperta · T2 da compilare · ultima pratica il 29 set», oppure «T0 compilato · nessuna pratica dal 18 ott».
+- **Dove:** home Cicli («Percorsi individuali da remoto») e scheda Iscritti del ciclo. `ultimePratiche` e `codiciConclusi` sono condivise. Tolto il tono `.dash-stato.is-avanti`, non più usato.
+- Nessuna modifica al database.
+
 ### 14/11/2026 · La condivisione chiude il percorso (da Claude Code)
 Dimitri ha notato che nella card «Partecipanti» i completati erano 3, ma le valutazioni 4. MBSR-WD5ZRFZS e MBSR-NH9HLADL avevano fatto tutta la sequenza, condivisione su WhatsApp compresa, e non avevano premuto «Concludi». WhatsApp si apre e spesso non si torna nell'app. Restavano quindi «da chiudere»: l'app li avrebbe riportati alla sequenza e il 15/11 avrebbero ricevuto l'email «Manca un ultimo passo».
 - **Decisione di Dimitri:** la condivisione vale come chiusura. «Concludi senza condividere» resta per chi non condivide.

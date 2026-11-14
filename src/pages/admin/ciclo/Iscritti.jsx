@@ -9,8 +9,10 @@ import {
   impostaEsito,
   impostaModalita,
   inAttesaDiEsito,
+  codiciConclusi,
   ritira,
-  timepointsPerCodice
+  timepointsPerCodice,
+  ultimePratiche
 } from '../../../lib/cicli.js'
 
 const FILTRI = [
@@ -22,16 +24,14 @@ const FILTRI = [
 ]
 
 export default function Iscritti() {
-  const { iscrizioni, punteggi, valutazioni, ricarica } = useOutletContext()
+  const { ciclo, iscrizioni, punteggi, log, valutazioni, ricarica } = useOutletContext()
   const [filtro, setFiltro] = useState('tutte')
   const [errore, setErrore] = useState(null)
   const [dialogo, setDialogo] = useState(null)
 
   const timepoints = useMemo(() => timepointsPerCodice(punteggi), [punteggi])
-  const conclusi = useMemo(
-    () => new Set((valutazioni || []).filter(v => v.completata).map(v => v.codice_partecipante)),
-    [valutazioni]
-  )
+  const conclusi = useMemo(() => codiciConclusi(valutazioni), [valutazioni])
+  const ultime = useMemo(() => ultimePratiche(log), [log])
   const vale = FILTRI.find(f => f.id === filtro)?.vale || (() => true)
   const visibili = iscrizioni.filter(vale)
 
@@ -106,7 +106,9 @@ export default function Iscritti() {
               key={i.id}
               iscrizione={i}
               timepoints={timepoints.get(i.utenti?.codice_partecipante)}
+              ciclo={ciclo}
               conclusa={conclusi.has(i.utenti?.codice_partecipante)}
+              ultimaPratica={ultime.get(i.utenti?.codice_partecipante)}
               onEsito={(isc, esito) => esegui(() => impostaEsito(isc, esito))}
               onModalita={(isc, modalita) => esegui(() => impostaModalita(isc, modalita))}
               onRitira={chiediRitiro}

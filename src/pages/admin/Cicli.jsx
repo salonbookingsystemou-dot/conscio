@@ -27,6 +27,8 @@ import {
   leggiDatiCicli,
   ritira,
   statiPartecipanti,
+  codiciConclusi,
+  ultimePratiche,
   timepointsPerCodice
 } from '../../lib/cicli.js'
 import { contaSessioni } from '../../lib/tono.js'
@@ -72,10 +74,8 @@ export default function Cicli() {
     [iscrizioni, cicli, dati, punteggi]
   )
   const valutazione = useMemo(() => riepilogoValutazioni(dati?.valutazioni || []), [dati])
-  const conclusi = useMemo(
-    () => new Set((dati?.valutazioni || []).filter(v => v.completata).map(v => v.codice_partecipante)),
-    [dati]
-  )
+  const conclusi = useMemo(() => codiciConclusi(dati?.valutazioni), [dati])
+  const ultime = useMemo(() => ultimePratiche(dati?.log), [dati])
   const timepoints = useMemo(() => timepointsPerCodice(punteggi), [punteggi])
   const cicloPerId = useMemo(() => new Map(cicli.map(c => [c.id, c])), [cicli])
   const remotiLiberi = useMemo(() => iscrizioni.filter(i => !i.ciclo_id), [iscrizioni])
@@ -507,6 +507,7 @@ export default function Cicli() {
                   iscrizione={i}
                   timepoints={timepoints.get(i.utenti?.codice_partecipante)}
                   conclusa={conclusi.has(i.utenti?.codice_partecipante)}
+                  ultimaPratica={ultime.get(i.utenti?.codice_partecipante)}
                   cicli={cicli}
                   notifiche={notifichePerCodice.get(i.utenti?.codice_partecipante) || []}
                   onEsito={(isc, esito) => esegui(() => impostaEsito(isc, esito))}
