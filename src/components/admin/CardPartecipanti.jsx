@@ -7,8 +7,8 @@ import { GRUPPI_PARTECIPANTI } from '../../lib/cicli.js'
  */
 export default function CardPartecipanti({ stati }) {
   const { totale, idonei, gruppi, senzaT2 } = stati
-  // «In partenza» e «Ritirati» compaiono solo quando c'è qualcuno.
-  const visibili = GRUPPI_PARTECIPANTI.filter(g => !['partenza', 'ritirati'].includes(g.id) || gruppi[g.id].length > 0)
+  // Un gruppo compare solo quando c'è qualcuno.
+  const visibili = GRUPPI_PARTECIPANTI.filter(g => gruppi[g.id].length > 0)
   const ritirati = gruppi.ritirati.length
 
   function nota(g) {
@@ -34,7 +34,7 @@ export default function CardPartecipanti({ stati }) {
 
       {totale > 0 && (
         <div className="dash-partecipanti-barra" aria-hidden="true">
-          {visibili.map(g => gruppi[g.id].length > 0 && (
+          {visibili.map(g => (
             <span
               key={g.id}
               className={`dash-partecipanti-tratto is-${g.id}`}

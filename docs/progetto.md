@@ -63,6 +63,13 @@ regole in `docs/design-system.md`, valori in `src/styles/tokens.css`. Niente col
 
 ## Registro delle modifiche
 
+### 14/11/2026 · La home Cicli non mostra i valori a zero (da Claude Code)
+Richiesta di Dimitri.
+- **Card «Partecipanti»:** un gruppo compare in legenda solo se conta qualcuno. Al 14/11 sparisce «In percorso 0».
+- **Iscrizioni in attesa:** la card compare solo se ce ne sono.
+- **Griglia:** la riga delle card numeriche si adatta al loro numero (`.dash-kpi.is-adattiva`). La vetrina, che usa `.dash-kpi`, non cambia.
+- Nessuna modifica al database.
+
 ### 14/11/2026 · Ritirati nella card «Partecipanti» e date con l'articolo giusto (da Claude Code)
 - **Ritirati:** su richiesta di Dimitri la card li conta, con un tratto grigio in fondo alla barra e una voce in legenda («usciti dal percorso, restano solo dati anonimi»). Il totale diventa quello degli iscritti: al 14/11 sono 14, cioè 11 idonei e 3 ritirati (AQCPCRAZ, 6EUCF5JB, EL633ATT, tutti da remoto). La voce compare solo se ci sono ritirati.
 - **Date:** nelle righe degli iscritti, davanti a 8 e 11 ora si legge «l'11 nov» e «dall'8 nov», non più «il 11 nov».

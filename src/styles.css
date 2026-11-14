@@ -2476,6 +2476,9 @@ a:not([class]):hover { color: var(--ink); }
 .dash-kpi-valore.is-attenzione {
   color: var(--ochre);
 }
+.dash-kpi.is-adattiva {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
 .dash-kpi-nota {
   margin: var(--space-4) 0 0;
   font-size: var(--fs-caption);
