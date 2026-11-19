@@ -107,6 +107,20 @@ function IconaSpunta() {
   )
 }
 
+// Link per salvare il file sul computer: Supabase Storage con `?download=`
+// risponde come allegato, così il browser lo salva invece di aprirlo.
+function urlDownload(src, titolo) {
+  try {
+    const indirizzo = new URL(src)
+    const estensione = (indirizzo.pathname.match(/\.([a-z0-9]{2,4})$/i) || [])[1] || 'mp3'
+    const nome = String(titolo || 'traccia').trim().replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, ' ') || 'traccia'
+    indirizzo.searchParams.set('download', `${nome}.${estensione.toLowerCase()}`)
+    return indirizzo.href
+  } catch {
+    return src
+  }
+}
+
 // Copia della traccia sul telefono, per ascoltarla anche senza rete.
 function ScaricaPerOffline({ src, titolo }) {
   const { stato, percentuale, errore } = useStatoTraccia(src)
@@ -156,6 +170,14 @@ function ScaricaPerOffline({ src, titolo }) {
           Scarica per ascoltare senza rete
         </button>
       )}
+      <a
+        className="btn btn-text is-piccolo card-traccia-download"
+        href={urlDownload(src, titolo)}
+        download
+        aria-label={`Scarica sul computer la traccia ${titolo}`}
+      >
+        Download
+      </a>
       {errore && stato !== STATO_IN_CORSO && (
         <p className="campo-errore card-traccia-offline-errore" role="alert">{errore}</p>
       )}
