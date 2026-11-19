@@ -5157,6 +5157,10 @@ body:has(.splash) {
 .card-traccia-offline-scarica {
   margin-left: calc(-1 * var(--space-8));
 }
+.card-traccia-download {
+  margin-left: auto;
+  margin-right: calc(-1 * var(--space-8));
+}
 .card-traccia-offline-stato {
   display: flex;
   align-items: center;
